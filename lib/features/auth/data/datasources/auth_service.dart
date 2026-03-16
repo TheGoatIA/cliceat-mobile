@@ -6,6 +6,9 @@ part 'auth_service.chopper.dart';
 abstract class AuthService extends ChopperService {
   static AuthService create([ChopperClient? client]) => _$AuthService(client);
 
+  @POST(path: '/register')
+  Future<Response> register(@Body() Map<String, dynamic> body);
+
   @POST(path: '/login')
   Future<Response> login(@Body() Map<String, dynamic> body);
 
@@ -17,4 +20,18 @@ abstract class AuthService extends ChopperService {
 
   @POST(path: '/refresh')
   Future<Response> refreshToken();
+
+  @POST(path: '/logout')
+  Future<Response> logout();
+
+  /// Firebase social auth (Google or Apple)
+  @POST(path: '/firebase')
+  Future<Response> loginWithFirebase(@Body() Map<String, dynamic> body);
+
+  // Kept for backward compat aliases
+  @POST(path: '/google')
+  Future<Response> loginWithGoogle(@Body() Map<String, dynamic> body);
+
+  @POST(path: '/apple')
+  Future<Response> loginWithApple(@Body() Map<String, dynamic> body);
 }

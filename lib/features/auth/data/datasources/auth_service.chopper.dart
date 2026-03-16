@@ -19,6 +19,14 @@ final class _$AuthService extends AuthService {
   final Type definitionType = AuthService;
 
   @override
+  Future<Response<dynamic>> register(Map<String, dynamic> body) {
+    final Uri $url = Uri.parse('/auth/register');
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
   Future<Response<dynamic>> login(Map<String, dynamic> body) {
     final Uri $url = Uri.parse('/auth/login');
     final $body = body;
@@ -46,6 +54,37 @@ final class _$AuthService extends AuthService {
   Future<Response<dynamic>> refreshToken() {
     final Uri $url = Uri.parse('/auth/refresh');
     final Request $request = Request('POST', $url, client.baseUrl);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> logout() {
+    final Uri $url = Uri.parse('/auth/logout');
+    final Request $request = Request('POST', $url, client.baseUrl);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> loginWithFirebase(Map<String, dynamic> body) {
+    final Uri $url = Uri.parse('/auth/firebase');
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> loginWithGoogle(Map<String, dynamic> body) {
+    final Uri $url = Uri.parse('/auth/google');
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> loginWithApple(Map<String, dynamic> body) {
+    final Uri $url = Uri.parse('/auth/apple');
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<dynamic, dynamic>($request);
   }
 }

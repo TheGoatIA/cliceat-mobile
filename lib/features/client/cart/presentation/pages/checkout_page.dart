@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/di/injection.dart';
+import '../../../../../core/network/services/coupon_service.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/cart_cubit.dart';
 
@@ -17,6 +18,42 @@ class CheckoutPage extends StatefulWidget {
 
 class _CheckoutPageState extends State<CheckoutPage> {
   String _selectedPaymentMethod = 'orange_money';
+  final TextEditingController _couponController = TextEditingController();
+  double _couponDiscount = 0.0;
+  String? _couponMessage;
+  bool _couponLoading = false;
+  String? _appliedCouponCode;
+
+  @override
+  void dispose() {
+    _couponController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _validateCoupon() async {
+    final code = _couponController.text.trim();
+    if (code.isEmpty) return;
+    setState(() { _couponLoading = true; _couponMessage = null; });
+    try {
+      final res = await getIt<CouponService>().validateCoupon(code);
+      if (res.isSuccessful && res.body != null) {
+        final data = res.body!['data'] as Map<String, dynamic>?;
+        final discount = (data?['discountAmount'] as num?)?.toDouble() ?? 0.0;
+        setState(() {
+          _couponDiscount = discount;
+          _appliedCouponCode = code;
+          _couponMessage = 'checkout.coupon_applied'.tr(args: [discount.toStringAsFixed(0)]);
+        });
+      } else {
+        final msg = (res.body as Map<String, dynamic>?)?['message']?.toString() ?? 'checkout.coupon_invalid'.tr();
+        setState(() { _couponDiscount = 0.0; _appliedCouponCode = null; _couponMessage = msg; });
+      }
+    } catch (_) {
+      setState(() { _couponMessage = 'checkout.coupon_error'.tr(); });
+    } finally {
+      setState(() { _couponLoading = false; });
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -79,6 +116,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             "lng": 9.7679,
                           },
                           "items": items,
+                          if (_appliedCouponCode != null) "couponCode": _appliedCouponCode,
                         };
 
                         context.read<OrderBloc>().add(OrderEvent.createOrder(payload));
@@ -129,7 +167,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, cartState) {
         const deliveryFee = 1000.0;
-        final total = cartState.subtotal + deliveryFee;
+        final total = (cartState.subtotal + deliveryFee - _couponDiscount).clamp(0.0, double.infinity);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -144,6 +182,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [Text('cart.delivery_fee'.tr()), const Text('1000 FCFA')],
             ),
+            if (_couponDiscount > 0) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('checkout.coupon_discount'.tr(), style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                  Text('-${_couponDiscount.toStringAsFixed(0)} FCFA', style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                ],
+              ),
+            ],
             const Divider(height: 24),
             Row(
                mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -159,29 +207,49 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildCouponSection(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'checkout.enter_coupon'.tr(),
-              prefixIcon: const Icon(Icons.local_offer_outlined),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _couponController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  hintText: 'checkout.enter_coupon'.tr(),
+                  prefixIcon: const Icon(Icons.local_offer_outlined),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton(
+              onPressed: _couponLoading ? null : () {
+                HapticFeedback.selectionClick();
+                _validateCoupon();
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: _couponLoading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text('checkout.apply'.tr()),
+            ),
+          ],
+        ),
+        if (_couponMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _couponMessage!,
+            style: TextStyle(
+              color: _couponDiscount > 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.error,
+              fontSize: 13,
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        ElevatedButton(
-          onPressed: () {
-            HapticFeedback.selectionClick();
-          },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: Text('checkout.apply'.tr()),
-        ),
+        ],
       ],
     );
   }

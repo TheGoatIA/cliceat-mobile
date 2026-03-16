@@ -1,55 +1,300 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:injectable/injectable.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logger/logger.dart';
+import '../../../../core/data/local/database.dart';
+import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/websocket_service.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/network/services/user_service.dart';
+import '../../data/datasources/auth_service.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
 part 'auth_bloc.freezed.dart';
 
+@injectable
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc() : super(const AuthState.initial()) {
-    on<_AppStarted>((event, emit) async {
-      emit(const AuthState.loading());
-      // TODO: Check local storage for token and mode
-      await Future.delayed(const Duration(seconds: 1)); // Mocking load
+  final AuthService _authService;
+  final FlutterSecureStorage _secureStorage;
+  final AppDatabase _db;
+  final Logger _logger = Logger();
+
+  AuthBloc(
+    this._authService,
+    this._secureStorage,
+    this._db,
+  ) : super(const AuthState.initial()) {
+    on<_AppStarted>(_onAppStarted);
+    on<_SendOtp>(_onSendOtp);
+    on<_VerifyOtp>(_onVerifyOtp);
+    on<_LoginWithEmail>(_onLoginWithEmail);
+    on<_LoginWithGoogle>(_onLoginWithGoogle);
+    on<_LoginWithApple>(_onLoginWithApple);
+    on<_Register>(_onRegister);
+    on<_SwitchMode>(_onSwitchMode);
+    on<_Logout>(_onLogout);
+  }
+
+  Future<void> _onAppStarted(_AppStarted event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final token = await _secureStorage.read(key: 'jwt_token');
+      final userId = await _secureStorage.read(key: 'user_id');
+      final currentMode =
+          await _secureStorage.read(key: 'current_mode') ?? 'client';
+      if (token != null && userId != null) {
+        await _postAuthSetup(token);
+        emit(AuthState.authenticated(
+            token: token, userId: userId, currentMode: currentMode));
+      } else {
+        emit(const AuthState.unauthenticated());
+      }
+    } catch (e) {
+      _logger.e("Error checking auth state: $e");
       emit(const AuthState.unauthenticated());
-    });
+    }
+  }
 
-    on<_SendOtp>((event, emit) async {
-      emit(const AuthState.loading());
-      // TODO: Call API to send OTP
-      await Future.delayed(const Duration(seconds: 1)); 
-      emit(AuthState.otpSent(phone: event.phone));
-    });
+  Future<void> _onSendOtp(_SendOtp event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.sendOtp({
+        "phone": event.phone,
+        "countryCode": "237",
+      });
+      if (res.isSuccessful) {
+        emit(AuthState.otpSent(phone: event.phone));
+      } else {
+        final msg = _extractError(res.body, 'Impossible d\'envoyer le code OTP');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e("Error sending OTP: $e");
+      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+    }
+  }
 
-    on<_VerifyOtp>((event, emit) async {
-      emit(const AuthState.loading());
-      // TODO: Call API to verify OTP
-      await Future.delayed(const Duration(seconds: 1));
-      emit(const AuthState.authenticated(token: 'mock_token', userId: '1', currentMode: 'client'));
-    });
+  Future<void> _onVerifyOtp(_VerifyOtp event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.verifyOtp({
+        "phone": event.phone,
+        "otp": event.otp,
+      });
+      if (res.isSuccessful && res.body != null) {
+        final parsed = _parseAuthResponse(res.body);
+        if (parsed != null) {
+          await _persistAuth(parsed.$1, parsed.$2, 'client');
+          await _postAuthSetup(parsed.$1);
+          emit(AuthState.authenticated(
+              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+        } else {
+          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+        }
+      } else {
+        final msg = _extractError(res.body, 'Code OTP incorrect.');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e("Error verifying OTP: $e");
+      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+    }
+  }
 
-    on<_LoginWithEmail>((event, emit) async {
-      emit(const AuthState.loading());
-      // TODO: Call API for Email Auth
-      await Future.delayed(const Duration(seconds: 1));
-      emit(const AuthState.authenticated(token: 'mock_token', userId: '1', currentMode: 'client'));
-    });
-    
-    on<_SwitchMode>((event, emit) async {
-      state.maybeWhen(
-        authenticated: (token, userId, currentMode) {
-          // TODO: Save new mode to Drift UserPrefs
-          emit(AuthState.authenticated(token: token, userId: userId, currentMode: event.mode));
-        },
-        orElse: () {},
-      );
-    });
+  Future<void> _onLoginWithEmail(
+      _LoginWithEmail event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.login({
+        "email": event.email,
+        "password": event.password,
+      });
+      if (res.isSuccessful && res.body != null) {
+        final parsed = _parseAuthResponse(res.body);
+        if (parsed != null) {
+          await _persistAuth(parsed.$1, parsed.$2, 'client');
+          await _postAuthSetup(parsed.$1);
+          emit(AuthState.authenticated(
+              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+        } else {
+          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+        }
+      } else {
+        final msg = _extractError(res.body, 'Email ou mot de passe incorrect.');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e("Error logging in: $e");
+      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+    }
+  }
 
-    on<_Logout>((event, emit) async {
-      emit(const AuthState.loading());
-      // TODO: Clear local storage and Drift DB
-      await Future.delayed(const Duration(milliseconds: 500));
+  Future<void> _onLoginWithGoogle(
+      _LoginWithGoogle event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.loginWithFirebase({
+        "idToken": event.token,
+      });
+      if (res.isSuccessful && res.body != null) {
+        final parsed = _parseAuthResponse(res.body);
+        if (parsed != null) {
+          await _persistAuth(parsed.$1, parsed.$2, 'client');
+          await _postAuthSetup(parsed.$1);
+          emit(AuthState.authenticated(
+              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+        } else {
+          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+        }
+      } else {
+        emit(const AuthState.error(message: 'Connexion Google échouée.'));
+      }
+    } catch (e) {
+      _logger.e("Error logging in with Google: $e");
+      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+    }
+  }
+
+  Future<void> _onLoginWithApple(
+      _LoginWithApple event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.loginWithFirebase({
+        "idToken": event.token,
+      });
+      if (res.isSuccessful && res.body != null) {
+        final parsed = _parseAuthResponse(res.body);
+        if (parsed != null) {
+          await _persistAuth(parsed.$1, parsed.$2, 'client');
+          await _postAuthSetup(parsed.$1);
+          emit(AuthState.authenticated(
+              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+        } else {
+          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+        }
+      } else {
+        emit(const AuthState.error(message: 'Connexion Apple échouée.'));
+      }
+    } catch (e) {
+      _logger.e("Error logging in with Apple: $e");
+      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+    }
+  }
+
+  Future<void> _onRegister(_Register event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.register({
+        "name": event.name,
+        "email": event.email,
+        "password": event.password,
+        "city": event.city,
+      });
+      if (res.isSuccessful && res.body != null) {
+        final parsed = _parseAuthResponse(res.body);
+        if (parsed != null) {
+          await _persistAuth(parsed.$1, parsed.$2, 'client');
+          await _postAuthSetup(parsed.$1);
+          emit(AuthState.authenticated(
+              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+        } else {
+          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+        }
+      } else {
+        final msg = _extractError(res.body, 'Inscription échouée.');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e("Error registering: $e");
+      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+    }
+  }
+
+  Future<void> _onSwitchMode(
+      _SwitchMode event, Emitter<AuthState> emit) async {
+    state.maybeWhen(
+      authenticated: (token, userId, currentMode) async {
+        await _secureStorage.write(key: 'current_mode', value: event.mode);
+        emit(AuthState.authenticated(
+            token: token, userId: userId, currentMode: event.mode));
+      },
+      orElse: () {},
+    );
+  }
+
+  Future<void> _onLogout(_Logout event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      // Attempt server logout (best effort)
+      await _authService.logout().catchError((_) {});
+      // Disconnect WebSocket
+      getIt<WebSocketService>().disconnect();
+      // Clear local storage
+      await _secureStorage.delete(key: 'jwt_token');
+      await _secureStorage.delete(key: 'user_id');
+      await _secureStorage.delete(key: 'current_mode');
+      await _db.delete(_db.userPrefsTable).go();
+      await _db.delete(_db.cartTable).go();
       emit(const AuthState.unauthenticated());
-    });
+    } catch (e) {
+      _logger.e("Error logging out: $e");
+      emit(const AuthState.unauthenticated());
+    }
+  }
+
+  // ─── Helpers ────────────────────────────────────────────────────────────────
+
+  /// Parse auth response: returns (accessToken, userId) or null on failure.
+  /// API format: { success, data: { user: { _id } }, tokens: { accessToken } }
+  (String, String)? _parseAuthResponse(dynamic body) {
+    try {
+      final map = body as Map<String, dynamic>;
+      final tokens = map['tokens'] as Map<String, dynamic>?;
+      final token = tokens?['accessToken'] as String?;
+      final data = map['data'] as Map<String, dynamic>?;
+      final user = data?['user'] as Map<String, dynamic>?;
+      final userId = user?['_id']?.toString() ?? user?['id']?.toString();
+      if (token != null && userId != null) return (token, userId);
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _extractError(dynamic body, String fallback) {
+    try {
+      return (body as Map<String, dynamic>)['message']?.toString() ?? fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  Future<void> _persistAuth(
+      String token, String userId, String mode) async {
+    await _secureStorage.write(key: 'jwt_token', value: token);
+    await _secureStorage.write(key: 'user_id', value: userId);
+    await _secureStorage.write(key: 'current_mode', value: mode);
+  }
+
+  /// Called after successful auth: connect WebSocket + register FCM token
+  Future<void> _postAuthSetup(String token) async {
+    try {
+      // Connect WebSocket for real-time events
+      await getIt<WebSocketService>().connect();
+    } catch (e) {
+      _logger.w('WebSocket connect failed: $e');
+    }
+    try {
+      // Register FCM token with backend
+      final fcmToken = await getIt<NotificationService>().getFcmToken();
+      if (fcmToken != null) {
+        await getIt<UserService>()
+            .registerFcmToken({'token': fcmToken});
+      }
+    } catch (e) {
+      _logger.w('FCM token registration failed: $e');
+    }
   }
 }
