@@ -5,10 +5,12 @@ import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
 import '../../features/client/home/presentation/pages/client_main_tab.dart';
 import '../../features/client/restaurant/presentation/pages/restaurant_detail_page.dart';
+import '../../features/client/cart/presentation/pages/cart_page.dart';
 import '../../features/client/cart/presentation/pages/checkout_page.dart';
 import '../../features/client/cart/presentation/pages/client_tracking_page.dart';
 import '../../features/client/cart/presentation/pages/order_success_page.dart';
 import '../../features/client/cart/presentation/pages/payment_webview_page.dart';
+import '../../features/client/cart/presentation/pages/address_selection_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/delivery_main_tab.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -33,6 +35,14 @@ final GoRouter appRouter = GoRouter(
       path: '/client',
       builder: (context, state) => const ClientMainTab(),
       routes: [
+        GoRoute(
+          path: 'cart',
+          builder: (context, state) => const CartPage(),
+        ),
+        GoRoute(
+          path: 'address-selection',
+          builder: (context, state) => const AddressSelectionPage(),
+        ),
         GoRoute(
           path: 'tracking/:orderId',
           builder: (context, state) => ClientTrackingPage(

@@ -26,7 +26,14 @@
     "login_btn": "Sign in",
     "register_btn": "Sign up",
     "no_account": "Don't have an account?",
-    "have_account": "Already have an account?"
+    "have_account": "Already have an account?",
+    "error_send_otp": "Unable to send OTP code.",
+    "error_invalid_otp": "Invalid OTP code.",
+    "error_invalid_response": "Invalid server response.",
+    "error_invalid_credentials": "Invalid email or password.",
+    "error_google": "Google sign-in failed.",
+    "error_apple": "Apple sign-in failed.",
+    "error_register": "Registration failed."
   },
   "client": {
     "home_title": "Discover",
@@ -44,13 +51,17 @@
   },
   "restaurant": {
     "delivery_time": "Delivery in 25-30 min",
+    "delivery_in_min": "Delivery in {} min",
+    "variable_fee": "Variable fee",
     "added_to_cart": "Added to cart!",
     "view_cart": "View cart",
-    "menu": "Menu",
+    "menu": "Categories & Menu",
     "about": "About",
     "reviews": "Reviews",
-    "no_items": "No items available",
+    "no_items": "No menu items available at the moment.",
+    "none_available": "No restaurants available in your area.",
     "add_to_cart": "Add to cart",
+    "error_load": "Unable to load restaurant.",
     "min_order": "Min. order",
     "delivery_fee": "Delivery"
   },
@@ -116,7 +127,11 @@
     "rate_comment_hint": "Leave a comment (optional)",
     "submit_rating": "Submit review",
     "no_orders": "No orders yet",
-    "no_orders_subtitle": "Your orders will appear here"
+    "no_orders_subtitle": "Your orders will appear here",
+    "error_create": "Unable to create order.",
+    "error_load": "Unable to load orders.",
+    "error_cancel": "Unable to cancel order.",
+    "error_rate": "Unable to submit review."
   },
   "payment": {
     "title": "Secure payment",
@@ -156,7 +171,8 @@
     "logout_confirm_message": "Are you sure you want to sign out of ClicEat?",
     "name": "Full name",
     "phone": "Phone",
-    "email": "Email"
+    "email": "Email",
+    "default_name": "User"
   },
   "delivery": {
     "dashboard_title": "Dashboard",
@@ -196,6 +212,23 @@
     "confirm_delivery": "Confirm delivery",
     "mission_accepted": "Mission accepted",
     "mission_rejected": "Mission rejected"
+  },
+  "address": {
+    "select_title": "Choose an address",
+    "add_title": "Add an address",
+    "address_hint": "Full address",
+    "label_hint": "Label (e.g. Home, Office)",
+    "saved": "Address saved"
+  },
+  "mission": {
+    "error_load": "Unable to retrieve missions.",
+    "accepted": "Mission accepted!",
+    "rejected": "Mission rejected.",
+    "error_accept": "Unable to accept mission.",
+    "error_reject": "Unable to reject mission.",
+    "error_unknown_status": "Unknown mission status.",
+    "status_updated": "Status updated!",
+    "error_update_status": "Error updating status."
   },
   "common": {
     "error": "An error occurred.",

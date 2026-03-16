@@ -32,12 +32,12 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
             (data['payment'] as Map<String, dynamic>?)?['paymentUrl'] as String?;
         emit(OrderState.created(orderId: orderId, paymentUrl: paymentUrl));
       } else {
-        final msg = _extractError(res.body, 'Impossible de créer la commande.');
+        final msg = _extractError(res.body, 'order.error_create');
         emit(OrderState.error(msg));
       }
     } catch (e) {
       _logger.e('Error creating order: $e');
-      emit(const OrderState.error('Erreur réseau. Vérifiez votre connexion.'));
+      emit(const OrderState.error('common.network_error'));
     }
   }
 
@@ -49,11 +49,11 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
         final data = res.body!['data'] as List<dynamic>? ?? [];
         emit(OrderState.ordersLoaded(data.cast<Map<String, dynamic>>()));
       } else {
-        emit(const OrderState.error('Impossible de charger les commandes.'));
+        emit(const OrderState.error('order.error_load'));
       }
     } catch (e) {
       _logger.e('Error loading orders: $e');
-      emit(const OrderState.error('Erreur réseau. Vérifiez votre connexion.'));
+      emit(const OrderState.error('common.network_error'));
     }
   }
 
@@ -64,12 +64,12 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       if (res.isSuccessful) {
         emit(const OrderState.cancelled());
       } else {
-        final msg = _extractError(res.body, 'Impossible d\'annuler la commande.');
+        final msg = _extractError(res.body, 'order.error_cancel');
         emit(OrderState.error(msg));
       }
     } catch (e) {
       _logger.e('Error cancelling order: $e');
-      emit(const OrderState.error('Erreur réseau. Vérifiez votre connexion.'));
+      emit(const OrderState.error('common.network_error'));
     }
   }
 
@@ -83,12 +83,12 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       if (res.isSuccessful) {
         emit(const OrderState.rated());
       } else {
-        final msg = _extractError(res.body, 'Impossible d\'envoyer l\'avis.');
+        final msg = _extractError(res.body, 'order.error_rate');
         emit(OrderState.error(msg));
       }
     } catch (e) {
       _logger.e('Error rating order: $e');
-      emit(const OrderState.error('Erreur réseau. Vérifiez votre connexion.'));
+      emit(const OrderState.error('common.network_error'));
     }
   }
 

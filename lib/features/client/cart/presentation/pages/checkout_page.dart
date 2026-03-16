@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/network/services/coupon_service.dart';
 import '../bloc/order_bloc.dart';
@@ -114,9 +115,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           "restaurantId": cartState.restaurantId ?? '',
                           "paymentMethod": _selectedPaymentMethod,
                           "deliveryAddress": {
-                            "address": "Douala, Cameroun",
-                            "lat": 4.0511,
-                            "lng": 9.7679,
+                            "address": AppConstants.defaultCity,
+                            "lat": AppConstants.defaultLat,
+                            "lng": AppConstants.defaultLng,
                           },
                           "items": items,
                           if (_appliedCouponCode != null) "couponCode": _appliedCouponCode,
@@ -152,12 +153,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 children: [
                   Text('checkout.delivery_address'.tr(), style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: 4),
-                  Text('123 Rue de la Paix, Douala\nCameroun', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  Text(AppConstants.defaultCity, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
             TextButton(
-              onPressed: () => context.push('/address-selection'),
+              onPressed: () => context.push('/client/address-selection'),
               child: Text('checkout.change'.tr()),
             ),
           ],
@@ -169,7 +170,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget _buildOrderSummary(BuildContext context) {
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, cartState) {
-        const deliveryFee = 1000.0;
+        const deliveryFee = AppConstants.defaultDeliveryFee;
         final total = (cartState.subtotal + deliveryFee - _couponDiscount).clamp(0.0, double.infinity);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +184,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text('cart.delivery_fee'.tr()), const Text('1000 FCFA')],
+              children: [Text('cart.delivery_fee'.tr()), Text('${AppConstants.defaultDeliveryFee.toStringAsFixed(0)} FCFA')],
             ),
             if (_couponDiscount > 0) ...[
               const SizedBox(height: 8),

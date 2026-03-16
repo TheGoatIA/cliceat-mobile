@@ -26,7 +26,14 @@
     "login_btn": "Se connecter",
     "register_btn": "S'inscrire",
     "no_account": "Pas encore de compte ?",
-    "have_account": "Déjà un compte ?"
+    "have_account": "Déjà un compte ?",
+    "error_send_otp": "Impossible d'envoyer le code OTP.",
+    "error_invalid_otp": "Code OTP incorrect.",
+    "error_invalid_response": "Réponse invalide du serveur.",
+    "error_invalid_credentials": "Email ou mot de passe incorrect.",
+    "error_google": "Connexion Google échouée.",
+    "error_apple": "Connexion Apple échouée.",
+    "error_register": "Inscription échouée."
   },
   "client": {
     "home_title": "Découvrir",
@@ -44,13 +51,17 @@
   },
   "restaurant": {
     "delivery_time": "Livraison en 25-30 min",
+    "delivery_in_min": "Livraison en {} min",
+    "variable_fee": "Frais variables",
     "added_to_cart": "Ajouté au panier !",
     "view_cart": "Voir le panier",
-    "menu": "Menu",
+    "menu": "Catégories & Menus",
     "about": "À propos",
     "reviews": "Avis",
-    "no_items": "Aucun article disponible",
+    "no_items": "Aucun menu disponible pour le moment.",
+    "none_available": "Aucun restaurant disponible dans votre zone.",
     "add_to_cart": "Ajouter au panier",
+    "error_load": "Impossible de charger le restaurant.",
     "min_order": "Commande min.",
     "delivery_fee": "Livraison"
   },
@@ -116,7 +127,11 @@
     "rate_comment_hint": "Laissez un commentaire (optionnel)",
     "submit_rating": "Envoyer l'avis",
     "no_orders": "Aucune commande pour le moment",
-    "no_orders_subtitle": "Vos commandes apparaîtront ici"
+    "no_orders_subtitle": "Vos commandes apparaîtront ici",
+    "error_create": "Impossible de créer la commande.",
+    "error_load": "Impossible de charger les commandes.",
+    "error_cancel": "Impossible d'annuler la commande.",
+    "error_rate": "Impossible d'envoyer l'avis."
   },
   "payment": {
     "title": "Paiement sécurisé",
@@ -156,7 +171,8 @@
     "logout_confirm_message": "Êtes-vous sûr de vouloir vous déconnecter de ClicEat ?",
     "name": "Nom complet",
     "phone": "Téléphone",
-    "email": "E-mail"
+    "email": "E-mail",
+    "default_name": "Utilisateur"
   },
   "delivery": {
     "dashboard_title": "Tableau de bord",
@@ -196,6 +212,23 @@
     "confirm_delivery": "Confirmer la livraison",
     "mission_accepted": "Mission acceptée",
     "mission_rejected": "Mission refusée"
+  },
+  "address": {
+    "select_title": "Choisir une adresse",
+    "add_title": "Ajouter une adresse",
+    "address_hint": "Adresse complète",
+    "label_hint": "Étiquette (ex: Maison, Bureau)",
+    "saved": "Adresse enregistrée"
+  },
+  "mission": {
+    "error_load": "Impossible de récupérer les missions.",
+    "accepted": "Mission acceptée !",
+    "rejected": "Mission refusée.",
+    "error_accept": "Impossible d'accepter la mission.",
+    "error_reject": "Impossible de refuser la mission.",
+    "error_unknown_status": "Statut de mission inconnu.",
+    "status_updated": "Statut mis à jour !",
+    "error_update_status": "Erreur lors de la mise à jour du statut."
   },
   "common": {
     "error": "Une erreur est survenue.",

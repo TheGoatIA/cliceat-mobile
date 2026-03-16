@@ -67,12 +67,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (res.isSuccessful) {
         emit(AuthState.otpSent(phone: event.phone));
       } else {
-        final msg = _extractError(res.body, 'Impossible d\'envoyer le code OTP');
+        final msg = _extractError(res.body, 'auth.error_send_otp');
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
       _logger.e("Error sending OTP: $e");
-      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+      emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 
@@ -91,15 +91,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
-          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+          emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
       } else {
-        final msg = _extractError(res.body, 'Code OTP incorrect.');
+        final msg = _extractError(res.body, 'auth.error_invalid_otp');
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
       _logger.e("Error verifying OTP: $e");
-      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+      emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 
@@ -119,15 +119,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
-          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+          emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
       } else {
-        final msg = _extractError(res.body, 'Email ou mot de passe incorrect.');
+        final msg = _extractError(res.body, 'auth.error_invalid_credentials');
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
       _logger.e("Error logging in: $e");
-      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+      emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 
@@ -146,14 +146,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
-          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+          emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
       } else {
-        emit(const AuthState.error(message: 'Connexion Google échouée.'));
+        emit(const AuthState.error(message: 'auth.error_google'));
       }
     } catch (e) {
       _logger.e("Error logging in with Google: $e");
-      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+      emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 
@@ -172,14 +172,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
-          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+          emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
       } else {
-        emit(const AuthState.error(message: 'Connexion Apple échouée.'));
+        emit(const AuthState.error(message: 'auth.error_apple'));
       }
     } catch (e) {
       _logger.e("Error logging in with Apple: $e");
-      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+      emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 
@@ -200,15 +200,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
-          emit(const AuthState.error(message: 'Réponse invalide du serveur.'));
+          emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
       } else {
-        final msg = _extractError(res.body, 'Inscription échouée.');
+        final msg = _extractError(res.body, 'auth.error_register');
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
       _logger.e("Error registering: $e");
-      emit(const AuthState.error(message: 'Erreur réseau. Vérifiez votre connexion.'));
+      emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
 import '../../data/datasources/restaurant_service.dart';
 
@@ -26,7 +27,7 @@ class _MapClientPageState extends State<MapClientPage> {
 
   Future<void> _loadRestaurants() async {
     try {
-      final res = await getIt<RestaurantService>().getRestaurants('Douala', null, null);
+      final res = await getIt<RestaurantService>().getRestaurants(AppConstants.defaultCity, null, null);
       if (res.isSuccessful && res.body != null) {
         final body = res.body!;
         List<dynamic> data = [];
@@ -75,8 +76,8 @@ class _MapClientPageState extends State<MapClientPage> {
             key: const ValueKey('clientMapWidget'),
             onMapCreated: _onMapCreated,
             cameraOptions: CameraOptions(
-              center: Point(coordinates: Position(9.7679, 4.0511)),
-              zoom: 12.0,
+              center: Point(coordinates: Position(AppConstants.defaultLng, AppConstants.defaultLat)),
+              zoom: AppConstants.defaultZoom,
             ),
           ),
 

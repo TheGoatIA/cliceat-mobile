@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:chopper/chopper.dart';
+import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/network/services/coupon_service.dart';
 import '../../data/datasources/restaurant_service.dart';
@@ -25,7 +26,7 @@ class HomeClientPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Douala, Akwa', // Fake location for now
+                  AppConstants.defaultCity,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -241,7 +242,7 @@ class HomeClientPage extends StatelessWidget {
               return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator()));
             }
             if (snapshot.hasError || !snapshot.hasData || snapshot.data?.body == null) {
-              return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: Text("Impossible de charger les restaurants.")));
+              return Center(child: Padding(padding: const EdgeInsets.all(32.0), child: Text('common.error'.tr())));
             }
             
             final responseBody = snapshot.data!.body;
@@ -253,7 +254,7 @@ class HomeClientPage extends StatelessWidget {
             }
 
             if (restaurants.isEmpty) {
-               return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: Text("Aucun restaurant disponible dans votre zone.")));
+               return Center(child: Padding(padding: const EdgeInsets.all(32.0), child: Text('restaurant.none_available'.tr())));
             }
 
             return ListView.builder(
@@ -329,7 +330,7 @@ class HomeClientPage extends StatelessWidget {
                               children: [
                                 Icon(Icons.delivery_dining, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                                 const SizedBox(width: 4),
-                                Text('Frais variables', style: Theme.of(context).textTheme.bodySmall), // Les frais dépendent de la distance (Mapbox)
+                                Text('restaurant.variable_fee'.tr(), style: Theme.of(context).textTheme.bodySmall),
                                 const SizedBox(width: 16),
                                 Icon(Icons.timer, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                                 const SizedBox(width: 4),

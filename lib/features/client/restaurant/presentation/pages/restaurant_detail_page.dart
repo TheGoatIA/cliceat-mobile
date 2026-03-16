@@ -21,13 +21,13 @@ class RestaurantDetailPage extends StatelessWidget {
         }
         if (snapshot.hasError || !snapshot.hasData || snapshot.data?.body == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Erreur')),
+            appBar: AppBar(title: Text('common.error'.tr())),
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Impossible de charger le restaurant'),
-                  TextButton(onPressed: () => context.pop(), child: const Text('Retour'))
+                  Text('restaurant.error_load'.tr()),
+                  TextButton(onPressed: () => context.pop(), child: Text('common.back'.tr()))
                 ],
               ),
             ),
@@ -105,15 +105,15 @@ class RestaurantDetailPage extends StatelessWidget {
                         children: [
                           Icon(Icons.access_time, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           const SizedBox(width: 8),
-                          Text('Livraison en $minTime min'),
+                          Text('restaurant.delivery_in_min'.tr(args: [minTime])),
                           const Spacer(),
                           Icon(Icons.delivery_dining, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           const SizedBox(width: 8),
-                          const Text('Frais variables'), // Mapbox calc
+                          Text('restaurant.variable_fee'.tr()),
                         ],
                       ),
                       const Divider(height: 32),
-                      Text('Catégories & Menus', style: Theme.of(context).textTheme.titleLarge),
+                      Text('restaurant.menu'.tr(), style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 16),
                     ],
                   ),
@@ -124,7 +124,7 @@ class RestaurantDetailPage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: Center(
-                    child: Text('Aucun menu disponible pour le moment.', 
+                    child: Text('restaurant.no_items'.tr(),
                       style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
                   )
                 )
@@ -171,7 +171,7 @@ class RestaurantDetailPage extends StatelessWidget {
                               duration: const Duration(seconds: 1),
                               action: SnackBarAction(
                                 label: 'restaurant.view_cart'.tr(),
-                                onPressed: () => context.push('/cart'),
+                                onPressed: () => context.push('/client/cart'),
                               ),
                             ),
                           );
@@ -192,7 +192,7 @@ class RestaurantDetailPage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
-                    onPressed: () => context.push('/cart'),
+                    onPressed: () => context.push('/client/cart'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

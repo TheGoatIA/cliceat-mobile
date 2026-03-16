@@ -164,7 +164,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Erreur réseau. Impossible de modifier votre statut.')),
+                    SnackBar(content: Text('common.network_error'.tr())),
                   );
                   setState(() => isOnline = !value);
                 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/services.dart';
+import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/network/services/tracking_service.dart';
 import '../../../../../core/services/websocket_service.dart';
@@ -103,7 +104,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             key: const ValueKey("clientTrackingMap"),
             onMapCreated: _onMapCreated,
             cameraOptions: CameraOptions(
-              center: Point(coordinates: Position(9.7679, 4.0511)),
+              center: Point(coordinates: Position(AppConstants.defaultLng, AppConstants.defaultLat)),
               zoom: 14.0,
             ),
           ),

@@ -63,7 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildHeader(ThemeData theme) {
-    final name = _userData?['name'] as String? ?? 'Utilisateur';
+    final name = _userData?['name'] as String? ?? 'profile.default_name'.tr();
     final email = _userData?['email'] as String? ?? '';
     final phone = _userData?['phone'] as String? ?? '';
     final photo = _userData?['photo'] as String?;

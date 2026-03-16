@@ -1,3 +1,4 @@
+import 'package:chopper/chopper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
@@ -27,7 +28,7 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
           final missions = data.map((e) => e as Map<String, dynamic>).toList();
           emit(MissionState.loaded(missions));
         } else {
-          emit(const MissionState.error("Impossible de récupérer les missions."));
+          emit(const MissionState.error("mission.error_load"));
         }
       } catch (e) {
         _logger.e("Error loading missions: $e");
@@ -40,10 +41,10 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
       try {
         final res = await _missionService.acceptMission(event.missionId);
         if (res.isSuccessful) {
-          emit(const MissionState.actionSuccess("Mission acceptée !"));
+          emit(const MissionState.actionSuccess("mission.accepted"));
           add(const MissionEvent.loadActiveMissions());
         } else {
-          emit(const MissionState.error("Impossible d'accepter la mission."));
+          emit(const MissionState.error("mission.error_accept"));
         }
       } catch (e) {
         _logger.e("Error accepting mission: $e");
@@ -56,10 +57,10 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
       try {
         final res = await _missionService.rejectMission(event.missionId);
         if (res.isSuccessful) {
-          emit(const MissionState.actionSuccess("Mission refusée."));
+          emit(const MissionState.actionSuccess("mission.rejected"));
           add(const MissionEvent.loadActiveMissions());
         } else {
-          emit(const MissionState.error("Impossible de refuser la mission."));
+          emit(const MissionState.error("mission.error_reject"));
         }
       } catch (e) {
         _logger.e("Error rejecting mission: $e");
@@ -79,14 +80,14 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
             res = await _missionService.confirmDelivery(event.missionId, {});
             break;
           default:
-            emit(MissionState.error("Statut inconnu: ${event.status}"));
+            emit(MissionState.error("mission.error_unknown_status"));
             return;
         }
         if (res.isSuccessful) {
-          emit(const MissionState.actionSuccess("Statut mis à jour !"));
+          emit(const MissionState.actionSuccess("mission.status_updated"));
           add(const MissionEvent.loadActiveMissions());
         } else {
-          emit(const MissionState.error("Erreur mise à jour statut."));
+          emit(const MissionState.error("mission.error_update_status"));
         }
       } catch (e) {
         _logger.e("Error updating mission status: $e");
