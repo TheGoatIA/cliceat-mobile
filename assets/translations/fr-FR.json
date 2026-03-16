@@ -1,0 +1,36 @@
+{
+  "splash_title": "ClicEat",
+  "onboarding": {
+    "welcome": "Bienvenue sur ClicEat",
+    "subtitle": "La meilleure plateforme de livraison au Cameroun. Choisissez votre profil pour commencer.",
+    "btn_client": "Je veux commander",
+    "btn_delivery": "Je suis livreur"
+  },
+  "auth": {
+    "login_phone_title": "Connectez-vous avec votre mobile",
+    "phone_hint": "Numéro de téléphone (+237)",
+    "send_otp": "Envoyer le code OTP",
+    "verify_otp_title": "Vérification OTP",
+    "otp_hint": "Code à 6 chiffres",
+    "verify_btn": "Vérifier et continuer"
+  },
+  "client": {
+    "home_title": "Découvrir",
+    "search_hint": "Plats, restaurants, cuisines...",
+    "categories": "Catégories",
+    "recommended": "Pour vous",
+    "popular": "Populaires cette semaine"
+  },
+  "delivery": {
+    "dashboard_title": "Tableau de bord",
+    "online": "EN LIGNE",
+    "offline": "HORS LIGNE",
+    "waiting_mission": "En attente de missions...",
+    "todays_earnings": "Gains du jour",
+    "deliveries": "Livraisons"
+  },
+  "common": {
+    "error": "Une erreur est survenue.",
+    "network_error": "Problème de connexion. Veuillez vérifier votre réseau."
+  }
+}

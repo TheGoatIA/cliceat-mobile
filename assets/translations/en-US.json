@@ -1,0 +1,36 @@
+{
+  "splash_title": "ClicEat",
+  "onboarding": {
+    "welcome": "Welcome to ClicEat",
+    "subtitle": "The best delivery platform in Cameroon. Choose your profile to start.",
+    "btn_client": "I want to order",
+    "btn_delivery": "I am a delivery agent"
+  },
+  "auth": {
+    "login_phone_title": "Login with your mobile",
+    "phone_hint": "Phone number (+237)",
+    "send_otp": "Send OTP Code",
+    "verify_otp_title": "OTP Verification",
+    "otp_hint": "6-digit code",
+    "verify_btn": "Verify and Continue"
+  },
+  "client": {
+    "home_title": "Discover",
+    "search_hint": "Dishes, restaurants, cuisines...",
+    "categories": "Categories",
+    "recommended": "For You",
+    "popular": "Popular this week"
+  },
+  "delivery": {
+    "dashboard_title": "Dashboard",
+    "online": "ONLINE",
+    "offline": "OFFLINE",
+    "waiting_mission": "Waiting for missions...",
+    "todays_earnings": "Today's Earnings",
+    "deliveries": "Deliveries"
+  },
+  "common": {
+    "error": "An error occurred.",
+    "network_error": "Connection problem. Please check your network."
+  }
+}
