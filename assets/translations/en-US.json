@@ -150,7 +150,8 @@
     "driver": "Driver",
     "eta": "Estimated arrival",
     "call_driver": "Call driver",
-    "live_tracking": "Live tracking"
+    "live_tracking": "Live tracking",
+    "eta_minutes": "In {} min"
   },
   "profile": {
     "title": "My Profile",

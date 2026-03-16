@@ -24,6 +24,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   String? _couponMessage;
   bool _couponLoading = false;
   String? _appliedCouponCode;
+  Map<String, dynamic>? _selectedAddress;
 
   @override
   void dispose() {
@@ -43,7 +44,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         setState(() {
           _couponDiscount = discount;
           _appliedCouponCode = code;
-          _couponMessage = 'checkout.coupon_applied'.tr(args: [discount.toStringAsFixed(0)]);
+          _couponMessage = 'checkout.coupon_applied'.tr(args: [code, discount.toStringAsFixed(0)]);
         });
       } else {
         final msg = (res.body as Map<String, dynamic>?)?['message']?.toString() ?? 'checkout.coupon_invalid'.tr();
@@ -83,6 +84,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   listener: (context, state) {
                     state.maybeWhen(
                       created: (orderId, paymentUrl) {
+                        context.read<CartCubit>().clearCart();
                         if (paymentUrl != null && paymentUrl.isNotEmpty) {
                           context.push('/client/payment', extra: {
                             'paymentUrl': paymentUrl,
@@ -115,9 +117,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           "restaurantId": cartState.restaurantId ?? '',
                           "paymentMethod": _selectedPaymentMethod,
                           "deliveryAddress": {
-                            "address": AppConstants.defaultCity,
-                            "lat": AppConstants.defaultLat,
-                            "lng": AppConstants.defaultLng,
+                            "address": _selectedAddress?['address'] ?? AppConstants.defaultCity,
+                            "lat": (_selectedAddress?['lat'] as num?)?.toDouble() ?? AppConstants.defaultLat,
+                            "lng": (_selectedAddress?['lng'] as num?)?.toDouble() ?? AppConstants.defaultLng,
                           },
                           "items": items,
                           if (_appliedCouponCode != null) "couponCode": _appliedCouponCode,
@@ -153,12 +155,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 children: [
                   Text('checkout.delivery_address'.tr(), style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: 4),
-                  Text(AppConstants.defaultCity, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  Text(
+                    _selectedAddress?['address'] as String? ?? AppConstants.defaultCity,
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
                 ],
               ),
             ),
             TextButton(
-              onPressed: () => context.push('/client/address-selection'),
+              onPressed: () async {
+                final addr = await context.push<Map<String, dynamic>>('/client/address-selection');
+                if (addr != null) {
+                  setState(() => _selectedAddress = addr);
+                }
+              },
               child: Text('checkout.change'.tr()),
             ),
           ],

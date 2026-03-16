@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/client/home/presentation/pages/client_main_tab.dart';
 import '../../features/client/restaurant/presentation/pages/restaurant_detail_page.dart';
 import '../../features/client/cart/presentation/pages/cart_page.dart';
@@ -11,6 +12,7 @@ import '../../features/client/cart/presentation/pages/client_tracking_page.dart'
 import '../../features/client/cart/presentation/pages/order_success_page.dart';
 import '../../features/client/cart/presentation/pages/payment_webview_page.dart';
 import '../../features/client/cart/presentation/pages/address_selection_page.dart';
+import '../../features/client/cart/presentation/pages/order_history_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/delivery_main_tab.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -30,6 +32,14 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const OnboardingPage(),
     ),
 
+    GoRoute(
+      path: '/auth/login',
+      builder: (context, state) {
+        final mode = state.uri.queryParameters['mode'] ?? 'client';
+        return LoginPage(mode: mode);
+      },
+    ),
+
     // ── Client routes ────────────────────────────────────────────────────────
     GoRoute(
       path: '/client',
@@ -42,6 +52,10 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'address-selection',
           builder: (context, state) => const AddressSelectionPage(),
+        ),
+        GoRoute(
+          path: 'orders',
+          builder: (context, state) => const OrderHistoryPage(),
         ),
         GoRoute(
           path: 'tracking/:orderId',

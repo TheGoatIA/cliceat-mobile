@@ -42,13 +42,13 @@ class OnboardingPage extends StatelessWidget {
               PrimaryButton(
                 text: 'onboarding.btn_client'.tr(),
                 onPressed: () {
-                  context.go('/client');
+                  context.push('/auth/login?mode=client');
                 },
               ),
               const SizedBox(height: 16),
               OutlinedButton(
                 onPressed: () {
-                  context.go('/delivery');
+                  context.push('/auth/login?mode=delivery');
                 },
                 child: Text('onboarding.btn_delivery'.tr()),
               ),

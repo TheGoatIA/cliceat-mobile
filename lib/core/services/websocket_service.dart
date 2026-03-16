@@ -19,7 +19,10 @@ class WebSocketService {
 
   WebSocketService(this._secureStorage, this._logger);
 
+  bool get isConnected => _socket?.connected == true;
+
   Future<void> connect() async {
+    if (_socket != null && _socket!.connected) return;
     final token = await _secureStorage.read(key: 'jwt_token');
     if (token == null) return;
     

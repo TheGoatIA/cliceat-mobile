@@ -150,7 +150,8 @@
     "driver": "Livreur",
     "eta": "Arrivée estimée",
     "call_driver": "Appeler le livreur",
-    "live_tracking": "Suivi en direct"
+    "live_tracking": "Suivi en direct",
+    "eta_minutes": "Dans {} min"
   },
   "profile": {
     "title": "Mon Profil",

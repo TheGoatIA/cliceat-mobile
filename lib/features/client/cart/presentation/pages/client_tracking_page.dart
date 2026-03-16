@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/services.dart';
 import '../../../../../core/config/app_constants.dart';
@@ -44,8 +45,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   @override
   void initState() {
     super.initState();
+    final ws = getIt<WebSocketService>();
+    ws.connect(); // ensure connected (no-op if already connected)
     _loadTracking();
-    _wsSub = getIt<WebSocketService>().orderTrackingEvents.listen((event) {
+    _wsSub = ws.orderTrackingEvents.listen((event) {
       if (event['orderId'] == widget.orderId || event['_id'] == widget.orderId) {
         setState(() {
           if (_trackingData != null) {
@@ -164,9 +167,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(_error ?? 'Erreur', style: TextStyle(color: theme.colorScheme.error)),
+          Text(_error ?? 'common.error'.tr(), style: TextStyle(color: theme.colorScheme.error)),
           const SizedBox(height: 16),
-          ElevatedButton(onPressed: _loadTracking, child: const Text('Réessayer')),
+          ElevatedButton(onPressed: _loadTracking, child: Text('common.retry'.tr())),
         ],
       ),
     );
@@ -174,7 +177,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
 
   Widget _buildTrackingPanel(ThemeData theme) {
     final driver = _trackingData?['driver'] as Map<String, dynamic>?;
-    final driverName = driver?['name'] as String? ?? 'Livreur';
+    final driverName = driver?['name'] as String? ?? 'tracking.driver'.tr();
     final driverPhoto = driver?['photo'] as String?;
     final vehicle = driver?['vehicle'] as String? ?? '';
 
@@ -184,7 +187,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     final etaDisplay = etaTime != null
         ? etaTime
         : etaMinutes != null
-            ? 'Dans $etaMinutes min'
+            ? 'tracking.eta_minutes'.tr(args: [etaMinutes.toString()])
             : '--:--';
 
     return Container(
@@ -216,7 +219,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Arrivée estimée', style: theme.textTheme.bodySmall),
+                      Text('tracking.eta'.tr(), style: theme.textTheme.bodySmall),
                       Text(
                         etaDisplay,
                         style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
@@ -230,7 +233,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                         color: theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text('Dans $etaMinutes min', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurfaceVariant)),
+                      child: Text('tracking.eta_minutes'.tr(args: [etaMinutes.toString()]), style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurfaceVariant)),
                     ),
                 ],
               ),
@@ -283,7 +286,12 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   }
 
   Widget _buildStepper(ThemeData theme) {
-    const labels = ['Approuvé', 'Préparation', 'En route', 'Livré'];
+    final labels = [
+      'tracking.step_confirmed'.tr(),
+      'tracking.step_preparing'.tr(),
+      'tracking.step_on_the_way'.tr(),
+      'tracking.step_delivered'.tr(),
+    ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(

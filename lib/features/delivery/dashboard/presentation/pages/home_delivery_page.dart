@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:logger/logger.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/services/websocket_service.dart';
 import '../../data/datasources/driver_service.dart';
+import '../bloc/mission_bloc.dart';
 
 class HomeDeliveryPage extends StatefulWidget {
   const HomeDeliveryPage({super.key});
@@ -82,24 +84,44 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('delivery.dashboard_title'.tr()),
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildOnlineToggle(theme),
-            const SizedBox(height: 24),
-            _buildStatusCard(theme),
-            const SizedBox(height: 24),
-            _buildTodayStats(theme),
-            const SizedBox(height: 24),
-            _buildRecentDeliveries(theme),
-          ],
+    return BlocProvider(
+      create: (_) => getIt<MissionBloc>()..add(const MissionEvent.loadActiveMissions()),
+      child: BlocListener<MissionBloc, MissionState>(
+        listener: (context, state) {
+          state.maybeWhen(
+            actionSuccess: (message) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message.tr())),
+              );
+            },
+            error: (message) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message.tr()), backgroundColor: theme.colorScheme.error),
+              );
+            },
+            orElse: () {},
+          );
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text('delivery.dashboard_title'.tr()),
+            elevation: 0,
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildOnlineToggle(theme),
+                const SizedBox(height: 24),
+                _buildStatusCard(theme),
+                const SizedBox(height: 24),
+                _buildTodayStats(theme),
+                const SizedBox(height: 24),
+                Expanded(child: _buildMissionsAndRecent(theme)),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -178,7 +200,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
 
   Widget _buildStatusCard(ThemeData theme) {
     return Container(
-      height: 150,
+      height: 120,
       decoration: BoxDecoration(
         color: isOnline ? theme.colorScheme.primary.withValues(alpha: 0.1) : theme.disabledColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
@@ -193,13 +215,13 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           children: [
             Icon(
               isOnline ? Icons.radar : Icons.power_settings_new,
-              size: 48,
+              size: 36,
               color: isOnline ? theme.colorScheme.primary : theme.disabledColor,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             Text(
               isOnline ? 'delivery.status_waiting'.tr() : 'delivery.status_offline'.tr(),
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: theme.textTheme.titleMedium?.copyWith(
                 color: isOnline ? theme.colorScheme.primary : theme.disabledColor,
               ),
             ),
@@ -255,7 +277,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
             decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(title, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 4),
           Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
@@ -264,52 +286,160 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     );
   }
 
-  Widget _buildRecentDeliveries(ThemeData theme) {
-    final recentOrders = (_earningsData?['recentOrders'] as List<dynamic>?) ?? [];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('delivery.recent_deliveries'.tr(), style: theme.textTheme.titleLarge),
-        const SizedBox(height: 16),
-        if (recentOrders.isEmpty && !_earningsLoading)
-          // Fallback placeholder when no real data yet
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 0,
-            itemBuilder: (_, __) => const SizedBox(),
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: recentOrders.length,
-            itemBuilder: (context, index) {
-              final order = recentOrders[index] as Map<String, dynamic>;
-              final orderId = order['_id']?.toString() ?? order['id']?.toString() ?? '#';
-              final address = order['deliveryAddress']?['address'] as String? ?? '';
-              final amount = order['driverEarnings']?.toString() ?? order['amount']?.toString() ?? '';
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
+  Widget _buildMissionsAndRecent(ThemeData theme) {
+    return BlocBuilder<MissionBloc, MissionState>(
+      builder: (context, state) {
+        final missions = state.maybeWhen(loaded: (m) => m, orElse: () => <Map<String, dynamic>>[]);
+        final pendingMissions = missions.where((m) {
+          final status = m['status'] as String? ?? '';
+          return status == 'pending' || status == 'assigned';
+        }).toList();
+        final recentOrders = (_earningsData?['recentOrders'] as List<dynamic>?) ?? [];
+
+        return ListView(
+          children: [
+            if (pendingMissions.isNotEmpty) ...[
+              Text('delivery.status_waiting'.tr(), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              ...pendingMissions.map((mission) => _buildMissionCard(context, mission, theme)),
+              const SizedBox(height: 24),
+            ],
+            Text('delivery.recent_deliveries'.tr(), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            if (state is _Loading)
+              const Center(child: CircularProgressIndicator())
+            else if (recentOrders.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Text('delivery.no_history'.tr(), style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+                ),
+              )
+            else
+              ...recentOrders.map((o) {
+                final order = o as Map<String, dynamic>;
+                final orderId = order['_id']?.toString() ?? order['id']?.toString() ?? '#';
+                final address = order['deliveryAddress']?['address'] as String? ?? '';
+                final amount = order['driverEarnings']?.toString() ?? order['amount']?.toString() ?? '';
+                final shortId = orderId.length > 6 ? orderId.substring(orderId.length - 6) : orderId;
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.check_circle, color: Colors.green),
                   ),
-                  child: const Icon(Icons.check_circle, color: Colors.green),
+                  title: Text('${'order.order_id'.tr()}$shortId'),
+                  subtitle: Text(address),
+                  trailing: Text(
+                    '+$amount FCFA',
+                    style: theme.textTheme.titleMedium?.copyWith(color: Colors.green, fontWeight: FontWeight.bold),
+                  ),
+                );
+              }),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMissionCard(BuildContext context, Map<String, dynamic> mission, ThemeData theme) {
+    final missionId = mission['_id']?.toString() ?? mission['id']?.toString() ?? '';
+    final restaurantName = (mission['restaurant'] as Map<String, dynamic>?)?['name'] as String? ?? '';
+    final address = (mission['deliveryAddress'] as Map<String, dynamic>?)?['address'] as String? ?? '';
+    final amount = mission['driverEarnings']?.toString() ?? mission['totalAmount']?.toString() ?? '--';
+    final status = mission['status'] as String? ?? '';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.delivery_dining, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    restaurantName.isNotEmpty ? restaurantName : 'delivery.status_waiting'.tr(),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                 ),
-                title: Text('Commande #${orderId.length > 6 ? orderId.substring(orderId.length - 6) : orderId}'),
-                subtitle: Text(address),
-                trailing: Text(
-                  '+$amount FCFA',
-                  style: theme.textTheme.titleMedium?.copyWith(color: Colors.green, fontWeight: FontWeight.bold),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text('+$amount FCFA', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
                 ),
-              );
-            },
-          ),
-      ],
+              ],
+            ),
+            if (address.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.location_on_outlined, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Expanded(child: Text(address, style: theme.textTheme.bodySmall)),
+                ],
+              ),
+            ],
+            const SizedBox(height: 12),
+            if (status == 'pending' || status == 'assigned')
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => context.read<MissionBloc>().add(MissionEvent.rejectMission(missionId)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: theme.colorScheme.error,
+                        side: BorderSide(color: theme.colorScheme.error),
+                      ),
+                      child: Text('delivery.reject_mission'.tr()),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => context.read<MissionBloc>().add(MissionEvent.acceptMission(missionId)),
+                      child: Text('delivery.accept_mission'.tr()),
+                    ),
+                  ),
+                ],
+              )
+            else if (status == 'accepted' || status == 'in_transit')
+              Row(
+                children: [
+                  if (status == 'accepted')
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.read<MissionBloc>().add(MissionEvent.updateStatus(missionId, 'picked_up')),
+                        icon: const Icon(Icons.local_shipping_outlined),
+                        label: Text('delivery.confirm_pickup'.tr()),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.read<MissionBloc>().add(MissionEvent.updateStatus(missionId, 'delivered')),
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: Text('delivery.confirm_delivery'.tr()),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                      ),
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/network/services/user_service.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
@@ -150,7 +151,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.receipt_long_outlined,
             title: 'profile.order_history'.tr(),
-            onTap: () {},
+            onTap: () => context.push('/client/orders'),
           ),
           const SizedBox(height: 16),
           _buildSectionTitle('profile.settings'.tr(), theme),
@@ -162,12 +163,12 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.language_outlined,
             title: 'profile.language'.tr(),
-            onTap: () {},
+            onTap: () => _showLanguagePicker(context),
           ),
           _buildMenuItem(
             icon: Icons.help_outline,
             title: 'profile.help'.tr(),
-            onTap: () {},
+            onTap: () => _showHelp(context),
           ),
           const SizedBox(height: 16),
           _buildLogoutButton(context, theme),
@@ -355,6 +356,68 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  void _showLanguagePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('profile.language'.tr(),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Text('🇫🇷', style: TextStyle(fontSize: 24)),
+              title: const Text('Français'),
+              trailing: context.locale == const Locale('fr', 'FR') ? const Icon(Icons.check) : null,
+              onTap: () {
+                context.setLocale(const Locale('fr', 'FR'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
+              title: const Text('English'),
+              trailing: context.locale == const Locale('en', 'US') ? const Icon(Icons.check) : null,
+              onTap: () {
+                context.setLocale(const Locale('en', 'US'));
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showHelp(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.help_outline, size: 48, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 16),
+            Text('profile.help'.tr(),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            const Text('support@cliceat.cm', style: TextStyle(fontSize: 16)),
+            const SizedBox(height: 8),
+            const Text('WhatsApp: +237 6XX XXX XXX', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          ],
         ),
       ),
     );
