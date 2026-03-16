@@ -38,7 +38,7 @@ abstract class NetworkModule {
         HttpLoggingInterceptor(),
         ConnectivityInterceptor(),
         AuthInterceptor(secureStorage),
-        RefreshInterceptor(secureStorage, () => getIt<AuthService>()),
+        RefreshInterceptor(secureStorage, () => getIt<AuthService>().refreshToken()),
       ],
     );
   }

@@ -13,6 +13,7 @@ import 'package:chopper/chopper.dart' as _i31;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
+import 'package:logger/logger.dart' as _i900;
 
 import '../../features/auth/data/datasources/auth_service.dart' as _i1060;
 import '../../features/auth/presentation/bloc/auth_bloc.dart' as _i797;
@@ -33,6 +34,8 @@ import '../data/local/database.dart' as _i475;
 import '../network/services/user_service.dart' as _i621;
 import '../network/services/tracking_service.dart' as _i622;
 import '../network/services/coupon_service.dart' as _i623;
+import '../services/notification_service.dart' as _i700;
+import '../services/websocket_service.dart' as _i701;
 import 'network_module.dart' as _i567;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -43,6 +46,22 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final networkModule = _$NetworkModule();
+    // Core singletons
+    gh.lazySingleton<_i558.FlutterSecureStorage>(
+      () => const _i558.FlutterSecureStorage(),
+    );
+    gh.lazySingleton<_i475.AppDatabase>(
+      () => _i475.AppDatabase(),
+    );
+    gh.lazySingleton<_i900.Logger>(
+      () => _i900.Logger(),
+    );
+    gh.lazySingleton<_i700.NotificationService>(
+      () => _i700.NotificationService(gh<_i900.Logger>()),
+    );
+    gh.lazySingleton<_i701.WebSocketService>(
+      () => _i701.WebSocketService(gh<_i558.FlutterSecureStorage>(), gh<_i900.Logger>()),
+    );
     gh.lazySingleton<_i31.ChopperClient>(
       () => networkModule.chopperClient(gh<_i558.FlutterSecureStorage>()),
     );

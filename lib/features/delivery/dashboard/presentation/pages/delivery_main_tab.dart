@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'home_delivery_page.dart';
+import 'earnings_page.dart';
+import 'delivery_history_page.dart';
+import 'delivery_profile_page.dart';
 
 class DeliveryMainTab extends StatefulWidget {
   const DeliveryMainTab({super.key});
@@ -14,9 +17,9 @@ class _DeliveryMainTabState extends State<DeliveryMainTab> {
 
   final List<Widget> _pages = [
     const HomeDeliveryPage(),
-    const Center(child: Text('Earnings')),
-    const Center(child: Text('History')),
-    const Center(child: Text('Profile')),
+    const EarningsPage(),
+    const DeliveryHistoryPage(),
+    const DeliveryProfilePage(),
   ];
 
   @override

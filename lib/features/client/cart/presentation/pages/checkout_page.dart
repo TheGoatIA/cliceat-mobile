@@ -83,9 +83,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     state.maybeWhen(
                       created: (orderId, paymentUrl) {
                         if (paymentUrl != null && paymentUrl.isNotEmpty) {
-                          context.push('/payment', extra: paymentUrl);
+                          context.push('/client/payment', extra: {
+                            'paymentUrl': paymentUrl,
+                            'orderId': orderId,
+                          });
                         } else {
-                          context.push('/order-success', extra: orderId);
+                          context.go('/client/order-success/$orderId');
                         }
                       },
                       error: (message) {
