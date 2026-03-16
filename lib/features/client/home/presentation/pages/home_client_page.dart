@@ -13,7 +13,7 @@ class HomeClientPage extends StatelessWidget {
         title: Column(
           children: [
             Text(
-              'Livrer à',
+              'client.deliver_to'.tr(),
               style: theme.textTheme.bodySmall,
             ),
             Row(
@@ -104,14 +104,14 @@ class HomeClientPage extends StatelessWidget {
                   end: Alignment.topRight,
                 )
               ),
-              child: const Padding(
-                padding: EdgeInsets.all(16.0),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text('Livraison Gratuite', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                    Text('Sur votre 1ère commande', style: TextStyle(color: Colors.white, fontSize: 14)),
+                    Text('client.promo_free_delivery'.tr(), style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text('client.promo_first_order'.tr(), style: const TextStyle(color: Colors.white, fontSize: 14)),
                   ],
                 ),
               ),

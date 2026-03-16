@@ -64,7 +64,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Statut',
+                'delivery.status'.tr(),
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: 4),
@@ -129,7 +129,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              isOnline ? 'delivery.waiting_mission'.tr() : 'Vous êtes hors ligne',
+              isOnline ? 'delivery.waiting_mission'.tr() : 'delivery.you_are_offline'.tr(),
               style: theme.textTheme.titleLarge?.copyWith(
                 color: isOnline ? theme.colorScheme.primary : Colors.grey,
               ),
@@ -198,7 +198,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Dernières livraisons',
+          'delivery.recent_deliveries'.tr(),
           style: theme.textTheme.titleLarge,
         ),
         const SizedBox(height: 16),

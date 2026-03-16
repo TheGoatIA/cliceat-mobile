@@ -19,7 +19,13 @@
     "search_hint": "Dishes, restaurants, cuisines...",
     "categories": "Categories",
     "recommended": "For You",
-    "popular": "Popular this week"
+    "popular": "Popular this week",
+    "deliver_to": "Deliver to",
+    "promo_free_delivery": "Free Delivery",
+    "promo_first_order": "On your 1st order",
+    "see_all": "See all",
+    "map": "Map",
+    "cart": "Cart"
   },
   "delivery": {
     "dashboard_title": "Dashboard",
@@ -27,10 +33,16 @@
     "offline": "OFFLINE",
     "waiting_mission": "Waiting for missions...",
     "todays_earnings": "Today's Earnings",
-    "deliveries": "Deliveries"
+    "deliveries": "Deliveries",
+    "status": "Status",
+    "you_are_offline": "You are offline",
+    "recent_deliveries": "Recent deliveries",
+    "earnings": "Earnings",
+    "history": "History"
   },
   "common": {
     "error": "An error occurred.",
-    "network_error": "Connection problem. Please check your network."
+    "network_error": "Connection problem. Please check your network.",
+    "profile": "Profile"
   }
 }

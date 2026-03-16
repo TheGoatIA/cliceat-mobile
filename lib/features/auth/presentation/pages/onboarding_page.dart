@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/primary_button.dart';
@@ -27,19 +28,19 @@ class OnboardingPage extends StatelessWidget {
               ),
               const SizedBox(height: 48),
               Text(
-                'Bienvenue sur ClicEat',
+                'onboarding.welcome'.tr(),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.displaySmall,
               ),
               const SizedBox(height: 16),
               Text(
-                'La meilleure plateforme de livraison au Cameroun. Choisissez votre mode pour commencer.',
+                'onboarding.subtitle'.tr(),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               const Spacer(),
               PrimaryButton(
-                text: 'Je veux commander',
+                text: 'onboarding.btn_client'.tr(),
                 onPressed: () {
                   context.go('/client');
                 },
@@ -49,7 +50,7 @@ class OnboardingPage extends StatelessWidget {
                 onPressed: () {
                   context.go('/delivery');
                 },
-                child: const Text('Je suis livreur'),
+                child: Text('onboarding.btn_delivery'.tr()),
               ),
               const SizedBox(height: 16),
             ],
