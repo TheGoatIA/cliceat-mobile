@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class HomeClientPage extends StatelessWidget {
@@ -13,7 +14,7 @@ class HomeClientPage extends StatelessWidget {
         title: Column(
           children: [
             Text(
-              'Livrer à',
+              'client.deliver_to'.tr(),
               style: theme.textTheme.bodySmall,
             ),
             Row(
@@ -155,13 +156,13 @@ class HomeClientPage extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
                             blurRadius: 5,
                             offset: const Offset(0, 2),
                           )
                         ]
                       ),
-                      child: const Center(child: Icon(Icons.fastfood, color: Colors.grey)),
+                      child: Center(child: Icon(Icons.fastfood, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -195,7 +196,7 @@ class HomeClientPage extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               Text(
-                'Voir tout',
+                'client.see_all'.tr(),
                 style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
               )
             ],
@@ -207,10 +208,12 @@ class HomeClientPage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: 4,
           itemBuilder: (context, index) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
+            return GestureDetector(
+              onTap: () => context.push('/restaurant/${index + 1}'),
+              child: Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
@@ -242,7 +245,7 @@ class HomeClientPage extends StatelessWidget {
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.star, size: 14, color: Colors.white),
+                                  Icon(Icons.star, size: 14, color: Theme.of(context).colorScheme.onSecondary),
                                   const SizedBox(width: 4),
                                   Text('4.8', style: Theme.of(context).textTheme.labelLarge),
                                 ],
@@ -258,11 +261,11 @@ class HomeClientPage extends StatelessWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.delivery_dining, size: 16, color: Colors.grey),
+                            Icon(Icons.delivery_dining, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             const SizedBox(width: 4),
                             Text('1000 FCFA', style: Theme.of(context).textTheme.bodySmall),
                             const SizedBox(width: 16),
-                            const Icon(Icons.timer, size: 16, color: Colors.grey),
+                            Icon(Icons.timer, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             const SizedBox(width: 4),
                             Text('25-30 min', style: Theme.of(context).textTheme.bodySmall),
                           ],
@@ -272,6 +275,7 @@ class HomeClientPage extends StatelessWidget {
                   )
                 ],
               ),
+            ),
             );
           },
         ),

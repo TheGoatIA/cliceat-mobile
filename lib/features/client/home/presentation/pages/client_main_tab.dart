@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'home_client_page.dart';
+import 'map_client_page.dart';
 
 class ClientMainTab extends StatefulWidget {
   const ClientMainTab({super.key});
@@ -12,11 +13,11 @@ class ClientMainTab extends StatefulWidget {
 class _ClientMainTabState extends State<ClientMainTab> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
+  late final List<Widget> _pages = [
     const HomeClientPage(),
-    const Center(child: Text('Map')),
-    const Center(child: Text('Cart')),
-    const Center(child: Text('Profile')),
+    const MapClientPage(),
+    Center(child: Text('client.nav_cart'.tr())),
+    Center(child: Text('client.nav_profile'.tr())),
   ];
 
   @override
@@ -30,22 +31,22 @@ class _ClientMainTabState extends State<ClientMainTab> {
           BottomNavigationBarItem(
             icon: const Icon(Icons.home_outlined),
             activeIcon: const Icon(Icons.home),
-            label: 'client.home_title'.tr(),
+            label: 'client.nav_home'.tr(),
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.map_outlined),
-            activeIcon: Icon(Icons.map),
-            label: 'Carte',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.map_outlined),
+            activeIcon: const Icon(Icons.map),
+            label: 'client.nav_map'.tr(),
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            activeIcon: Icon(Icons.shopping_cart),
-            label: 'Panier',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            activeIcon: const Icon(Icons.shopping_cart),
+            label: 'client.nav_cart'.tr(),
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profil',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person_outline),
+            activeIcon: const Icon(Icons.person),
+            label: 'client.nav_profile'.tr(),
           ),
         ],
       ),

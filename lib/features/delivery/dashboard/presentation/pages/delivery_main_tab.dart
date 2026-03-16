@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'home_delivery_page.dart';
+import 'map_delivery_page.dart';
 
 class DeliveryMainTab extends StatefulWidget {
   const DeliveryMainTab({super.key});
@@ -12,11 +13,11 @@ class DeliveryMainTab extends StatefulWidget {
 class _DeliveryMainTabState extends State<DeliveryMainTab> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
+  late final List<Widget> _pages = [
     const HomeDeliveryPage(),
-    const Center(child: Text('Earnings')),
-    const Center(child: Text('History')),
-    const Center(child: Text('Profile')),
+    const MapDeliveryPage(),
+    Center(child: Text('delivery.nav_earnings'.tr())),
+    Center(child: Text('delivery.nav_profile'.tr())),
   ];
 
   @override
@@ -32,20 +33,20 @@ class _DeliveryMainTabState extends State<DeliveryMainTab> {
             activeIcon: const Icon(Icons.dashboard),
             label: 'delivery.dashboard_title'.tr(),
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            activeIcon: Icon(Icons.account_balance_wallet),
-            label: 'Gains',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.map_outlined),
+            activeIcon: const Icon(Icons.map),
+            label: 'delivery.nav_map'.tr(),
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.history_outlined),
-            activeIcon: Icon(Icons.history),
-            label: 'Historique',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.account_balance_wallet_outlined),
+            activeIcon: const Icon(Icons.account_balance_wallet),
+            label: 'delivery.nav_earnings'.tr(),
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profil',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person_outline),
+            activeIcon: const Icon(Icons.person),
+            label: 'delivery.nav_profile'.tr(),
           ),
         ],
       ),

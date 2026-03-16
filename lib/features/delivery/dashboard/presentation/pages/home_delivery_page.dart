@@ -51,7 +51,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -64,7 +64,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Statut',
+                'delivery.status'.tr(),
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: 4),
@@ -74,7 +74,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     width: 10,
                     height: 10,
                     decoration: BoxDecoration(
-                      color: isOnline ? Colors.green : Colors.grey,
+                      color: isOnline ? Colors.green : theme.disabledColor,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -82,7 +82,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   Text(
                     isOnline ? 'delivery.online'.tr() : 'delivery.offline'.tr(),
                     style: theme.textTheme.titleLarge?.copyWith(
-                      color: isOnline ? Colors.green : Colors.grey,
+                      color: isOnline ? Colors.green : theme.disabledColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -93,7 +93,6 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           Switch(
             value: isOnline,
             activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.5),
-            activeColor: theme.colorScheme.primary,
             onChanged: (value) {
               setState(() {
                 isOnline = value;
@@ -111,7 +110,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        color: isOnline ? theme.colorScheme.primary.withValues(alpha: 0.1) : Colors.grey.shade100,
+        color: isOnline ? theme.colorScheme.primary.withValues(alpha: 0.1) : theme.disabledColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isOnline ? theme.colorScheme.primary.withValues(alpha: 0.3) : Colors.transparent,
@@ -125,13 +124,13 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
             Icon(
               isOnline ? Icons.radar : Icons.power_settings_new,
               size: 48,
-              color: isOnline ? theme.colorScheme.primary : Colors.grey,
+              color: isOnline ? theme.colorScheme.primary : theme.disabledColor,
             ),
             const SizedBox(height: 16),
             Text(
-              isOnline ? 'delivery.waiting_mission'.tr() : 'Vous êtes hors ligne',
+              isOnline ? 'delivery.status_waiting'.tr() : 'delivery.status_offline'.tr(),
               style: theme.textTheme.titleLarge?.copyWith(
-                color: isOnline ? theme.colorScheme.primary : Colors.grey,
+                color: isOnline ? theme.colorScheme.primary : theme.disabledColor,
               ),
             ),
           ],
@@ -198,7 +197,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Dernières livraisons',
+          'delivery.recent_deliveries'.tr(),
           style: theme.textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
@@ -213,7 +212,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.check_circle, color: Colors.green),

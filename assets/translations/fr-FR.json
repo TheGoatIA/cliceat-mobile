@@ -7,30 +7,63 @@
     "btn_delivery": "Je suis livreur"
   },
   "auth": {
-    "login_phone_title": "Connectez-vous avec votre mobile",
-    "phone_hint": "Numéro de téléphone (+237)",
+    "login_title": "Connexion",
+    "login_phone_title": "Entrez votre numéro",
+    "login_subtitle": "Nous vous enverrons un code de validation par SMS.",
+    "phone_hint": "Numéro de téléphone",
+    "phone_error": "Veuillez entrer un numéro valide",
     "send_otp": "Envoyer le code OTP",
-    "verify_otp_title": "Vérification OTP",
-    "otp_hint": "Code à 6 chiffres",
-    "verify_btn": "Vérifier et continuer"
+    "verify_otp_title": "Vérification",
+    "verify_subtitle": "Validation SMS",
+    "verify_instruction": "Entrez le code envoyé au",
+    "otp_hint": "Code de sécurité",
+    "otp_error": "Veuillez entrer le code reçu",
+    "verify_btn": "Vérifier"
   },
   "client": {
     "home_title": "Découvrir",
     "search_hint": "Plats, restaurants, cuisines...",
     "categories": "Catégories",
     "recommended": "Pour vous",
-    "popular": "Populaires cette semaine"
+    "popular": "Populaires cette semaine",
+    "deliver_to": "Livrer à",
+    "see_all": "Voir tout",
+    "nav_home": "Accueil",
+    "nav_orders": "Commandes",
+    "nav_map": "Carte",
+    "nav_cart": "Panier",
+    "nav_profile": "Profil"
+  },
+  "restaurant": {
+    "delivery_time": "Livraison en 25-30 min",
+    "added_to_cart": "Ajouté au panier !",
+    "view_cart": "Voir le panier"
+  },
+  "cart": {
+    "title": "Mon Panier",
+    "sub_total": "Sous-total",
+    "delivery_fee": "Frais de livraison",
+    "total": "Total",
+    "checkout_btn": "Passer la commande",
+    "redirect_payment": "Redirection vers NotchPay en cours..."
   },
   "delivery": {
     "dashboard_title": "Tableau de bord",
     "online": "EN LIGNE",
     "offline": "HORS LIGNE",
-    "waiting_mission": "En attente de missions...",
+    "status_waiting": "En attente de commandes...",
+    "status_offline": "Vous êtes hors ligne",
     "todays_earnings": "Gains du jour",
-    "deliveries": "Livraisons"
+    "deliveries": "Livraisons",
+    "status": "Statut",
+    "recent_deliveries": "Dernières livraisons",
+    "nav_map": "Carte",
+    "nav_earnings": "Gains",
+    "nav_profile": "Profil"
   },
   "common": {
     "error": "Une erreur est survenue.",
-    "network_error": "Problème de connexion. Veuillez vérifier votre réseau."
+    "network_error": "Problème de connexion. Veuillez vérifier votre réseau.",
+    "continue_btn": "Continuer"
   }
 }
