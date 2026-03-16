@@ -7,42 +7,64 @@
     "btn_delivery": "I am a delivery agent"
   },
   "auth": {
-    "login_phone_title": "Login with your mobile",
-    "phone_hint": "Phone number (+237)",
+    "login_title": "Login",
+    "login_phone_title": "Enter your number",
+    "login_subtitle": "We will send you a verification code via SMS.",
+    "phone_hint": "Phone number",
+    "phone_error": "Please enter a valid number",
     "send_otp": "Send OTP Code",
-    "verify_otp_title": "OTP Verification",
-    "otp_hint": "6-digit code",
-    "verify_btn": "Verify and Continue"
+    "verify_otp_title": "Verification",
+    "verify_subtitle": "SMS Validation",
+    "verify_instruction": "Enter the code sent to",
+    "otp_hint": "Security code",
+    "otp_error": "Please enter the received code",
+    "verify_btn": "Verify"
   },
   "client": {
     "home_title": "Discover",
     "search_hint": "Dishes, restaurants, cuisines...",
     "categories": "Categories",
-    "recommended": "For You",
+    "recommended": "Recommended for you",
     "popular": "Popular this week",
     "deliver_to": "Deliver to",
-    "promo_free_delivery": "Free Delivery",
-    "promo_first_order": "On your 1st order",
     "see_all": "See all",
-    "map": "Map",
-    "cart": "Cart"
+    "nav_home": "Home",
+    "nav_orders": "Orders",
+    "nav_map": "Map",
+    "nav_cart": "Cart",
+    "nav_profile": "Profile"
+  },
+  "restaurant": {
+    "delivery_time": "Delivery in 25-30 min",
+    "added_to_cart": "Added to cart!",
+    "view_cart": "View cart"
+  },
+  "cart": {
+    "title": "My Cart",
+    "empty": "Your cart is empty",
+    "sub_total": "Sub-total",
+    "delivery_fee": "Delivery fee",
+    "total": "Total",
+    "checkout_btn": "Checkout",
+    "redirect_payment": "Redirecting to NotchPay..."
   },
   "delivery": {
     "dashboard_title": "Dashboard",
     "online": "ONLINE",
     "offline": "OFFLINE",
-    "waiting_mission": "Waiting for missions...",
-    "todays_earnings": "Today's Earnings",
+    "status_waiting": "Waiting for orders...",
+    "status_offline": "You are offline",
+    "todays_earnings": "Today's earnings",
     "deliveries": "Deliveries",
     "status": "Status",
-    "you_are_offline": "You are offline",
     "recent_deliveries": "Recent deliveries",
-    "earnings": "Earnings",
-    "history": "History"
+    "nav_map": "Map",
+    "nav_earnings": "Earnings",
+    "nav_profile": "Profile"
   },
   "common": {
     "error": "An error occurred.",
     "network_error": "Connection problem. Please check your network.",
-    "profile": "Profile"
+    "continue_btn": "Continue"
   }
 }

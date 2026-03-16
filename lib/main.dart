@@ -2,16 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'firebase_options.dart';
+import 'core/config/env_config.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cliceat_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:cliceat_app/features/client/cart/presentation/bloc/cart_cubit.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/di/injection.dart';
+import 'core/data/local/database.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Load environment variables
   await dotenv.load(fileName: ".env");
+  
+  // Set Mapbox Token
+  MapboxOptions.setAccessToken(EnvConfig.mapboxAccessToken);
 
   await EasyLocalization.ensureInitialized();
   
@@ -38,15 +47,25 @@ class ClicEatApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'ClicEat',
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      routerConfig: appRouter,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => getIt<AuthBloc>()..add(const AuthEvent.appStarted()),
+        ),
+        BlocProvider(
+          create: (_) => CartCubit(getIt<AppDatabase>()),
+        ),
+      ],
+      child: MaterialApp.router(
+        title: 'ClicEat',
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        routerConfig: appRouter,
+      ),
     );
   }
 }
