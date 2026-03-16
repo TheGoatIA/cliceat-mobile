@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/services.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 
 class CartPage extends StatelessWidget {
@@ -16,20 +17,25 @@ class CartPage extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: 2, // Fake items
-              separatorBuilder: (context, index) => const Divider(),
-              itemBuilder: (context, index) {
-                return _buildCartItem(context, index);
-              },
-            ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: 2, // Fake items
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemBuilder: (context, index) {
+                    return _buildCartItem(context, index);
+                  },
+                ),
+              ),
+              _buildSummary(context),
+            ],
           ),
-          _buildSummary(context),
-        ],
+        ),
       ),
     );
   }
@@ -73,13 +79,17 @@ class CartPage extends StatelessWidget {
           children: [
             IconButton(
               icon: const Icon(Icons.remove_circle_outline),
-              onPressed: () {},
+              onPressed: () {
+                HapticFeedback.selectionClick();
+              },
             ),
             const Text('1', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               color: Theme.of(context).colorScheme.primary,
-              onPressed: () {},
+              onPressed: () {
+                HapticFeedback.selectionClick();
+              },
             ),
           ],
         )
@@ -137,10 +147,7 @@ class CartPage extends StatelessWidget {
             PrimaryButton(
               text: '${'cart.checkout_btn'.tr()} (9000 FCFA)',
               onPressed: () {
-                // Navigate to Checkout -> NotchPay integration
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('cart.redirect_payment'.tr())),
-                );
+                context.push('/checkout');
               },
             ),
           ],

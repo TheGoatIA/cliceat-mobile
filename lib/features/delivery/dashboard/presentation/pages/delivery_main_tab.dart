@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'home_delivery_page.dart';
 import 'map_delivery_page.dart';
+import 'earnings_page.dart';
+import '../../../profile/presentation/pages/delivery_profile_page.dart';
 
 class DeliveryMainTab extends StatefulWidget {
   const DeliveryMainTab({super.key});
@@ -16,8 +18,8 @@ class _DeliveryMainTabState extends State<DeliveryMainTab> {
   late final List<Widget> _pages = [
     const HomeDeliveryPage(),
     const MapDeliveryPage(),
-    Center(child: Text('delivery.nav_earnings'.tr())),
-    Center(child: Text('delivery.nav_profile'.tr())),
+    const EarningsPage(),
+    const DeliveryProfilePage(),
   ];
 
   @override

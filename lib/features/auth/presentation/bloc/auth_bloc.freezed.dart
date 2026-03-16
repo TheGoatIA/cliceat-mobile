@@ -55,14 +55,16 @@ extension AuthEventPatterns on AuthEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _AppStarted value)?  appStarted,TResult Function( _SendOtp value)?  sendOtp,TResult Function( _VerifyOtp value)?  verifyOtp,TResult Function( _LoginWithEmail value)?  loginWithEmail,TResult Function( _Logout value)?  logout,TResult Function( _SwitchMode value)?  switchMode,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _AppStarted value)?  appStarted,TResult Function( _SendOtp value)?  sendOtp,TResult Function( _VerifyOtp value)?  verifyOtp,TResult Function( _LoginWithEmail value)?  loginWithEmail,TResult Function( _LoginWithGoogle value)?  loginWithGoogle,TResult Function( _LoginWithApple value)?  loginWithApple,TResult Function( _Logout value)?  logout,TResult Function( _SwitchMode value)?  switchMode,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _AppStarted() when appStarted != null:
 return appStarted(_that);case _SendOtp() when sendOtp != null:
 return sendOtp(_that);case _VerifyOtp() when verifyOtp != null:
 return verifyOtp(_that);case _LoginWithEmail() when loginWithEmail != null:
-return loginWithEmail(_that);case _Logout() when logout != null:
+return loginWithEmail(_that);case _LoginWithGoogle() when loginWithGoogle != null:
+return loginWithGoogle(_that);case _LoginWithApple() when loginWithApple != null:
+return loginWithApple(_that);case _Logout() when logout != null:
 return logout(_that);case _SwitchMode() when switchMode != null:
 return switchMode(_that);case _:
   return orElse();
@@ -82,14 +84,16 @@ return switchMode(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _AppStarted value)  appStarted,required TResult Function( _SendOtp value)  sendOtp,required TResult Function( _VerifyOtp value)  verifyOtp,required TResult Function( _LoginWithEmail value)  loginWithEmail,required TResult Function( _Logout value)  logout,required TResult Function( _SwitchMode value)  switchMode,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _AppStarted value)  appStarted,required TResult Function( _SendOtp value)  sendOtp,required TResult Function( _VerifyOtp value)  verifyOtp,required TResult Function( _LoginWithEmail value)  loginWithEmail,required TResult Function( _LoginWithGoogle value)  loginWithGoogle,required TResult Function( _LoginWithApple value)  loginWithApple,required TResult Function( _Logout value)  logout,required TResult Function( _SwitchMode value)  switchMode,}){
 final _that = this;
 switch (_that) {
 case _AppStarted():
 return appStarted(_that);case _SendOtp():
 return sendOtp(_that);case _VerifyOtp():
 return verifyOtp(_that);case _LoginWithEmail():
-return loginWithEmail(_that);case _Logout():
+return loginWithEmail(_that);case _LoginWithGoogle():
+return loginWithGoogle(_that);case _LoginWithApple():
+return loginWithApple(_that);case _Logout():
 return logout(_that);case _SwitchMode():
 return switchMode(_that);case _:
   throw StateError('Unexpected subclass');
@@ -108,14 +112,16 @@ return switchMode(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _AppStarted value)?  appStarted,TResult? Function( _SendOtp value)?  sendOtp,TResult? Function( _VerifyOtp value)?  verifyOtp,TResult? Function( _LoginWithEmail value)?  loginWithEmail,TResult? Function( _Logout value)?  logout,TResult? Function( _SwitchMode value)?  switchMode,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _AppStarted value)?  appStarted,TResult? Function( _SendOtp value)?  sendOtp,TResult? Function( _VerifyOtp value)?  verifyOtp,TResult? Function( _LoginWithEmail value)?  loginWithEmail,TResult? Function( _LoginWithGoogle value)?  loginWithGoogle,TResult? Function( _LoginWithApple value)?  loginWithApple,TResult? Function( _Logout value)?  logout,TResult? Function( _SwitchMode value)?  switchMode,}){
 final _that = this;
 switch (_that) {
 case _AppStarted() when appStarted != null:
 return appStarted(_that);case _SendOtp() when sendOtp != null:
 return sendOtp(_that);case _VerifyOtp() when verifyOtp != null:
 return verifyOtp(_that);case _LoginWithEmail() when loginWithEmail != null:
-return loginWithEmail(_that);case _Logout() when logout != null:
+return loginWithEmail(_that);case _LoginWithGoogle() when loginWithGoogle != null:
+return loginWithGoogle(_that);case _LoginWithApple() when loginWithApple != null:
+return loginWithApple(_that);case _Logout() when logout != null:
 return logout(_that);case _SwitchMode() when switchMode != null:
 return switchMode(_that);case _:
   return null;
@@ -134,13 +140,15 @@ return switchMode(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  appStarted,TResult Function( String phone)?  sendOtp,TResult Function( String phone,  String otp)?  verifyOtp,TResult Function( String email,  String password)?  loginWithEmail,TResult Function()?  logout,TResult Function( String mode)?  switchMode,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  appStarted,TResult Function( String phone)?  sendOtp,TResult Function( String phone,  String otp)?  verifyOtp,TResult Function( String email,  String password)?  loginWithEmail,TResult Function( String token)?  loginWithGoogle,TResult Function( String token)?  loginWithApple,TResult Function()?  logout,TResult Function( String mode)?  switchMode,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppStarted() when appStarted != null:
 return appStarted();case _SendOtp() when sendOtp != null:
 return sendOtp(_that.phone);case _VerifyOtp() when verifyOtp != null:
 return verifyOtp(_that.phone,_that.otp);case _LoginWithEmail() when loginWithEmail != null:
-return loginWithEmail(_that.email,_that.password);case _Logout() when logout != null:
+return loginWithEmail(_that.email,_that.password);case _LoginWithGoogle() when loginWithGoogle != null:
+return loginWithGoogle(_that.token);case _LoginWithApple() when loginWithApple != null:
+return loginWithApple(_that.token);case _Logout() when logout != null:
 return logout();case _SwitchMode() when switchMode != null:
 return switchMode(_that.mode);case _:
   return orElse();
@@ -160,13 +168,15 @@ return switchMode(_that.mode);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  appStarted,required TResult Function( String phone)  sendOtp,required TResult Function( String phone,  String otp)  verifyOtp,required TResult Function( String email,  String password)  loginWithEmail,required TResult Function()  logout,required TResult Function( String mode)  switchMode,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  appStarted,required TResult Function( String phone)  sendOtp,required TResult Function( String phone,  String otp)  verifyOtp,required TResult Function( String email,  String password)  loginWithEmail,required TResult Function( String token)  loginWithGoogle,required TResult Function( String token)  loginWithApple,required TResult Function()  logout,required TResult Function( String mode)  switchMode,}) {final _that = this;
 switch (_that) {
 case _AppStarted():
 return appStarted();case _SendOtp():
 return sendOtp(_that.phone);case _VerifyOtp():
 return verifyOtp(_that.phone,_that.otp);case _LoginWithEmail():
-return loginWithEmail(_that.email,_that.password);case _Logout():
+return loginWithEmail(_that.email,_that.password);case _LoginWithGoogle():
+return loginWithGoogle(_that.token);case _LoginWithApple():
+return loginWithApple(_that.token);case _Logout():
 return logout();case _SwitchMode():
 return switchMode(_that.mode);case _:
   throw StateError('Unexpected subclass');
@@ -185,13 +195,15 @@ return switchMode(_that.mode);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  appStarted,TResult? Function( String phone)?  sendOtp,TResult? Function( String phone,  String otp)?  verifyOtp,TResult? Function( String email,  String password)?  loginWithEmail,TResult? Function()?  logout,TResult? Function( String mode)?  switchMode,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  appStarted,TResult? Function( String phone)?  sendOtp,TResult? Function( String phone,  String otp)?  verifyOtp,TResult? Function( String email,  String password)?  loginWithEmail,TResult? Function( String token)?  loginWithGoogle,TResult? Function( String token)?  loginWithApple,TResult? Function()?  logout,TResult? Function( String mode)?  switchMode,}) {final _that = this;
 switch (_that) {
 case _AppStarted() when appStarted != null:
 return appStarted();case _SendOtp() when sendOtp != null:
 return sendOtp(_that.phone);case _VerifyOtp() when verifyOtp != null:
 return verifyOtp(_that.phone,_that.otp);case _LoginWithEmail() when loginWithEmail != null:
-return loginWithEmail(_that.email,_that.password);case _Logout() when logout != null:
+return loginWithEmail(_that.email,_that.password);case _LoginWithGoogle() when loginWithGoogle != null:
+return loginWithGoogle(_that.token);case _LoginWithApple() when loginWithApple != null:
+return loginWithApple(_that.token);case _Logout() when logout != null:
 return logout();case _SwitchMode() when switchMode != null:
 return switchMode(_that.mode);case _:
   return null;
@@ -428,6 +440,138 @@ class __$LoginWithEmailCopyWithImpl<$Res>
   return _then(_LoginWithEmail(
 email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _LoginWithGoogle implements AuthEvent {
+  const _LoginWithGoogle({required this.token});
+  
+
+ final  String token;
+
+/// Create a copy of AuthEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$LoginWithGoogleCopyWith<_LoginWithGoogle> get copyWith => __$LoginWithGoogleCopyWithImpl<_LoginWithGoogle>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginWithGoogle&&(identical(other.token, token) || other.token == token));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,token);
+
+@override
+String toString() {
+  return 'AuthEvent.loginWithGoogle(token: $token)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$LoginWithGoogleCopyWith<$Res> implements $AuthEventCopyWith<$Res> {
+  factory _$LoginWithGoogleCopyWith(_LoginWithGoogle value, $Res Function(_LoginWithGoogle) _then) = __$LoginWithGoogleCopyWithImpl;
+@useResult
+$Res call({
+ String token
+});
+
+
+
+
+}
+/// @nodoc
+class __$LoginWithGoogleCopyWithImpl<$Res>
+    implements _$LoginWithGoogleCopyWith<$Res> {
+  __$LoginWithGoogleCopyWithImpl(this._self, this._then);
+
+  final _LoginWithGoogle _self;
+  final $Res Function(_LoginWithGoogle) _then;
+
+/// Create a copy of AuthEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? token = null,}) {
+  return _then(_LoginWithGoogle(
+token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _LoginWithApple implements AuthEvent {
+  const _LoginWithApple({required this.token});
+  
+
+ final  String token;
+
+/// Create a copy of AuthEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$LoginWithAppleCopyWith<_LoginWithApple> get copyWith => __$LoginWithAppleCopyWithImpl<_LoginWithApple>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginWithApple&&(identical(other.token, token) || other.token == token));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,token);
+
+@override
+String toString() {
+  return 'AuthEvent.loginWithApple(token: $token)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$LoginWithAppleCopyWith<$Res> implements $AuthEventCopyWith<$Res> {
+  factory _$LoginWithAppleCopyWith(_LoginWithApple value, $Res Function(_LoginWithApple) _then) = __$LoginWithAppleCopyWithImpl;
+@useResult
+$Res call({
+ String token
+});
+
+
+
+
+}
+/// @nodoc
+class __$LoginWithAppleCopyWithImpl<$Res>
+    implements _$LoginWithAppleCopyWith<$Res> {
+  __$LoginWithAppleCopyWithImpl(this._self, this._then);
+
+  final _LoginWithApple _self;
+  final $Res Function(_LoginWithApple) _then;
+
+/// Create a copy of AuthEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? token = null,}) {
+  return _then(_LoginWithApple(
+token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

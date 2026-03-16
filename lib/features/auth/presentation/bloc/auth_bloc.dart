@@ -107,6 +107,54 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthState.unauthenticated());
       }
     });
+
+    on<_LoginWithGoogle>((event, emit) async {
+       emit(const AuthState.loading());
+       try {
+         final res = await _authService.loginWithGoogle({
+           "token": event.token,
+         });
+         
+         if (res.isSuccessful && res.body != null) {
+           final data = res.body as Map<String, dynamic>;
+           final token = data['token'] as String;
+           final user = data['user'] as Map<String, dynamic>;
+           final userId = user['id'].toString();
+           
+           await _persistAuth(token, userId, 'client');
+           emit(AuthState.authenticated(token: token, userId: userId, currentMode: 'client'));
+         } else {
+           emit(const AuthState.unauthenticated());
+         }
+       } catch (e) {
+         _logger.e("Error logging in with Google: $e");
+         emit(const AuthState.unauthenticated());
+       }
+    });
+
+    on<_LoginWithApple>((event, emit) async {
+       emit(const AuthState.loading());
+       try {
+         final res = await _authService.loginWithApple({
+           "token": event.token,
+         });
+         
+         if (res.isSuccessful && res.body != null) {
+           final data = res.body as Map<String, dynamic>;
+           final token = data['token'] as String;
+           final user = data['user'] as Map<String, dynamic>;
+           final userId = user['id'].toString();
+           
+           await _persistAuth(token, userId, 'client');
+           emit(AuthState.authenticated(token: token, userId: userId, currentMode: 'client'));
+         } else {
+           emit(const AuthState.unauthenticated());
+         }
+       } catch (e) {
+         _logger.e("Error logging in with Apple: $e");
+         emit(const AuthState.unauthenticated());
+       }
+    });
     
     on<_SwitchMode>((event, emit) async {
       state.maybeWhen(

@@ -17,4 +17,10 @@ abstract class AuthService extends ChopperService {
 
   @POST(path: '/refresh')
   Future<Response> refreshToken();
+
+  @POST(path: '/google')
+  Future<Response> loginWithGoogle(@Body() Map<String, dynamic> body);
+
+  @POST(path: '/apple')
+  Future<Response> loginWithApple(@Body() Map<String, dynamic> body);
 }

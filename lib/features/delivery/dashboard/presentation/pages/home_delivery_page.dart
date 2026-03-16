@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../../core/di/injection.dart';
+import '../../data/datasources/driver_service.dart';
 
 class HomeDeliveryPage extends StatefulWidget {
   const HomeDeliveryPage({super.key});
@@ -18,12 +20,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('delivery.dashboard_title'.tr()),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          )
-        ],
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -93,11 +90,22 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           Switch(
             value: isOnline,
             activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.5),
-            onChanged: (value) {
+            onChanged: (value) async {
               setState(() {
                 isOnline = value;
-                // TODO: Dispatch event to bloc to trigger GPS Background Service
               });
+              try {
+                // Envoyer la mise à jour du statut au backend
+                await getIt<DriverService>().updateStatus({'isOnline': value});
+                // Note: Ici, nous devrions aussi démarrer ou arrêter le Service GPS d'arrière-plan.
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erreur réseau. Impossible de modifier votre statut.')));
+                  setState(() {
+                    isOnline = !value; // rollback
+                  });
+                }
+              }
             },
           ),
         ],

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'home_client_page.dart';
 import 'map_client_page.dart';
+import '../../../cart/presentation/pages/cart_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 
 class ClientMainTab extends StatefulWidget {
   const ClientMainTab({super.key});
@@ -16,8 +18,8 @@ class _ClientMainTabState extends State<ClientMainTab> {
   late final List<Widget> _pages = [
     const HomeClientPage(),
     const MapClientPage(),
-    Center(child: Text('client.nav_cart'.tr())),
-    Center(child: Text('client.nav_profile'.tr())),
+    const CartPage(),
+    const ProfilePage(),
   ];
 
   @override

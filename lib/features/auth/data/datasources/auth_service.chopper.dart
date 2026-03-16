@@ -48,4 +48,20 @@ final class _$AuthService extends AuthService {
     final Request $request = Request('POST', $url, client.baseUrl);
     return client.send<dynamic, dynamic>($request);
   }
+
+  @override
+  Future<Response<dynamic>> loginWithGoogle(Map<String, dynamic> body) {
+    final Uri $url = Uri.parse('/auth/google');
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> loginWithApple(Map<String, dynamic> body) {
+    final Uri $url = Uri.parse('/auth/apple');
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<dynamic, dynamic>($request);
+  }
 }

@@ -17,7 +17,7 @@ class OnboardingPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              // Placeholder for Lottie illustration
+              // Illustration Principale
               Container(
                 height: 250,
                 decoration: BoxDecoration(

@@ -1,0 +1,16 @@
+import 'package:chopper/chopper.dart';
+
+part 'driver_service.chopper.dart';
+
+@ChopperApi(baseUrl: '/drivers')
+abstract class DriverService extends ChopperService {
+  static DriverService create([ChopperClient? client]) => _$DriverService(client);
+
+  @GET(path: '/me/earnings')
+  Future<Response<Map<String, dynamic>>> getMyEarnings();
+
+  @PATCH(path: '/me/status')
+  Future<Response<Map<String, dynamic>>> updateStatus(
+    @Body() Map<String, dynamic> statusData,
+  );
+}

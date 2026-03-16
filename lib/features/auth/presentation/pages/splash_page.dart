@@ -65,7 +65,7 @@ class _SplashPageState extends State<SplashPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Placeholder for Lottie animation
+            // Animation / Icône de lancement
             Icon(Icons.fastfood, size: 80, color: theme.colorScheme.onPrimary),
             const SizedBox(height: 20),
             Text(

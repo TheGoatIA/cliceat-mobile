@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:chopper/chopper.dart';
+import '../../../../../core/di/injection.dart';
+import '../../data/datasources/restaurant_service.dart';
 
 class HomeClientPage extends StatelessWidget {
   const HomeClientPage({super.key});
@@ -79,7 +82,6 @@ class HomeClientPage extends StatelessWidget {
   }
   
   Widget _buildPromotionsCarousel(BuildContext context) {
-    // Fake promotion banner
     return Container(
       height: 160,
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -92,7 +94,7 @@ class HomeClientPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
               image: const DecorationImage(
-                image: NetworkImage('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop'), // Placeholder
+                image: NetworkImage('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop'),
                 fit: BoxFit.cover,
               )
             ),
@@ -202,82 +204,118 @@ class HomeClientPage extends StatelessWidget {
             ],
           ),
         ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: 4,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () => context.push('/restaurant/${index + 1}'),
-              child: Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 150,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage('https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1000&auto=format&fit=crop'), // Placeholder
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
+        FutureBuilder<Response>(
+          future: getIt<RestaurantService>().getRestaurants("Douala", null, null),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator()));
+            }
+            if (snapshot.hasError || !snapshot.hasData || snapshot.data?.body == null) {
+              return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: Text("Impossible de charger les restaurants.")));
+            }
+            
+            final responseBody = snapshot.data!.body;
+            List<dynamic> restaurants = [];
+            if (responseBody is Map && responseBody.containsKey('data')) {
+              restaurants = responseBody['data'] as List<dynamic>;
+            } else if (responseBody is List) {
+              restaurants = responseBody;
+            }
+
+            if (restaurants.isEmpty) {
+               return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: Text("Aucun restaurant disponible dans votre zone.")));
+            }
+
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: restaurants.length,
+              itemBuilder: (context, index) {
+                final restaurant = restaurants[index];
+                final id = restaurant['id']?.toString() ?? (index + 1).toString();
+                final name = restaurant['name'] ?? 'Restaurant Gourmet';
+                final cuisine = restaurant['cuisineType'] ?? 'Cuisine Locale';
+                final rating = restaurant['rating']?.toString() ?? 'N/A';
+                final minTime = restaurant['deliveryTimeMinutes']?.toString() ?? '30';
+                // La variable `image` n'étant pas systématique dans la db, on laisse le placeholder s'il n'y a rien.
+                final image = restaurant['coverImage'] ?? 'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1000&auto=format&fit=crop';
+
+                return GestureDetector(
+                  onTap: () => context.push('/restaurant/$id'),
+                  child: Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    clipBehavior: Clip.antiAlias,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage(image),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Restaurant Le Gourmet',
-                              style: Theme.of(context).textTheme.titleLarge,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    name,
+                                    style: Theme.of(context).textTheme.titleLarge,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.secondary,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.star, size: 14, color: Theme.of(context).colorScheme.onSecondary),
+                                      const SizedBox(width: 4),
+                                      Text(rating, style: Theme.of(context).textTheme.labelLarge),
+                                    ],
+                                  ),
+                                )
+                              ],
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.secondary,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.star, size: 14, color: Theme.of(context).colorScheme.onSecondary),
-                                  const SizedBox(width: 4),
-                                  Text('4.8', style: Theme.of(context).textTheme.labelLarge),
-                                ],
-                              ),
+                            const SizedBox(height: 4),
+                            Text(
+                              cuisine,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(Icons.delivery_dining, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                const SizedBox(width: 4),
+                                Text('Frais variables', style: Theme.of(context).textTheme.bodySmall), // Les frais dépendent de la distance (Mapbox)
+                                const SizedBox(width: 16),
+                                Icon(Icons.timer, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                const SizedBox(width: 4),
+                                Text('$minTime min', style: Theme.of(context).textTheme.bodySmall),
+                              ],
                             )
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Cuisine Locale • Grillades',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(Icons.delivery_dining, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                            const SizedBox(width: 4),
-                            Text('1000 FCFA', style: Theme.of(context).textTheme.bodySmall),
-                            const SizedBox(width: 16),
-                            Icon(Icons.timer, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                            const SizedBox(width: 4),
-                            Text('25-30 min', style: Theme.of(context).textTheme.bodySmall),
-                          ],
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
+                      )
+                    ],
+                  ),
+                ),
+                );
+              },
             );
-          },
+          }
         ),
       ],
     );

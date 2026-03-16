@@ -1,0 +1,9 @@
+Analyzing cliceat-app...                                        
+
+   info - The private field _currentStep could be 'final' - lib\features\client\cart\presentation\pages\client_tracking_page.dart:15:7 - prefer_final_fields
+   info - Unnecessary braces in a string interpolation - lib\features\client\cart\presentation\pages\order_success_page.dart:46:48 - unnecessary_brace_in_string_interps
+   info - The private field _currentInstruction could be 'final' - lib\features\delivery\dashboard\presentation\pages\active_navigation_page.dart:15:10 - prefer_final_fields
+   info - The private field _distanceToTurn could be 'final' - lib\features\delivery\dashboard\presentation\pages\active_navigation_page.dart:16:10 - prefer_final_fields
+   info - The private field _totalEta could be 'final' - lib\features\delivery\dashboard\presentation\pages\active_navigation_page.dart:17:10 - prefer_final_fields
+   info - The private field _totalDistance could be 'final' - lib\features\delivery\dashboard\presentation\pages\active_navigation_page.dart:18:10 - prefer_final_fields
+
