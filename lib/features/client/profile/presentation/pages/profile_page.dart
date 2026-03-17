@@ -343,12 +343,45 @@ class _ProfilePageState extends State<ProfilePage> {
                           itemCount: addresses.length,
                           itemBuilder: (_, i) {
                             final addr = addresses[i] as Map<String, dynamic>;
-                            return ListTile(
-                              leading: const Icon(Icons.location_on_outlined),
-                              title: Text(addr['address']?.toString() ?? ''),
-                              subtitle: addr['label'] != null
-                                  ? Text(addr['label'].toString())
-                                  : null,
+                            final addrId = addr['_id']?.toString() ?? addr['id']?.toString() ?? '';
+                            return Dismissible(
+                              key: Key(addrId.isNotEmpty ? addrId : 'addr_$i'),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                color: Theme.of(context).colorScheme.error,
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 16),
+                                child: const Icon(Icons.delete_outline, color: Colors.white),
+                              ),
+                              confirmDismiss: (_) async {
+                                if (addrId.isEmpty) return false;
+                                try {
+                                  final res = await getIt<UserService>().deleteAddress(addrId);
+                                  return res.isSuccessful;
+                                } catch (_) {
+                                  return false;
+                                }
+                              },
+                              child: ListTile(
+                                leading: const Icon(Icons.location_on_outlined),
+                                title: Text(addr['address']?.toString() ?? ''),
+                                subtitle: addr['label'] != null
+                                    ? Text(addr['label'].toString())
+                                    : null,
+                                trailing: IconButton(
+                                  icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 20),
+                                  onPressed: () async {
+                                    if (addrId.isEmpty) return;
+                                    try {
+                                      final res = await getIt<UserService>().deleteAddress(addrId);
+                                      if (res.isSuccessful && context.mounted) {
+                                        Navigator.pop(context);
+                                        _showAddresses(context);
+                                      }
+                                    } catch (_) {}
+                                  },
+                                ),
+                              ),
                             );
                           },
                         ),

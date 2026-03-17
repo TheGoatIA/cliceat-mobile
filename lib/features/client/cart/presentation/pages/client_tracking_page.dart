@@ -26,6 +26,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   String? _error;
 
   StreamSubscription<Map<String, dynamic>>? _wsSub;
+  Timer? _etaTimer;
 
   static const Map<String, int> _statusToStep = {
     'pending': 0,
@@ -48,6 +49,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     final ws = getIt<WebSocketService>();
     ws.connect(); // ensure connected (no-op if already connected)
     _loadTracking();
+    // Poll ETA every 15 s while order is not yet delivered
+    _etaTimer = Timer.periodic(const Duration(seconds: 15), (_) => _refreshEta());
     _wsSub = ws.orderTrackingEvents.listen((event) {
       if (event['orderId'] == widget.orderId || event['_id'] == widget.orderId) {
         setState(() {
@@ -64,7 +67,28 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   @override
   void dispose() {
     _wsSub?.cancel();
+    _etaTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _refreshEta() async {
+    final status = _trackingData?['status'] as String? ?? '';
+    // Stop polling once delivered or cancelled
+    if (status == 'delivered' || status == 'cancelled') {
+      _etaTimer?.cancel();
+      return;
+    }
+    try {
+      final etaRes = await getIt<TrackingService>().getEta(widget.orderId);
+      if (etaRes.isSuccessful && etaRes.body != null && mounted) {
+        final body = etaRes.body!;
+        setState(() {
+          _etaData = (body['data'] as Map<String, dynamic>?) ?? body;
+        });
+      }
+    } catch (_) {
+      // silently ignore ETA refresh errors
+    }
   }
 
   Future<void> _loadTracking() async {

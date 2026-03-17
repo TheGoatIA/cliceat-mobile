@@ -154,7 +154,7 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
           _buildMenuItem(
             icon: Icons.directions_car_outlined,
             title: 'delivery.my_vehicle'.tr(),
-            onTap: () {},
+            onTap: () => _showVehicleEdit(context),
           ),
           const SizedBox(height: 16),
           _buildSectionTitle('profile.settings'.tr(), theme),
@@ -253,6 +253,87 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
         ),
         icon: const Icon(Icons.logout),
         label: Text('profile.logout'.tr()),
+      ),
+    );
+  }
+
+  void _showVehicleEdit(BuildContext context) {
+    final deliveryman = _userData?['deliveryman'] as Map<String, dynamic>?;
+    String selectedVehicleType = deliveryman?['vehicleType'] as String? ?? 'motorcycle';
+    final plateCtrl = TextEditingController(text: deliveryman?['vehiclePlate'] as String? ?? '');
+    final theme = Theme.of(context);
+
+    const vehicleTypes = [
+      ('motorcycle', 'delivery.vehicle_motorcycle'),
+      ('bicycle', 'delivery.vehicle_bicycle'),
+      ('car', 'delivery.vehicle_car'),
+      ('on_foot', 'delivery.vehicle_on_foot'),
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+              left: 24, right: 24, top: 24,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('delivery.my_vehicle'.tr(),
+                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              Text('delivery.vehicle_type'.tr(), style: theme.textTheme.labelLarge),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: vehicleTypes.map((vt) {
+                  final (value, labelKey) = vt;
+                  final selected = selectedVehicleType == value;
+                  return ChoiceChip(
+                    label: Text(labelKey.tr()),
+                    selected: selected,
+                    onSelected: (_) => setSheetState(() => selectedVehicleType = value),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: plateCtrl,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  labelText: 'delivery.vehicle_plate'.tr(),
+                  hintText: 'LT 1234 CM',
+                  prefixIcon: const Icon(Icons.pin_outlined),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    try {
+                      await getIt<UserService>().updateMe({
+                        'deliveryman': {
+                          'vehicleType': selectedVehicleType,
+                          'vehiclePlate': plateCtrl.text.trim().toUpperCase(),
+                        }
+                      });
+                      _loadProfile();
+                    } catch (_) {}
+                  },
+                  child: Text('common.save'.tr()),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

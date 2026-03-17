@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -7,13 +8,70 @@ import '../../../../../core/di/injection.dart';
 import '../../../../../core/network/services/coupon_service.dart';
 import '../../data/datasources/restaurant_service.dart';
 
-class HomeClientPage extends StatelessWidget {
+class HomeClientPage extends StatefulWidget {
   const HomeClientPage({super.key});
+
+  @override
+  State<HomeClientPage> createState() => _HomeClientPageState();
+}
+
+class _HomeClientPageState extends State<HomeClientPage> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  String? _selectedCategory;
+  Timer? _debounce;
+
+  // Category list with emoji icons and search keywords
+  static const _categories = [
+    ('Burger', '🍔'),
+    ('Pizza', '🍕'),
+    ('Ndolé', '🥗'),
+    ('Poulet', '🍗'),
+    ('Salade', '🥙'),
+  ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) setState(() => _searchQuery = value.trim());
+    });
+  }
+
+  void _onCategoryTap(String category) {
+    setState(() {
+      if (_selectedCategory == category) {
+        // Toggle off
+        _selectedCategory = null;
+        _searchQuery = '';
+        _searchController.clear();
+      } else {
+        _selectedCategory = category;
+        _searchQuery = category;
+        _searchController.text = category;
+      }
+    });
+  }
+
+  bool get _isSearching => _searchQuery.isNotEmpty;
+
+  Future<Response> _fetchRestaurants() {
+    if (_isSearching) {
+      return getIt<RestaurantService>().searchRestaurants(_searchQuery);
+    }
+    return getIt<RestaurantService>().getFeaturedRestaurants();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -45,18 +103,16 @@ class HomeClientPage extends StatelessWidget {
       ),
       body: RefreshIndicator(
         color: theme.colorScheme.primary,
-        onRefresh: () async {
-          await Future.delayed(const Duration(seconds: 1));
-        },
+        onRefresh: () async => setState(() {}),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildSearchBar(context),
-              _buildPromotionsCarousel(context),
+              if (!_isSearching) _buildPromotionsCarousel(context),
               _buildCategories(context),
-              _buildRecommendedRestaurants(context),
+              _buildRestaurantList(context),
             ],
           ),
         ),
@@ -68,10 +124,23 @@ class HomeClientPage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: TextField(
+        controller: _searchController,
+        onChanged: _onSearchChanged,
         decoration: InputDecoration(
           hintText: 'client.search_hint'.tr(),
           prefixIcon: const Icon(Icons.search),
-          suffixIcon: const Icon(Icons.tune),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = '';
+                      _selectedCategory = null;
+                    });
+                  },
+                )
+              : const Icon(Icons.tune),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -82,7 +151,7 @@ class HomeClientPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildPromotionsCarousel(BuildContext context) {
     return FutureBuilder<Response<Map<String, dynamic>>>(
       future: getIt<CouponService>().getBanners(),
@@ -157,8 +226,7 @@ class HomeClientPage extends StatelessWidget {
   }
 
   Widget _buildCategories(BuildContext context) {
-    final categories = ['Burger', 'Pizza', 'Ndolé', 'Poulet', 'Salades'];
-    
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -166,7 +234,7 @@ class HomeClientPage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
             'client.categories'.tr(),
-            style: Theme.of(context).textTheme.titleLarge,
+            style: theme.textTheme.titleLarge,
           ),
         ),
         SizedBox(
@@ -174,38 +242,52 @@ class HomeClientPage extends StatelessWidget {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: categories.length,
+            itemCount: _categories.length,
             itemBuilder: (context, index) {
-              return Container(
-                width: 80,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                child: Column(
-                  children: [
-                    Container(
-                      height: 60,
-                      width: 60,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardTheme.color,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          )
-                        ]
+              final (label, emoji) = _categories[index];
+              final isSelected = _selectedCategory == label;
+              return GestureDetector(
+                onTap: () => _onCategoryTap(label),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 80,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Column(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        height: 60,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : theme.cardTheme.color,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.shadowColor.withValues(alpha: 0.08),
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
+                            )
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(emoji, style: const TextStyle(fontSize: 26)),
+                        ),
                       ),
-                      child: Center(child: Icon(Icons.fastfood, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      categories[index],
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        label,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? theme.colorScheme.primary : null,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -215,7 +297,8 @@ class HomeClientPage extends StatelessWidget {
     );
   }
 
-  Widget _buildRecommendedRestaurants(BuildContext context) {
+  Widget _buildRestaurantList(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -225,26 +308,47 @@ class HomeClientPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'client.recommended'.tr(),
-                style: Theme.of(context).textTheme.titleLarge,
+                _isSearching
+                    ? 'client.search_results'.tr()
+                    : 'client.recommended'.tr(),
+                style: theme.textTheme.titleLarge,
               ),
-              Text(
-                'client.see_all'.tr(),
-                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
-              )
+              if (!_isSearching)
+                Text(
+                  'client.see_all'.tr(),
+                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                ),
             ],
           ),
         ),
         FutureBuilder<Response>(
-          future: getIt<RestaurantService>().getFeaturedRestaurants(),
+          key: ValueKey('$_searchQuery'),
+          future: _fetchRestaurants(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator()));
+              return const Center(
+                child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator()),
+              );
             }
             if (snapshot.hasError || !snapshot.hasData || snapshot.data?.body == null) {
-              return Center(child: Padding(padding: const EdgeInsets.all(32.0), child: Text('common.error'.tr())));
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    children: [
+                      Text('common.error'.tr(), style: TextStyle(color: theme.colorScheme.error)),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () => setState(() {}),
+                        icon: const Icon(Icons.refresh),
+                        label: Text('common.retry'.tr()),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
-            
+
             final responseBody = snapshot.data!.body;
             List<dynamic> restaurants = [];
             if (responseBody is Map && responseBody.containsKey('data')) {
@@ -254,7 +358,21 @@ class HomeClientPage extends StatelessWidget {
             }
 
             if (restaurants.isEmpty) {
-               return Center(child: Padding(padding: const EdgeInsets.all(32.0), child: Text('restaurant.none_available'.tr())));
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    children: [
+                      Icon(Icons.search_off, size: 64, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+                      const SizedBox(height: 12),
+                      Text(
+                        _isSearching ? 'common.no_results'.tr() : 'restaurant.none_available'.tr(),
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
 
             return ListView.builder(
@@ -269,8 +387,8 @@ class HomeClientPage extends StatelessWidget {
                 final cuisine = restaurant['cuisineType'] ?? 'Cuisine Locale';
                 final rating = restaurant['rating']?.toString() ?? 'N/A';
                 final minTime = restaurant['deliveryTimeMinutes']?.toString() ?? '30';
-                // La variable `image` n'étant pas systématique dans la db, on laisse le placeholder s'il n'y a rien.
-                final image = restaurant['coverImage'] ?? 'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1000&auto=format&fit=crop';
+                final image = restaurant['coverImage'] ??
+                    'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1000&auto=format&fit=crop';
 
                 return GestureDetector(
                   onTap: () => context.push('/restaurant/$id'),
@@ -278,75 +396,72 @@ class HomeClientPage extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 16),
                     clipBehavior: Clip.antiAlias,
                     child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 150,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: NetworkImage(image),
-                            fit: BoxFit.cover,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 150,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: NetworkImage(image),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    name,
-                                    style: Theme.of(context).textTheme.titleLarge,
-                                    overflow: TextOverflow.ellipsis,
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      name,
+                                      style: theme.textTheme.titleLarge,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.secondary,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.star, size: 14, color: Theme.of(context).colorScheme.onSecondary),
-                                      const SizedBox(width: 4),
-                                      Text(rating, style: Theme.of(context).textTheme.labelLarge),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              cuisine,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.delivery_dining, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                const SizedBox(width: 4),
-                                Text('restaurant.variable_fee'.tr(), style: Theme.of(context).textTheme.bodySmall),
-                                const SizedBox(width: 16),
-                                Icon(Icons.timer, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                const SizedBox(width: 4),
-                                Text('$minTime min', style: Theme.of(context).textTheme.bodySmall),
-                              ],
-                            )
-                          ],
-                        ),
-                      )
-                    ],
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.secondary,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.star, size: 14, color: theme.colorScheme.onSecondary),
+                                        const SizedBox(width: 4),
+                                        Text(rating, style: theme.textTheme.labelLarge),
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(cuisine, style: theme.textTheme.bodySmall),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(Icons.delivery_dining, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                                  const SizedBox(width: 4),
+                                  Text('restaurant.variable_fee'.tr(), style: theme.textTheme.bodySmall),
+                                  const SizedBox(width: 16),
+                                  Icon(Icons.timer, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                                  const SizedBox(width: 4),
+                                  Text('$minTime min', style: theme.textTheme.bodySmall),
+                                ],
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                ),
                 );
               },
             );
-          }
+          },
         ),
       ],
     );

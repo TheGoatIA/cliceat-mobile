@@ -69,7 +69,8 @@
     "nav_orders": "Commandes",
     "nav_map": "Carte",
     "nav_cart": "Panier",
-    "nav_profile": "Profil"
+    "nav_profile": "Profil",
+    "search_results": "Résultats de recherche"
   },
   "restaurant": {
     "delivery_time": "Livraison en 25-30 min",
@@ -251,7 +252,13 @@
     "error_reject": "Impossible de refuser la mission.",
     "error_unknown_status": "Statut de mission inconnu.",
     "status_updated": "Statut mis à jour !",
-    "error_update_status": "Erreur lors de la mise à jour du statut."
+    "error_update_status": "Erreur lors de la mise à jour du statut.",
+    "vehicle_type": "Type de véhicule",
+    "vehicle_plate": "Plaque d'immatriculation",
+    "vehicle_motorcycle": "Moto",
+    "vehicle_bicycle": "Vélo",
+    "vehicle_car": "Voiture",
+    "vehicle_on_foot": "À pied"
   },
   "common": {
     "error": "Une erreur est survenue.",
@@ -268,6 +275,7 @@
     "loading": "Chargement...",
     "search": "Rechercher",
     "no_results": "Aucun résultat",
+    "search_results": "Résultats de recherche",
     "see_all": "Voir tout",
     "back": "Retour"
   }

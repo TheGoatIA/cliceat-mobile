@@ -47,11 +47,11 @@ void main() async {
   configureDependencies();
 
   // Initialize push notifications
+  getIt<NotificationService>().configureRouting(rootNavigatorKey);
   await getIt<NotificationService>().initialize();
 
-  // Initialize deep links (must be after router is created)
-  // The router is created lazily; we pass rootNavigatorKey so DeepLinkService
-  // can access the router context once the app is mounted.
+  // Initialize deep links — must run after the router is set up so the
+  // navigator key is wired before any incoming link is handled.
   getIt<DeepLinkService>().initialize(rootNavigatorKey);
 
   runApp(

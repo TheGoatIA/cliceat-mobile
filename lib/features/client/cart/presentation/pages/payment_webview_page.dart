@@ -31,8 +31,21 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage> {
           onPageStarted: (_) => setState(() => _loading = true),
           onPageFinished: (_) => setState(() => _loading = false),
           onNavigationRequest: (request) {
-            final url = request.url;
-            // Detect payment success/failure by redirect URL patterns
+            final url = request.url.toLowerCase();
+
+            // --- Primary: deep-link scheme set by backend/NotchPay ---
+            // Backend should configure callback URL as cliceat://payment/success?orderId=...
+            if (url.startsWith('cliceat://payment/success')) {
+              context.go('/client/order-success/${widget.orderId}');
+              return NavigationDecision.prevent;
+            }
+            if (url.startsWith('cliceat://payment/cancel') ||
+                url.startsWith('cliceat://payment/failed')) {
+              context.pop();
+              return NavigationDecision.prevent;
+            }
+
+            // --- Fallback: HTTPS return URL patterns from NotchPay ---
             if (url.contains('/payment/success') ||
                 url.contains('payment_success') ||
                 url.contains('status=success') ||
@@ -47,6 +60,7 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage> {
               context.pop();
               return NavigationDecision.prevent;
             }
+
             return NavigationDecision.navigate;
           },
         ),

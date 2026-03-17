@@ -69,7 +69,8 @@
     "nav_orders": "Orders",
     "nav_map": "Map",
     "nav_cart": "Cart",
-    "nav_profile": "Profile"
+    "nav_profile": "Profile",
+    "search_results": "Search results"
   },
   "restaurant": {
     "delivery_time": "Delivery in 25-30 min",
@@ -251,7 +252,13 @@
     "error_reject": "Unable to reject mission.",
     "error_unknown_status": "Unknown mission status.",
     "status_updated": "Status updated!",
-    "error_update_status": "Error updating status."
+    "error_update_status": "Error updating status.",
+    "vehicle_type": "Vehicle type",
+    "vehicle_plate": "License plate",
+    "vehicle_motorcycle": "Motorcycle",
+    "vehicle_bicycle": "Bicycle",
+    "vehicle_car": "Car",
+    "vehicle_on_foot": "On foot"
   },
   "common": {
     "error": "An error occurred.",
@@ -268,6 +275,7 @@
     "loading": "Loading...",
     "search": "Search",
     "no_results": "No results",
+    "search_results": "Search results",
     "see_all": "See all",
     "back": "Back"
   }

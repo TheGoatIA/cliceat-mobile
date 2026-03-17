@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/di/injection.dart';
+import '../../../../../core/utils/date_formatter.dart';
 import '../bloc/order_bloc.dart';
 
 class OrderHistoryPage extends StatelessWidget {
@@ -79,6 +80,8 @@ class OrderHistoryPage extends StatelessWidget {
     final restaurantName = (order['restaurant'] as Map<String, dynamic>?)?['name'] as String? ?? '';
     final isDelivered = status == 'delivered';
     final isCancelled = status == 'cancelled';
+    final locale = context.locale.languageCode;
+    final createdAt = formatDate(order['createdAt'], locale: locale);
 
     return Card(
       elevation: 0,
@@ -104,6 +107,10 @@ class OrderHistoryPage extends StatelessWidget {
             if (restaurantName.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(restaurantName, style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+            ],
+            if (createdAt.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(createdAt, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             ],
             const SizedBox(height: 8),
             Row(
