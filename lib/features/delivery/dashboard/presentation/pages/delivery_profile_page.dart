@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/network/services/user_service.dart';
+import '../../../../../core/models/user_model.dart';
+import '../../../../../core/repositories/user_repository.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../client/profile/presentation/pages/profile_page.dart'
     show NotificationSettingsSheet;
@@ -16,7 +17,7 @@ class DeliveryProfilePage extends StatefulWidget {
 }
 
 class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
-  Map<String, dynamic>? _userData;
+  UserModel? _user;
   bool _loading = true;
 
   @override
@@ -26,20 +27,16 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
   }
 
   Future<void> _loadProfile() async {
-    try {
-      final res = await getIt<UserService>().getMe();
-      if (res.isSuccessful && res.body != null) {
-        final body = res.body!;
-        setState(() {
-          _userData = (body['data'] as Map<String, dynamic>?) ?? body;
-          _loading = false;
-        });
-      } else {
-        setState(() => _loading = false);
-      }
-    } catch (_) {
-      setState(() => _loading = false);
-    }
+    setState(() => _loading = true);
+    final result = await getIt<UserRepository>().getProfile();
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loading = false),
+      (user) => setState(() {
+        _user = user;
+        _loading = false;
+      }),
+    );
   }
 
   @override
@@ -65,10 +62,10 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
   }
 
   Widget _buildHeader(ThemeData theme) {
-    final name = _userData?['name'] as String? ?? 'Livreur';
-    final email = _userData?['email'] as String? ?? '';
-    final phone = _userData?['phone'] as String? ?? '';
-    final photo = _userData?['photo'] as String?;
+    final name = _user?.name ?? 'Livreur';
+    final email = _user?.email ?? '';
+    final phone = _user?.phone ?? '';
+    final photo = _user?.avatar;
 
     return Container(
       width: double.infinity,
@@ -260,9 +257,8 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
   }
 
   void _showVehicleEdit(BuildContext context) {
-    final deliveryman = _userData?['deliveryman'] as Map<String, dynamic>?;
-    String selectedVehicleType = deliveryman?['vehicleType'] as String? ?? 'motorcycle';
-    final plateCtrl = TextEditingController(text: deliveryman?['vehiclePlate'] as String? ?? '');
+    String selectedVehicleType = 'motorcycle';
+    final plateCtrl = TextEditingController();
     final theme = Theme.of(context);
 
     const vehicleTypes = [
@@ -320,15 +316,14 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
                 child: ElevatedButton(
                   onPressed: () async {
                     Navigator.pop(ctx);
-                    try {
-                      await getIt<UserService>().updateMe({
-                        'deliveryman': {
-                          'vehicleType': selectedVehicleType,
-                          'vehiclePlate': plateCtrl.text.trim().toUpperCase(),
-                        }
-                      });
-                      _loadProfile();
-                    } catch (_) {}
+                    await getIt<UserRepository>().updateProfile({
+                      'deliveryman': {
+                        'vehicleType': selectedVehicleType,
+                        'vehiclePlate':
+                            plateCtrl.text.trim().toUpperCase(),
+                      }
+                    });
+                    _loadProfile();
                   },
                   child: Text('common.save'.tr()),
                 ),
@@ -341,7 +336,7 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
   }
 
   void _showEditProfile(BuildContext context) {
-    final nameController = TextEditingController(text: _userData?['name'] as String? ?? '');
+    final nameController = TextEditingController(text: _user?.name ?? '');
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
@@ -372,10 +367,9 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  try {
-                    await getIt<UserService>().updateMe({'name': nameController.text.trim()});
-                    _loadProfile();
-                  } catch (_) {}
+                  await getIt<UserRepository>().updateProfile(
+                      {'name': nameController.text.trim()});
+                  _loadProfile();
                 },
                 child: Text('common.save'.tr()),
               ),

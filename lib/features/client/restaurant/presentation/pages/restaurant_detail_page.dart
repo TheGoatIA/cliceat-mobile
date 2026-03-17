@@ -2,10 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:chopper/chopper.dart';
 import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../home/data/datasources/restaurant_service.dart';
+import '../../../../../core/models/menu_item_model.dart';
+import '../../../../../core/models/restaurant_model.dart';
+import '../../../../../core/repositories/restaurant_repository.dart';
+import '../../../../../shared/widgets/app_network_image.dart';
 import '../../../cart/presentation/bloc/cart_cubit.dart';
 
 class RestaurantDetailPage extends StatefulWidget {
@@ -17,76 +19,86 @@ class RestaurantDetailPage extends StatefulWidget {
 }
 
 class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
-  late Future<Response> _restaurantFuture;
+  RestaurantModel? _restaurant;
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _restaurantFuture =
-        getIt<RestaurantService>().getRestaurantDetails(widget.restaurantId);
+    _loadRestaurant();
+  }
+
+  Future<void> _loadRestaurant() async {
+    setState(() { _loading = true; _error = null; });
+    final result =
+        await getIt<RestaurantRepository>().getDetails(widget.restaurantId);
+    if (!mounted) return;
+    result.fold(
+      (err) => setState(() {
+        _error = err.message;
+        _loading = false;
+      }),
+      (restaurant) {
+        setState(() {
+          _restaurant = restaurant;
+          _loading = false;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.read<CartCubit>().setDeliveryFee(
+                restaurant.deliveryFee > 0
+                    ? restaurant.deliveryFee
+                    : AppConstants.defaultDeliveryFee);
+          }
+        });
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Response>(
-      future: _restaurantFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-              body: Center(child: CircularProgressIndicator()));
-        }
-        if (snapshot.hasError ||
-            !snapshot.hasData ||
-            snapshot.data?.body == null) {
-          return Scaffold(
-            appBar: AppBar(title: Text('common.error'.tr())),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('restaurant.error_load'.tr()),
-                  TextButton(
-                      onPressed: () => context.pop(),
-                      child: Text('common.back'.tr()))
-                ],
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (_error != null || _restaurant == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text('common.error'.tr())),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('restaurant.error_load'.tr()),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _loadRestaurant,
+                child: Text('common.retry'.tr()),
               ),
-            ),
-          );
-        }
+              TextButton(
+                onPressed: () => context.pop(),
+                child: Text('common.back'.tr()),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
-        final data = snapshot.data!.body;
-        Map<String, dynamic> restaurant = {};
-        if (data is Map && data.containsKey('data')) {
-          restaurant = data['data'] as Map<String, dynamic>;
-        } else if (data is Map) {
-          restaurant = data as Map<String, dynamic>;
-        }
-
-        final name = restaurant['name'] ?? 'Restaurant';
-        final cuisine = restaurant['cuisineType'] ?? 'Cuisine';
-        final rating = restaurant['rating']?.toString() ?? 'N/A';
-        final minTime =
-            restaurant['deliveryTimeMinutes']?.toString() ?? '30';
-        final image = restaurant['coverImage'] ??
-            'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1000&auto=format&fit=crop';
-        final deliveryFee =
-            (restaurant['deliveryFee'] as num?)?.toDouble() ??
-                AppConstants.defaultDeliveryFee;
-        final description = restaurant['description'] as String? ?? '';
-
-        // Update delivery fee in cart state (once per build cycle)
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.read<CartCubit>().setDeliveryFee(deliveryFee);
-          }
-        });
-
-        final List<dynamic> menus = restaurant['menus'] ?? [];
+        final restaurant = _restaurant!;
+        final name = restaurant.name;
+        final cuisine = restaurant.cuisineType ?? '';
+        final rating = restaurant.rating?.toStringAsFixed(1) ?? 'N/A';
+        final minTime = restaurant.deliveryTimeMinutes?.toString() ?? '30';
+        final deliveryFee = restaurant.deliveryFee > 0
+            ? restaurant.deliveryFee
+            : AppConstants.defaultDeliveryFee;
+        final description = restaurant.description ?? '';
+        final menus = restaurant.menus;
 
         // Group menu items by category
-        final menusByCategory = <String, List<dynamic>>{};
+        final menusByCategory = <String, List<MenuItemModel>>{};
         for (final item in menus) {
-          final cat = (item as Map<String, dynamic>)['category'] as String? ?? '';
+          final cat = (item.category ?? '').trim();
           menusByCategory.putIfAbsent(cat, () => []).add(item);
         }
         final categoryEntries = [
@@ -111,11 +123,13 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                               blurRadius: 4)
                         ],
                       )),
-                  background: Image.network(
-                    image,
+                  background: AppNetworkImage(
+                    url: restaurant.coverImage,
                     fit: BoxFit.cover,
-                    color: Colors.black.withValues(alpha: 0.3),
-                    colorBlendMode: BlendMode.darken,
+                    width: double.infinity,
+                    height: 250,
+                    fallbackAsset:
+                        'assets/images/restaurant_placeholder.jpg',
                   ),
                 ),
                 leading: IconButton(
@@ -234,17 +248,16 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             },
           ),
         );
-      },
-    );
   }
 
   Widget _buildMenuSliver(
     BuildContext context,
-    List<MapEntry<String, List<dynamic>>> categoryEntries,
+    List<MapEntry<String, List<MenuItemModel>>> categoryEntries,
     String restaurantId,
     double deliveryFee,
   ) {
-    final rows = <dynamic>[];
+    // Flatten category headers (String) and items (MenuItemModel) into one list
+    final rows = <Object>[];
     for (final entry in categoryEntries) {
       if (entry.key.isNotEmpty) rows.add(entry.key);
       rows.addAll(entry.value);
@@ -266,53 +279,41 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
               ),
             );
           }
-          final item = row as Map<String, dynamic>;
-          final itemName = item['name'] as String? ?? '';
-          final itemDesc = item['description'] as String? ?? '';
-          final itemPrice = (item['price'] as num?)?.toDouble() ?? 0.0;
-          final itemImage = item['image'] as String?;
-          final variations = item['variations'] as List<dynamic>? ?? [];
-          final hasVariations = variations.isNotEmpty;
+          final item = row as MenuItemModel;
+          final hasVariations = item.variations.isNotEmpty;
 
           return ListTile(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                image: itemImage != null && itemImage.isNotEmpty
-                    ? DecorationImage(
-                        image: NetworkImage(itemImage), fit: BoxFit.cover)
-                    : null,
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: AppNetworkImage(
+                url: item.image,
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+                fallbackAsset: 'assets/images/restaurant_placeholder.jpg',
               ),
-              child: (itemImage == null || itemImage.isEmpty)
-                  ? Icon(Icons.fastfood,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant)
-                  : null,
             ),
-            title: Text(itemName,
+            title: Text(item.name,
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (itemDesc.isNotEmpty) Text(itemDesc),
-                Text('${itemPrice.toStringAsFixed(0)} FCFA',
+                if ((item.description ?? '').isNotEmpty) Text(item.description!),
+                Text('${item.price.toStringAsFixed(0)} FCFA',
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold)),
               ],
             ),
-            isThreeLine: itemDesc.isNotEmpty,
+            isThreeLine: (item.description ?? '').isNotEmpty,
             trailing: IconButton(
               icon: const Icon(Icons.add_circle),
               color: Theme.of(context).colorScheme.primary,
               onPressed: () {
                 if (hasVariations) {
-                  _showItemVariantModal(context, item, restaurantId,
-                      deliveryFee);
+                  _showItemDetailModal(context, item, restaurantId, deliveryFee);
                 } else {
                   _addToCartWithConfirmation(
                     context: context,
@@ -323,8 +324,8 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                 }
               },
             ),
-            onTap: () => _showItemDetailModal(context, item, restaurantId,
-                deliveryFee),
+            onTap: () =>
+                _showItemDetailModal(context, item, restaurantId, deliveryFee),
           );
         },
         childCount: rows.length,
@@ -361,10 +362,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   Future<void> _addToCartWithConfirmation({
     required BuildContext context,
     required String restaurantId,
-    required Map<String, dynamic> item,
+    required MenuItemModel item,
     required double deliveryFee,
     String? variation,
     String? notes,
+    double? priceOverride,
   }) async {
     final cartCubit = context.read<CartCubit>();
     if (cartCubit.state.wouldClearCart(restaurantId)) {
@@ -373,16 +375,14 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
       await cartCubit.clearCart();
     }
 
-    final itemName = item['name'] as String? ?? '';
-    final itemPrice = (item['price'] as num?)?.toDouble() ?? 0.0;
     final displayName =
-        variation != null ? '$itemName ($variation)' : itemName;
+        variation != null ? '${item.name} ($variation)' : item.name;
 
     await cartCubit.addItem(
       restaurantId: restaurantId,
-      itemId: item['_id']?.toString() ?? item['id']?.toString() ?? itemName,
+      itemId: item.id,
       name: displayName,
-      price: itemPrice,
+      price: priceOverride ?? item.price,
       deliveryFee: deliveryFee,
       variation: variation,
       notes: notes,
@@ -405,16 +405,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   /// Bottom sheet for item detail with description, photo, and add to cart.
   void _showItemDetailModal(
     BuildContext context,
-    Map<String, dynamic> item,
+    MenuItemModel item,
     String restaurantId,
     double deliveryFee,
   ) {
     final theme = Theme.of(context);
-    final itemName = item['name'] as String? ?? '';
-    final itemDesc = item['description'] as String? ?? '';
-    final itemPrice = (item['price'] as num?)?.toDouble() ?? 0.0;
-    final itemImage = item['image'] as String?;
-    final variations = item['variations'] as List<dynamic>? ?? [];
 
     showModalBottomSheet(
       context: context,
@@ -431,83 +426,67 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (itemImage != null && itemImage.isNotEmpty)
-                ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(24)),
-                  child: Image.network(itemImage,
-                      height: 200, fit: BoxFit.cover),
-                )
-              else
-                Container(
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(24)),
-                  ),
-                  child: Icon(Icons.fastfood,
-                      size: 64,
-                      color: theme.colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.5)),
+              ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
+                child: AppNetworkImage(
+                  url: item.image,
+                  height: item.image != null ? 200 : 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  fallbackAsset: 'assets/images/restaurant_placeholder.jpg',
                 ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(itemName,
+                    Text(item.name,
                         style: theme.textTheme.titleLarge
                             ?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    Text('${itemPrice.toStringAsFixed(0)} FCFA',
+                    Text('${item.price.toStringAsFixed(0)} FCFA',
                         style: TextStyle(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 18)),
-                    if (itemDesc.isNotEmpty) ...[
+                    if ((item.description ?? '').isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      Text(itemDesc,
+                      Text(item.description!,
                           style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant)),
                     ],
-                    if (variations.isNotEmpty) ...[
+                    if (item.variations.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       Text('restaurant.choose_variation'.tr(),
                           style: theme.textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      ...variations.map((v) {
-                        final vName = v['name']?.toString() ?? v.toString();
-                        final vExtra =
-                            (v['extraPrice'] as num?)?.toDouble() ?? 0.0;
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(vName),
-                          subtitle: vExtra > 0
-                              ? Text('+${vExtra.toStringAsFixed(0)} FCFA')
-                              : null,
-                          trailing: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              _addToCartWithConfirmation(
-                                context: context,
-                                restaurantId: restaurantId,
-                                item: {
-                                  ...item,
-                                  'price': itemPrice + vExtra,
-                                },
-                                deliveryFee: deliveryFee,
-                                variation: vName,
-                              );
-                            },
-                            child: Text('restaurant.add_to_cart'.tr()),
-                          ),
-                        );
-                      }),
+                      ...item.variations.map((v) => ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(v.name),
+                            subtitle: v.price > 0
+                                ? Text('+${v.price.toStringAsFixed(0)} FCFA')
+                                : null,
+                            trailing: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                _addToCartWithConfirmation(
+                                  context: context,
+                                  restaurantId: restaurantId,
+                                  item: item,
+                                  deliveryFee: deliveryFee,
+                                  variation: v.name,
+                                  priceOverride: item.price + v.price,
+                                );
+                              },
+                              child: Text('restaurant.add_to_cart'.tr()),
+                            ),
+                          )),
                     ],
                     const SizedBox(height: 24),
-                    if (variations.isEmpty)
+                    if (item.variations.isEmpty)
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -535,15 +514,5 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
         ),
       ),
     );
-  }
-
-  /// Variant selection modal when item has variations.
-  void _showItemVariantModal(
-    BuildContext context,
-    Map<String, dynamic> item,
-    String restaurantId,
-    double deliveryFee,
-  ) {
-    _showItemDetailModal(context, item, restaurantId, deliveryFee);
   }
 }

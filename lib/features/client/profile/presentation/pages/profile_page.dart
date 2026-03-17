@@ -5,7 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/network/services/user_service.dart';
+import '../../../../../core/models/address_model.dart';
+import '../../../../../core/models/loyalty_model.dart';
+import '../../../../../core/models/user_model.dart';
+import '../../../../../core/repositories/user_repository.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -16,7 +19,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  Map<String, dynamic>? _userData;
+  UserModel? _user;
   bool _loading = true;
 
   @override
@@ -26,20 +29,16 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadProfile() async {
-    try {
-      final res = await getIt<UserService>().getMe();
-      if (res.isSuccessful && res.body != null) {
-        final body = res.body!;
-        setState(() {
-          _userData = (body['data'] as Map<String, dynamic>?) ?? body;
-          _loading = false;
-        });
-      } else {
-        setState(() => _loading = false);
-      }
-    } catch (_) {
-      setState(() => _loading = false);
-    }
+    setState(() => _loading = true);
+    final result = await getIt<UserRepository>().getProfile();
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loading = false),
+      (user) => setState(() {
+        _user = user;
+        _loading = false;
+      }),
+    );
   }
 
   @override
@@ -65,22 +64,21 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildHeader(ThemeData theme) {
-    final name = _userData?['name'] as String? ?? 'profile.default_name'.tr();
-    final email = _userData?['email'] as String? ?? '';
-    final phone = _userData?['phone'] as String? ?? '';
-    final photo = _userData?['photo'] as String?;
+    final name = _user?.name ?? 'profile.default_name'.tr();
+    final email = _user?.email ?? '';
+    final phone = _user?.phone ?? '';
+    final photo = _user?.avatar;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      decoration: BoxDecoration(color: theme.colorScheme.primary),
       child: Column(
         children: [
           CircleAvatar(
             radius: 48,
-            backgroundColor: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
+            backgroundColor:
+                theme.colorScheme.onPrimary.withValues(alpha: 0.2),
             backgroundImage: photo != null ? NetworkImage(photo) : null,
             child: photo == null
                 ? Text(
@@ -248,7 +246,8 @@ class _ProfilePageState extends State<ProfilePage> {
           foregroundColor: theme.colorScheme.error,
           side: BorderSide(color: theme.colorScheme.error),
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         icon: const Icon(Icons.logout),
         label: Text('profile.logout'.tr()),
@@ -256,9 +255,11 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // ── Modals ──────────────────────────────────────────────────────────────────
+
   void _showEditProfile(BuildContext context) {
-    final nameController = TextEditingController(
-        text: _userData?['name'] as String? ?? '');
+    final nameController =
+        TextEditingController(text: _user?.name ?? '');
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
@@ -267,20 +268,27 @@ class _ProfilePageState extends State<ProfilePage> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
-            left: 24, right: 24, top: 24,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('profile.edit_profile'.tr(),
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'profile.edit_profile'.tr(),
+              style: theme.textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: nameController,
               decoration: InputDecoration(
                 labelText: 'profile.name'.tr(),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const SizedBox(height: 16),
@@ -289,10 +297,20 @@ class _ProfilePageState extends State<ProfilePage> {
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  try {
-                    await getIt<UserService>().updateMe({'name': nameController.text.trim()});
-                    _loadProfile();
-                  } catch (_) {}
+                  final result = await getIt<UserRepository>()
+                      .updateProfile({'name': nameController.text.trim()});
+                  result.fold(
+                    (err) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(err.message.tr())),
+                        );
+                      }
+                    },
+                    (user) {
+                      if (mounted) setState(() => _user = user);
+                    },
+                  );
                 },
                 child: Text('common.save'.tr()),
               ),
@@ -312,14 +330,13 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (ctx) => DraggableScrollableSheet(
         initialChildSize: 0.6,
         expand: false,
-        builder: (_, scrollController) => FutureBuilder(
-          future: getIt<UserService>().getAddresses(),
+        builder: (_, scrollController) => FutureBuilder<
+            List<AddressModel>>(
+          future: getIt<UserRepository>()
+              .getAddresses()
+              .then((r) => r.fold((_) => <AddressModel>[], (a) => a)),
           builder: (context, snapshot) {
-            List<dynamic> addresses = [];
-            if (snapshot.hasData && snapshot.data!.isSuccessful) {
-              final body = snapshot.data!.body;
-              addresses = (body?['data'] as List<dynamic>?) ?? [];
-            }
+            final addresses = snapshot.data ?? [];
             return Column(
               children: [
                 Padding(
@@ -327,8 +344,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('profile.my_addresses'.tr(),
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(
+                        'profile.my_addresses'.tr(),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
                       IconButton(
                         icon: const Icon(Icons.add),
                         onPressed: () {},
@@ -338,48 +360,62 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 Expanded(
                   child: addresses.isEmpty
-                      ? Center(child: Text('profile.no_addresses'.tr()))
+                      ? Center(
+                          child: Text('profile.no_addresses'.tr()))
                       : ListView.builder(
                           controller: scrollController,
                           itemCount: addresses.length,
                           itemBuilder: (_, i) {
-                            final addr = addresses[i] as Map<String, dynamic>;
-                            final addrId = addr['_id']?.toString() ?? addr['id']?.toString() ?? '';
+                            final addr = addresses[i];
                             return Dismissible(
-                              key: Key(addrId.isNotEmpty ? addrId : 'addr_$i'),
+                              key: Key(addr.id.isNotEmpty
+                                  ? addr.id
+                                  : 'addr_$i'),
                               direction: DismissDirection.endToStart,
                               background: Container(
-                                color: Theme.of(context).colorScheme.error,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .error,
                                 alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 16),
-                                child: const Icon(Icons.delete_outline, color: Colors.white),
+                                padding:
+                                    const EdgeInsets.only(right: 16),
+                                child: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.white),
                               ),
                               confirmDismiss: (_) async {
-                                if (addrId.isEmpty) return false;
-                                try {
-                                  final res = await getIt<UserService>().deleteAddress(addrId);
-                                  return res.isSuccessful;
-                                } catch (_) {
-                                  return false;
-                                }
+                                if (addr.id.isEmpty) return false;
+                                final result =
+                                    await getIt<UserRepository>()
+                                        .deleteAddress(addr.id);
+                                return result.isRight();
                               },
                               child: ListTile(
-                                leading: const Icon(Icons.location_on_outlined),
-                                title: Text(addr['address']?.toString() ?? ''),
-                                subtitle: addr['label'] != null
-                                    ? Text(addr['label'].toString())
+                                leading: const Icon(
+                                    Icons.location_on_outlined),
+                                title: Text(addr.address),
+                                subtitle: addr.label != null
+                                    ? Text(addr.label!)
                                     : null,
                                 trailing: IconButton(
-                                  icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 20),
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    color:
+                                        Theme.of(context)
+                                            .colorScheme
+                                            .error,
+                                    size: 20,
+                                  ),
                                   onPressed: () async {
-                                    if (addrId.isEmpty) return;
-                                    try {
-                                      final res = await getIt<UserService>().deleteAddress(addrId);
-                                      if (res.isSuccessful && context.mounted) {
-                                        Navigator.pop(context);
-                                        _showAddresses(context);
-                                      }
-                                    } catch (_) {}
+                                    if (addr.id.isEmpty) return;
+                                    final result =
+                                        await getIt<UserRepository>()
+                                            .deleteAddress(addr.id);
+                                    if (result.isRight() &&
+                                        context.mounted) {
+                                      Navigator.pop(context);
+                                      _showAddresses(context);
+                                    }
                                   },
                                 ),
                               ),
@@ -395,6 +431,53 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _showLoyalty(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => FutureBuilder<LoyaltyModel?>(
+        future: getIt<UserRepository>()
+            .getLoyalty()
+            .then((r) => r.fold((_) => null, (l) => l)),
+        builder: (context, snapshot) {
+          final theme = Theme.of(context);
+          final points = snapshot.data?.points ?? 0;
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.card_giftcard,
+                    size: 64, color: theme.colorScheme.secondary),
+                const SizedBox(height: 16),
+                Text(
+                  'profile.loyalty'.tr(),
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '$points pts',
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'profile.loyalty_desc'.tr(),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _showLanguagePicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -406,22 +489,35 @@ class _ProfilePageState extends State<ProfilePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('profile.language'.tr(),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'profile.language'.tr(),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Text('🇫🇷', style: TextStyle(fontSize: 24)),
+              leading:
+                  const Text('🇫🇷', style: TextStyle(fontSize: 24)),
               title: const Text('Français'),
-              trailing: context.locale == const Locale('fr', 'FR') ? const Icon(Icons.check) : null,
+              trailing:
+                  context.locale == const Locale('fr', 'FR')
+                      ? const Icon(Icons.check)
+                      : null,
               onTap: () {
                 context.setLocale(const Locale('fr', 'FR'));
                 Navigator.pop(ctx);
               },
             ),
             ListTile(
-              leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
+              leading:
+                  const Text('🇬🇧', style: TextStyle(fontSize: 24)),
               title: const Text('English'),
-              trailing: context.locale == const Locale('en', 'US') ? const Icon(Icons.check) : null,
+              trailing:
+                  context.locale == const Locale('en', 'US')
+                      ? const Icon(Icons.check)
+                      : null,
               onTap: () {
                 context.setLocale(const Locale('en', 'US'));
                 Navigator.pop(ctx);
@@ -438,19 +534,28 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => Padding(
+      builder: (_) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.help_outline, size: 48, color: Theme.of(context).colorScheme.primary),
+            Icon(Icons.help_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 16),
-            Text('profile.help'.tr(),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'profile.help'.tr(),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
-            const Text('support@cliceat.cm', style: TextStyle(fontSize: 16)),
+            const Text('support@cliceat.cm',
+                style: TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
-            const Text('WhatsApp: +237 6XX XXX XXX', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            const Text('WhatsApp: +237 6XX XXX XXX',
+                style: TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
       ),
@@ -463,58 +568,16 @@ class _ProfilePageState extends State<ProfilePage> {
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => const NotificationSettingsSheet(),
-    );
-  }
-
-  void _showLoyalty(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => FutureBuilder(
-        future: getIt<UserService>().getLoyalty(),
-        builder: (context, snapshot) {
-          final theme = Theme.of(context);
-          int points = 0;
-          if (snapshot.hasData && snapshot.data!.isSuccessful) {
-            final body = snapshot.data!.body;
-            final data = (body?['data'] as Map<String, dynamic>?) ?? {};
-            points = (data['points'] as int?) ?? 0;
-          }
-          return Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.card_giftcard, size: 64, color: theme.colorScheme.secondary),
-                const SizedBox(height: 16),
-                Text('profile.loyalty'.tr(),
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Text(
-                  '$points pts',
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text('profile.loyalty_desc'.tr(),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium),
-              ],
-            ),
-          );
-        },
-      ),
+      builder: (_) => const NotificationSettingsSheet(),
     );
   }
 }
 
-/// Notification settings bottom sheet with toggles stored in SharedPreferences.
+// ── Notification Settings Sheet ─────────────────────────────────────────────
+
+/// Notification preference toggles backed by [SharedPreferences].
 class NotificationSettingsSheet extends StatefulWidget {
-  const NotificationSettingsSheet();
+  const NotificationSettingsSheet({super.key});
 
   @override
   State<NotificationSettingsSheet> createState() =>
@@ -540,6 +603,7 @@ class _NotificationSettingsSheetState
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _orderUpdates = prefs.getBool(_keyOrderUpdates) ?? true;
       _promotions = prefs.getBool(_keyPromotions) ?? true;
@@ -567,11 +631,11 @@ class _NotificationSettingsSheetState
             style: theme.textTheme.titleLarge
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             'profile.notifications_subtitle'.tr(),
-            style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 16),
           if (!_loaded)
@@ -579,10 +643,11 @@ class _NotificationSettingsSheetState
           else ...[
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              secondary:
-                  Icon(Icons.receipt_long, color: theme.colorScheme.primary),
+              secondary: Icon(Icons.receipt_long,
+                  color: theme.colorScheme.primary),
               title: Text('profile.notif_order_updates'.tr()),
-              subtitle: Text('profile.notif_order_updates_desc'.tr()),
+              subtitle:
+                  Text('profile.notif_order_updates_desc'.tr()),
               value: _orderUpdates,
               onChanged: (v) {
                 setState(() => _orderUpdates = v);
@@ -595,7 +660,8 @@ class _NotificationSettingsSheetState
               secondary: Icon(Icons.local_offer,
                   color: theme.colorScheme.secondary),
               title: Text('profile.notif_promotions'.tr()),
-              subtitle: Text('profile.notif_promotions_desc'.tr()),
+              subtitle:
+                  Text('profile.notif_promotions_desc'.tr()),
               value: _promotions,
               onChanged: (v) {
                 setState(() => _promotions = v);
@@ -608,7 +674,8 @@ class _NotificationSettingsSheetState
               secondary: Icon(Icons.restaurant_menu,
                   color: theme.colorScheme.tertiary),
               title: Text('profile.notif_new_restaurants'.tr()),
-              subtitle: Text('profile.notif_new_restaurants_desc'.tr()),
+              subtitle:
+                  Text('profile.notif_new_restaurants_desc'.tr()),
               value: _newRestaurants,
               onChanged: (v) {
                 setState(() => _newRestaurants = v);

@@ -8,7 +8,8 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/services.dart';
 import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/network/services/tracking_service.dart';
+import '../../../../../core/models/tracking_model.dart';
+import '../../../../../core/repositories/order_repository.dart';
 import '../../../../../core/services/websocket_service.dart';
 
 class ClientTrackingPage extends StatefulWidget {
@@ -25,8 +26,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   PointAnnotation? _driverAnnotation;
   Uint8List? _driverIcon;
 
-  Map<String, dynamic>? _trackingData;
-  Map<String, dynamic>? _etaData;
+  TrackingModel? _trackingData;
+  TrackingModel? _etaData;
   bool _loading = true;
   String? _error;
 
@@ -44,7 +45,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   };
 
   int get _currentStep {
-    final status = _trackingData?['status'] as String? ?? 'pending';
+    final status = _trackingData?.status ?? 'pending';
     return _statusToStep[status] ?? 0;
   }
 
@@ -60,11 +61,19 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       if (event['orderId'] == widget.orderId ||
           event['_id'] == widget.orderId) {
         setState(() {
-          if (_trackingData != null) {
-            _trackingData = {..._trackingData!, ...event};
-          } else {
-            _trackingData = event;
-          }
+          _trackingData = TrackingModel.fromJson({
+            ...(_trackingData != null
+                ? {
+                    'orderId': _trackingData!.orderId,
+                    'status': _trackingData!.status,
+                    if (_trackingData!.driverLat != null)
+                      'driverLat': _trackingData!.driverLat,
+                    if (_trackingData!.driverLng != null)
+                      'driverLng': _trackingData!.driverLng,
+                  }
+                : <String, dynamic>{}),
+            ...event,
+          });
         });
         // Update driver marker on map when location changes
         _updateDriverMarker();
@@ -123,17 +132,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     if (_annotationManager == null || _driverIcon == null) return;
     if (_trackingData == null) return;
 
-    final driver = _trackingData!['driver'] as Map<String, dynamic>?;
-    if (driver == null) return;
-
-    final location = driver['location'] as Map<String, dynamic>?;
-    final lat = (location?['lat'] as num?)?.toDouble() ??
-        (location?['latitude'] as num?)?.toDouble() ??
-        (driver['lat'] as num?)?.toDouble();
-    final lng = (location?['lng'] as num?)?.toDouble() ??
-        (location?['longitude'] as num?)?.toDouble() ??
-        (driver['lng'] as num?)?.toDouble();
-
+    final lat = _trackingData!.driverLat;
+    final lng = _trackingData!.driverLng;
     if (lat == null || lng == null) return;
 
     final point = Point(coordinates: Position(lng, lat));
@@ -170,21 +170,16 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   }
 
   Future<void> _refreshEta() async {
-    final status = _trackingData?['status'] as String? ?? '';
+    final status = _trackingData?.status ?? '';
     if (status == 'delivered' || status == 'cancelled') {
       _etaTimer?.cancel();
       return;
     }
-    try {
-      final etaRes =
-          await getIt<TrackingService>().getEta(widget.orderId);
-      if (etaRes.isSuccessful && etaRes.body != null && mounted) {
-        final body = etaRes.body!;
-        setState(() {
-          _etaData = (body['data'] as Map<String, dynamic>?) ?? body;
-        });
-      }
-    } catch (_) {}
+    final result =
+        await getIt<OrderRepository>().getEta(widget.orderId);
+    if (mounted) {
+      result.fold((_) {}, (eta) => setState(() => _etaData = eta));
+    }
   }
 
   Future<void> _loadTracking() async {
@@ -192,33 +187,23 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       _loading = true;
       _error = null;
     });
-    try {
-      final results = await Future.wait([
-        getIt<TrackingService>().getTracking(widget.orderId),
-        getIt<TrackingService>().getEta(widget.orderId),
-      ]);
-      final trackingRes = results[0];
-      final etaRes = results[1];
-      setState(() {
-        if (trackingRes.isSuccessful && trackingRes.body != null) {
-          final body = trackingRes.body!;
-          _trackingData =
-              (body['data'] as Map<String, dynamic>?) ?? body;
-        }
-        if (etaRes.isSuccessful && etaRes.body != null) {
-          final body = etaRes.body!;
-          _etaData = (body['data'] as Map<String, dynamic>?) ?? body;
-        }
-        _loading = false;
-      });
-      // Place driver marker after data loaded
-      _updateDriverMarker();
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
-    }
+    final repo = getIt<OrderRepository>();
+    final results = await Future.wait([
+      repo.getTracking(widget.orderId),
+      repo.getEta(widget.orderId),
+    ]);
+    if (!mounted) return;
+    final trackingResult = results[0];
+    final etaResult = results[1];
+    setState(() {
+      trackingResult.fold(
+        (err) => _error = err.message,
+        (tracking) => _trackingData = tracking,
+      );
+      etaResult.fold((_) {}, (eta) => _etaData = eta);
+      _loading = false;
+    });
+    _updateDriverMarker();
   }
 
   @override
@@ -310,21 +295,13 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   }
 
   Widget _buildTrackingPanel(ThemeData theme) {
-    final driver =
-        _trackingData?['driver'] as Map<String, dynamic>?;
-    final driverName =
-        driver?['name'] as String? ?? 'tracking.driver'.tr();
-    final driverPhoto = driver?['photo'] as String?;
-    final vehicle = driver?['vehicle'] as String? ?? '';
+    final driverName = _trackingData?.driverName ?? 'tracking.driver'.tr();
+    final driverPhoto = _trackingData?.driverAvatar;
+    final etaMinutes = _etaData?.etaMinutes ?? _trackingData?.etaMinutes;
 
-    final etaMinutes = _etaData?['etaMinutes'] as int?;
-    final etaTime = _etaData?['eta'] as String?;
-
-    final etaDisplay = etaTime != null
-        ? etaTime
-        : etaMinutes != null
-            ? 'tracking.eta_minutes'.tr(args: [etaMinutes.toString()])
-            : '--:--';
+    final etaDisplay = etaMinutes != null
+        ? 'tracking.eta_minutes'.tr(args: [etaMinutes.toString()])
+        : '--:--';
 
     return Container(
       decoration: BoxDecoration(
@@ -420,13 +397,13 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                             style: theme.textTheme.titleMedium
                                 ?.copyWith(
                                     fontWeight: FontWeight.bold)),
-                        if (vehicle.isNotEmpty)
+                        if (_trackingData?.driverPhone != null)
                           Row(
                             children: [
-                              const Icon(Icons.two_wheeler,
+                              const Icon(Icons.phone,
                                   size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
-                              Text(vehicle,
+                              Text(_trackingData!.driverPhone!,
                                   style: theme.textTheme.bodySmall),
                             ],
                           ),

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../../core/di/injection.dart';
-import '../../data/datasources/payment_service.dart';
+import '../../../../../core/repositories/order_repository.dart';
 
 class PaymentWebviewPage extends StatefulWidget {
   final String paymentUrl;
@@ -75,27 +75,23 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage> {
     if (_verifying) return;
     setState(() => _verifying = true);
     try {
-      final res = await getIt<PaymentService>().verifyPayment(widget.orderId);
+      final result =
+          await getIt<OrderRepository>().verifyPayment(widget.orderId);
       if (!mounted) return;
-      if (res.isSuccessful) {
-        final data = res.body?['data'] as Map<String, dynamic>? ?? res.body ?? {};
-        final status = data['status']?.toString() ?? data['paymentStatus']?.toString() ?? '';
-        // Accept any non-failed status (completed, success, approved, paid)
-        final isSuccess = status.isEmpty ||
-            status == 'completed' ||
-            status == 'success' ||
-            status == 'approved' ||
-            status == 'paid';
-        if (isSuccess) {
-          context.go('/client/order-success/${widget.orderId}');
-        } else {
+      result.fold(
+        (_) {
           setState(() => _verifying = false);
           _showPaymentFailedSnack();
-        }
-      } else {
-        setState(() => _verifying = false);
-        _showPaymentFailedSnack();
-      }
+        },
+        (isSuccess) {
+          if (isSuccess) {
+            context.go('/client/order-success/${widget.orderId}');
+          } else {
+            setState(() => _verifying = false);
+            _showPaymentFailedSnack();
+          }
+        },
+      );
     } catch (_) {
       if (mounted) {
         setState(() => _verifying = false);

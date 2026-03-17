@@ -3,15 +3,24 @@ import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../errors/app_error.dart';
 import '../models/order_model.dart';
+import '../models/tracking_model.dart';
 import '../../features/client/cart/data/datasources/order_service.dart';
+import '../../features/client/cart/data/datasources/payment_service.dart';
+import '../network/services/tracking_service.dart';
 
 /// Abstracts order operations and provides local caching via SharedPreferences.
 class OrderRepository {
   final OrderService _orderService;
+  final PaymentService _paymentService;
+  final TrackingService _trackingService;
 
   static const _cacheKey = 'cached_orders';
 
-  OrderRepository(this._orderService);
+  OrderRepository(
+    this._orderService,
+    this._paymentService,
+    this._trackingService,
+  );
 
   // ─── Create ───────────────────────────────────────────────────────────────
 
@@ -106,6 +115,67 @@ class OrderRepository {
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(
           res.body, 'order.error_rate',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  // ─── Payment ──────────────────────────────────────────────────────────────
+
+  /// Returns `true` if payment verification succeeds with a successful status.
+  Future<Either<AppError, bool>> verifyPayment(String orderId) async {
+    try {
+      final res = await _paymentService.verifyPayment(orderId);
+      if (res.isSuccessful && res.body != null) {
+        final data =
+            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final status = data['status']?.toString() ??
+            data['paymentStatus']?.toString() ??
+            '';
+        final isSuccess = status.isEmpty ||
+            status == 'completed' ||
+            status == 'success' ||
+            status == 'approved' ||
+            status == 'paid';
+        return Right(isSuccess);
+      }
+      return Left(AppError.fromResponse(
+          res.body, 'payment.error_verify',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  // ─── Tracking ─────────────────────────────────────────────────────────────
+
+  Future<Either<AppError, TrackingModel>> getTracking(String orderId) async {
+    try {
+      final res = await _trackingService.getTracking(orderId);
+      if (res.isSuccessful && res.body != null) {
+        final data =
+            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        return Right(TrackingModel.fromJson(data));
+      }
+      return Left(AppError.fromResponse(
+          res.body, 'order.error_tracking',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, TrackingModel>> getEta(String orderId) async {
+    try {
+      final res = await _trackingService.getEta(orderId);
+      if (res.isSuccessful && res.body != null) {
+        final data =
+            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        return Right(TrackingModel.fromJson(data));
+      }
+      return Left(AppError.fromResponse(
+          res.body, 'order.error_tracking',
           statusCode: res.statusCode));
     } catch (_) {
       return Left(AppError.network());

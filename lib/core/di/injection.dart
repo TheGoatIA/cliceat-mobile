@@ -18,6 +18,8 @@ import '../network/services/user_service.dart';
 import '../network/services/coupon_service.dart';
 import '../../features/auth/data/datasources/auth_service.dart';
 import '../../features/client/cart/data/datasources/order_service.dart';
+import '../../features/client/cart/data/datasources/payment_service.dart';
+import '../network/services/tracking_service.dart';
 import '../../features/client/home/data/datasources/restaurant_service.dart';
 import '../../features/delivery/dashboard/data/datasources/mission_service.dart';
 import '../../features/delivery/dashboard/data/datasources/driver_service.dart';
@@ -61,7 +63,11 @@ void _registerRepositories() {
     ),
   );
   getIt.registerLazySingleton<OrderRepository>(
-    () => OrderRepository(getIt<OrderService>()),
+    () => OrderRepository(
+      getIt<OrderService>(),
+      getIt<PaymentService>(),
+      getIt<TrackingService>(),
+    ),
   );
   getIt.registerLazySingleton<RestaurantRepository>(
     () => RestaurantRepository(

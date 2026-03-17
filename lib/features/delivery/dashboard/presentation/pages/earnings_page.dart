@@ -2,7 +2,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/di/injection.dart';
-import '../../data/datasources/driver_service.dart';
+import '../../../../../core/models/earnings_model.dart';
+import '../../../../../core/repositories/driver_repository.dart';
 
 class EarningsPage extends StatefulWidget {
   const EarningsPage({super.key});
@@ -12,7 +13,7 @@ class EarningsPage extends StatefulWidget {
 }
 
 class _EarningsPageState extends State<EarningsPage> {
-  Map<String, dynamic>? _earnings;
+  EarningsModel? _earnings;
   bool _loading = true;
 
   @override
@@ -22,20 +23,16 @@ class _EarningsPageState extends State<EarningsPage> {
   }
 
   Future<void> _loadEarnings() async {
-    try {
-      final res = await getIt<DriverService>().getMyEarnings();
-      if (res.isSuccessful && res.body != null) {
-        final body = res.body!;
-        setState(() {
-          _earnings = (body['data'] as Map<String, dynamic>?) ?? body;
-          _loading = false;
-        });
-      } else {
-        setState(() => _loading = false);
-      }
-    } catch (_) {
-      setState(() => _loading = false);
-    }
+    setState(() => _loading = true);
+    final result = await getIt<DriverRepository>().getEarnings();
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loading = false),
+      (earnings) => setState(() {
+        _earnings = earnings;
+        _loading = false;
+      }),
+    );
   }
 
   @override
@@ -81,10 +78,10 @@ class _EarningsPageState extends State<EarningsPage> {
   }
 
   Widget _buildSummaryCards(ThemeData theme) {
-    final todayEarnings = _earnings?['today'] as num? ?? 0;
-    final weekEarnings = _earnings?['week'] as num? ?? 0;
-    final monthEarnings = _earnings?['month'] as num? ?? 0;
-    final totalDeliveries = _earnings?['totalDeliveries'] as int? ?? 0;
+    final todayEarnings = _earnings?.today ?? 0.0;
+    final weekEarnings = _earnings?.thisWeek ?? 0.0;
+    final monthEarnings = _earnings?.thisMonth ?? 0.0;
+    final totalDeliveries = _earnings?.todayDeliveries ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,23 +166,17 @@ class _EarningsPageState extends State<EarningsPage> {
 
   /// Renders a bar chart of the breakdown data using CustomPainter.
   Widget _buildBarChart(ThemeData theme) {
-    final breakdown = _earnings?['breakdown'] as List<dynamic>? ?? [];
+    final breakdown = _earnings?.dailyBreakdown ?? [];
     if (breakdown.isEmpty) return const SizedBox.shrink();
 
-    final amounts = breakdown
-        .map((e) => (e as Map<String, dynamic>)['amount'] as num? ?? 0)
-        .toList();
-    final labels = breakdown
-        .map((e) {
-          final date = (e as Map<String, dynamic>)['date']?.toString() ?? '';
+    final amounts = breakdown.map((e) => e.amount).toList();
+    final labels = breakdown.map((e) {
           try {
-            final dt = DateTime.parse(date);
-            return '${dt.day}/${dt.month}';
+            return '${e.date.day}/${e.date.month}';
           } catch (_) {
-            return date.length > 5 ? date.substring(date.length - 5) : date;
+            return '';
           }
-        })
-        .toList();
+        }).toList();
 
     return Card(
       elevation: 1,
@@ -206,7 +197,7 @@ class _EarningsPageState extends State<EarningsPage> {
               height: 160,
               child: CustomPaint(
                 painter: _EarningsBarChartPainter(
-                  amounts: amounts.cast<num>(),
+                  amounts: amounts.map((a) => a as num).toList(),
                   labels: labels,
                   barColor: theme.colorScheme.primary,
                   labelColor: theme.colorScheme.onSurfaceVariant,
@@ -264,7 +255,7 @@ class _EarningsPageState extends State<EarningsPage> {
   }
 
   Widget _buildPeriodBreakdown(ThemeData theme) {
-    final breakdown = _earnings?['breakdown'] as List<dynamic>? ?? [];
+    final breakdown = _earnings?.dailyBreakdown ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,11 +289,8 @@ class _EarningsPageState extends State<EarningsPage> {
           )
         else
           ...breakdown.map((item) {
-            final d = item as Map<String, dynamic>;
-            final date = d['date']?.toString() ?? '';
-            final amount =
-                (d['amount'] as num?)?.toStringAsFixed(0) ?? '0';
-            final count = (d['count'] as int?) ?? 0;
+            final dateLabel =
+                '${item.date.day}/${item.date.month}/${item.date.year}';
             return Card(
               elevation: 0,
               margin: const EdgeInsets.only(bottom: 8),
@@ -316,13 +304,12 @@ class _EarningsPageState extends State<EarningsPage> {
                   child: Icon(Icons.today,
                       color: theme.colorScheme.primary, size: 20),
                 ),
-                title: Text(date,
-                    style:
-                        const TextStyle(fontWeight: FontWeight.w500)),
-                subtitle:
-                    Text('$count ${'delivery.deliveries'.tr()}'),
+                title: Text(dateLabel,
+                    style: const TextStyle(fontWeight: FontWeight.w500)),
+                subtitle: Text(
+                    '${item.deliveries} ${'delivery.deliveries'.tr()}'),
                 trailing: Text(
-                  '$amount FCFA',
+                  '${item.amount.toStringAsFixed(0)} FCFA',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,

@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/network/services/user_service.dart';
+import '../../../../../core/models/address_model.dart';
+import '../../../../../core/repositories/user_repository.dart';
 
 class AddressSelectionPage extends StatefulWidget {
   const AddressSelectionPage({super.key});
@@ -13,7 +14,7 @@ class AddressSelectionPage extends StatefulWidget {
 }
 
 class _AddressSelectionPageState extends State<AddressSelectionPage> {
-  List<Map<String, dynamic>> _addresses = [];
+  List<AddressModel> _addresses = [];
   bool _loading = true;
   bool _gpsLoading = false;
 
@@ -24,24 +25,25 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
   }
 
   Future<void> _loadAddresses() async {
-    try {
-      final res = await getIt<UserService>().getAddresses();
-      if (res.isSuccessful && res.body != null) {
-        final data = res.body!['data'] as List<dynamic>? ?? [];
-        setState(() {
-          _addresses = data.cast<Map<String, dynamic>>();
-          _loading = false;
-        });
-      } else {
-        setState(() => _loading = false);
-      }
-    } catch (_) {
-      setState(() => _loading = false);
-    }
+    setState(() => _loading = true);
+    final result = await getIt<UserRepository>().getAddresses();
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loading = false),
+      (addresses) => setState(() {
+        _addresses = addresses;
+        _loading = false;
+      }),
+    );
   }
 
-  void _selectAddress(Map<String, dynamic> address) {
-    context.pop(address);
+  void _selectAddress(AddressModel address) {
+    context.pop({
+      'address': address.address,
+      'label': address.label,
+      'lat': address.lat,
+      'lng': address.lng,
+    });
   }
 
   /// Gets the user's current GPS position and returns it as an address.
@@ -138,12 +140,11 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                   if (address.isEmpty) return;
                   Navigator.pop(ctx);
                   try {
-                    await getIt<UserService>().addAddress({
+                    await getIt<UserRepository>().addAddress({
                       'address': address,
                       if (labelCtrl.text.trim().isNotEmpty)
                         'label': labelCtrl.text.trim(),
                     });
-                    setState(() => _loading = true);
                     await _loadAddresses();
                   } catch (_) {}
                 },
@@ -245,9 +246,6 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                               const Divider(height: 1),
                           itemBuilder: (context, index) {
                             final addr = _addresses[index];
-                            final label = addr['label']?.toString();
-                            final address =
-                                addr['address']?.toString() ?? '';
                             return ListTile(
                               leading: Container(
                                 padding: const EdgeInsets.all(8),
@@ -259,11 +257,12 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                                     color: theme.colorScheme.primary,
                                     size: 20),
                               ),
-                              title: Text(label ?? address,
+                              title: Text(addr.label ?? addr.address,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w600)),
-                              subtitle:
-                                  label != null ? Text(address) : null,
+                              subtitle: addr.label != null
+                                  ? Text(addr.address)
+                                  : null,
                               trailing: const Icon(Icons.chevron_right),
                               onTap: () => _selectAddress(addr),
                             );

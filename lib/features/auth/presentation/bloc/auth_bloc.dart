@@ -8,7 +8,7 @@ import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/websocket_service.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/di/injection.dart';
-import '../../../../core/network/services/user_service.dart';
+import '../../../../core/repositories/user_repository.dart';
 import '../../data/datasources/auth_service.dart';
 
 part 'auth_event.dart';
@@ -378,8 +378,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Register FCM token with backend
       final fcmToken = await getIt<NotificationService>().getFcmToken();
       if (fcmToken != null) {
-        await getIt<UserService>()
-            .registerFcmToken({'token': fcmToken});
+        await getIt<UserRepository>().registerFcmToken(fcmToken);
       }
     } catch (e) {
       _logger.w('FCM token registration failed: $e');

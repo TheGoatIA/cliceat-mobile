@@ -2,11 +2,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:chopper/chopper.dart';
 import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/network/services/coupon_service.dart';
-import '../../data/datasources/restaurant_service.dart';
+import '../../../../../core/models/coupon_model.dart';
+import '../../../../../core/models/restaurant_model.dart';
+import '../../../../../core/repositories/coupon_repository.dart';
+import '../../../../../core/repositories/restaurant_repository.dart';
+import '../../../../../shared/widgets/app_network_image.dart';
+import '../../../../../shared/widgets/banner_carousel.dart';
+import '../../../../../shared/widgets/empty_state.dart';
+import '../../../../../shared/widgets/restaurant_card.dart';
+import '../../../../../shared/widgets/section_header.dart';
 
 class HomeClientPage extends StatefulWidget {
   const HomeClientPage({super.key});
@@ -17,26 +23,40 @@ class HomeClientPage extends StatefulWidget {
 
 class _HomeClientPageState extends State<HomeClientPage> {
   final _searchController = TextEditingController();
-  String _searchQuery = '';
-  String? _selectedCategory;
   Timer? _debounce;
 
-  // Dynamic categories (emoji, label) loaded from API
+  String _searchQuery = '';
+  String? _selectedCategory;
+
+  // Data
+  List<RestaurantModel> _allRestaurants = [];
+  List<RestaurantModel> _displayedRestaurants = [];
+  List<BannerModel> _banners = [];
+  List<(String, String)> _categories = _fallbackCategories;
+
+  bool _loadingRestaurants = true;
+  bool _loadingBanners = true;
+
   static const _fallbackCategories = [
     ('🍔', 'Burger'),
     ('🍕', 'Pizza'),
-    ('🥗', 'Ndolé'),
+    ('🥘', 'Ndolé'),
     ('🍗', 'Poulet'),
     ('🥙', 'Salade'),
   ];
 
-  List<(String, String)> _categories = _fallbackCategories;
-  bool _categoriesLoaded = false;
+  static const _emojiMap = {
+    'burger': '🍔', 'pizza': '🍕', 'poulet': '🍗', 'chicken': '🍗',
+    'salade': '🥗', 'salad': '🥗', 'ndolé': '🥘', 'ndole': '🥘',
+    'poisson': '🐟', 'fish': '🐟', 'sushi': '🍱', 'tacos': '🌮',
+    'sandwich': '🥙', 'pasta': '🍝', 'dessert': '🍰', 'jus': '🥤',
+    'rice': '🍚', 'riz': '🍚', 'viande': '🥩', 'meat': '🥩',
+  };
 
   @override
   void initState() {
     super.initState();
-    _loadDynamicCategories();
+    _loadData();
   }
 
   @override
@@ -46,92 +66,109 @@ class _HomeClientPageState extends State<HomeClientPage> {
     super.dispose();
   }
 
-  /// Loads cuisine categories from the featured restaurant list.
-  /// Falls back to static categories if API fails.
-  Future<void> _loadDynamicCategories() async {
-    if (_categoriesLoaded) return;
-    try {
-      final res = await getIt<RestaurantService>().getFeaturedRestaurants();
-      if (!res.isSuccessful || res.body == null) return;
+  Future<void> _loadData() async {
+    await Future.wait([_loadRestaurants(), _loadBanners()]);
+  }
 
-      final body = res.body;
-      List<dynamic> restaurants = [];
-      if (body is Map && body.containsKey('data')) {
-        restaurants = body['data'] as List<dynamic>? ?? [];
-      } else if (body is List) {
-        restaurants = body;
-      }
+  Future<void> _loadRestaurants() async {
+    setState(() => _loadingRestaurants = true);
+    final result = await getIt<RestaurantRepository>().getFeaturedRestaurants();
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loadingRestaurants = false),
+      (restaurants) {
+        final categories = _extractCategories(restaurants);
+        setState(() {
+          _allRestaurants = restaurants;
+          _displayedRestaurants = restaurants;
+          _loadingRestaurants = false;
+          if (categories.isNotEmpty) _categories = categories;
+        });
+      },
+    );
+  }
 
-      // Extract unique cuisine types and map them to emojis
-      final cuisineSet = <String>{};
-      for (final r in restaurants) {
-        final cuisine = (r as Map<String, dynamic>)['cuisineType'] as String?;
-        if (cuisine != null && cuisine.trim().isNotEmpty) {
-          cuisineSet.add(cuisine.trim());
-        }
-      }
+  Future<void> _loadBanners() async {
+    setState(() => _loadingBanners = true);
+    final result = await getIt<CouponRepository>().getBanners();
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loadingBanners = false),
+      (banners) => setState(() {
+        _banners = banners;
+        _loadingBanners = false;
+      }),
+    );
+  }
 
-      if (cuisineSet.isEmpty) return;
+  Future<void> _search(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() {
+        _displayedRestaurants = _allRestaurants;
+        _selectedCategory = null;
+      });
+      return;
+    }
+    setState(() => _loadingRestaurants = true);
+    final result = await getIt<RestaurantRepository>().search(query.trim());
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loadingRestaurants = false),
+      (restaurants) => setState(() {
+        _displayedRestaurants = restaurants;
+        _loadingRestaurants = false;
+      }),
+    );
+  }
 
-      const emojiMap = {
-        'burger': '🍔', 'pizza': '🍕', 'poulet': '🍗', 'chicken': '🍗',
-        'salade': '🥗', 'salad': '🥗', 'ndolé': '🥘', 'ndole': '🥘',
-        'poisson': '🐟', 'fish': '🐟', 'sushi': '🍱', 'tacos': '🌮',
-        'sandwich': '🥙', 'pasta': '🍝', 'dessert': '🍰', 'jus': '🥤',
-        'rice': '🍚', 'riz': '🍚', 'viande': '🥩', 'meat': '🥩',
-      };
-
-      final dynamic = cuisineSet.take(8).map((c) {
-        final key = c.toLowerCase();
-        final emoji = emojiMap.entries
+  List<(String, String)> _extractCategories(List<RestaurantModel> restaurants) {
+    final seen = <String>{};
+    final result = <(String, String)>[];
+    for (final r in restaurants) {
+      final cuisine = r.cuisineType?.trim() ?? '';
+      if (cuisine.isNotEmpty && seen.add(cuisine)) {
+        final emoji = _emojiMap.entries
             .firstWhere(
-              (e) => key.contains(e.key),
+              (e) => cuisine.toLowerCase().contains(e.key),
               orElse: () => const MapEntry('', '🍽️'),
             )
             .value;
-        return (emoji, c);
-      }).toList();
-
-      if (mounted) {
-        setState(() {
-          _categories = dynamic;
-          _categoriesLoaded = true;
-        });
+        result.add((emoji, cuisine));
+        if (result.length >= 8) break;
       }
-    } catch (_) {
-      // Keep fallback categories
     }
+    return result;
   }
 
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      if (mounted) setState(() => _searchQuery = value.trim());
-    });
-  }
-
-  void _onCategoryTap(String category) {
-    setState(() {
-      if (_selectedCategory == category) {
-        _selectedCategory = null;
-        _searchQuery = '';
-        _searchController.clear();
-      } else {
-        _selectedCategory = category;
-        _searchQuery = category;
-        _searchController.text = category;
+      if (mounted) {
+        setState(() => _searchQuery = value.trim());
+        _search(value.trim());
       }
     });
   }
 
-  bool get _isSearching => _searchQuery.isNotEmpty;
-
-  Future<Response> _fetchRestaurants() {
-    if (_isSearching) {
-      return getIt<RestaurantService>().searchRestaurants(_searchQuery);
+  void _onCategoryTap(String category) {
+    if (_selectedCategory == category) {
+      _searchController.clear();
+      setState(() {
+        _selectedCategory = null;
+        _searchQuery = '';
+        _displayedRestaurants = _allRestaurants;
+      });
+    } else {
+      _searchController.text = category;
+      setState(() {
+        _selectedCategory = category;
+        _searchQuery = category;
+      });
+      _search(category);
     }
-    return getIt<RestaurantService>().getFeaturedRestaurants();
   }
+
+  bool get _isSearching => _searchQuery.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -141,20 +178,16 @@ class _HomeClientPageState extends State<HomeClientPage> {
       appBar: AppBar(
         title: Column(
           children: [
-            Text(
-              'client.deliver_to'.tr(),
-              style: theme.textTheme.bodySmall,
-            ),
+            Text('client.deliver_to'.tr(), style: theme.textTheme.bodySmall),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   AppConstants.defaultCity,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                const Icon(Icons.keyboard_arrow_down, size: 20),
+                const Icon(Icons.keyboard_arrow_down, size: 18),
               ],
             ),
           ],
@@ -163,27 +196,32 @@ class _HomeClientPageState extends State<HomeClientPage> {
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {},
-          )
+            tooltip: 'Notifications',
+          ),
         ],
       ),
       body: RefreshIndicator(
         color: theme.colorScheme.primary,
         onRefresh: () async {
+          _searchController.clear();
           setState(() {
-            _categoriesLoaded = false;
+            _searchQuery = '';
+            _selectedCategory = null;
           });
-          await _loadDynamicCategories();
-          setState(() {});
+          await _loadData();
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 8),
               _buildSearchBar(context),
-              if (!_isSearching) _buildPromotionsCarousel(context),
+              const SizedBox(height: 4),
+              if (!_isSearching) _buildBannerCarousel(),
               _buildCategories(context),
-              _buildRestaurantList(context),
+              _buildRestaurantSection(context),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -192,16 +230,16 @@ class _HomeClientPageState extends State<HomeClientPage> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: TextField(
         controller: _searchController,
         onChanged: _onSearchChanged,
         textInputAction: TextInputAction.search,
         onSubmitted: (query) {
-          if (query.trim().isNotEmpty) {
-            context.push('/search?q=${Uri.encodeComponent(query.trim())}');
-          }
+          final q = query.trim();
+          if (q.isNotEmpty) context.push('/search?q=${Uri.encodeComponent(q)}');
         },
         decoration: InputDecoration(
           hintText: 'client.search_hint'.tr(),
@@ -214,107 +252,37 @@ class _HomeClientPageState extends State<HomeClientPage> {
                     setState(() {
                       _searchQuery = '';
                       _selectedCategory = null;
+                      _displayedRestaurants = _allRestaurants;
                     });
                   },
                 )
-              : const Icon(Icons.tune),
+              : const Icon(Icons.tune_outlined),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: Theme.of(context).cardTheme.color,
+          fillColor: theme.cardTheme.color,
         ),
       ),
     );
   }
 
-  Widget _buildPromotionsCarousel(BuildContext context) {
-    return FutureBuilder<Response<Map<String, dynamic>>>(
-      future: getIt<CouponService>().getBanners(),
-      builder: (context, snapshot) {
-        List<Map<String, dynamic>> banners = [];
-        if (snapshot.hasData &&
-            snapshot.data!.isSuccessful &&
-            snapshot.data!.body != null) {
-          final data = snapshot.data!.body!['data'];
-          if (data is List) {
-            banners = data.map((e) => e as Map<String, dynamic>).toList();
-          }
-        }
-        if (banners.isEmpty) {
-          banners = [
-            {
-              'title': 'Livraison Gratuite',
-              'subtitle': 'Sur votre 1ère commande',
-              'image':
-                  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop',
-            }
-          ];
-        }
-        return Container(
-          height: 160,
-          margin: const EdgeInsets.symmetric(vertical: 16),
-          child: PageView.builder(
-            itemCount: banners.length,
-            itemBuilder: (context, index) {
-              final banner = banners[index];
-              final imageUrl = banner['imageUrl'] as String? ??
-                  banner['image'] as String? ??
-                  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop';
-              final title = banner['title'] as String? ?? '';
-              final subtitle = banner['subtitle'] as String? ??
-                  banner['description'] as String? ?? '';
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Theme.of(context)
-                      .colorScheme
-                      .secondary
-                      .withValues(alpha: 0.2),
-                  image: DecorationImage(
-                    image: NetworkImage(imageUrl),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.black.withValues(alpha: 0.7),
-                        Colors.transparent
-                      ],
-                      begin: Alignment.bottomLeft,
-                      end: Alignment.topRight,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (title.isNotEmpty)
-                          Text(title,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold)),
-                        if (subtitle.isNotEmpty)
-                          Text(subtitle,
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 14)),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        );
-      },
+  Widget _buildBannerCarousel() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      child: _loadingBanners && _banners.isEmpty
+          ? Container(
+              height: 160,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest,
+              ),
+            )
+          : BannerCarousel(banners: _banners, height: 160),
     );
   }
 
@@ -323,35 +291,28 @@ class _HomeClientPageState extends State<HomeClientPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            'client.categories'.tr(),
-            style: theme.textTheme.titleLarge,
-          ),
-        ),
+        SectionHeader(title: 'client.categories'.tr()),
         SizedBox(
-          height: 100,
+          height: 96,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             itemCount: _categories.length,
-            itemBuilder: (context, index) {
+            itemBuilder: (_, index) {
               final (emoji, label) = _categories[index];
               final isSelected = _selectedCategory == label;
               return GestureDetector(
                 onTap: () => _onCategoryTap(label),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: 80,
+                  width: 76,
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   child: Column(
                     children: [
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        height: 60,
-                        width: 60,
+                        height: 58,
+                        width: 58,
                         decoration: BoxDecoration(
                           color: isSelected
                               ? theme.colorScheme.primary
@@ -359,19 +320,18 @@ class _HomeClientPageState extends State<HomeClientPage> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: theme.shadowColor
-                                  .withValues(alpha: 0.08),
-                              blurRadius: 5,
+                              color: theme.shadowColor.withValues(alpha: 0.07),
+                              blurRadius: 6,
                               offset: const Offset(0, 2),
-                            )
+                            ),
                           ],
                         ),
                         child: Center(
                           child: Text(emoji,
-                              style: const TextStyle(fontSize: 26)),
+                              style: const TextStyle(fontSize: 24)),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         label,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -397,227 +357,84 @@ class _HomeClientPageState extends State<HomeClientPage> {
     );
   }
 
-  Widget _buildRestaurantList(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _buildRestaurantSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _isSearching
-                    ? 'client.search_results'.tr()
-                    : 'client.recommended'.tr(),
-                style: theme.textTheme.titleLarge,
-              ),
-              if (!_isSearching)
-                Text(
-                  'client.see_all'.tr(),
-                  style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold),
-                ),
-            ],
-          ),
+        SectionHeader(
+          title: _isSearching
+              ? 'client.search_results'.tr()
+              : 'client.recommended'.tr(),
+          actionLabel: _isSearching ? null : 'client.see_all'.tr(),
         ),
-        FutureBuilder<Response>(
-          key: ValueKey('$_searchQuery'),
-          future: _fetchRestaurants(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: Padding(
-                    padding: EdgeInsets.all(32.0),
-                    child: CircularProgressIndicator()),
-              );
-            }
-            if (snapshot.hasError ||
-                !snapshot.hasData ||
-                snapshot.data?.body == null) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    children: [
-                      Text('common.error'.tr(),
-                          style:
-                              TextStyle(color: theme.colorScheme.error)),
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: () => setState(() {}),
-                        icon: const Icon(Icons.refresh),
-                        label: Text('common.retry'.tr()),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
+        _buildRestaurantList(context),
+      ],
+    );
+  }
 
-            final responseBody = snapshot.data!.body;
-            List<dynamic> restaurants = [];
-            if (responseBody is Map &&
-                responseBody.containsKey('data')) {
-              restaurants =
-                  responseBody['data'] as List<dynamic>;
-            } else if (responseBody is List) {
-              restaurants = responseBody;
-            }
+  Widget _buildRestaurantList(BuildContext context) {
+    if (_loadingRestaurants) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
-            if (restaurants.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    children: [
-                      Icon(Icons.search_off,
-                          size: 64,
-                          color: theme.colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.4)),
-                      const SizedBox(height: 12),
-                      Text(
-                        _isSearching
-                            ? 'common.no_results'.tr()
-                            : 'restaurant.none_available'.tr(),
-                        style: TextStyle(
-                            color:
-                                theme.colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
+    if (_displayedRestaurants.isEmpty) {
+      return EmptyState(
+        title: _isSearching
+            ? 'common.no_results'.tr()
+            : 'restaurant.none_available'.tr(),
+        subtitle: _isSearching ? 'common.try_other_query'.tr() : null,
+        icon: _isSearching ? Icons.search_off : Icons.restaurant_outlined,
+        actionLabel: _isSearching ? 'common.clear'.tr() : null,
+        onAction: _isSearching
+            ? () {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                  _selectedCategory = null;
+                  _displayedRestaurants = _allRestaurants;
+                });
+              }
+            : null,
+      );
+    }
 
-            return ListView.builder(
+    // Responsive: 1 column on phones, 2 columns on tablets
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = constraints.maxWidth >= 600;
+        if (isTablet) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: restaurants.length,
-              itemBuilder: (context, index) {
-                final restaurant = restaurants[index];
-                final id = restaurant['_id']?.toString() ??
-                    restaurant['id']?.toString() ??
-                    (index + 1).toString();
-                final name =
-                    restaurant['name'] ?? 'Restaurant Gourmet';
-                final cuisine =
-                    restaurant['cuisineType'] ?? 'Cuisine Locale';
-                final rating =
-                    restaurant['rating']?.toString() ?? 'N/A';
-                final minTime =
-                    restaurant['deliveryTimeMinutes']?.toString() ??
-                        '30';
-                final deliveryFee =
-                    (restaurant['deliveryFee'] as num?)
-                        ?.toStringAsFixed(0);
-                final image = restaurant['coverImage'] ??
-                    'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1000&auto=format&fit=crop';
-
-                return GestureDetector(
-                  onTap: () => context.push('/restaurant/$id'),
-                  child: Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          height: 150,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(image),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      name,
-                                      style:
-                                          theme.textTheme.titleLarge,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding:
-                                        const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: theme
-                                          .colorScheme.secondary,
-                                      borderRadius:
-                                          BorderRadius.circular(4),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.star,
-                                            size: 14,
-                                            color: theme.colorScheme
-                                                .onSecondary),
-                                        const SizedBox(width: 4),
-                                        Text(rating,
-                                            style: theme
-                                                .textTheme.labelLarge),
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(cuisine,
-                                  style: theme.textTheme.bodySmall),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Icon(Icons.delivery_dining,
-                                      size: 16,
-                                      color: theme.colorScheme
-                                          .onSurfaceVariant),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    deliveryFee != null
-                                        ? '$deliveryFee FCFA'
-                                        : 'restaurant.variable_fee'.tr(),
-                                    style: theme.textTheme.bodySmall,
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Icon(Icons.timer,
-                                      size: 16,
-                                      color: theme.colorScheme
-                                          .onSurfaceVariant),
-                                  const SizedBox(width: 4),
-                                  Text('$minTime min',
-                                      style: theme.textTheme.bodySmall),
-                                ],
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ],
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisExtent: 240,
+              ),
+              itemCount: _displayedRestaurants.length,
+              itemBuilder: (_, i) => RestaurantCard(
+                restaurant: _displayedRestaurants[i],
+                compact: true,
+              ),
+            ),
+          );
+        }
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: _displayedRestaurants.length,
+          itemBuilder: (_, i) =>
+              RestaurantCard(restaurant: _displayedRestaurants[i]),
+        );
+      },
     );
   }
 }
