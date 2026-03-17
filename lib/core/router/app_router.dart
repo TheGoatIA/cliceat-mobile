@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
+import '../../features/auth/presentation/pages/reset_password_page.dart';
+import '../../features/auth/presentation/pages/email_verification_page.dart';
 import '../../features/client/home/presentation/pages/client_main_tab.dart';
 import '../../features/client/restaurant/presentation/pages/restaurant_detail_page.dart';
 import '../../features/client/cart/presentation/pages/cart_page.dart';
@@ -37,6 +40,27 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final mode = state.uri.queryParameters['mode'] ?? 'client';
         return LoginPage(mode: mode);
+      },
+    ),
+
+    GoRoute(
+      path: '/auth/forgot-password',
+      builder: (context, state) => const ForgotPasswordPage(),
+    ),
+
+    GoRoute(
+      path: '/auth/reset-password',
+      builder: (context, state) {
+        final token = state.uri.queryParameters['token'] ?? '';
+        return ResetPasswordPage(token: token);
+      },
+    ),
+
+    GoRoute(
+      path: '/auth/verify-email',
+      builder: (context, state) {
+        final email = state.uri.queryParameters['email'] ?? '';
+        return EmailVerificationPage(email: email);
       },
     ),
 

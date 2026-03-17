@@ -5,9 +5,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'firebase_options.dart';
 import 'core/config/env_config.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cliceat_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:cliceat_app/features/client/cart/presentation/bloc/cart_cubit.dart';
 import 'core/theme/app_theme.dart';
@@ -15,18 +15,19 @@ import 'core/router/app_router.dart';
 import 'core/di/injection.dart';
 import 'core/data/local/database.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/deep_link_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Load environment variables
   await dotenv.load(fileName: ".env");
-  
+
   // Set Mapbox Token
   MapboxOptions.setAccessToken(EnvConfig.mapboxAccessToken);
 
   await EasyLocalization.ensureInitialized();
-  
+
   // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -48,10 +49,15 @@ void main() async {
   // Initialize push notifications
   await getIt<NotificationService>().initialize();
 
+  // Initialize deep links (must be after router is created)
+  // The router is created lazily; we pass rootNavigatorKey so DeepLinkService
+  // can access the router context once the app is mounted.
+  getIt<DeepLinkService>().initialize(rootNavigatorKey);
+
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('fr', 'FR'), Locale('en', 'US')],
-      path: 'assets/translations', 
+      path: 'assets/translations',
       fallbackLocale: const Locale('fr', 'FR'),
       child: const ClicEatApp(),
     ),

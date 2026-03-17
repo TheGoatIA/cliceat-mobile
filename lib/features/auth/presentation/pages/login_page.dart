@@ -70,6 +70,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         state.maybeWhen(
           authenticated: (_, __, ___) => _onAuthenticated(context),
           otpSent: (phone) => setState(() => _otpPhone = phone),
+          emailVerificationRequired: (email) => context.go('/auth/verify-email?email=${Uri.encodeComponent(email)}'),
           error: (message) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -137,6 +138,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           ),
         ),
         const SizedBox(height: 16),
+        TextButton(
+          onPressed: () => context.push('/auth/forgot-password'),
+          child: Text('auth.forgot_password'.tr()),
+        ),
         TextButton(
           onPressed: () => setState(() => _showRegister = true),
           child: Text('auth.no_account'.tr()),

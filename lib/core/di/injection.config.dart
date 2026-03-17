@@ -16,6 +16,7 @@ import 'package:injectable/injectable.dart' as _i526;
 import 'package:logger/logger.dart' as _i900;
 
 import '../../features/auth/data/datasources/auth_service.dart' as _i1060;
+import '../services/deep_link_service.dart' as _i702;
 import '../../features/auth/presentation/bloc/auth_bloc.dart' as _i797;
 import '../../features/client/cart/data/datasources/order_service.dart'
     as _i271;
@@ -58,6 +59,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i700.NotificationService>(
       () => _i700.NotificationService(gh<_i900.Logger>()),
+    );
+    gh.lazySingleton<_i702.DeepLinkService>(
+      () => _i702.DeepLinkService(gh<_i900.Logger>()),
     );
     gh.lazySingleton<_i701.WebSocketService>(
       () => _i701.WebSocketService(gh<_i558.FlutterSecureStorage>(), gh<_i900.Logger>()),

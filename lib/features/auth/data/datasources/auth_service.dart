@@ -34,4 +34,16 @@ abstract class AuthService extends ChopperService {
 
   @POST(path: '/apple')
   Future<Response> loginWithApple(@Body() Map<String, dynamic> body);
+
+  @POST(path: '/forgot-password')
+  Future<Response> forgotPassword(@Body() Map<String, dynamic> body);
+
+  @POST(path: '/reset-password')
+  Future<Response> resetPassword(@Body() Map<String, dynamic> body);
+
+  @GET(path: '/verify-email/{token}')
+  Future<Response> verifyEmail(@Path('token') String token);
+
+  @POST(path: '/resend-verification-email')
+  Future<Response> resendVerificationEmail(@Body() Map<String, dynamic> body);
 }

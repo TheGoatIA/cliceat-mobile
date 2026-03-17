@@ -33,6 +33,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<_LoginWithGoogle>(_onLoginWithGoogle);
     on<_LoginWithApple>(_onLoginWithApple);
     on<_Register>(_onRegister);
+    on<_ForgotPassword>(_onForgotPassword);
+    on<_ResetPassword>(_onResetPassword);
+    on<_VerifyEmail>(_onVerifyEmail);
+    on<_ResendVerificationEmail>(_onResendVerificationEmail);
     on<_SwitchMode>(_onSwitchMode);
     on<_Logout>(_onLogout);
   }
@@ -193,6 +197,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         "city": event.city,
       });
       if (res.isSuccessful && res.body != null) {
+        final body = res.body as Map<String, dynamic>?;
+        // Backend may require email verification before issuing token
+        final requiresVerification = body?['requiresEmailVerification'] as bool? ?? false;
+        if (requiresVerification) {
+          emit(AuthState.emailVerificationRequired(email: event.email));
+          return;
+        }
         final parsed = _parseAuthResponse(res.body);
         if (parsed != null) {
           await _persistAuth(parsed.$1, parsed.$2, 'client');
@@ -208,6 +219,73 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (e) {
       _logger.e("Error registering: $e");
+      emit(const AuthState.error(message: 'common.network_error'));
+    }
+  }
+
+  Future<void> _onForgotPassword(_ForgotPassword event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.forgotPassword({'email': event.email});
+      if (res.isSuccessful) {
+        emit(AuthState.forgotPasswordEmailSent(email: event.email));
+      } else {
+        final msg = _extractError(res.body, 'auth.error_forgot_password');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e('Error sending forgot password: $e');
+      emit(const AuthState.error(message: 'common.network_error'));
+    }
+  }
+
+  Future<void> _onResetPassword(_ResetPassword event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.resetPassword({
+        'token': event.token,
+        'password': event.newPassword,
+      });
+      if (res.isSuccessful) {
+        emit(const AuthState.resetPasswordSuccess());
+      } else {
+        final msg = _extractError(res.body, 'auth.error_reset_password');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e('Error resetting password: $e');
+      emit(const AuthState.error(message: 'common.network_error'));
+    }
+  }
+
+  Future<void> _onVerifyEmail(_VerifyEmail event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.verifyEmail(event.token);
+      if (res.isSuccessful) {
+        emit(const AuthState.emailVerified());
+      } else {
+        final msg = _extractError(res.body, 'auth.error_verify_email');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e('Error verifying email: $e');
+      emit(const AuthState.error(message: 'common.network_error'));
+    }
+  }
+
+  Future<void> _onResendVerificationEmail(_ResendVerificationEmail event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.resendVerificationEmail({'email': event.email});
+      if (res.isSuccessful) {
+        emit(AuthState.emailVerificationRequired(email: event.email));
+      } else {
+        final msg = _extractError(res.body, 'auth.error_resend_verification');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e('Error resending verification email: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }

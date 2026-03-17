@@ -14,6 +14,10 @@ class AuthEvent with _$AuthEvent {
     required String password,
     required String city,
   }) = _Register;
+  const factory AuthEvent.forgotPassword({required String email}) = _ForgotPassword;
+  const factory AuthEvent.resetPassword({required String token, required String newPassword}) = _ResetPassword;
+  const factory AuthEvent.verifyEmail({required String token}) = _VerifyEmail;
+  const factory AuthEvent.resendVerificationEmail({required String email}) = _ResendVerificationEmail;
   const factory AuthEvent.logout() = _Logout;
   const factory AuthEvent.switchMode({required String mode}) = _SwitchMode;
 }
