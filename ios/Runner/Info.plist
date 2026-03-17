@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Cliceat App</string>
+	<string>ClicEat</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>cliceat_app</string>
+	<string>ClicEat</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -46,6 +46,12 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 
+	<!-- Push Notifications background delivery -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+
 	<!-- Custom URI scheme: cliceat:// -->
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -59,6 +65,30 @@
 				<string>cliceat</string>
 			</array>
 		</dict>
+		<!-- IMPORTANT: After running `flutterfire configure`, add the REVERSED_CLIENT_ID
+		     from GoogleService-Info.plist here to enable Google Sign-In on iOS.
+		     Example:
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.YOUR_CLIENT_ID</string>
+			</array>
+		</dict>
+		-->
 	</array>
+
+	<!-- Camera / Photo Library access (for profile photo upload) -->
+	<key>NSCameraUsageDescription</key>
+	<string>ClicEat a besoin d'accéder à votre appareil photo pour mettre à jour votre photo de profil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ClicEat a besoin d'accéder à votre galerie pour mettre à jour votre photo de profil.</string>
+
+	<!-- Location access (required for delivery tracking and restaurant map) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>ClicEat utilise votre position pour afficher les restaurants près de vous et estimer les délais de livraison.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>ClicEat utilise votre position en arrière-plan pour le suivi des livraisons en temps réel.</string>
 </dict>
 </plist>

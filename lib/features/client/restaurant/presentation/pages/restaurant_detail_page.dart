@@ -50,6 +50,19 @@ class RestaurantDetailPage extends StatelessWidget {
         
         List<dynamic> menus = restaurant['menus'] ?? [];
 
+        // Group menu items by category (falls back to a single default group)
+        final menusByCategory = <String, List<dynamic>>{};
+        for (final item in menus) {
+          final cat = (item as Map<String, dynamic>)['category'] as String? ?? '';
+          menusByCategory.putIfAbsent(cat, () => []).add(item);
+        }
+        // Entries: named categories first, then the unnamed bucket
+        final categoryEntries = [
+          ...menusByCategory.entries.where((e) => e.key.isNotEmpty),
+          if (menusByCategory.containsKey(''))
+            MapEntry('', menusByCategory['']!),
+        ];
+
         return Scaffold(
           body: CustomScrollView(
             slivers: [
@@ -119,70 +132,18 @@ class RestaurantDetailPage extends StatelessWidget {
                   ),
                 ),
               ),
-              menus.isEmpty ? 
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Center(
-                    child: Text('restaurant.no_items'.tr(),
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
-                  )
+              if (menus.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Center(
+                      child: Text('restaurant.no_items'.tr(),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    ),
+                  ),
                 )
-              ) :
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final item = menus[index];
-                    final itemName = item['name'] ?? 'Menu $index';
-                    final itemDesc = item['description'] ?? 'Délicieux menu';
-                    final itemPrice = item['price']?.toString() ?? '0';
-                    final itemImage = item['image'] ?? 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=300&auto=format&fit=crop';
-                    
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      leading: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          image: DecorationImage(
-                            image: NetworkImage(itemImage),
-                            fit: BoxFit.cover,
-                          )
-                        ),
-                      ),
-                      title: Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('$itemDesc\n$itemPrice FCFA'),
-                      isThreeLine: true,
-                      trailing: IconButton(
-                        icon: const Icon(Icons.add_circle),
-                        color: Theme.of(context).colorScheme.primary,
-                        onPressed: () {
-                          final price = (item['price'] as num?)?.toDouble() ?? 0.0;
-                          context.read<CartCubit>().addItem(
-                            restaurantId: restaurantId,
-                            itemId: item['_id']?.toString() ?? item['id']?.toString() ?? itemName,
-                            name: itemName,
-                            price: price,
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('restaurant.added_to_cart'.tr()),
-                              duration: const Duration(seconds: 1),
-                              action: SnackBarAction(
-                                label: 'restaurant.view_cart'.tr(),
-                                onPressed: () => context.push('/client/cart'),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      onTap: () {},
-                    );
-                  },
-                  childCount: menus.length,
-                ),
-              ),
+              else
+                _buildMenuSliver(context, categoryEntries, restaurantId),
             ],
           ),
           bottomNavigationBar: BlocBuilder<CartCubit, CartState>(
@@ -205,6 +166,94 @@ class RestaurantDetailPage extends StatelessWidget {
           ),
         );
       }
+    );
+  }
+
+  Widget _buildMenuSliver(
+    BuildContext context,
+    List<MapEntry<String, List<dynamic>>> categoryEntries,
+    String restaurantId,
+  ) {
+    // Pre-build a flat list of row models (header strings or item maps)
+    final rows = <dynamic>[];
+    for (final entry in categoryEntries) {
+      if (entry.key.isNotEmpty) rows.add(entry.key); // category header
+      rows.addAll(entry.value);                       // menu items
+    }
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final row = rows[index];
+          if (row is String) {
+            // Category header
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+              child: Text(
+                row,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            );
+          }
+          final item = row as Map<String, dynamic>;
+          final itemName = item['name'] as String? ?? '';
+          final itemDesc = item['description'] as String? ?? '';
+          final itemPrice = item['price']?.toString() ?? '0';
+          final itemImage = item['image'] as String?;
+
+          return ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                image: itemImage != null && itemImage.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(itemImage),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: (itemImage == null || itemImage.isEmpty)
+                  ? Icon(Icons.fastfood, color: Theme.of(context).colorScheme.onSurfaceVariant)
+                  : null,
+            ),
+            title: Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('$itemDesc\n$itemPrice FCFA'),
+            isThreeLine: itemDesc.isNotEmpty,
+            trailing: IconButton(
+              icon: const Icon(Icons.add_circle),
+              color: Theme.of(context).colorScheme.primary,
+              onPressed: () {
+                final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+                context.read<CartCubit>().addItem(
+                  restaurantId: restaurantId,
+                  itemId: item['_id']?.toString() ?? item['id']?.toString() ?? itemName,
+                  name: itemName,
+                  price: price,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('restaurant.added_to_cart'.tr()),
+                    duration: const Duration(seconds: 1),
+                    action: SnackBarAction(
+                      label: 'restaurant.view_cart'.tr(),
+                      onPressed: () => context.push('/client/cart'),
+                    ),
+                  ),
+                );
+              },
+            ),
+            onTap: () {},
+          );
+        },
+        childCount: rows.length,
+      ),
     );
   }
 }

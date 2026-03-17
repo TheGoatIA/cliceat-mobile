@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Push Notifications: "production" for App Store builds, "development" for debug -->
+	<key>aps-environment</key>
+	<string>production</string>
+
+	<!-- Sign In with Apple (required by Apple when any third-party sign-in is present) -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+
+	<!-- Universal Links / App Links: https://cliceat.cm deep links open the app -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:cliceat.cm</string>
+	</array>
+</dict>
+</plist>

@@ -1,8 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../bloc/auth_bloc.dart';
 
 class LoginPage extends StatefulWidget {
@@ -59,6 +63,64 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       context.go('/delivery');
     } else {
       context.go('/client');
+    }
+  }
+
+  Future<void> _handleGoogleSignIn(BuildContext context) async {
+    try {
+      HapticFeedback.mediumImpact();
+      final googleSignIn = GoogleSignIn();
+      final account = await googleSignIn.signIn();
+      if (account == null) return; // user cancelled
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('auth.error_google'.tr())),
+          );
+        }
+        return;
+      }
+      if (context.mounted) {
+        context.read<AuthBloc>().add(AuthEvent.loginWithGoogle(token: idToken));
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('auth.error_google'.tr())),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleAppleSignIn(BuildContext context) async {
+    try {
+      HapticFeedback.mediumImpact();
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+      final idToken = credential.identityToken;
+      if (idToken == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('auth.error_apple'.tr())),
+          );
+        }
+        return;
+      }
+      if (context.mounted) {
+        context.read<AuthBloc>().add(AuthEvent.loginWithApple(token: idToken));
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('auth.error_apple'.tr())),
+        );
+      }
     }
   }
 
@@ -146,6 +208,35 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           onPressed: () => setState(() => _showRegister = true),
           child: Text('auth.no_account'.tr()),
         ),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Row(children: [
+            Expanded(child: Divider()),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Text('ou', style: TextStyle(color: Colors.grey)),
+            ),
+            Expanded(child: Divider()),
+          ]),
+        ),
+        // Google Sign-In
+        OutlinedButton.icon(
+          onPressed: () => _handleGoogleSignIn(context),
+          icon: const Icon(Icons.g_mobiledata, size: 24),
+          label: const Text('Continuer avec Google'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        // Apple Sign-In — required by Apple when any third-party sign-in is present
+        if (Platform.isIOS) ...[
+          const SizedBox(height: 8),
+          SignInWithAppleButton(
+            onPressed: () => _handleAppleSignIn(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ],
       ],
     );
   }
@@ -340,6 +431,49 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           child: isLoading
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
               : Text('auth.register_btn'.tr()),
+        ),
+        const SizedBox(height: 8),
+        const SizedBox(height: 8),
+        // Terms of Service & Privacy Policy (required by App Store / Play Store)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text.rich(
+            TextSpan(
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              children: [
+                const TextSpan(text: "En vous inscrivant, vous acceptez nos "),
+                WidgetSpan(
+                  child: GestureDetector(
+                    onTap: () => launchUrl(Uri.parse('https://cliceat.cm/terms')),
+                    child: Text(
+                      "CGU",
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
+                const TextSpan(text: " et notre "),
+                WidgetSpan(
+                  child: GestureDetector(
+                    onTap: () => launchUrl(Uri.parse('https://cliceat.cm/privacy')),
+                    child: Text(
+                      "Politique de confidentialité",
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
+                const TextSpan(text: "."),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
         const SizedBox(height: 8),
         TextButton(

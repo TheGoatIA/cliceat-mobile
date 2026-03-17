@@ -30,16 +30,17 @@ String formatDateShort(dynamic rawDate, {String locale = 'fr'}) {
   }
 }
 
-/// Relative time — "il y a 5 min", "il y a 2 h", etc. (locale-aware via intl)
-String formatRelative(dynamic rawDate) {
+/// Relative time — "5 min", "2 h", "3 j" (fr) or "3 min", "2 h", "3 d" (en)
+String formatRelative(dynamic rawDate, {String locale = 'fr'}) {
   if (rawDate == null) return '';
   try {
     final dt = DateTime.parse(rawDate.toString()).toLocal();
     final diff = DateTime.now().difference(dt);
+    final dayLabel = locale.startsWith('fr') ? 'j' : 'd';
     if (diff.inSeconds < 60) return '< 1 min';
     if (diff.inMinutes < 60) return '${diff.inMinutes} min';
     if (diff.inHours < 24) return '${diff.inHours} h';
-    return '${diff.inDays} j';
+    return '${diff.inDays} $dayLabel';
   } catch (_) {
     return rawDate.toString();
   }

@@ -27,14 +27,26 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   // GPS location timer
   Timer? _locationTimer;
 
+  // Mission BLoC — created here so WebSocket events can dispatch to it
+  late final MissionBloc _missionBloc;
+  StreamSubscription<Map<String, dynamic>>? _wsSubscription;
+
   @override
   void initState() {
     super.initState();
+    _missionBloc = getIt<MissionBloc>()
+      ..add(const MissionEvent.loadActiveMissions());
+    // Re-load missions whenever a new one is dispatched via WebSocket
+    _wsSubscription = getIt<WebSocketService>().missionEvents.listen((_) {
+      _missionBloc.add(const MissionEvent.loadActiveMissions());
+    });
     _loadEarnings();
   }
 
   @override
   void dispose() {
+    _wsSubscription?.cancel();
+    _missionBloc.close();
     _locationTimer?.cancel();
     super.dispose();
   }
@@ -84,8 +96,8 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return BlocProvider(
-      create: (_) => getIt<MissionBloc>()..add(const MissionEvent.loadActiveMissions()),
+    return BlocProvider.value(
+      value: _missionBloc,
       child: BlocListener<MissionBloc, MissionState>(
         listener: (context, state) {
           state.maybeWhen(

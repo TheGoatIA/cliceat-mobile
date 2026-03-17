@@ -20,6 +20,7 @@ class CheckoutPage extends StatefulWidget {
 class _CheckoutPageState extends State<CheckoutPage> {
   String _selectedPaymentMethod = 'orange_money';
   final TextEditingController _couponController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
   double _couponDiscount = 0.0;
   String? _couponMessage;
   bool _couponLoading = false;
@@ -29,6 +30,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   @override
   void dispose() {
     _couponController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -80,6 +82,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 _buildCouponSection(context),
                 const SizedBox(height: 24),
                 _buildPaymentMethods(context),
+                const SizedBox(height: 24),
+                _buildNotesSection(context),
                 BlocConsumer<OrderBloc, OrderState>(
                   listener: (context, state) {
                     state.maybeWhen(
@@ -103,18 +107,30 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   builder: (context, orderState) {
                     final isLoading = orderState.maybeWhen(loading: () => true, orElse: () => false);
                     return PrimaryButton(
-                      text: isLoading ? '...' : 'checkout.confirm_pay'.tr(),
-                      onPressed: isLoading ? () {} : () {
+                      text: 'checkout.confirm_pay'.tr(),
+                      isLoading: isLoading,
+                      onPressed: () {
                         HapticFeedback.mediumImpact();
 
                         final cartState = context.read<CartCubit>().state;
+
+                        // Guard: restaurantId must be present
+                        final restaurantId = cartState.restaurantId ?? '';
+                        if (restaurantId.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('cart.empty'.tr())),
+                          );
+                          return;
+                        }
+
                         final items = cartState.items.map((item) => {
                           "menuItemId": item.itemId,
                           "quantity": item.quantity,
                         }).toList();
 
+                        final notes = _notesController.text.trim();
                         final payload = {
-                          "restaurantId": cartState.restaurantId ?? '',
+                          "restaurantId": restaurantId,
                           "paymentMethod": _selectedPaymentMethod,
                           "deliveryAddress": {
                             "address": _selectedAddress?['address'] ?? AppConstants.defaultCity,
@@ -123,6 +139,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           },
                           "items": items,
                           if (_appliedCouponCode != null) "couponCode": _appliedCouponCode,
+                          if (notes.isNotEmpty) "notes": notes,
                         };
 
                         context.read<OrderBloc>().add(OrderEvent.createOrder(payload));
@@ -279,6 +296,33 @@ class _CheckoutPageState extends State<CheckoutPage> {
         _buildPaymentOption('mtn_momo', 'MTN Mobile Money', Icons.phone_android),
         const SizedBox(height: 8),
         _buildPaymentOption('cash', 'checkout.cash_on_delivery'.tr(), Icons.money),
+      ],
+    );
+  }
+
+  Widget _buildNotesSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'checkout.notes'.tr(),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _notesController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: 'checkout.notes_hint'.tr(),
+            prefixIcon: const Padding(
+              padding: EdgeInsets.only(bottom: 40),
+              child: Icon(Icons.note_outlined),
+            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+        const SizedBox(height: 24),
       ],
     );
   }

@@ -23,8 +23,13 @@ void main() async {
   // Load environment variables
   await dotenv.load(fileName: ".env");
 
-  // Set Mapbox Token
-  MapboxOptions.setAccessToken(EnvConfig.mapboxAccessToken);
+  // Set Mapbox Token — crash early with a clear message if the token is missing
+  final mapboxToken = EnvConfig.mapboxAccessToken;
+  assert(
+    mapboxToken.isNotEmpty,
+    'MAPBOX_ACCESS_TOKEN is missing in .env — map features will not work.',
+  );
+  MapboxOptions.setAccessToken(mapboxToken);
 
   await EasyLocalization.ensureInitialized();
 
