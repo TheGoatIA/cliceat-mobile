@@ -1,0 +1,130 @@
+import 'package:dartz/dartz.dart';
+import '../errors/app_error.dart';
+import '../models/mission_model.dart';
+import '../models/earnings_model.dart';
+import '../../features/delivery/dashboard/data/datasources/mission_service.dart';
+import '../../features/delivery/dashboard/data/datasources/driver_service.dart';
+
+/// Abstracts delivery driver operations: missions, earnings, status, location.
+class DriverRepository {
+  final MissionService _missionService;
+  final DriverService _driverService;
+
+  DriverRepository(this._missionService, this._driverService);
+
+  // ─── Missions ─────────────────────────────────────────────────────────────
+
+  Future<Either<AppError, List<MissionModel>>> getActiveMissions() async {
+    try {
+      final res = await _missionService.getMyOrders();
+      if (res.isSuccessful && res.body != null) {
+        final raw = res.body!['data'] as List<dynamic>? ?? [];
+        final missions = raw
+            .whereType<Map<String, dynamic>>()
+            .map(MissionModel.fromJson)
+            .toList();
+        return Right(missions);
+      }
+      return Left(AppError.fromResponse(
+          res.body, 'mission.error_load',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, void>> acceptMission(String id) async {
+    try {
+      final res = await _missionService.acceptMission(id);
+      if (res.isSuccessful) return const Right(null);
+      return Left(AppError.fromResponse(
+          res.body, 'mission.error_accept',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, void>> rejectMission(String id) async {
+    try {
+      final res = await _missionService.rejectMission(id);
+      if (res.isSuccessful) return const Right(null);
+      return Left(AppError.fromResponse(
+          res.body, 'mission.error_reject',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, void>> confirmPickup(String id) async {
+    try {
+      final res = await _missionService.confirmPickup(id);
+      if (res.isSuccessful) return const Right(null);
+      return Left(AppError.fromResponse(
+          res.body, 'mission.error_update_status',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, void>> confirmDelivery(String id) async {
+    try {
+      final res = await _missionService.confirmDelivery(id, {});
+      if (res.isSuccessful) return const Right(null);
+      return Left(AppError.fromResponse(
+          res.body, 'mission.error_update_status',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, void>> reportMission(
+      String id, Map<String, dynamic> report) async {
+    try {
+      final res = await _missionService.reportMission(id, report);
+      if (res.isSuccessful) return const Right(null);
+      return Left(AppError.fromResponse(res.body, 'common.error'));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  // ─── Driver status ────────────────────────────────────────────────────────
+
+  Future<Either<AppError, void>> updateOnlineStatus(bool isOnline) async {
+    try {
+      final res =
+          await _driverService.updateStatus({'isOnline': isOnline});
+      if (res.isSuccessful) return const Right(null);
+      return Left(AppError.fromResponse(res.body, 'common.error'));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  Future<void> updateLocation(double lat, double lng) async {
+    try {
+      await _driverService.updateLocation({'lat': lat, 'lng': lng});
+    } catch (_) {}
+  }
+
+  // ─── Earnings ─────────────────────────────────────────────────────────────
+
+  Future<Either<AppError, EarningsModel>> getEarnings() async {
+    try {
+      final res = await _driverService.getMyEarnings();
+      if (res.isSuccessful && res.body != null) {
+        final body = res.body!;
+        final data =
+            body['data'] as Map<String, dynamic>? ?? body;
+        return Right(EarningsModel.fromJson(data));
+      }
+      return Left(AppError.fromResponse(res.body, 'common.error'));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+}

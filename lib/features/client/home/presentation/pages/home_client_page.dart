@@ -197,6 +197,12 @@ class _HomeClientPageState extends State<HomeClientPage> {
       child: TextField(
         controller: _searchController,
         onChanged: _onSearchChanged,
+        textInputAction: TextInputAction.search,
+        onSubmitted: (query) {
+          if (query.trim().isNotEmpty) {
+            context.push('/search?q=${Uri.encodeComponent(query.trim())}');
+          }
+        },
         decoration: InputDecoration(
           hintText: 'client.search_hint'.tr(),
           prefixIcon: const Icon(Icons.search),

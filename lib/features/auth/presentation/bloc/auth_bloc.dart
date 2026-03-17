@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 import '../../../../core/data/local/database.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/websocket_service.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/network/services/user_service.dart';
 import '../../data/datasources/auth_service.dart';
@@ -92,6 +93,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (parsed != null) {
           await _persistAuth(parsed.$1, parsed.$2, 'client');
           await _postAuthSetup(parsed.$1);
+          getIt<AnalyticsService>().logLogin('otp');
+          getIt<AnalyticsService>().setUserId(parsed.$2);
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
@@ -120,6 +123,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (parsed != null) {
           await _persistAuth(parsed.$1, parsed.$2, 'client');
           await _postAuthSetup(parsed.$1);
+          getIt<AnalyticsService>().logLogin('email');
+          getIt<AnalyticsService>().setUserId(parsed.$2);
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
@@ -208,6 +213,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (parsed != null) {
           await _persistAuth(parsed.$1, parsed.$2, 'client');
           await _postAuthSetup(parsed.$1);
+          getIt<AnalyticsService>().logSignUp('email');
+          getIt<AnalyticsService>().setUserId(parsed.$2);
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
@@ -295,6 +302,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     state.maybeWhen(
       authenticated: (token, userId, currentMode) async {
         await _secureStorage.write(key: 'current_mode', value: event.mode);
+        getIt<AnalyticsService>().setUserMode(event.mode);
         emit(AuthState.authenticated(
             token: token, userId: userId, currentMode: event.mode));
       },
@@ -309,6 +317,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await _authService.logout().catchError((_) {});
       // Disconnect WebSocket
       getIt<WebSocketService>().disconnect();
+      getIt<AnalyticsService>().logLogout();
+      getIt<AnalyticsService>().clearUser();
       // Clear local storage
       await _secureStorage.delete(key: 'jwt_token');
       await _secureStorage.delete(key: 'user_id');

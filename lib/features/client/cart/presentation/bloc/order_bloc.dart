@@ -1,102 +1,90 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
-import '../../data/datasources/order_service.dart';
+import '../../../../../core/repositories/order_repository.dart';
+import '../../../../../core/services/analytics_service.dart';
+import '../../../../../core/di/injection.dart';
 
 part 'order_event.dart';
 part 'order_state.dart';
 part 'order_bloc.freezed.dart';
 
-@injectable
 class OrderBloc extends Bloc<OrderEvent, OrderState> {
-  final OrderService _orderService;
+  final OrderRepository _orderRepository;
   final Logger _logger = Logger();
 
-  OrderBloc(this._orderService) : super(const OrderState.initial()) {
+  OrderBloc(this._orderRepository) : super(const OrderState.initial()) {
     on<_CreateOrder>(_onCreateOrder);
     on<_LoadOrders>(_onLoadOrders);
     on<_CancelOrder>(_onCancelOrder);
     on<_RateOrder>(_onRateOrder);
   }
 
-  Future<void> _onCreateOrder(_CreateOrder event, Emitter<OrderState> emit) async {
+  Future<void> _onCreateOrder(
+      _CreateOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
-    try {
-      final res = await _orderService.createOrder(event.payload);
-      if (res.isSuccessful && res.body != null) {
-        final body = res.body!;
-        final data = body['data'] as Map<String, dynamic>? ?? body;
-        final orderId = data['_id']?.toString() ?? data['id']?.toString() ?? '';
-        final paymentUrl = data['paymentUrl'] as String? ??
-            (data['payment'] as Map<String, dynamic>?)?['paymentUrl'] as String?;
-        emit(OrderState.created(orderId: orderId, paymentUrl: paymentUrl));
-      } else {
-        final msg = _extractError(res.body, 'order.error_create');
-        emit(OrderState.error(msg));
-      }
-    } catch (e) {
-      _logger.e('Error creating order: $e');
-      emit(const OrderState.error('common.network_error'));
-    }
+    final result = await _orderRepository.createOrder(event.payload);
+    result.fold(
+      (err) {
+        _logger.e('Error creating order: ${err.message}');
+        emit(OrderState.error(err.message));
+      },
+      (order) {
+        getIt<AnalyticsService>().logPurchase(
+          orderId: order.id,
+          total: order.total,
+          deliveryFee: order.deliveryFee,
+        );
+        emit(OrderState.created(
+            orderId: order.id, paymentUrl: order.paymentUrl));
+      },
+    );
   }
 
-  Future<void> _onLoadOrders(_LoadOrders event, Emitter<OrderState> emit) async {
+  Future<void> _onLoadOrders(
+      _LoadOrders event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
-    try {
-      final res = await _orderService.getOrders();
-      if (res.isSuccessful && res.body != null) {
-        final data = res.body!['data'] as List<dynamic>? ?? [];
-        emit(OrderState.ordersLoaded(data.cast<Map<String, dynamic>>()));
-      } else {
+    final result = await _orderRepository.getOrders();
+    result.fold(
+      (err) {
+        _logger.e('Error loading orders: ${err.message}');
         emit(const OrderState.error('order.error_load'));
-      }
-    } catch (e) {
-      _logger.e('Error loading orders: $e');
-      emit(const OrderState.error('common.network_error'));
-    }
+      },
+      (orders) {
+        // Convert to Map for compatibility with existing freezed state type
+        final maps = orders.map((o) => o.toJson()).toList();
+        emit(OrderState.ordersLoaded(maps));
+      },
+    );
   }
 
-  Future<void> _onCancelOrder(_CancelOrder event, Emitter<OrderState> emit) async {
+  Future<void> _onCancelOrder(
+      _CancelOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
-    try {
-      final res = await _orderService.cancelOrder(event.orderId);
-      if (res.isSuccessful) {
+    final result = await _orderRepository.cancelOrder(event.orderId);
+    result.fold(
+      (err) {
+        _logger.e('Error cancelling order: ${err.message}');
+        emit(OrderState.error(err.message));
+      },
+      (_) {
+        getIt<AnalyticsService>().logOrderCancelled(event.orderId);
         emit(const OrderState.cancelled());
-      } else {
-        final msg = _extractError(res.body, 'order.error_cancel');
-        emit(OrderState.error(msg));
-      }
-    } catch (e) {
-      _logger.e('Error cancelling order: $e');
-      emit(const OrderState.error('common.network_error'));
-    }
+      },
+    );
   }
 
-  Future<void> _onRateOrder(_RateOrder event, Emitter<OrderState> emit) async {
+  Future<void> _onRateOrder(
+      _RateOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
-    try {
-      final res = await _orderService.rateOrder(event.orderId, {
-        'rating': event.rating,
-        if (event.comment != null) 'comment': event.comment,
-      });
-      if (res.isSuccessful) {
-        emit(const OrderState.rated());
-      } else {
-        final msg = _extractError(res.body, 'order.error_rate');
-        emit(OrderState.error(msg));
-      }
-    } catch (e) {
-      _logger.e('Error rating order: $e');
-      emit(const OrderState.error('common.network_error'));
-    }
-  }
-
-  String _extractError(dynamic body, String fallback) {
-    try {
-      return (body as Map<String, dynamic>)['message']?.toString() ?? fallback;
-    } catch (_) {
-      return fallback;
-    }
+    final result = await _orderRepository.rateOrder(
+        event.orderId, event.rating, event.comment);
+    result.fold(
+      (err) {
+        _logger.e('Error rating order: ${err.message}');
+        emit(OrderState.error(err.message));
+      },
+      (_) => emit(const OrderState.rated()),
+    );
   }
 }
