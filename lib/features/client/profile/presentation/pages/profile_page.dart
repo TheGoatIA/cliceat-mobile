@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/network/services/user_service.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
@@ -158,7 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.notifications_outlined,
             title: 'profile.notifications'.tr(),
-            onTap: () {},
+            onTap: () => _showNotificationSettings(context),
           ),
           _buildMenuItem(
             icon: Icons.language_outlined,
@@ -456,6 +457,16 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _showNotificationSettings(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => const NotificationSettingsSheet(),
+    );
+  }
+
   void _showLoyalty(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -496,6 +507,117 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Notification settings bottom sheet with toggles stored in SharedPreferences.
+class NotificationSettingsSheet extends StatefulWidget {
+  const NotificationSettingsSheet();
+
+  @override
+  State<NotificationSettingsSheet> createState() =>
+      _NotificationSettingsSheetState();
+}
+
+class _NotificationSettingsSheetState
+    extends State<NotificationSettingsSheet> {
+  static const _keyOrderUpdates = 'notif_order_updates';
+  static const _keyPromotions = 'notif_promotions';
+  static const _keyNewRestaurants = 'notif_new_restaurants';
+
+  bool _orderUpdates = true;
+  bool _promotions = true;
+  bool _newRestaurants = false;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _orderUpdates = prefs.getBool(_keyOrderUpdates) ?? true;
+      _promotions = prefs.getBool(_keyPromotions) ?? true;
+      _newRestaurants = prefs.getBool(_keyNewRestaurants) ?? false;
+      _loaded = true;
+    });
+  }
+
+  Future<void> _save(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'profile.notifications'.tr(),
+            style: theme.textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'profile.notifications_subtitle'.tr(),
+            style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 16),
+          if (!_loaded)
+            const Center(child: CircularProgressIndicator())
+          else ...[
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary:
+                  Icon(Icons.receipt_long, color: theme.colorScheme.primary),
+              title: Text('profile.notif_order_updates'.tr()),
+              subtitle: Text('profile.notif_order_updates_desc'.tr()),
+              value: _orderUpdates,
+              onChanged: (v) {
+                setState(() => _orderUpdates = v);
+                _save(_keyOrderUpdates, v);
+              },
+            ),
+            const Divider(height: 1),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: Icon(Icons.local_offer,
+                  color: theme.colorScheme.secondary),
+              title: Text('profile.notif_promotions'.tr()),
+              subtitle: Text('profile.notif_promotions_desc'.tr()),
+              value: _promotions,
+              onChanged: (v) {
+                setState(() => _promotions = v);
+                _save(_keyPromotions, v);
+              },
+            ),
+            const Divider(height: 1),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: Icon(Icons.restaurant_menu,
+                  color: theme.colorScheme.tertiary),
+              title: Text('profile.notif_new_restaurants'.tr()),
+              subtitle: Text('profile.notif_new_restaurants_desc'.tr()),
+              value: _newRestaurants,
+              onChanged: (v) {
+                setState(() => _newRestaurants = v);
+                _save(_keyNewRestaurants, v);
+              },
+            ),
+          ],
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

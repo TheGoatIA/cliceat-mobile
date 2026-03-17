@@ -86,7 +86,8 @@
     "add_to_cart": "Add to cart",
     "error_load": "Unable to load restaurant.",
     "min_order": "Min. order",
-    "delivery_fee": "Delivery"
+    "delivery_fee": "Delivery",
+    "choose_variation": "Choose an option"
   },
   "cart": {
     "title": "My Cart",
@@ -99,7 +100,9 @@
     "checkout_btn": "Checkout",
     "redirect_payment": "Redirecting to NotchPay...",
     "remove_item": "Remove",
-    "item_removed": "Item removed"
+    "item_removed": "Item removed",
+    "clear_confirm_title": "Clear cart?",
+    "clear_confirm_message": "Your cart contains items from another restaurant. Do you want to clear it and add this item?"
   },
   "checkout": {
     "title": "Complete order",
@@ -196,7 +199,14 @@
     "name": "Full name",
     "phone": "Phone",
     "email": "Email",
-    "default_name": "User"
+    "default_name": "User",
+    "notifications_subtitle": "Manage your notification preferences",
+    "notif_order_updates": "Order updates",
+    "notif_order_updates_desc": "Receive notifications about your order status",
+    "notif_promotions": "Promotions",
+    "notif_promotions_desc": "Exclusive offers and promo codes",
+    "notif_new_restaurants": "New restaurants",
+    "notif_new_restaurants_desc": "Discover new restaurants in your area"
   },
   "delivery": {
     "dashboard_title": "Dashboard",
@@ -235,14 +245,26 @@
     "confirm_pickup": "Confirm pickup",
     "confirm_delivery": "Confirm delivery",
     "mission_accepted": "Mission accepted",
-    "mission_rejected": "Mission rejected"
+    "mission_rejected": "Mission rejected",
+    "location_permission_required": "Location permission required",
+    "earnings_chart": "Earnings chart",
+    "vehicle_type": "Vehicle type",
+    "vehicle_plate": "License plate",
+    "vehicle_motorcycle": "Motorcycle",
+    "vehicle_bicycle": "Bicycle",
+    "vehicle_car": "Car",
+    "vehicle_on_foot": "On foot"
   },
   "address": {
     "select_title": "Choose an address",
     "add_title": "Add an address",
     "address_hint": "Full address",
     "label_hint": "Label (e.g. Home, Office)",
-    "saved": "Address saved"
+    "saved": "Address saved",
+    "use_current_location": "Use current location",
+    "current_location": "Current location",
+    "location_denied": "Location permission denied",
+    "location_error": "Unable to get current location"
   },
   "mission": {
     "error_load": "Unable to retrieve missions.",

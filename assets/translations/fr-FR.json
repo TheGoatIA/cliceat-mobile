@@ -86,7 +86,8 @@
     "add_to_cart": "Ajouter au panier",
     "error_load": "Impossible de charger le restaurant.",
     "min_order": "Commande min.",
-    "delivery_fee": "Livraison"
+    "delivery_fee": "Livraison",
+    "choose_variation": "Choisir une option"
   },
   "cart": {
     "title": "Mon Panier",
@@ -99,7 +100,9 @@
     "checkout_btn": "Passer la commande",
     "redirect_payment": "Redirection vers NotchPay en cours...",
     "remove_item": "Supprimer",
-    "item_removed": "Article supprimé"
+    "item_removed": "Article supprimé",
+    "clear_confirm_title": "Vider le panier ?",
+    "clear_confirm_message": "Votre panier contient des articles d'un autre restaurant. Voulez-vous le vider et ajouter cet article ?"
   },
   "checkout": {
     "title": "Finaliser la commande",
@@ -196,7 +199,14 @@
     "name": "Nom complet",
     "phone": "Téléphone",
     "email": "E-mail",
-    "default_name": "Utilisateur"
+    "default_name": "Utilisateur",
+    "notifications_subtitle": "Gérez vos préférences de notifications",
+    "notif_order_updates": "Mises à jour des commandes",
+    "notif_order_updates_desc": "Recevez des notifications sur le statut de vos commandes",
+    "notif_promotions": "Promotions",
+    "notif_promotions_desc": "Offres exclusives et codes promo",
+    "notif_new_restaurants": "Nouveaux restaurants",
+    "notif_new_restaurants_desc": "Découvrez les nouveaux restaurants de votre zone"
   },
   "delivery": {
     "dashboard_title": "Tableau de bord",
@@ -235,14 +245,26 @@
     "confirm_pickup": "Confirmer la récupération",
     "confirm_delivery": "Confirmer la livraison",
     "mission_accepted": "Mission acceptée",
-    "mission_rejected": "Mission refusée"
+    "mission_rejected": "Mission refusée",
+    "location_permission_required": "Permission de localisation requise",
+    "earnings_chart": "Graphique des gains",
+    "vehicle_type": "Type de véhicule",
+    "vehicle_plate": "Plaque d'immatriculation",
+    "vehicle_motorcycle": "Moto",
+    "vehicle_bicycle": "Vélo",
+    "vehicle_car": "Voiture",
+    "vehicle_on_foot": "À pied"
   },
   "address": {
     "select_title": "Choisir une adresse",
     "add_title": "Ajouter une adresse",
     "address_hint": "Adresse complète",
     "label_hint": "Étiquette (ex: Maison, Bureau)",
-    "saved": "Adresse enregistrée"
+    "saved": "Adresse enregistrée",
+    "use_current_location": "Utiliser ma position actuelle",
+    "current_location": "Position actuelle",
+    "location_denied": "Permission de localisation refusée",
+    "location_error": "Impossible d'obtenir la position actuelle"
   },
   "mission": {
     "error_load": "Impossible de récupérer les missions.",

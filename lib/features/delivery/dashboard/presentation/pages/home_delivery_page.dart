@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +9,27 @@ import '../../../../../core/di/injection.dart';
 import '../../../../../core/services/websocket_service.dart';
 import '../../data/datasources/driver_service.dart';
 import '../bloc/mission_bloc.dart';
+
+// Android-specific background location settings
+const _androidLocationSettings = AndroidSettings(
+  accuracy: LocationAccuracy.high,
+  distanceFilter: 15,
+  forceLocationManager: false,
+  intervalDuration: Duration(seconds: 5),
+  foregroundNotificationConfig: ForegroundNotificationConfig(
+    notificationText: 'ClicEat : suivi de position en cours',
+    notificationTitle: 'ClicEat Livreur',
+    enableWakeLock: true,
+  ),
+);
+
+const _appleLocationSettings = AppleSettings(
+  accuracy: LocationAccuracy.high,
+  activityType: ActivityType.automotiveNavigation,
+  distanceFilter: 15,
+  pauseLocationUpdatesAutomatically: false,
+  showBackgroundLocationIndicator: true,
+);
 
 class HomeDeliveryPage extends StatefulWidget {
   const HomeDeliveryPage({super.key});
@@ -24,8 +46,8 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   Map<String, dynamic>? _earningsData;
   bool _earningsLoading = true;
 
-  // GPS location timer
-  Timer? _locationTimer;
+  // GPS location stream (background-safe)
+  StreamSubscription<Position>? _locationSubscription;
 
   // Mission BLoC — created here so WebSocket events can dispatch to it
   late final MissionBloc _missionBloc;
@@ -47,7 +69,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   void dispose() {
     _wsSubscription?.cancel();
     _missionBloc.close();
-    _locationTimer?.cancel();
+    _locationSubscription?.cancel();
     super.dispose();
   }
 
@@ -70,26 +92,58 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     }
   }
 
-  void _startLocationUpdates() {
-    _locationTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      try {
-        final position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+  Future<void> _startLocationUpdates() async {
+    // Check / request permissions before starting stream
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      _logger.w('Location permission denied — cannot track GPS.');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('delivery.location_permission_required'.tr())),
         );
-        getIt<DriverService>().updateLocation({
-          'lat': position.latitude,
-          'lng': position.longitude,
-        });
-        getIt<WebSocketService>().emitLocationUpdate(position.latitude, position.longitude);
-      } catch (e) {
-        _logger.w('GPS update failed: $e');
       }
-    });
+      return;
+    }
+
+    // Use platform-specific settings that survive backgrounding
+    final LocationSettings settings;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      settings = _androidLocationSettings;
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      settings = _appleLocationSettings;
+    } else {
+      settings = const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 15,
+      );
+    }
+
+    _locationSubscription = Geolocator.getPositionStream(
+      locationSettings: settings,
+    ).listen(
+      (position) {
+        try {
+          getIt<DriverService>().updateLocation({
+            'lat': position.latitude,
+            'lng': position.longitude,
+          });
+          getIt<WebSocketService>()
+              .emitLocationUpdate(position.latitude, position.longitude);
+        } catch (e) {
+          _logger.w('GPS update failed: $e');
+        }
+      },
+      onError: (e) => _logger.w('GPS stream error: $e'),
+    );
   }
 
   void _stopLocationUpdates() {
-    _locationTimer?.cancel();
-    _locationTimer = null;
+    _locationSubscription?.cancel();
+    _locationSubscription = null;
   }
 
   @override

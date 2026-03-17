@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../../../../../core/di/injection.dart';
+import '../../data/datasources/payment_service.dart';
 
 class PaymentWebviewPage extends StatefulWidget {
   final String paymentUrl;
@@ -20,6 +22,7 @@ class PaymentWebviewPage extends StatefulWidget {
 class _PaymentWebviewPageState extends State<PaymentWebviewPage> {
   late final WebViewController _controller;
   bool _loading = true;
+  bool _verifying = false;
 
   @override
   void initState() {
@@ -33,10 +36,9 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage> {
           onNavigationRequest: (request) {
             final url = request.url.toLowerCase();
 
-            // --- Primary: deep-link scheme set by backend/NotchPay ---
-            // Backend should configure callback URL as cliceat://payment/success?orderId=...
+            // Primary: deep-link scheme set by backend/NotchPay
             if (url.startsWith('cliceat://payment/success')) {
-              context.go('/client/order-success/${widget.orderId}');
+              _verifyPaymentThenNavigate();
               return NavigationDecision.prevent;
             }
             if (url.startsWith('cliceat://payment/cancel') ||
@@ -45,12 +47,12 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage> {
               return NavigationDecision.prevent;
             }
 
-            // --- Fallback: HTTPS return URL patterns from NotchPay ---
+            // Fallback: HTTPS return URL patterns from NotchPay
             if (url.contains('/payment/success') ||
                 url.contains('payment_success') ||
                 url.contains('status=success') ||
                 url.contains('notchpay.co/pay/success')) {
-              context.go('/client/order-success/${widget.orderId}');
+              _verifyPaymentThenNavigate();
               return NavigationDecision.prevent;
             }
             if (url.contains('/payment/cancel') ||
@@ -68,6 +70,54 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage> {
       ..loadRequest(Uri.parse(widget.paymentUrl));
   }
 
+  /// Verify with backend that payment actually succeeded before showing success.
+  Future<void> _verifyPaymentThenNavigate() async {
+    if (_verifying) return;
+    setState(() => _verifying = true);
+    try {
+      final res = await getIt<PaymentService>().verifyPayment(widget.orderId);
+      if (!mounted) return;
+      if (res.isSuccessful) {
+        final data = res.body?['data'] as Map<String, dynamic>? ?? res.body ?? {};
+        final status = data['status']?.toString() ?? data['paymentStatus']?.toString() ?? '';
+        // Accept any non-failed status (completed, success, approved, paid)
+        final isSuccess = status.isEmpty ||
+            status == 'completed' ||
+            status == 'success' ||
+            status == 'approved' ||
+            status == 'paid';
+        if (isSuccess) {
+          context.go('/client/order-success/${widget.orderId}');
+        } else {
+          setState(() => _verifying = false);
+          _showPaymentFailedSnack();
+        }
+      } else {
+        setState(() => _verifying = false);
+        _showPaymentFailedSnack();
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _verifying = false);
+        _showPaymentFailedSnack();
+      }
+    }
+  }
+
+  void _showPaymentFailedSnack() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('payment.failed'.tr()),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        action: SnackBarAction(
+          label: 'payment.retry'.tr(),
+          textColor: Colors.white,
+          onPressed: () => _controller.reload(),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,8 +132,25 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_loading)
-            const Center(child: CircularProgressIndicator()),
+          if (_loading || _verifying)
+            Container(
+              color: Colors.black26,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    if (_verifying) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'common.loading'.tr(),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

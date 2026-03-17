@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -16,8 +18,10 @@ class MapClientPage extends StatefulWidget {
 
 class _MapClientPageState extends State<MapClientPage> {
   MapboxMap? _mapboxMap;
+  PointAnnotationManager? _annotationManager;
   List<Map<String, dynamic>> _restaurants = [];
   bool _loading = true;
+  Uint8List? _markerIcon;
 
   @override
   void initState() {
@@ -27,7 +31,8 @@ class _MapClientPageState extends State<MapClientPage> {
 
   Future<void> _loadRestaurants() async {
     try {
-      final res = await getIt<RestaurantService>().getRestaurants(AppConstants.defaultCity, null, null);
+      final res = await getIt<RestaurantService>()
+          .getRestaurants(AppConstants.defaultCity, null, null);
       if (res.isSuccessful && res.body != null) {
         final body = res.body!;
         List<dynamic> data = [];
@@ -40,11 +45,86 @@ class _MapClientPageState extends State<MapClientPage> {
           _restaurants = data.cast<Map<String, dynamic>>();
           _loading = false;
         });
+        // Add markers if map is already ready
+        if (_annotationManager != null) {
+          await _addRestaurantMarkers();
+        }
       } else {
         setState(() => _loading = false);
       }
     } catch (_) {
       setState(() => _loading = false);
+    }
+  }
+
+  /// Renders a red pin icon as a PNG Uint8List using Canvas.
+  Future<Uint8List> _buildMarkerIcon() async {
+    const size = 48.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder,
+        Rect.fromLTWH(0, 0, size, size));
+
+    // Outer red circle
+    final paintOuter = Paint()..color = const Color(0xFFCC0000);
+    canvas.drawCircle(const Offset(24, 24), 20, paintOuter);
+
+    // White ring
+    final paintRing = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    canvas.drawCircle(const Offset(24, 24), 20, paintRing);
+
+    // Inner dot
+    final paintInner = Paint()..color = Colors.white;
+    canvas.drawCircle(const Offset(24, 24), 7, paintInner);
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size.toInt(), size.toInt());
+    final data = await img.toByteData(format: ui.ImageByteFormat.png);
+    return data!.buffer.asUint8List();
+  }
+
+  Future<void> _onMapCreated(MapboxMap map) async {
+    _mapboxMap = map;
+    _markerIcon = await _buildMarkerIcon();
+    _annotationManager =
+        await map.annotations.createPointAnnotationManager();
+    _annotationManager!
+        .addOnPointAnnotationClickListener(_RestaurantAnnotationListener(
+      restaurants: _restaurants,
+      context: context,
+    ));
+    if (_restaurants.isNotEmpty) {
+      await _addRestaurantMarkers();
+    }
+  }
+
+  Future<void> _addRestaurantMarkers() async {
+    if (_annotationManager == null || _markerIcon == null) return;
+    await _annotationManager!.deleteAll();
+
+    for (final r in _restaurants) {
+      // Support both GeoJSON location format and flat lat/lng fields
+      final lat = (r['location']?['coordinates']?[1] as num?)?.toDouble() ??
+          (r['lat'] as num?)?.toDouble() ??
+          (r['latitude'] as num?)?.toDouble();
+      final lng = (r['location']?['coordinates']?[0] as num?)?.toDouble() ??
+          (r['lng'] as num?)?.toDouble() ??
+          (r['longitude'] as num?)?.toDouble();
+      if (lat == null || lng == null) continue;
+
+      await _annotationManager!.create(PointAnnotationOptions(
+        geometry: Point(coordinates: Position(lng, lat)),
+        image: _markerIcon,
+        iconSize: 0.9,
+        textField: r['name'] as String? ?? '',
+        textSize: 10.0,
+        textOffset: [0.0, 2.5],
+        textColor: 0xFF222222,
+        textHaloColor: 0xFFFFFFFF,
+        textHaloWidth: 1.5,
+      ));
     }
   }
 
@@ -62,10 +142,6 @@ class _MapClientPageState extends State<MapClientPage> {
     } catch (_) {}
   }
 
-  void _onMapCreated(MapboxMap map) {
-    _mapboxMap = map;
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -76,7 +152,8 @@ class _MapClientPageState extends State<MapClientPage> {
             key: const ValueKey('clientMapWidget'),
             onMapCreated: _onMapCreated,
             cameraOptions: CameraOptions(
-              center: Point(coordinates: Position(AppConstants.defaultLng, AppConstants.defaultLat)),
+              center: Point(coordinates: Position(
+                  AppConstants.defaultLng, AppConstants.defaultLat)),
               zoom: AppConstants.defaultZoom,
             ),
           ),
@@ -88,7 +165,8 @@ class _MapClientPageState extends State<MapClientPage> {
             right: 16,
             child: Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: TextField(
                 readOnly: true,
                 onTap: () {},
@@ -96,7 +174,8 @@ class _MapClientPageState extends State<MapClientPage> {
                   hintText: 'client.search_hint'.tr(),
                   prefixIcon: const Icon(Icons.search),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
             ),
@@ -108,14 +187,18 @@ class _MapClientPageState extends State<MapClientPage> {
               top: MediaQuery.of(context).padding.top + 72,
               left: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${_restaurants.length} restaurants',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12),
                 ),
               ),
             ),
@@ -148,9 +231,13 @@ class _MapClientPageState extends State<MapClientPage> {
       height: 180,
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Column(
@@ -169,7 +256,9 @@ class _MapClientPageState extends State<MapClientPage> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text('client.recommended'.tr(), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            child: Text('client.recommended'.tr(),
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 8),
           _loading
@@ -177,42 +266,79 @@ class _MapClientPageState extends State<MapClientPage> {
               : Expanded(
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12),
                     itemCount: _restaurants.length,
                     itemBuilder: (context, index) {
                       final r = _restaurants[index];
-                      final id = r['_id']?.toString() ?? r['id']?.toString() ?? '$index';
+                      final id = r['_id']?.toString() ??
+                          r['id']?.toString() ??
+                          '$index';
                       final name = r['name'] as String? ?? 'Restaurant';
-                      final cuisine = r['cuisineType'] as String? ?? '';
+                      final cuisine =
+                          r['cuisineType'] as String? ?? '';
                       final image = r['coverImage'] as String?;
                       return GestureDetector(
                         onTap: () => context.push('/restaurant/$id'),
                         child: Container(
                           width: 140,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 4),
                           decoration: BoxDecoration(
                             color: theme.cardTheme.color,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
                             children: [
                               ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                borderRadius:
+                                    const BorderRadius.vertical(
+                                        top: Radius.circular(12)),
                                 child: image != null
-                                    ? Image.network(image, height: 70, width: 140, fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(height: 70, color: theme.colorScheme.surfaceContainerHighest))
-                                    : Container(height: 70, color: theme.colorScheme.surfaceContainerHighest,
-                                        child: const Icon(Icons.restaurant, size: 32)),
+                                    ? Image.network(image,
+                                        height: 70,
+                                        width: 140,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) =>
+                                            Container(
+                                                height: 70,
+                                                color: theme
+                                                    .colorScheme
+                                                    .surfaceContainerHighest))
+                                    : Container(
+                                        height: 70,
+                                        color: theme.colorScheme
+                                            .surfaceContainerHighest,
+                                        child: const Icon(
+                                            Icons.restaurant,
+                                            size: 32)),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8),
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
-                                    Text(name, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    Text(name,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                                fontWeight:
+                                                    FontWeight.bold),
+                                        maxLines: 1,
+                                        overflow:
+                                            TextOverflow.ellipsis),
                                     if (cuisine.isNotEmpty)
-                                      Text(cuisine, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                      Text(cuisine,
+                                          style: theme
+                                              .textTheme.bodySmall
+                                              ?.copyWith(
+                                                  color: theme.colorScheme
+                                                      .onSurfaceVariant),
+                                          maxLines: 1,
+                                          overflow:
+                                              TextOverflow.ellipsis),
                                   ],
                                 ),
                               ),
@@ -226,5 +352,45 @@ class _MapClientPageState extends State<MapClientPage> {
         ],
       ),
     );
+  }
+}
+
+/// Handles clicks on restaurant pins on the map.
+class _RestaurantAnnotationListener
+    extends OnPointAnnotationClickListener {
+  final List<Map<String, dynamic>> restaurants;
+  final BuildContext context;
+
+  _RestaurantAnnotationListener({
+    required this.restaurants,
+    required this.context,
+  });
+
+  @override
+  bool onPointAnnotationClick(PointAnnotation annotation) {
+    final coords = annotation.geometry.coordinates;
+    // Match by coordinates
+    for (final r in restaurants) {
+      final lat =
+          (r['location']?['coordinates']?[1] as num?)?.toDouble() ??
+              (r['lat'] as num?)?.toDouble() ??
+              (r['latitude'] as num?)?.toDouble();
+      final lng =
+          (r['location']?['coordinates']?[0] as num?)?.toDouble() ??
+              (r['lng'] as num?)?.toDouble() ??
+              (r['longitude'] as num?)?.toDouble();
+      if (lat == null || lng == null) continue;
+      final coordLat = (coords[1] as num).toDouble();
+      final coordLng = (coords[0] as num).toDouble();
+      if ((coordLat - lat).abs() < 0.0001 &&
+          (coordLng - lng).abs() < 0.0001) {
+        final id = r['_id']?.toString() ?? r['id']?.toString() ?? '';
+        if (id.isNotEmpty && context.mounted) {
+          context.push('/restaurant/$id');
+        }
+        return true;
+      }
+    }
+    return true;
   }
 }

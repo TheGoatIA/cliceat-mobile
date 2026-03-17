@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../../../../core/config/app_constants.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import '../bloc/cart_cubit.dart';
 
@@ -141,7 +140,7 @@ class CartPage extends StatelessWidget {
   }
 
   Widget _buildSummary(BuildContext context, CartState state) {
-    const deliveryFee = AppConstants.defaultDeliveryFee;
+    final deliveryFee = state.deliveryFee;
     final total = state.subtotal + deliveryFee;
 
     return Container(
@@ -172,7 +171,7 @@ class CartPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('cart.delivery_fee'.tr()),
-                Text('${AppConstants.defaultDeliveryFee.toStringAsFixed(0)} FCFA'),
+                Text('${deliveryFee.toStringAsFixed(0)} FCFA'),
               ],
             ),
             const Padding(

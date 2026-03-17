@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logger/logger.dart';
@@ -106,12 +107,22 @@ class NotificationService {
   }
 
   void _routeFromPayloadString(String payload) {
-    // payload looks like: {type: order_update, orderId: abc123}
-    final orderIdMatch = RegExp(r'orderId:\s*([^\s,}]+)').firstMatch(payload);
-    final typeMatch = RegExp(r'type:\s*([^\s,}]+)').firstMatch(payload);
-    final orderId = orderIdMatch?.group(1) ?? '';
-    final type = typeMatch?.group(1) ?? '';
-    _navigate(type, orderId);
+    try {
+      // Payload is stored as JSON (from _showLocalNotification)
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      final type = data['type'] as String? ?? '';
+      final orderId = data['orderId'] as String? ??
+          data['order_id'] as String? ?? '';
+      _navigate(type, orderId);
+    } catch (_) {
+      // Legacy fallback: payload stored as Dart map toString()
+      final orderIdMatch =
+          RegExp(r'orderId:\s*([^\s,}]+)').firstMatch(payload);
+      final typeMatch = RegExp(r'type:\s*([^\s,}]+)').firstMatch(payload);
+      final orderId = orderIdMatch?.group(1) ?? '';
+      final type = typeMatch?.group(1) ?? '';
+      _navigate(type, orderId);
+    }
   }
 
   void _navigate(String type, String orderId) {
@@ -151,7 +162,7 @@ class NotificationService {
       title: message.notification?.title,
       body: message.notification?.body,
       notificationDetails: platformDetails,
-      payload: message.data.toString(),
+      payload: jsonEncode(message.data),
     );
   }
 }

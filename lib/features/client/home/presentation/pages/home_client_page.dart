@@ -21,20 +21,86 @@ class _HomeClientPageState extends State<HomeClientPage> {
   String? _selectedCategory;
   Timer? _debounce;
 
-  // Category list with emoji icons and search keywords
-  static const _categories = [
-    ('Burger', '🍔'),
-    ('Pizza', '🍕'),
-    ('Ndolé', '🥗'),
-    ('Poulet', '🍗'),
-    ('Salade', '🥙'),
+  // Dynamic categories (emoji, label) loaded from API
+  static const _fallbackCategories = [
+    ('🍔', 'Burger'),
+    ('🍕', 'Pizza'),
+    ('🥗', 'Ndolé'),
+    ('🍗', 'Poulet'),
+    ('🥙', 'Salade'),
   ];
+
+  List<(String, String)> _categories = _fallbackCategories;
+  bool _categoriesLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDynamicCategories();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+
+  /// Loads cuisine categories from the featured restaurant list.
+  /// Falls back to static categories if API fails.
+  Future<void> _loadDynamicCategories() async {
+    if (_categoriesLoaded) return;
+    try {
+      final res = await getIt<RestaurantService>().getFeaturedRestaurants();
+      if (!res.isSuccessful || res.body == null) return;
+
+      final body = res.body;
+      List<dynamic> restaurants = [];
+      if (body is Map && body.containsKey('data')) {
+        restaurants = body['data'] as List<dynamic>? ?? [];
+      } else if (body is List) {
+        restaurants = body;
+      }
+
+      // Extract unique cuisine types and map them to emojis
+      final cuisineSet = <String>{};
+      for (final r in restaurants) {
+        final cuisine = (r as Map<String, dynamic>)['cuisineType'] as String?;
+        if (cuisine != null && cuisine.trim().isNotEmpty) {
+          cuisineSet.add(cuisine.trim());
+        }
+      }
+
+      if (cuisineSet.isEmpty) return;
+
+      const emojiMap = {
+        'burger': '🍔', 'pizza': '🍕', 'poulet': '🍗', 'chicken': '🍗',
+        'salade': '🥗', 'salad': '🥗', 'ndolé': '🥘', 'ndole': '🥘',
+        'poisson': '🐟', 'fish': '🐟', 'sushi': '🍱', 'tacos': '🌮',
+        'sandwich': '🥙', 'pasta': '🍝', 'dessert': '🍰', 'jus': '🥤',
+        'rice': '🍚', 'riz': '🍚', 'viande': '🥩', 'meat': '🥩',
+      };
+
+      final dynamic = cuisineSet.take(8).map((c) {
+        final key = c.toLowerCase();
+        final emoji = emojiMap.entries
+            .firstWhere(
+              (e) => key.contains(e.key),
+              orElse: () => const MapEntry('', '🍽️'),
+            )
+            .value;
+        return (emoji, c);
+      }).toList();
+
+      if (mounted) {
+        setState(() {
+          _categories = dynamic;
+          _categoriesLoaded = true;
+        });
+      }
+    } catch (_) {
+      // Keep fallback categories
+    }
   }
 
   void _onSearchChanged(String value) {
@@ -47,7 +113,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
   void _onCategoryTap(String category) {
     setState(() {
       if (_selectedCategory == category) {
-        // Toggle off
         _selectedCategory = null;
         _searchQuery = '';
         _searchController.clear();
@@ -103,7 +168,13 @@ class _HomeClientPageState extends State<HomeClientPage> {
       ),
       body: RefreshIndicator(
         color: theme.colorScheme.primary,
-        onRefresh: () async => setState(() {}),
+        onRefresh: () async {
+          setState(() {
+            _categoriesLoaded = false;
+          });
+          await _loadDynamicCategories();
+          setState(() {});
+        },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -157,7 +228,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
       future: getIt<CouponService>().getBanners(),
       builder: (context, snapshot) {
         List<Map<String, dynamic>> banners = [];
-        if (snapshot.hasData && snapshot.data!.isSuccessful && snapshot.data!.body != null) {
+        if (snapshot.hasData &&
+            snapshot.data!.isSuccessful &&
+            snapshot.data!.body != null) {
           final data = snapshot.data!.body!['data'];
           if (data is List) {
             banners = data.map((e) => e as Map<String, dynamic>).toList();
@@ -168,7 +241,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
             {
               'title': 'Livraison Gratuite',
               'subtitle': 'Sur votre 1ère commande',
-              'image': 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop',
+              'image':
+                  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop',
             }
           ];
         }
@@ -183,12 +257,16 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   banner['image'] as String? ??
                   'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop';
               final title = banner['title'] as String? ?? '';
-              final subtitle = banner['subtitle'] as String? ?? banner['description'] as String? ?? '';
+              final subtitle = banner['subtitle'] as String? ??
+                  banner['description'] as String? ?? '';
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .secondary
+                      .withValues(alpha: 0.2),
                   image: DecorationImage(
                     image: NetworkImage(imageUrl),
                     fit: BoxFit.cover,
@@ -198,7 +276,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     gradient: LinearGradient(
-                      colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
+                      colors: [
+                        Colors.black.withValues(alpha: 0.7),
+                        Colors.transparent
+                      ],
                       begin: Alignment.bottomLeft,
                       end: Alignment.topRight,
                     ),
@@ -210,9 +291,15 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         if (title.isNotEmpty)
-                          Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                          Text(title,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold)),
                         if (subtitle.isNotEmpty)
-                          Text(subtitle, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                          Text(subtitle,
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 14)),
                       ],
                     ),
                   ),
@@ -231,7 +318,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
             'client.categories'.tr(),
             style: theme.textTheme.titleLarge,
@@ -244,7 +332,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             itemCount: _categories.length,
             itemBuilder: (context, index) {
-              final (label, emoji) = _categories[index];
+              final (emoji, label) = _categories[index];
               final isSelected = _selectedCategory == label;
               return GestureDetector(
                 onTap: () => _onCategoryTap(label),
@@ -265,22 +353,28 @@ class _HomeClientPageState extends State<HomeClientPage> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: theme.shadowColor.withValues(alpha: 0.08),
+                              color: theme.shadowColor
+                                  .withValues(alpha: 0.08),
                               blurRadius: 5,
                               offset: const Offset(0, 2),
                             )
                           ],
                         ),
                         child: Center(
-                          child: Text(emoji, style: const TextStyle(fontSize: 26)),
+                          child: Text(emoji,
+                              style: const TextStyle(fontSize: 26)),
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         label,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected ? theme.colorScheme.primary : null,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : null,
                         ),
                         textAlign: TextAlign.center,
                         maxLines: 1,
@@ -303,7 +397,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -316,7 +411,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
               if (!_isSearching)
                 Text(
                   'client.see_all'.tr(),
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold),
                 ),
             ],
           ),
@@ -327,16 +424,22 @@ class _HomeClientPageState extends State<HomeClientPage> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
-                child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator()),
+                child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CircularProgressIndicator()),
               );
             }
-            if (snapshot.hasError || !snapshot.hasData || snapshot.data?.body == null) {
+            if (snapshot.hasError ||
+                !snapshot.hasData ||
+                snapshot.data?.body == null) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: Column(
                     children: [
-                      Text('common.error'.tr(), style: TextStyle(color: theme.colorScheme.error)),
+                      Text('common.error'.tr(),
+                          style:
+                              TextStyle(color: theme.colorScheme.error)),
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
                         onPressed: () => setState(() {}),
@@ -351,8 +454,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
             final responseBody = snapshot.data!.body;
             List<dynamic> restaurants = [];
-            if (responseBody is Map && responseBody.containsKey('data')) {
-              restaurants = responseBody['data'] as List<dynamic>;
+            if (responseBody is Map &&
+                responseBody.containsKey('data')) {
+              restaurants =
+                  responseBody['data'] as List<dynamic>;
             } else if (responseBody is List) {
               restaurants = responseBody;
             }
@@ -363,11 +468,18 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   padding: const EdgeInsets.all(32.0),
                   child: Column(
                     children: [
-                      Icon(Icons.search_off, size: 64, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+                      Icon(Icons.search_off,
+                          size: 64,
+                          color: theme.colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.4)),
                       const SizedBox(height: 12),
                       Text(
-                        _isSearching ? 'common.no_results'.tr() : 'restaurant.none_available'.tr(),
-                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                        _isSearching
+                            ? 'common.no_results'.tr()
+                            : 'restaurant.none_available'.tr(),
+                        style: TextStyle(
+                            color:
+                                theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -382,11 +494,21 @@ class _HomeClientPageState extends State<HomeClientPage> {
               itemCount: restaurants.length,
               itemBuilder: (context, index) {
                 final restaurant = restaurants[index];
-                final id = restaurant['id']?.toString() ?? (index + 1).toString();
-                final name = restaurant['name'] ?? 'Restaurant Gourmet';
-                final cuisine = restaurant['cuisineType'] ?? 'Cuisine Locale';
-                final rating = restaurant['rating']?.toString() ?? 'N/A';
-                final minTime = restaurant['deliveryTimeMinutes']?.toString() ?? '30';
+                final id = restaurant['_id']?.toString() ??
+                    restaurant['id']?.toString() ??
+                    (index + 1).toString();
+                final name =
+                    restaurant['name'] ?? 'Restaurant Gourmet';
+                final cuisine =
+                    restaurant['cuisineType'] ?? 'Cuisine Locale';
+                final rating =
+                    restaurant['rating']?.toString() ?? 'N/A';
+                final minTime =
+                    restaurant['deliveryTimeMinutes']?.toString() ??
+                        '30';
+                final deliveryFee =
+                    (restaurant['deliveryFee'] as num?)
+                        ?.toStringAsFixed(0);
                 final image = restaurant['coverImage'] ??
                     'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1000&auto=format&fit=crop';
 
@@ -410,46 +532,72 @@ class _HomeClientPageState extends State<HomeClientPage> {
                         Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Text(
                                       name,
-                                      style: theme.textTheme.titleLarge,
+                                      style:
+                                          theme.textTheme.titleLarge,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding:
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: theme.colorScheme.secondary,
-                                      borderRadius: BorderRadius.circular(4),
+                                      color: theme
+                                          .colorScheme.secondary,
+                                      borderRadius:
+                                          BorderRadius.circular(4),
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(Icons.star, size: 14, color: theme.colorScheme.onSecondary),
+                                        Icon(Icons.star,
+                                            size: 14,
+                                            color: theme.colorScheme
+                                                .onSecondary),
                                         const SizedBox(width: 4),
-                                        Text(rating, style: theme.textTheme.labelLarge),
+                                        Text(rating,
+                                            style: theme
+                                                .textTheme.labelLarge),
                                       ],
                                     ),
                                   )
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              Text(cuisine, style: theme.textTheme.bodySmall),
+                              Text(cuisine,
+                                  style: theme.textTheme.bodySmall),
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  Icon(Icons.delivery_dining, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                                  Icon(Icons.delivery_dining,
+                                      size: 16,
+                                      color: theme.colorScheme
+                                          .onSurfaceVariant),
                                   const SizedBox(width: 4),
-                                  Text('restaurant.variable_fee'.tr(), style: theme.textTheme.bodySmall),
+                                  Text(
+                                    deliveryFee != null
+                                        ? '$deliveryFee FCFA'
+                                        : 'restaurant.variable_fee'.tr(),
+                                    style: theme.textTheme.bodySmall,
+                                  ),
                                   const SizedBox(width: 16),
-                                  Icon(Icons.timer, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                                  Icon(Icons.timer,
+                                      size: 16,
+                                      color: theme.colorScheme
+                                          .onSurfaceVariant),
                                   const SizedBox(width: 4),
-                                  Text('$minTime min', style: theme.textTheme.bodySmall),
+                                  Text('$minTime min',
+                                      style: theme.textTheme.bodySmall),
                                 ],
                               )
                             ],

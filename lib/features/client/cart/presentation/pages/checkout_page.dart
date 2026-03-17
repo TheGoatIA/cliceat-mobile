@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/network/services/coupon_service.dart';
 import '../bloc/order_bloc.dart';
@@ -197,7 +196,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget _buildOrderSummary(BuildContext context) {
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, cartState) {
-        const deliveryFee = AppConstants.defaultDeliveryFee;
+        final deliveryFee = cartState.deliveryFee;
         final total = (cartState.subtotal + deliveryFee - _couponDiscount).clamp(0.0, double.infinity);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,7 +210,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text('cart.delivery_fee'.tr()), Text('${AppConstants.defaultDeliveryFee.toStringAsFixed(0)} FCFA')],
+              children: [Text('cart.delivery_fee'.tr()), Text('${deliveryFee.toStringAsFixed(0)} FCFA')],
             ),
             if (_couponDiscount > 0) ...[
               const SizedBox(height: 8),
