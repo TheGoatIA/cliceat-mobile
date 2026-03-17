@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -17,7 +18,15 @@ import 'core/data/local/database.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/deep_link_service.dart';
 
-void main() async {
+void main() {
+  runZonedGuarded(_bootstrap, (error, stack) {
+    if (!kDebugMode) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    }
+  });
+}
+
+Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load environment variables
@@ -68,6 +77,7 @@ void main() async {
     ),
   );
 }
+
 
 class ClicEatApp extends StatelessWidget {
   const ClicEatApp({super.key});

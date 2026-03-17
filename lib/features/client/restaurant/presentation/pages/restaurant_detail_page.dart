@@ -184,19 +184,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                             style: Theme.of(context).textTheme.bodySmall),
                       ],
                       const Divider(height: 32),
-                      // Tabs: Menu + Avis
-                      DefaultTabController(
-                        length: 2,
-                        child: Column(
-                          children: [
-                            TabBar(
-                              tabs: [
-                                Tab(text: 'restaurant.menu'.tr()),
-                                Tab(text: 'restaurant.reviews'.tr()),
-                              ],
+                      Text(
+                        'restaurant.menu'.tr(),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
-                          ],
-                        ),
                       ),
                       const SizedBox(height: 16),
                     ],
