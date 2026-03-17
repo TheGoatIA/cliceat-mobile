@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/network/services/coupon_service.dart';
 import '../bloc/order_bloc.dart';
