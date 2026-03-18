@@ -6,13 +6,46 @@ import '../../../../../core/di/injection.dart';
 import '../../../../../core/utils/date_formatter.dart';
 import '../bloc/order_bloc.dart';
 
-class OrderHistoryPage extends StatelessWidget {
+class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
+
+  @override
+  State<OrderHistoryPage> createState() => _OrderHistoryPageState();
+}
+
+class _OrderHistoryPageState extends State<OrderHistoryPage> {
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final current = _scrollController.offset;
+    // Charger la page suivante quand on approche du bas (200 px avant la fin)
+    if (current >= maxScroll - 200) {
+      final bloc = context.read<OrderBloc>();
+      if (bloc.hasMore) {
+        bloc.add(const OrderEvent.loadMoreOrders());
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => getIt<OrderBloc>()..add(const OrderEvent.loadOrders()),
+      create: (_) =>
+          getIt<OrderBloc>()..add(const OrderEvent.loadOrders()),
       child: Scaffold(
         appBar: AppBar(
           title: Text('order.history'.tr()),
@@ -21,10 +54,15 @@ class OrderHistoryPage extends StatelessWidget {
         body: BlocBuilder<OrderBloc, OrderState>(
           builder: (context, state) {
             return state.maybeWhen(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
               error: (message) => _buildError(context, message),
-              ordersLoaded: (orders) => _buildOrderList(context, orders),
-              orElse: () => const Center(child: CircularProgressIndicator()),
+              ordersLoaded: (orders) =>
+                  _buildOrderList(context, orders, isLoadingMore: false),
+              loadingMore: (orders) =>
+                  _buildOrderList(context, orders, isLoadingMore: true),
+              orElse: () =>
+                  const Center(child: CircularProgressIndicator()),
             );
           },
         ),
@@ -37,10 +75,14 @@ class OrderHistoryPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(message.tr(), style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          Text(message.tr(),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.error)),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => context.read<OrderBloc>().add(const OrderEvent.loadOrders()),
+            onPressed: () => context
+                .read<OrderBloc>()
+                .add(const OrderEvent.loadOrders()),
             child: Text('common.retry'.tr()),
           ),
         ],
@@ -48,36 +90,73 @@ class OrderHistoryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderList(BuildContext context, List<Map<String, dynamic>> orders) {
+  Widget _buildOrderList(
+    BuildContext context,
+    List<Map<String, dynamic>> orders, {
+    required bool isLoadingMore,
+  }) {
     if (orders.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.receipt_long_outlined, size: 80, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+            Icon(Icons.receipt_long_outlined,
+                size: 80,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurfaceVariant
+                    .withValues(alpha: 0.4)),
             const SizedBox(height: 16),
-            Text('order.no_orders'.tr(), style: Theme.of(context).textTheme.titleMedium),
+            Text('order.no_orders'.tr(),
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            Text('order.no_orders_subtitle'.tr(), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            Text('order.no_orders_subtitle'.tr(),
+                style: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurfaceVariant)),
           ],
         ),
       );
     }
+
+    // Ajouter un item fictif à la fin pour le loader si nécessaire
+    final itemCount = orders.length + (isLoadingMore ? 1 : 0);
+
     return ListView.separated(
+      controller: _scrollController,
       padding: const EdgeInsets.all(16),
-      itemCount: orders.length,
+      itemCount: itemCount,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => _buildOrderCard(context, orders[index]),
+      itemBuilder: (context, index) {
+        if (index == orders.length) {
+          // Indicateur de chargement en bas de liste
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return _buildOrderCard(context, orders[index]);
+      },
     );
   }
 
-  Widget _buildOrderCard(BuildContext context, Map<String, dynamic> order) {
+  Widget _buildOrderCard(
+      BuildContext context, Map<String, dynamic> order) {
     final theme = Theme.of(context);
-    final orderId = order['_id']?.toString() ?? order['id']?.toString() ?? '';
-    final shortId = orderId.length > 8 ? orderId.substring(orderId.length - 8) : orderId;
+    final orderId =
+        order['_id']?.toString() ?? order['id']?.toString() ?? '';
+    final shortId = orderId.length > 8
+        ? orderId.substring(orderId.length - 8)
+        : orderId;
     final status = order['status'] as String? ?? 'pending';
-    final total = order['totalAmount']?.toString() ?? order['total']?.toString() ?? '--';
-    final restaurantName = (order['restaurant'] as Map<String, dynamic>?)?['name'] as String? ?? '';
+    final total = order['totalAmount']?.toString() ??
+        order['total']?.toString() ??
+        '--';
+    final restaurantName =
+        (order['restaurant'] as Map<String, dynamic>?)?['name']
+                as String? ??
+            '';
     final isDelivered = status == 'delivered';
     final isCancelled = status == 'cancelled';
     final locale = context.locale.languageCode;
@@ -99,34 +178,43 @@ class OrderHistoryPage extends StatelessWidget {
               children: [
                 Text(
                   '${'order.order_id'.tr()}$shortId',
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 _buildStatusChip(status, theme),
               ],
             ),
             if (restaurantName.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(restaurantName, style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+              Text(restaurantName,
+                  style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant)),
             ],
             if (createdAt.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text(createdAt, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+              Text(createdAt,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant)),
             ],
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('$total FCFA', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text('$total FCFA',
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold)),
                 Row(
                   children: [
                     if (isDelivered)
                       TextButton(
-                        onPressed: () => _showRateDialog(context, orderId),
+                        onPressed: () =>
+                            _showRateDialog(context, orderId),
                         child: Text('order.rate'.tr()),
                       ),
                     if (!isCancelled && status != 'delivered')
                       TextButton(
-                        onPressed: () => context.push('/client/tracking/$orderId'),
+                        onPressed: () =>
+                            context.push('/client/tracking/$orderId'),
                         child: Text('order.track_order'.tr()),
                       ),
                   ],
@@ -156,7 +244,11 @@ class OrderHistoryPage extends StatelessWidget {
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+      child: Text(label,
+          style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600)),
     );
   }
 
@@ -174,35 +266,45 @@ class OrderHistoryPage extends StatelessWidget {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (i) => IconButton(
-                  icon: Icon(
-                    i < rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 32,
-                  ),
-                  onPressed: () => setDialogState(() => rating = i + 1),
-                )),
+                children: List.generate(
+                    5,
+                    (i) => IconButton(
+                          icon: Icon(
+                            i < rating
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: Colors.amber,
+                            size: 32,
+                          ),
+                          onPressed: () =>
+                              setDialogState(() => rating = i + 1),
+                        )),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: commentCtrl,
                 decoration: InputDecoration(
                   hintText: 'order.rate_comment_hint'.tr(),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 maxLines: 2,
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('common.cancel'.tr())),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text('common.cancel'.tr())),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
                 bloc.add(OrderEvent.rateOrder(
                   orderId: orderId,
                   rating: rating,
-                  comment: commentCtrl.text.trim().isNotEmpty ? commentCtrl.text.trim() : null,
+                  comment: commentCtrl.text.trim().isNotEmpty
+                      ? commentCtrl.text.trim()
+                      : null,
                 ));
               },
               child: Text('order.submit_rating'.tr()),

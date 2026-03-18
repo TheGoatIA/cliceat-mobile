@@ -13,12 +13,26 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   final OrderRepository _orderRepository;
   final Logger _logger = Logger();
 
+  // ─── Pagination state ─────────────────────────────────────────────────────
+
+  static const _pageSize = 20;
+  int _currentPage = 1;
+  bool _hasMore = true;
+  final List<Map<String, dynamic>> _accumulated = [];
+
   OrderBloc(this._orderRepository) : super(const OrderState.initial()) {
     on<_CreateOrder>(_onCreateOrder);
     on<_LoadOrders>(_onLoadOrders);
+    on<_LoadMoreOrders>(_onLoadMoreOrders);
     on<_CancelOrder>(_onCancelOrder);
     on<_RateOrder>(_onRateOrder);
   }
+
+  // ─── Getters for the UI ───────────────────────────────────────────────────
+
+  bool get hasMore => _hasMore;
+
+  // ─── Handlers ─────────────────────────────────────────────────────────────
 
   Future<void> _onCreateOrder(
       _CreateOrder event, Emitter<OrderState> emit) async {
@@ -43,17 +57,54 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
 
   Future<void> _onLoadOrders(
       _LoadOrders event, Emitter<OrderState> emit) async {
+    // Réinitialiser la pagination
+    _currentPage = 1;
+    _hasMore = true;
+    _accumulated.clear();
+
     emit(const OrderState.loading());
-    final result = await _orderRepository.getOrders();
+    final result = await _orderRepository.getOrders(
+      page: _currentPage,
+      limit: _pageSize,
+    );
     result.fold(
       (err) {
         _logger.e('Error loading orders: ${err.message}');
         emit(const OrderState.error('order.error_load'));
       },
       (orders) {
-        // Convert to Map for compatibility with existing freezed state type
         final maps = orders.map((o) => o.toJson()).toList();
-        emit(OrderState.ordersLoaded(maps));
+        _accumulated.addAll(maps);
+        _hasMore = orders.length >= _pageSize;
+        _currentPage++;
+        emit(OrderState.ordersLoaded(List.unmodifiable(_accumulated)));
+      },
+    );
+  }
+
+  Future<void> _onLoadMoreOrders(
+      _LoadMoreOrders event, Emitter<OrderState> emit) async {
+    if (!_hasMore) return;
+
+    // Émettre l'état de chargement de page supplémentaire
+    emit(OrderState.loadingMore(List.unmodifiable(_accumulated)));
+
+    final result = await _orderRepository.getOrders(
+      page: _currentPage,
+      limit: _pageSize,
+    );
+    result.fold(
+      (err) {
+        _logger.e('Error loading more orders: ${err.message}');
+        // En cas d'erreur, on reste sur les données déjà chargées
+        emit(OrderState.ordersLoaded(List.unmodifiable(_accumulated)));
+      },
+      (orders) {
+        final maps = orders.map((o) => o.toJson()).toList();
+        _accumulated.addAll(maps);
+        _hasMore = orders.length >= _pageSize;
+        _currentPage++;
+        emit(OrderState.ordersLoaded(List.unmodifiable(_accumulated)));
       },
     );
   }

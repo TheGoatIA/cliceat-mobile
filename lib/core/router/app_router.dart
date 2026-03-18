@@ -1,14 +1,16 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
-import '../../features/client/home/presentation/pages/search_results_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/auth/presentation/pages/email_verification_page.dart';
 import '../../features/client/home/presentation/pages/client_main_tab.dart';
+import '../../features/client/home/presentation/pages/search_results_page.dart';
 import '../../features/client/restaurant/presentation/pages/restaurant_detail_page.dart';
 import '../../features/client/cart/presentation/pages/cart_page.dart';
 import '../../features/client/cart/presentation/pages/checkout_page.dart';
@@ -18,26 +20,106 @@ import '../../features/client/cart/presentation/pages/payment_webview_page.dart'
 import '../../features/client/cart/presentation/pages/address_selection_page.dart';
 import '../../features/client/cart/presentation/pages/order_history_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/delivery_main_tab.dart';
+import '../../features/legal/presentation/pages/terms_page.dart';
+import '../../features/legal/presentation/pages/privacy_page.dart';
+
+// ─── Navigator key ────────────────────────────────────────────────────────────
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
+// ─── Route names (constants to avoid typos) ───────────────────────────────────
+
+abstract class AppRoutes {
+  static const splash = '/';
+  static const onboarding = '/onboarding';
+  static const login = '/auth/login';
+  static const forgotPassword = '/auth/forgot-password';
+  static const resetPassword = '/auth/reset-password';
+  static const verifyEmail = '/auth/verify-email';
+  static const client = '/client';
+  static const search = '/search';
+  static const restaurant = '/restaurant/:id';
+  static const checkout = '/checkout';
+  static const delivery = '/delivery';
+  static const terms = '/legal/terms';
+  static const privacy = '/legal/privacy';
+}
+
+// ─── Public routes (accessible without authentication) ────────────────────────
+
+const _kPublicRoutes = {
+  AppRoutes.splash,
+  AppRoutes.onboarding,
+  AppRoutes.login,
+  AppRoutes.forgotPassword,
+  AppRoutes.resetPassword,
+  AppRoutes.verifyEmail,
+  AppRoutes.terms,
+  AppRoutes.privacy,
+};
+
+// ─── Role-based redirect logic ────────────────────────────────────────────────
+
+/// Retourne le chemin de redirection si l'utilisateur n'est pas autorisé,
+/// ou `null` si la navigation est permise.
+String? _guardRedirect(BuildContext context, GoRouterState state) {
+  final authState = context.read<AuthBloc>().state;
+  final location = state.matchedLocation;
+
+  // Ignorer les routes publiques
+  if (_kPublicRoutes.any((r) => location.startsWith(r) && r != AppRoutes.splash)) {
+    return null;
+  }
+  if (location == AppRoutes.splash) return null;
+
+  return authState.when(
+    initial: () => null, // SplashPage gère la redirection initiale
+    loading: () => null,
+    unauthenticated: () {
+      // Pas authentifié → login
+      final mode = location.startsWith('/delivery') ? 'delivery' : 'client';
+      return '${AppRoutes.login}?mode=$mode';
+    },
+    authenticated: (token, userId, currentMode) {
+      // Accès /client quand mode = delivery → rediriger vers /delivery
+      if (location.startsWith('/client') && currentMode == 'delivery') {
+        return AppRoutes.delivery;
+      }
+      // Accès /delivery quand mode = client → rediriger vers /client
+      if (location.startsWith('/delivery') && currentMode == 'client') {
+        return AppRoutes.client;
+      }
+      return null; // Autorisé
+    },
+    otpSent: (_) => null,
+    emailVerificationRequired: (_) => null,
+    emailVerified: () => null,
+    forgotPasswordEmailSent: (_) => null,
+    resetPasswordSuccess: () => null,
+    error: (_) => null,
+  );
+}
+
+// ─── Router ───────────────────────────────────────────────────────────────────
+
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: '/',
+  initialLocation: AppRoutes.splash,
+  redirect: _guardRedirect,
   routes: [
-    // Splash — handles auth check and redirects
+    // Splash — gère le check d'auth et redirige
     GoRoute(
-      path: '/',
+      path: AppRoutes.splash,
       builder: (context, state) => const SplashPage(),
     ),
 
     GoRoute(
-      path: '/onboarding',
+      path: AppRoutes.onboarding,
       builder: (context, state) => const OnboardingPage(),
     ),
 
     GoRoute(
-      path: '/auth/login',
+      path: AppRoutes.login,
       builder: (context, state) {
         final mode = state.uri.queryParameters['mode'] ?? 'client';
         return LoginPage(mode: mode);
@@ -45,12 +127,12 @@ final GoRouter appRouter = GoRouter(
     ),
 
     GoRoute(
-      path: '/auth/forgot-password',
+      path: AppRoutes.forgotPassword,
       builder: (context, state) => const ForgotPasswordPage(),
     ),
 
     GoRoute(
-      path: '/auth/reset-password',
+      path: AppRoutes.resetPassword,
       builder: (context, state) {
         final token = state.uri.queryParameters['token'] ?? '';
         return ResetPasswordPage(token: token);
@@ -58,16 +140,16 @@ final GoRouter appRouter = GoRouter(
     ),
 
     GoRoute(
-      path: '/auth/verify-email',
+      path: AppRoutes.verifyEmail,
       builder: (context, state) {
         final email = state.uri.queryParameters['email'] ?? '';
         return EmailVerificationPage(email: email);
       },
     ),
 
-    // ── Client routes ────────────────────────────────────────────────────────
+    // ── Client routes ─────────────────────────────────────────────────────────
     GoRoute(
-      path: '/client',
+      path: AppRoutes.client,
       builder: (context, state) => const ClientMainTab(),
       routes: [
         GoRoute(
@@ -107,33 +189,43 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
 
-    // Dedicated search results page
+    // Résultats de recherche (accessible depuis le shell client)
     GoRoute(
-      path: '/search',
+      path: AppRoutes.search,
       builder: (context, state) {
         final query = state.uri.queryParameters['q'] ?? '';
         return SearchResultsPage(initialQuery: query);
       },
     ),
 
-    // Restaurant detail (accessible from map, home, search)
+    // Détail restaurant (accessible depuis carte, accueil, recherche)
     GoRoute(
-      path: '/restaurant/:id',
+      path: AppRoutes.restaurant,
       builder: (context, state) => RestaurantDetailPage(
         restaurantId: state.pathParameters['id']!,
       ),
     ),
 
-    // Checkout (full screen, outside tab shell)
+    // Checkout (plein écran, hors tab shell)
     GoRoute(
-      path: '/checkout',
+      path: AppRoutes.checkout,
       builder: (context, state) => const CheckoutPage(),
     ),
 
     // ── Delivery routes ───────────────────────────────────────────────────────
     GoRoute(
-      path: '/delivery',
+      path: AppRoutes.delivery,
       builder: (context, state) => const DeliveryMainTab(),
+    ),
+
+    // ── Legal routes (publiques) ───────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.terms,
+      builder: (context, state) => const TermsPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.privacy,
+      builder: (context, state) => const PrivacyPage(),
     ),
   ],
 );

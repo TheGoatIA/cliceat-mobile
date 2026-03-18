@@ -20,4 +20,6 @@ class AuthEvent with _$AuthEvent {
   const factory AuthEvent.resendVerificationEmail({required String email}) = _ResendVerificationEmail;
   const factory AuthEvent.logout() = _Logout;
   const factory AuthEvent.switchMode({required String mode}) = _SwitchMode;
+  /// Émis par le timer interne quand le JWT a expiré.
+  const factory AuthEvent.sessionExpired() = _SessionExpired;
 }

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../../core/di/injection.dart';
+import '../../../../../core/mixins/secure_screen_mixin.dart';
 import '../../../../../core/repositories/order_repository.dart';
 
 class PaymentWebviewPage extends StatefulWidget {
@@ -19,7 +20,8 @@ class PaymentWebviewPage extends StatefulWidget {
   State<PaymentWebviewPage> createState() => _PaymentWebviewPageState();
 }
 
-class _PaymentWebviewPageState extends State<PaymentWebviewPage> {
+class _PaymentWebviewPageState extends State<PaymentWebviewPage>
+    with SecureScreenMixin {
   late final WebViewController _controller;
   bool _loading = true;
   bool _verifying = false;

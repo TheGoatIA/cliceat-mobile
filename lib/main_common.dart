@@ -1,25 +1,29 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'firebase_options.dart';
-import 'core/config/app_constants.dart';
-import 'core/config/env_config.dart';
-import 'package:cliceat_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:cliceat_app/features/client/cart/presentation/bloc/cart_cubit.dart';
-import 'core/theme/app_theme.dart';
-import 'core/router/app_router.dart';
-import 'core/di/injection.dart';
-import 'core/services/notification_service.dart';
-import 'core/services/deep_link_service.dart';
-import 'core/widgets/connectivity_banner.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
-void main() {
+import 'core/config/app_constants.dart';
+import 'core/config/flavor_config.dart';
+import 'core/di/injection.dart';
+import 'core/router/app_router.dart';
+import 'core/services/deep_link_service.dart';
+import 'core/services/notification_service.dart';
+import 'core/theme/app_theme.dart';
+import 'core/widgets/connectivity_banner.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/client/cart/presentation/bloc/cart_cubit.dart';
+import 'firebase_options.dart';
+
+/// Bootstrap commun à tous les flavors.
+/// Appelé depuis [main_dev.dart], [main_staging.dart] et [main_prod.dart]
+/// après que [FlavorConfig.initialize] a été appelé.
+void mainCommon() {
   runZonedGuarded(_bootstrap, (error, stack) {
     if (!kDebugMode) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
@@ -30,48 +34,44 @@ void main() {
 Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Limiter le cache image pour éviter les OOM sur appareils bas de gamme
+  // Limiter le cache image (appareils bas de gamme)
   PaintingBinding.instance.imageCache
     ..maximumSize = AppConstants.imageCacheMaxCount
     ..maximumSizeBytes = AppConstants.imageCacheMaxSizeBytes;
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
-
-  // Set Mapbox Token — crash early with a clear message if the token is missing
-  final mapboxToken = EnvConfig.mapboxAccessToken;
+  // Mapbox token (injecté via --dart-define=MAPBOX_ACCESS_TOKEN=...)
+  final mapboxToken = FlavorConfig.mapboxToken;
   assert(
     mapboxToken.isNotEmpty,
-    'MAPBOX_ACCESS_TOKEN is missing in .env — map features will not work.',
+    '[${FlavorConfig.name}] MAPBOX_ACCESS_TOKEN manquant — la carte ne fonctionnera pas.',
   );
-  MapboxOptions.setAccessToken(mapboxToken);
+  if (mapboxToken.isNotEmpty) {
+    MapboxOptions.setAccessToken(mapboxToken);
+  }
 
   await EasyLocalization.ensureInitialized();
 
-  // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize Crashlytics
   if (!kDebugMode) {
-    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    await FirebaseCrashlytics.instance
+        .setCrashlyticsCollectionEnabled(true);
+    FlutterError.onError =
+        FirebaseCrashlytics.instance.recordFlutterFatalError;
     PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      FirebaseCrashlytics.instance
+          .recordError(error, stack, fatal: true);
       return true;
     };
   }
 
-  // Dependency Injection
   configureDependencies();
 
-  // Initialize push notifications
   getIt<NotificationService>().configureRouting(rootNavigatorKey);
   await getIt<NotificationService>().initialize();
 
-  // Initialize deep links — must run after the router is set up so the
-  // navigator key is wired before any incoming link is handled.
   getIt<DeepLinkService>().initialize(rootNavigatorKey);
 
   runApp(
@@ -84,7 +84,6 @@ Future<void> _bootstrap() async {
   );
 }
 
-
 class ClicEatApp extends StatelessWidget {
   const ClicEatApp({super.key});
 
@@ -93,7 +92,8 @@ class ClicEatApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => getIt<AuthBloc>()..add(const AuthEvent.appStarted()),
+          create: (_) =>
+              getIt<AuthBloc>()..add(const AuthEvent.appStarted()),
         ),
         BlocProvider(
           create: (_) => getIt<CartCubit>(),
@@ -108,6 +108,15 @@ class ClicEatApp extends StatelessWidget {
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
         routerConfig: appRouter,
+        // Bannière de flavor en overlay (dev/staging uniquement)
+        builder: FlavorConfig.isProd
+            ? null
+            : (context, child) => Banner(
+                  message: FlavorConfig.name,
+                  location: BannerLocation.topEnd,
+                  color: FlavorConfig.isDev ? Colors.red : Colors.orange,
+                  child: child!,
+                ),
       ),
     );
   }

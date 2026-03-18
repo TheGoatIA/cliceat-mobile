@@ -10,6 +10,8 @@ class OrderState with _$OrderState {
   }) = _Created;
   const factory OrderState.ordersLoaded(
       List<Map<String, dynamic>> orders) = _OrdersLoaded;
+  const factory OrderState.loadingMore(
+      List<Map<String, dynamic>> orders) = _LoadingMore;
   const factory OrderState.cancelled() = _Cancelled;
   const factory OrderState.rated() = _Rated;
   const factory OrderState.error(String message) = _Error;

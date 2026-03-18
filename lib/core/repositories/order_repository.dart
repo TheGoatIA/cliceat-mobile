@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dartz/dartz.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../errors/app_error.dart';
 import '../models/order_model.dart';
@@ -8,11 +9,16 @@ import '../../features/client/cart/data/datasources/order_service.dart';
 import '../../features/client/cart/data/datasources/payment_service.dart';
 import '../network/services/tracking_service.dart';
 
+/// Statuts de paiement valides renvoyés par NotchPay / backend ClicEat.
+/// Toute valeur absente de cet ensemble est rejetée comme non-succès.
+const _kPaymentSuccessStatuses = {'completed', 'success', 'approved', 'paid'};
+
 /// Abstracts order operations and provides local caching via SharedPreferences.
 class OrderRepository {
   final OrderService _orderService;
   final PaymentService _paymentService;
   final TrackingService _trackingService;
+  final Logger _logger = Logger();
 
   static const _cacheKey = 'cached_orders';
 
@@ -45,27 +51,34 @@ class OrderRepository {
 
   // ─── Load list ────────────────────────────────────────────────────────────
 
-  Future<Either<AppError, List<OrderModel>>> getOrders() async {
+  Future<Either<AppError, List<OrderModel>>> getOrders({
+    int page = 1,
+    int limit = 20,
+  }) async {
     try {
-      final res = await _orderService.getOrders();
+      final res = await _orderService.getOrders(page: page, limit: limit);
       if (res.isSuccessful && res.body != null) {
         final raw = res.body!['data'] as List<dynamic>? ?? [];
         final orders = raw
             .whereType<Map<String, dynamic>>()
             .map(OrderModel.fromJson)
             .toList();
-        await _cacheOrders(orders);
+        if (page == 1) await _cacheOrders(orders);
         return Right(orders);
       }
-      // Fallback to cache on server error
-      final cached = await _loadCachedOrders();
-      if (cached.isNotEmpty) return Right(cached);
+      // Fallback to cache on server error (first page only)
+      if (page == 1) {
+        final cached = await _loadCachedOrders();
+        if (cached.isNotEmpty) return Right(cached);
+      }
       return Left(AppError.fromResponse(
           res.body, 'order.error_load',
           statusCode: res.statusCode));
     } catch (_) {
-      final cached = await _loadCachedOrders();
-      if (cached.isNotEmpty) return Right(cached);
+      if (page == 1) {
+        final cached = await _loadCachedOrders();
+        if (cached.isNotEmpty) return Right(cached);
+      }
       return Left(AppError.network());
     }
   }
@@ -123,25 +136,48 @@ class OrderRepository {
 
   // ─── Payment ──────────────────────────────────────────────────────────────
 
-  /// Returns `true` if payment verification succeeds with a successful status.
+  /// Vérifie le paiement avec une whitelist stricte.
+  ///
+  /// ⚠️ SÉCURITÉ : Un statut absent, vide ou inconnu retourne une erreur
+  /// explicite — JAMAIS un succès silencieux.
   Future<Either<AppError, bool>> verifyPayment(String orderId) async {
     try {
       final res = await _paymentService.verifyPayment(orderId);
       if (res.isSuccessful && res.body != null) {
         final data =
             res.body!['data'] as Map<String, dynamic>? ?? res.body!;
-        final status = data['status']?.toString() ??
-            data['paymentStatus']?.toString() ??
-            '';
-        final isSuccess = status.isEmpty ||
-            status == 'completed' ||
-            status == 'success' ||
-            status == 'approved' ||
-            status == 'paid';
+
+        final rawStatus = data['status']?.toString() ??
+            data['paymentStatus']?.toString();
+
+        // Statut absent dans la réponse → erreur explicite
+        if (rawStatus == null || rawStatus.isEmpty) {
+          _logger.e(
+            '[Payment] orderId=$orderId — statut de paiement absent dans la réponse. '
+            'Body: ${jsonEncode(res.body)}',
+          );
+          return Left(const AppError(
+            message: 'payment.failed',
+            type: AppErrorType.server,
+          ));
+        }
+
+        final normalised = rawStatus.trim().toLowerCase();
+        final isSuccess = _kPaymentSuccessStatuses.contains(normalised);
+
+        if (!isSuccess) {
+          _logger.w(
+            '[Payment] orderId=$orderId — statut non reconnu: "$normalised". '
+            'Statuts acceptés: $_kPaymentSuccessStatuses',
+          );
+        } else {
+          _logger.i('[Payment] orderId=$orderId — succès. Statut: "$normalised"');
+        }
+
         return Right(isSuccess);
       }
       return Left(AppError.fromResponse(
-          res.body, 'payment.error_verify',
+          res.body, 'payment.failed',
           statusCode: res.statusCode));
     } catch (_) {
       return Left(AppError.network());

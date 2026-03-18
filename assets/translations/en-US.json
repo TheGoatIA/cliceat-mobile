@@ -72,7 +72,8 @@
     "nav_map": "Map",
     "nav_cart": "Cart",
     "nav_profile": "Profile",
-    "search_results": "Search results"
+    "search_results": "Search results",
+    "restaurants": "restaurants"
   },
   "restaurant": {
     "delivery_time": "Delivery in 25-30 min",
@@ -301,6 +302,38 @@
     "no_results": "No results",
     "search_results": "Search results",
     "see_all": "See all",
-    "back": "Back"
+    "back": "Back",
+    "no_internet": "No internet connection",
+    "back_online": "Back online"
+  },
+  "legal": {
+    "terms_title": "Terms of Service",
+    "terms_last_updated": "Last updated: March 2024",
+    "terms_s1_title": "1. Purpose",
+    "terms_s1_body": "These Terms of Service govern access to and use of the ClicEat app, a food ordering and delivery platform operating in Cameroon.",
+    "terms_s2_title": "2. Registration and Account",
+    "terms_s2_body": "To use ClicEat, you must create an account providing accurate and up-to-date information. You are responsible for the confidentiality of your login credentials.",
+    "terms_s3_title": "3. Orders and Payments",
+    "terms_s3_body": "Orders are confirmed after payment validation via available methods (Orange Money, MTN MoMo, card). Prices are shown in FCFA including taxes. ClicEat reserves the right to refuse or cancel an order in case of availability or payment issues.",
+    "terms_s4_title": "4. Delivery",
+    "terms_s4_body": "Delivery times are estimates and may vary based on traffic and driver availability. ClicEat cannot be held liable for delays outside its control.",
+    "terms_s5_title": "5. Liability",
+    "terms_s5_body": "ClicEat acts as an intermediary between partner restaurants and customers. ClicEat's liability is limited to the order amount in case of proven failure.",
+    "terms_s6_title": "6. Contact",
+    "terms_s6_body": "For any questions regarding these Terms, contact us at: support@cliceat.cm",
+    "privacy_title": "Privacy Policy",
+    "privacy_last_updated": "Last updated: March 2024",
+    "privacy_s1_title": "1. Data Collected",
+    "privacy_s1_body": "We collect data necessary to provide our service: name, email, phone number, delivery address, order history, and location data (with your consent).",
+    "privacy_s2_title": "2. Purpose of Processing",
+    "privacy_s2_body": "Your data is used to process orders, contact you, improve our services, and send marketing communications (with your prior consent).",
+    "privacy_s3_title": "3. Data Sharing",
+    "privacy_s3_body": "Your data may be shared with partner restaurants (to prepare your order) and delivery drivers (to fulfill delivery). We do not sell your data to third parties.",
+    "privacy_s4_title": "4. Data Retention",
+    "privacy_s4_body": "Your data is retained for the duration of your relationship with ClicEat, plus 3 years for legal and accounting obligations.",
+    "privacy_s5_title": "5. Your Rights",
+    "privacy_s5_body": "In accordance with Cameroonian personal data law, you have the right to access, rectify, erase, and object to your data. Contact us at: privacy@cliceat.cm",
+    "privacy_s6_title": "6. Security",
+    "privacy_s6_body": "We implement technical and organizational security measures to protect your data against unauthorized access, including encryption of sensitive data and secure transmission (HTTPS/TLS)."
   }
 }

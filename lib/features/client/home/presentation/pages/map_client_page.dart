@@ -1,15 +1,26 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:easy_localization/easy_localization.dart';
+
 import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/models/restaurant_model.dart';
 import '../../../../../core/repositories/restaurant_repository.dart';
 import '../../../../../shared/widgets/app_network_image.dart';
+
+// ─── Source / Layer IDs ───────────────────────────────────────────────────────
+
+const _kSourceId = 'restaurant-source';
+const _kClusterCircleLayerId = 'cluster-circles';
+const _kClusterCountLayerId = 'cluster-count';
+const _kUnclusteredLayerId = 'unclustered-points';
+const _kMarkerImageId = 'restaurant-marker';
 
 class MapClientPage extends StatefulWidget {
   const MapClientPage({super.key});
@@ -20,16 +31,16 @@ class MapClientPage extends StatefulWidget {
 
 class _MapClientPageState extends State<MapClientPage> {
   MapboxMap? _mapboxMap;
-  PointAnnotationManager? _annotationManager;
   List<RestaurantModel> _restaurants = [];
   bool _loading = true;
-  Uint8List? _markerIcon;
 
   @override
   void initState() {
     super.initState();
     _loadRestaurants();
   }
+
+  // ─── Data ─────────────────────────────────────────────────────────────────
 
   Future<void> _loadRestaurants() async {
     final result = await getIt<RestaurantRepository>().getRestaurants(
@@ -43,76 +54,217 @@ class _MapClientPageState extends State<MapClientPage> {
           _restaurants = restaurants;
           _loading = false;
         });
-        if (_annotationManager != null) {
-          _addRestaurantMarkers();
+        if (_mapboxMap != null) {
+          _addClusteredSource();
         }
       },
     );
   }
 
-  /// Renders a red pin icon as a PNG Uint8List using Canvas.
+  // ─── Map creation ─────────────────────────────────────────────────────────
+
+  Future<void> _onMapCreated(MapboxMap map) async {
+    _mapboxMap = map;
+    // Écouter les clics sur les features
+    map.setOnMapTapListener(_onMapTap);
+    if (_restaurants.isNotEmpty) {
+      await _addClusteredSource();
+    }
+  }
+
+  // ─── Clustering via GeoJSON source ────────────────────────────────────────
+
+  Future<void> _addClusteredSource() async {
+    final style = _mapboxMap?.style;
+    if (style == null) return;
+
+    // Supprimer les layers et la source existants si présents
+    for (final id in [
+      _kClusterCircleLayerId,
+      _kClusterCountLayerId,
+      _kUnclusteredLayerId,
+    ]) {
+      try {
+        await style.removeStyleLayer(id);
+      } catch (_) {}
+    }
+    try {
+      await style.removeStyleSource(_kSourceId);
+    } catch (_) {}
+
+    // Ajouter l'icône de marqueur individuel
+    final markerBytes = await _buildMarkerIcon();
+    try {
+      await style.addStyleImage(
+        _kMarkerImageId,
+        1.0,
+        MbxImage(
+          width: 48,
+          height: 48,
+          data: markerBytes,
+        ),
+        false,
+        [],
+        [],
+        null,
+      );
+    } catch (_) {}
+
+    // GeoJSON source avec clustering activé
+    final features = _restaurants
+        .where((r) => r.lat != 0.0 || r.lng != 0.0)
+        .map((r) => {
+              'type': 'Feature',
+              'geometry': {
+                'type': 'Point',
+                'coordinates': [r.lng, r.lat],
+              },
+              'properties': {
+                'id': r.id,
+                'name': r.name,
+              },
+            })
+        .toList();
+
+    final geojson = jsonEncode({
+      'type': 'FeatureCollection',
+      'features': features,
+    });
+
+    await style.addSource(GeoJsonSource(
+      id: _kSourceId,
+      data: geojson,
+      cluster: true,
+      clusterMaxZoom: 14,
+      clusterRadius: 50,
+    ));
+
+    // ── Layer 1 : cercles de cluster ────────────────────────────────────────
+    await style.addLayer(CircleLayer(
+      id: _kClusterCircleLayerId,
+      sourceId: _kSourceId,
+      filter: ['has', 'point_count'],
+      circleColor: const int.fromEnvironment(
+        'circleColor',
+        defaultValue: 0xFFE53935, // rouge ClicEat
+      ),
+      circleRadius: 22.0,
+      circleOpacity: 0.9,
+      circleStrokeWidth: 2.0,
+      circleStrokeColor: 0xFFFFFFFF,
+    ));
+
+    // ── Layer 2 : nombre dans le cluster ────────────────────────────────────
+    await style.addLayer(SymbolLayer(
+      id: _kClusterCountLayerId,
+      sourceId: _kSourceId,
+      filter: ['has', 'point_count'],
+      textField: '{point_count_abbreviated}',
+      textSize: 14.0,
+      textColor: 0xFFFFFFFF,
+      textIgnorePlacement: true,
+      textAllowOverlap: true,
+    ));
+
+    // ── Layer 3 : marqueurs individuels ─────────────────────────────────────
+    await style.addLayer(SymbolLayer(
+      id: _kUnclusteredLayerId,
+      sourceId: _kSourceId,
+      filter: ['!', ['has', 'point_count']],
+      iconImage: _kMarkerImageId,
+      iconSize: 0.9,
+      iconAllowOverlap: true,
+      textField: ['get', 'name'],
+      textSize: 10.0,
+      textOffset: [0.0, 2.5],
+      textAnchor: TextAnchor.TOP,
+      textColor: 0xFF222222,
+      textHaloColor: 0xFFFFFFFF,
+      textHaloWidth: 1.5,
+      textOptional: true,
+    ));
+  }
+
+  // ─── Map click handler ────────────────────────────────────────────────────
+
+  Future<void> _onMapTap(MapContentGestureContext gestureContext) async {
+    if (_mapboxMap == null) return;
+
+    // Vérifier si l'utilisateur a tapé sur un cluster → zoomer
+    final clusterFeatures = await _mapboxMap!.queryRenderedFeatures(
+      RenderedQueryGeometry.fromScreenCoordinate(
+        gestureContext.touchPosition,
+      ),
+      RenderedQueryOptions(layerIds: [_kClusterCircleLayerId]),
+    );
+
+    if (clusterFeatures.isNotEmpty) {
+      final coords = clusterFeatures.first?.feature['geometry']
+          as Map<String, dynamic>?;
+      final coordinates =
+          coords?['coordinates'] as List<dynamic>?;
+      if (coordinates != null && coordinates.length >= 2) {
+        final lng = (coordinates[0] as num).toDouble();
+        final lat = (coordinates[1] as num).toDouble();
+        final currentZoom =
+            await _mapboxMap!.getCameraState().then((s) => s.zoom);
+        await _mapboxMap!.flyTo(
+          CameraOptions(
+            center: Point(coordinates: Position(lng, lat)),
+            zoom: (currentZoom + 2).clamp(0, 22),
+          ),
+          MapAnimationOptions(duration: 600),
+        );
+      }
+      return;
+    }
+
+    // Vérifier si l'utilisateur a tapé sur un marqueur individuel
+    final markerFeatures = await _mapboxMap!.queryRenderedFeatures(
+      RenderedQueryGeometry.fromScreenCoordinate(
+        gestureContext.touchPosition,
+      ),
+      RenderedQueryOptions(layerIds: [_kUnclusteredLayerId]),
+    );
+
+    if (markerFeatures.isNotEmpty && context.mounted) {
+      final props = markerFeatures.first?.feature['properties']
+          as Map<String, dynamic>?;
+      final id = props?['id'] as String? ?? '';
+      if (id.isNotEmpty) {
+        context.push('/restaurant/$id');
+      }
+    }
+  }
+
+  // ─── Marker icon builder ─────────────────────────────────────────────────
+
   Future<Uint8List> _buildMarkerIcon() async {
     const size = 48.0;
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder,
-        Rect.fromLTWH(0, 0, size, size));
+    final canvas =
+        Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
 
-    // Outer red circle
     final paintOuter = Paint()..color = const Color(0xFFCC0000);
     canvas.drawCircle(const Offset(24, 24), 20, paintOuter);
 
-    // White ring
     final paintRing = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     canvas.drawCircle(const Offset(24, 24), 20, paintRing);
 
-    // Inner dot
     final paintInner = Paint()..color = Colors.white;
     canvas.drawCircle(const Offset(24, 24), 7, paintInner);
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(size.toInt(), size.toInt());
-    final data = await img.toByteData(format: ui.ImageByteFormat.png);
+    final data =
+        await img.toByteData(format: ui.ImageByteFormat.png);
     return data!.buffer.asUint8List();
   }
 
-  Future<void> _onMapCreated(MapboxMap map) async {
-    _mapboxMap = map;
-    _markerIcon = await _buildMarkerIcon();
-    _annotationManager =
-        await map.annotations.createPointAnnotationManager();
-    _annotationManager!
-        .addOnPointAnnotationClickListener(_RestaurantAnnotationListener(
-      restaurants: _restaurants,
-      context: context,
-    ));
-    if (_restaurants.isNotEmpty) {
-      await _addRestaurantMarkers();
-    }
-  }
-
-  Future<void> _addRestaurantMarkers() async {
-    if (_annotationManager == null || _markerIcon == null) return;
-    await _annotationManager!.deleteAll();
-
-    for (final r in _restaurants) {
-      if (r.lat == 0.0 && r.lng == 0.0) continue;
-
-      await _annotationManager!.create(PointAnnotationOptions(
-        geometry: Point(coordinates: Position(r.lng, r.lat)),
-        image: _markerIcon,
-        iconSize: 0.9,
-        textField: r.name,
-        textSize: 10.0,
-        textOffset: [0.0, 2.5],
-        textColor: 0xFF222222,
-        textHaloColor: 0xFFFFFFFF,
-        textHaloWidth: 1.5,
-      ));
-    }
-  }
+  // ─── UI ───────────────────────────────────────────────────────────────────
 
   Future<void> _centerOnUser() async {
     try {
@@ -121,10 +273,14 @@ class _MapClientPageState extends State<MapClientPage> {
         await Geolocator.requestPermission();
       }
       final pos = await Geolocator.getCurrentPosition();
-      await _mapboxMap?.setCamera(CameraOptions(
-        center: Point(coordinates: Position(pos.longitude, pos.latitude)),
-        zoom: 14.0,
-      ));
+      await _mapboxMap?.flyTo(
+        CameraOptions(
+          center: Point(
+              coordinates: Position(pos.longitude, pos.latitude)),
+          zoom: 14.0,
+        ),
+        MapAnimationOptions(duration: 800),
+      );
     } catch (_) {}
   }
 
@@ -138,13 +294,14 @@ class _MapClientPageState extends State<MapClientPage> {
             key: const ValueKey('clientMapWidget'),
             onMapCreated: _onMapCreated,
             cameraOptions: CameraOptions(
-              center: Point(coordinates: Position(
-                  AppConstants.defaultLng, AppConstants.defaultLat)),
+              center: Point(
+                  coordinates: Position(
+                      AppConstants.defaultLng, AppConstants.defaultLat)),
               zoom: AppConstants.defaultZoom,
             ),
           ),
 
-          // Top search bar
+          // Barre de recherche
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
             left: 16,
@@ -167,7 +324,7 @@ class _MapClientPageState extends State<MapClientPage> {
             ),
           ),
 
-          // Restaurant count pill
+          // Compteur restaurants
           if (!_loading)
             Positioned(
               top: MediaQuery.of(context).padding.top + 72,
@@ -180,7 +337,7 @@ class _MapClientPageState extends State<MapClientPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${_restaurants.length} restaurants',
+                  '${_restaurants.length} ${'client.restaurants'.tr()}',
                   style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -189,7 +346,7 @@ class _MapClientPageState extends State<MapClientPage> {
               ),
             ),
 
-          // Center on user button
+          // Bouton localisation
           Positioned(
             bottom: 200,
             right: 16,
@@ -200,7 +357,7 @@ class _MapClientPageState extends State<MapClientPage> {
             ),
           ),
 
-          // Bottom sheet with restaurant list
+          // Bottom sheet liste restaurants
           Positioned(
             bottom: 0,
             left: 0,
@@ -258,7 +415,8 @@ class _MapClientPageState extends State<MapClientPage> {
                     itemBuilder: (context, index) {
                       final r = _restaurants[index];
                       return GestureDetector(
-                        onTap: () => context.push('/restaurant/${r.id}'),
+                        onTap: () =>
+                            context.push('/restaurant/${r.id}'),
                         child: Container(
                           width: 140,
                           margin: const EdgeInsets.symmetric(
@@ -298,16 +456,18 @@ class _MapClientPageState extends State<MapClientPage> {
                                         maxLines: 1,
                                         overflow:
                                             TextOverflow.ellipsis),
-                                    if ((r.cuisineType ?? '').isNotEmpty)
-                                      Text(r.cuisineType!,
-                                          style: theme
-                                              .textTheme.bodySmall
-                                              ?.copyWith(
-                                                  color: theme.colorScheme
-                                                      .onSurfaceVariant),
-                                          maxLines: 1,
-                                          overflow:
-                                              TextOverflow.ellipsis),
+                                    if ((r.cuisineType ?? '')
+                                        .isNotEmpty)
+                                      Text(
+                                        r.cuisineType!,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                                color: theme.colorScheme
+                                                    .onSurfaceVariant),
+                                        maxLines: 1,
+                                        overflow:
+                                            TextOverflow.ellipsis,
+                                      ),
                                   ],
                                 ),
                               ),
@@ -321,35 +481,5 @@ class _MapClientPageState extends State<MapClientPage> {
         ],
       ),
     );
-  }
-}
-
-/// Handles clicks on restaurant pins on the map.
-class _RestaurantAnnotationListener
-    extends OnPointAnnotationClickListener {
-  final List<RestaurantModel> restaurants;
-  final BuildContext context;
-
-  _RestaurantAnnotationListener({
-    required this.restaurants,
-    required this.context,
-  });
-
-  @override
-  bool onPointAnnotationClick(PointAnnotation annotation) {
-    final coords = annotation.geometry.coordinates;
-    final coordLat = (coords[1] as num).toDouble();
-    final coordLng = (coords[0] as num).toDouble();
-
-    for (final r in restaurants) {
-      if ((coordLat - r.lat).abs() < 0.0001 &&
-          (coordLng - r.lng).abs() < 0.0001) {
-        if (r.id.isNotEmpty && context.mounted) {
-          context.push('/restaurant/${r.id}');
-        }
-        return true;
-      }
-    }
-    return true;
   }
 }

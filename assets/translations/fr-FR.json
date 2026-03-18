@@ -72,7 +72,8 @@
     "nav_map": "Carte",
     "nav_cart": "Panier",
     "nav_profile": "Profil",
-    "search_results": "Résultats de recherche"
+    "search_results": "Résultats de recherche",
+    "restaurants": "restaurants"
   },
   "restaurant": {
     "delivery_time": "Livraison en 25-30 min",
@@ -301,6 +302,38 @@
     "no_results": "Aucun résultat",
     "search_results": "Résultats de recherche",
     "see_all": "Voir tout",
-    "back": "Retour"
+    "back": "Retour",
+    "no_internet": "Pas de connexion internet",
+    "back_online": "Connexion rétablie"
+  },
+  "legal": {
+    "terms_title": "Conditions Générales d'Utilisation",
+    "terms_last_updated": "Dernière mise à jour : Mars 2024",
+    "terms_s1_title": "1. Objet",
+    "terms_s1_body": "Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de l'application ClicEat, plateforme de commande et de livraison de repas opérant au Cameroun.",
+    "terms_s2_title": "2. Inscription et compte utilisateur",
+    "terms_s2_body": "Pour utiliser ClicEat, vous devez créer un compte en fournissant des informations exactes et à jour. Vous êtes responsable de la confidentialité de vos identifiants de connexion.",
+    "terms_s3_title": "3. Commandes et paiements",
+    "terms_s3_body": "Les commandes sont confirmées après validation du paiement via les moyens disponibles (Orange Money, MTN MoMo, carte bancaire). Les prix sont indiqués en FCFA TTC. ClicEat se réserve le droit de refuser ou d'annuler une commande en cas de problème de disponibilité ou de paiement.",
+    "terms_s4_title": "4. Livraison",
+    "terms_s4_body": "Les délais de livraison sont indicatifs et peuvent varier selon les conditions de trafic et de disponibilité des livreurs. ClicEat ne peut être tenu responsable des retards indépendants de sa volonté.",
+    "terms_s5_title": "5. Responsabilité",
+    "terms_s5_body": "ClicEat agit en qualité d'intermédiaire entre les restaurants partenaires et les clients. La responsabilité de ClicEat est limitée au montant de la commande en cas de manquement avéré.",
+    "terms_s6_title": "6. Contact",
+    "terms_s6_body": "Pour toute question relative aux présentes CGU, contactez-nous à : support@cliceat.cm",
+    "privacy_title": "Politique de Confidentialité",
+    "privacy_last_updated": "Dernière mise à jour : Mars 2024",
+    "privacy_s1_title": "1. Données collectées",
+    "privacy_s1_body": "Nous collectons les données nécessaires au fonctionnement du service : nom, email, numéro de téléphone, adresse de livraison, historique des commandes et données de localisation (avec votre consentement).",
+    "privacy_s2_title": "2. Finalités du traitement",
+    "privacy_s2_body": "Vos données sont utilisées pour traiter vos commandes, vous contacter, améliorer nos services et vous envoyer des communications marketing (avec votre accord préalable).",
+    "privacy_s3_title": "3. Partage des données",
+    "privacy_s3_body": "Vos données peuvent être partagées avec nos restaurants partenaires (pour préparer votre commande) et nos livreurs (pour effectuer la livraison). Nous ne vendons pas vos données à des tiers.",
+    "privacy_s4_title": "4. Conservation des données",
+    "privacy_s4_body": "Vos données sont conservées pendant la durée de votre relation avec ClicEat, plus 3 ans pour les obligations légales et comptables.",
+    "privacy_s5_title": "5. Vos droits",
+    "privacy_s5_body": "Conformément à la loi camerounaise sur les données personnelles, vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition. Contactez-nous à : privacy@cliceat.cm",
+    "privacy_s6_title": "6. Sécurité",
+    "privacy_s6_body": "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, notamment le chiffrement des données sensibles et la transmission sécurisée (HTTPS/TLS)."
   }
 }

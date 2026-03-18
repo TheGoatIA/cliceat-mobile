@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
@@ -15,12 +17,21 @@ part 'auth_event.dart';
 part 'auth_state.dart';
 part 'auth_bloc.freezed.dart';
 
+/// Intervalle de vérification d'expiration du token JWT (toutes les 5 minutes).
+const _kSessionCheckInterval = Duration(minutes: 5);
+
 @injectable
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService _authService;
   final FlutterSecureStorage _secureStorage;
   final AppDatabase _db;
   final Logger _logger = Logger();
+
+  /// Toutes les StreamSubscriptions ouvertes après auth, fermées dans [close].
+  final List<StreamSubscription<dynamic>> _subscriptions = [];
+
+  /// Timer périodique de vérification d'expiration du JWT.
+  Timer? _sessionTimer;
 
   AuthBloc(
     this._authService,
@@ -40,7 +51,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<_ResendVerificationEmail>(_onResendVerificationEmail);
     on<_SwitchMode>(_onSwitchMode);
     on<_Logout>(_onLogout);
+    on<_SessionExpired>(_onSessionExpired);
   }
+
+  // ─── Event handlers ─────────────────────────────────────────────────────
 
   Future<void> _onAppStarted(_AppStarted event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
@@ -50,14 +64,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final currentMode =
           await _secureStorage.read(key: 'current_mode') ?? 'client';
       if (token != null && userId != null) {
+        // Vérifier que le token n'a pas déjà expiré avant de restaurer la session
+        if (_isTokenExpired(token)) {
+          _logger.w('[Auth] Token expiré au démarrage — déconnexion.');
+          await _clearCredentials();
+          emit(const AuthState.unauthenticated());
+          return;
+        }
         await _postAuthSetup(token);
+        _startSessionTimer(token);
         emit(AuthState.authenticated(
             token: token, userId: userId, currentMode: currentMode));
       } else {
         emit(const AuthState.unauthenticated());
       }
     } catch (e) {
-      _logger.e("Error checking auth state: $e");
+      _logger.e('[Auth] Erreur vérification état auth: $e');
       emit(const AuthState.unauthenticated());
     }
   }
@@ -66,8 +88,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.sendOtp({
-        "phone": event.phone,
-        "countryCode": "237",
+        'phone': event.phone,
+        'countryCode': '237',
       });
       if (res.isSuccessful) {
         emit(AuthState.otpSent(phone: event.phone));
@@ -76,7 +98,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
-      _logger.e("Error sending OTP: $e");
+      _logger.e('[Auth] Erreur envoi OTP: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
@@ -85,14 +107,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.verifyOtp({
-        "phone": event.phone,
-        "otp": event.otp,
+        'phone': event.phone,
+        'otp': event.otp,
       });
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseAuthResponse(res.body);
         if (parsed != null) {
           await _persistAuth(parsed.$1, parsed.$2, 'client');
           await _postAuthSetup(parsed.$1);
+          _startSessionTimer(parsed.$1);
           getIt<AnalyticsService>().logLogin('otp');
           getIt<AnalyticsService>().setUserId(parsed.$2);
           emit(AuthState.authenticated(
@@ -105,7 +128,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
-      _logger.e("Error verifying OTP: $e");
+      _logger.e('[Auth] Erreur vérification OTP: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
@@ -115,14 +138,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.login({
-        "email": event.email,
-        "password": event.password,
+        'email': event.email,
+        'password': event.password,
       });
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseAuthResponse(res.body);
         if (parsed != null) {
           await _persistAuth(parsed.$1, parsed.$2, 'client');
           await _postAuthSetup(parsed.$1);
+          _startSessionTimer(parsed.$1);
           getIt<AnalyticsService>().logLogin('email');
           getIt<AnalyticsService>().setUserId(parsed.$2);
           emit(AuthState.authenticated(
@@ -135,7 +159,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
-      _logger.e("Error logging in: $e");
+      _logger.e('[Auth] Erreur login email: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
@@ -145,13 +169,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.loginWithFirebase({
-        "idToken": event.token,
+        'idToken': event.token,
       });
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseAuthResponse(res.body);
         if (parsed != null) {
           await _persistAuth(parsed.$1, parsed.$2, 'client');
           await _postAuthSetup(parsed.$1);
+          _startSessionTimer(parsed.$1);
+          getIt<AnalyticsService>().logLogin('google');
+          getIt<AnalyticsService>().setUserId(parsed.$2);
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
@@ -161,7 +188,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthState.error(message: 'auth.error_google'));
       }
     } catch (e) {
-      _logger.e("Error logging in with Google: $e");
+      _logger.e('[Auth] Erreur login Google: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
@@ -171,13 +198,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.loginWithFirebase({
-        "idToken": event.token,
+        'idToken': event.token,
       });
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseAuthResponse(res.body);
         if (parsed != null) {
           await _persistAuth(parsed.$1, parsed.$2, 'client');
           await _postAuthSetup(parsed.$1);
+          _startSessionTimer(parsed.$1);
+          getIt<AnalyticsService>().logLogin('apple');
+          getIt<AnalyticsService>().setUserId(parsed.$2);
           emit(AuthState.authenticated(
               token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
         } else {
@@ -187,7 +217,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthState.error(message: 'auth.error_apple'));
       }
     } catch (e) {
-      _logger.e("Error logging in with Apple: $e");
+      _logger.e('[Auth] Erreur login Apple: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
@@ -196,15 +226,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.register({
-        "name": event.name,
-        "email": event.email,
-        "password": event.password,
-        "city": event.city,
+        'name': event.name,
+        'email': event.email,
+        'password': event.password,
+        'city': event.city,
       });
       if (res.isSuccessful && res.body != null) {
         final body = res.body as Map<String, dynamic>?;
-        // Backend may require email verification before issuing token
-        final requiresVerification = body?['requiresEmailVerification'] as bool? ?? false;
+        final requiresVerification =
+            body?['requiresEmailVerification'] as bool? ?? false;
         if (requiresVerification) {
           emit(AuthState.emailVerificationRequired(email: event.email));
           return;
@@ -213,6 +243,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (parsed != null) {
           await _persistAuth(parsed.$1, parsed.$2, 'client');
           await _postAuthSetup(parsed.$1);
+          _startSessionTimer(parsed.$1);
           getIt<AnalyticsService>().logSignUp('email');
           getIt<AnalyticsService>().setUserId(parsed.$2);
           emit(AuthState.authenticated(
@@ -225,12 +256,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
-      _logger.e("Error registering: $e");
+      _logger.e('[Auth] Erreur inscription: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 
-  Future<void> _onForgotPassword(_ForgotPassword event, Emitter<AuthState> emit) async {
+  Future<void> _onForgotPassword(
+      _ForgotPassword event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.forgotPassword({'email': event.email});
@@ -241,12 +273,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
-      _logger.e('Error sending forgot password: $e');
+      _logger.e('[Auth] Erreur mot de passe oublié: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 
-  Future<void> _onResetPassword(_ResetPassword event, Emitter<AuthState> emit) async {
+  Future<void> _onResetPassword(
+      _ResetPassword event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.resetPassword({
@@ -260,12 +293,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
-      _logger.e('Error resetting password: $e');
+      _logger.e('[Auth] Erreur réinitialisation mot de passe: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 
-  Future<void> _onVerifyEmail(_VerifyEmail event, Emitter<AuthState> emit) async {
+  Future<void> _onVerifyEmail(
+      _VerifyEmail event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.verifyEmail(event.token);
@@ -276,23 +310,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
-      _logger.e('Error verifying email: $e');
+      _logger.e('[Auth] Erreur vérification email: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
 
-  Future<void> _onResendVerificationEmail(_ResendVerificationEmail event, Emitter<AuthState> emit) async {
+  Future<void> _onResendVerificationEmail(
+      _ResendVerificationEmail event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
     try {
-      final res = await _authService.resendVerificationEmail({'email': event.email});
+      final res = await _authService
+          .resendVerificationEmail({'email': event.email});
       if (res.isSuccessful) {
         emit(AuthState.emailVerificationRequired(email: event.email));
       } else {
-        final msg = _extractError(res.body, 'auth.error_resend_verification');
+        final msg =
+            _extractError(res.body, 'auth.error_resend_verification');
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
-      _logger.e('Error resending verification email: $e');
+      _logger.e('[Auth] Erreur renvoi email vérification: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
@@ -312,30 +349,107 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onLogout(_Logout event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
+    _stopSessionTimer();
+    await _cancelSubscriptions();
     try {
-      // Attempt server logout (best effort)
       await _authService.logout().catchError((_) {});
-      // Disconnect WebSocket
       getIt<WebSocketService>().disconnect();
       getIt<AnalyticsService>().logLogout();
       getIt<AnalyticsService>().clearUser();
-      // Clear local storage
-      await _secureStorage.delete(key: 'jwt_token');
-      await _secureStorage.delete(key: 'user_id');
-      await _secureStorage.delete(key: 'current_mode');
-      await _db.delete(_db.userPrefsTable).go();
-      await _db.delete(_db.cartTable).go();
+      await _clearCredentials();
       emit(const AuthState.unauthenticated());
     } catch (e) {
-      _logger.e("Error logging out: $e");
+      _logger.e('[Auth] Erreur déconnexion: $e');
       emit(const AuthState.unauthenticated());
     }
   }
 
-  // ─── Helpers ────────────────────────────────────────────────────────────────
+  Future<void> _onSessionExpired(
+      _SessionExpired event, Emitter<AuthState> emit) async {
+    _logger.w('[Auth] Session expirée — déconnexion automatique.');
+    _stopSessionTimer();
+    await _cancelSubscriptions();
+    getIt<WebSocketService>().disconnect();
+    await _clearCredentials();
+    emit(const AuthState.unauthenticated());
+  }
 
-  /// Parse auth response: returns (accessToken, userId) or null on failure.
-  /// API format: { success, data: { user: { _id } }, tokens: { accessToken } }
+  // ─── Session timer ────────────────────────────────────────────────────────
+
+  /// Démarre un timer périodique qui vérifie l'expiration du JWT.
+  void _startSessionTimer(String token) {
+    _stopSessionTimer();
+    _sessionTimer =
+        Timer.periodic(_kSessionCheckInterval, (_) {
+      if (_isTokenExpired(token)) {
+        add(const AuthEvent.sessionExpired());
+      }
+    });
+  }
+
+  void _stopSessionTimer() {
+    _sessionTimer?.cancel();
+    _sessionTimer = null;
+  }
+
+  /// Décode le payload JWT (base64url) et vérifie le champ `exp`.
+  /// Retourne `true` si le token est expiré ou non décodable.
+  bool _isTokenExpired(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+      // Base64url → base64 standard
+      final payload = parts[1].replaceAll('-', '+').replaceAll('_', '/');
+      final decoded = utf8.decode(
+        base64Decode(payload.padRight(
+          payload.length + (4 - payload.length % 4) % 4,
+          '=',
+        )),
+      );
+      final map = jsonDecode(decoded) as Map<String, dynamic>;
+      final exp = map['exp'] as int?;
+      if (exp == null) return false;
+      final expiry = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+      // Considérer expiré si moins de 2 minutes restantes
+      return DateTime.now().isAfter(
+          expiry.subtract(const Duration(minutes: 2)));
+    } catch (_) {
+      return false; // Token malformé → ne pas déconnecter de force
+    }
+  }
+
+  // ─── Post-auth setup ──────────────────────────────────────────────────────
+
+  /// Appelé après chaque authentification réussie.
+  /// Connecte le WebSocket et enregistre le token FCM.
+  /// Les erreurs FCM et WebSocket sont indépendantes pour éviter les races.
+  Future<void> _postAuthSetup(String token) async {
+    // WebSocket — indépendant de FCM
+    try {
+      final wsSub = getIt<WebSocketService>().statusStream.listen(
+        (status) => _logger.d('[Auth/WS] Statut: $status'),
+        onError: (e) => _logger.w('[Auth/WS] Erreur stream: $e'),
+      );
+      _subscriptions.add(wsSub);
+      await getIt<WebSocketService>().connect();
+    } catch (e) {
+      _logger.w('[Auth] Connexion WebSocket échouée: $e');
+    }
+
+    // FCM — indépendant du WebSocket
+    try {
+      final fcmToken = await getIt<NotificationService>().getFcmToken();
+      if (fcmToken != null) {
+        await getIt<UserRepository>().registerFcmToken(fcmToken);
+      }
+    } catch (e) {
+      _logger.w('[Auth] Enregistrement FCM échoué: $e');
+    }
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+
+  /// Parse la réponse d'auth : retourne (accessToken, userId) ou null.
   (String, String)? _parseAuthResponse(dynamic body) {
     try {
       final map = body as Map<String, dynamic>;
@@ -343,7 +457,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final token = tokens?['accessToken'] as String?;
       final data = map['data'] as Map<String, dynamic>?;
       final user = data?['user'] as Map<String, dynamic>?;
-      final userId = user?['_id']?.toString() ?? user?['id']?.toString();
+      final userId =
+          user?['_id']?.toString() ?? user?['id']?.toString();
       if (token != null && userId != null) return (token, userId);
       return null;
     } catch (_) {
@@ -353,35 +468,38 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   String _extractError(dynamic body, String fallback) {
     try {
-      return (body as Map<String, dynamic>)['message']?.toString() ?? fallback;
+      return (body as Map<String, dynamic>)['message']?.toString() ??
+          fallback;
     } catch (_) {
       return fallback;
     }
   }
 
-  Future<void> _persistAuth(
-      String token, String userId, String mode) async {
+  Future<void> _persistAuth(String token, String userId, String mode) async {
     await _secureStorage.write(key: 'jwt_token', value: token);
     await _secureStorage.write(key: 'user_id', value: userId);
     await _secureStorage.write(key: 'current_mode', value: mode);
   }
 
-  /// Called after successful auth: connect WebSocket + register FCM token
-  Future<void> _postAuthSetup(String token) async {
-    try {
-      // Connect WebSocket for real-time events
-      await getIt<WebSocketService>().connect();
-    } catch (e) {
-      _logger.w('WebSocket connect failed: $e');
-    }
-    try {
-      // Register FCM token with backend
-      final fcmToken = await getIt<NotificationService>().getFcmToken();
-      if (fcmToken != null) {
-        await getIt<UserRepository>().registerFcmToken(fcmToken);
-      }
-    } catch (e) {
-      _logger.w('FCM token registration failed: $e');
-    }
+  Future<void> _clearCredentials() async {
+    await _secureStorage.delete(key: 'jwt_token');
+    await _secureStorage.delete(key: 'user_id');
+    await _secureStorage.delete(key: 'current_mode');
+    await _db.delete(_db.userPrefsTable).go();
+    await _db.delete(_db.cartTable).go();
+  }
+
+  Future<void> _cancelSubscriptions() async {
+    await Future.wait(_subscriptions.map((s) => s.cancel()));
+    _subscriptions.clear();
+  }
+
+  // ─── close ────────────────────────────────────────────────────────────────
+
+  @override
+  Future<void> close() async {
+    _stopSessionTimer();
+    await _cancelSubscriptions();
+    return super.close();
   }
 }

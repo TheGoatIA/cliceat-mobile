@@ -23,6 +23,7 @@ import '../network/services/tracking_service.dart';
 import '../../features/client/home/data/datasources/restaurant_service.dart';
 import '../../features/delivery/dashboard/data/datasources/mission_service.dart';
 import '../../features/delivery/dashboard/data/datasources/driver_service.dart';
+import '../../features/client/cart/presentation/bloc/cart_cubit.dart';
 import '../../features/client/cart/presentation/bloc/order_bloc.dart';
 import '../../features/delivery/dashboard/presentation/bloc/mission_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -97,6 +98,11 @@ void _registerAnalytics() {
 
 /// BLoCs that were migrated off @injectable (constructor now takes repositories).
 void _registerMigratedBlocs() {
+  // CartCubit : factory (une instance par page qui l'utilise, ou singleton
+  // injecté via BlocProvider dans main.dart). Ici factory pour la flexibilité.
+  getIt.registerFactory<CartCubit>(
+    () => CartCubit(getIt<AppDatabase>()),
+  );
   getIt.registerFactory<OrderBloc>(
     () => OrderBloc(getIt<OrderRepository>()),
   );
