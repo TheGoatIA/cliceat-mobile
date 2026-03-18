@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cliceat_app"
+    namespace = "cm.cliceat.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,8 +20,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.cliceat_app"
+        applicationId = "cm.cliceat.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -30,11 +29,33 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Release signing — keys loaded from android/key.properties (gitignored).
+        // Create key.properties with: storeFile, storePassword, keyAlias, keyPassword.
+        // Run: keytool -genkey -v -keystore cliceat-release.jks -alias cliceat -keyalg RSA
+        create("release") {
+            val props = java.util.Properties()
+            val keyPropsFile = rootProject.file("key.properties")
+            if (keyPropsFile.exists()) {
+                props.load(keyPropsFile.inputStream())
+                keyAlias = props["keyAlias"] as String
+                keyPassword = props["keyPassword"] as String
+                storeFile = file(props["storeFile"] as String)
+                storePassword = props["storePassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            val keyPropsFile = rootProject.file("key.properties")
+            signingConfig = if (keyPropsFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }

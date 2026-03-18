@@ -30,4 +30,9 @@ abstract class OrderService extends ChopperService {
     @Path('id') String id,
     @Body() Map<String, dynamic> body,
   );
+
+  /// POST /orders/{id}/reorder — create a new order from a past order
+  @POST(path: '/{id}/reorder')
+  Future<Response<Map<String, dynamic>>> reorderOrder(
+      @Path('id') String id);
 }

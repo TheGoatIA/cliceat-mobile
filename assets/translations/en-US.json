@@ -57,7 +57,11 @@
     "error_verify_email": "Unable to verify email. The link may have expired.",
     "error_resend_verification": "Unable to resend verification email.",
     "or": "or",
-    "continue_with_google": "Continue with Google"
+    "continue_with_google": "Continue with Google",
+    "terms_prefix": "By registering, you agree to our ",
+    "terms_cgu": "Terms of Service",
+    "terms_conjunction": " and our ",
+    "terms_privacy": "Privacy Policy"
   },
   "client": {
     "home_title": "Discover",
@@ -160,7 +164,9 @@
     "error_create": "Unable to create order.",
     "error_load": "Unable to load orders.",
     "error_cancel": "Unable to cancel order.",
-    "error_rate": "Unable to submit review."
+    "error_rate": "Unable to submit review.",
+    "reorder": "Reorder",
+    "reorder_success": "New order created successfully"
   },
   "payment": {
     "title": "Secure payment",
@@ -168,7 +174,10 @@
     "cancel_message": "Are you sure you want to cancel this payment? Your order will not be processed.",
     "success": "Payment successful",
     "failed": "Payment failed",
-    "retry": "Retry"
+    "retry": "Retry",
+    "retry_payment": "Retry payment",
+    "failed_title": "Payment failed",
+    "failed_message": "An error occurred during verification. Please try again."
   },
   "tracking": {
     "title": "Order tracking",
@@ -256,7 +265,19 @@
     "vehicle_motorcycle": "Motorcycle",
     "vehicle_bicycle": "Bicycle",
     "vehicle_car": "Car",
-    "vehicle_on_foot": "On foot"
+    "vehicle_on_foot": "On foot",
+    "navigate": "Navigate",
+    "navigate_to_restaurant": "Navigate to restaurant",
+    "navigate_to_client": "Navigate to client",
+    "photo_proof_title": "Delivery photo",
+    "photo_proof_message": "Take a photo to confirm the delivery.",
+    "photo_proof_take": "Take a photo",
+    "photo_proof_gallery": "Gallery",
+    "photo_proof_missing": "A delivery photo is required.",
+    "cash_code_title": "Confirmation code",
+    "cash_code_message": "Enter the code provided by the client to confirm cash payment.",
+    "cash_code_hint": "Client code",
+    "cash_code_confirm": "Confirm"
   },
   "address": {
     "select_title": "Choose an address",

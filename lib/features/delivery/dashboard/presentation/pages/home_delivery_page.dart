@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/models/earnings_model.dart';
 import '../../../../../core/models/mission_model.dart';
@@ -399,6 +403,133 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     );
   }
 
+  // ─── Navigation (turn-by-turn via external maps app) ──────────────────────
+
+  Future<void> _navigateTo(double lat, double lng, String label) async {
+    final encoded = Uri.encodeComponent(label);
+    // Try Google Maps first, then fallback to geo: URI
+    final gmapsUri =
+        Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving');
+    final geoUri = Uri.parse('geo:$lat,$lng?q=$lat,$lng($encoded)');
+    if (await canLaunchUrl(gmapsUri)) {
+      await launchUrl(gmapsUri, mode: LaunchMode.externalApplication);
+    } else if (await canLaunchUrl(geoUri)) {
+      await launchUrl(geoUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  // ─── Photo proof of delivery ──────────────────────────────────────────────
+
+  Future<String?> _pickDeliveryPhoto() async {
+    final picker = ImagePicker();
+    final choice = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text('delivery.photo_proof_take'.tr()),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text('delivery.photo_proof_gallery'.tr()),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null) return null;
+    final file = await picker.pickImage(source: choice, imageQuality: 70);
+    return file?.path;
+  }
+
+  // ─── Cash confirmation code ───────────────────────────────────────────────
+
+  Future<String?> _askCashCode() async {
+    final ctrl = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text('delivery.cash_code_title'.tr()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('delivery.cash_code_message'.tr()),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'delivery.cash_code_hint'.tr(),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('common.cancel'.tr()),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: Text('delivery.cash_code_confirm'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Confirm delivery flow (photo + optional cash code) ──────────────────
+
+  Future<void> _confirmDelivery(
+    BuildContext blocContext,
+    String missionId,
+    Map<String, dynamic> mission,
+  ) async {
+    // Step 1: Photo proof
+    final photoPath = await _pickDeliveryPhoto();
+    if (!mounted) return;
+    if (photoPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('delivery.photo_proof_missing'.tr())),
+      );
+      return;
+    }
+
+    // Step 2: Cash code (only for cash payment)
+    final paymentMethod =
+        mission['paymentMethod'] as String? ?? '';
+    Map<String, dynamic> metadata = {};
+    try {
+      final bytes = await File(photoPath).readAsBytes();
+      metadata['photoBase64'] = base64Encode(bytes);
+    } catch (_) {
+      metadata['photoPath'] = photoPath;
+    }
+
+    if (paymentMethod == 'cash') {
+      if (!mounted) return;
+      final code = await _askCashCode();
+      if (!mounted) return;
+      if (code == null || code.isEmpty) return;
+      metadata['cashCode'] = code;
+    }
+
+    // Step 3: Dispatch
+    if (!mounted) return;
+    blocContext.read<MissionBloc>().add(
+          MissionEvent.updateStatus(missionId, 'delivered',
+              metadata: metadata),
+        );
+  }
+
   Widget _buildRecentOrderTile(
       Map<String, dynamic> order, ThemeData theme) {
     final orderId =
@@ -429,6 +560,51 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
         '+$amount FCFA',
         style: theme.textTheme.titleSmall
             ?.copyWith(color: Colors.green, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildNavigateButton(
+      Map<String, dynamic> mission, String status) {
+    // Navigate to restaurant when accepted, to client when in_transit
+    final restaurant =
+        mission['restaurant'] as Map<String, dynamic>?;
+    final deliveryAddress =
+        mission['deliveryAddress'] as Map<String, dynamic>?;
+
+    double? lat;
+    double? lng;
+    String label = '';
+
+    if (status == 'accepted' && restaurant != null) {
+      final loc = restaurant['location'] as Map<String, dynamic>?;
+      lat = (loc?['lat'] ?? loc?['latitude'])?.toDouble();
+      lng = (loc?['lng'] ?? loc?['longitude'])?.toDouble();
+      label = restaurant['name'] as String? ?? '';
+    } else if (status == 'in_transit' && deliveryAddress != null) {
+      lat = (deliveryAddress['lat'] ?? deliveryAddress['latitude'])
+          ?.toDouble();
+      lng = (deliveryAddress['lng'] ?? deliveryAddress['longitude'])
+          ?.toDouble();
+      label =
+          deliveryAddress['address'] as String? ?? '';
+    }
+
+    if (lat == null || lng == null) return const SizedBox.shrink();
+
+    final navLat = lat;
+    final navLng = lng;
+    final navLabel = label;
+    final navKey = status == 'accepted'
+        ? 'delivery.navigate_to_restaurant'
+        : 'delivery.navigate_to_client';
+
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _navigateTo(navLat, navLng, navLabel),
+        icon: const Icon(Icons.navigation_outlined),
+        label: Text(navKey.tr()),
       ),
     );
   }
@@ -536,7 +712,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   ),
                 ],
               )
-            else if (status == 'accepted' || status == 'in_transit')
+            else if (status == 'accepted' || status == 'in_transit') ...[
+              // Navigation button
+              _buildNavigateButton(mission, status),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   if (status == 'accepted')
@@ -553,10 +732,8 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   else
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () => context
-                            .read<MissionBloc>()
-                            .add(MissionEvent.updateStatus(
-                                missionId, 'delivered')),
+                        onPressed: () => _confirmDelivery(
+                            context, missionId, mission),
                         icon: const Icon(Icons.check_circle_outline),
                         label: Text('delivery.confirm_delivery'.tr()),
                         style: ElevatedButton.styleFrom(
@@ -565,6 +742,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     ),
                 ],
               ),
+            ],
           ],
         ),
       ),

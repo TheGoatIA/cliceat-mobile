@@ -25,6 +25,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     on<_LoadOrders>(_onLoadOrders);
     on<_LoadMoreOrders>(_onLoadMoreOrders);
     on<_CancelOrder>(_onCancelOrder);
+    on<_ReorderOrder>(_onReorderOrder);
     on<_RateOrder>(_onRateOrder);
   }
 
@@ -122,6 +123,19 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
         getIt<AnalyticsService>().logOrderCancelled(event.orderId);
         emit(const OrderState.cancelled());
       },
+    );
+  }
+
+  Future<void> _onReorderOrder(
+      _ReorderOrder event, Emitter<OrderState> emit) async {
+    emit(const OrderState.loading());
+    final result = await _orderRepository.reorder(event.orderId);
+    result.fold(
+      (err) {
+        _logger.e('Error reordering: ${err.message}');
+        emit(OrderState.error(err.message));
+      },
+      (order) => emit(OrderState.reorderSuccess(order.id)),
     );
   }
 

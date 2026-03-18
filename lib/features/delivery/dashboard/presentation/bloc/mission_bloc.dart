@@ -86,8 +86,10 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
             await _driverRepository.confirmPickup(event.missionId);
         break;
       case 'delivered':
-        result =
-            await _driverRepository.confirmDelivery(event.missionId);
+        result = await _driverRepository.confirmDelivery(
+          event.missionId,
+          metadata: event.metadata,
+        );
         getIt<AnalyticsService>()
             .logDeliveryCompleted(event.missionId);
         break;

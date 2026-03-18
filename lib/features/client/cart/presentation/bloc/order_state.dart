@@ -14,5 +14,6 @@ class OrderState with _$OrderState {
       List<Map<String, dynamic>> orders) = _LoadingMore;
   const factory OrderState.cancelled() = _Cancelled;
   const factory OrderState.rated() = _Rated;
+  const factory OrderState.reorderSuccess(String newOrderId) = _ReorderSuccess;
   const factory OrderState.error(String message) = _Error;
 }

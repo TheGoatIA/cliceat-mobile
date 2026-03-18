@@ -65,18 +65,18 @@
 				<string>cliceat</string>
 			</array>
 		</dict>
-		<!-- IMPORTANT: After running `flutterfire configure`, add the REVERSED_CLIENT_ID
-		     from GoogleService-Info.plist here to enable Google Sign-In on iOS.
-		     Example:
+		<!-- Google Sign-In: REVERSED_CLIENT_ID from GoogleService-Info.plist.
+		     Replace REPLACE_WITH_REVERSED_CLIENT_ID with the actual value
+		     (e.g. com.googleusercontent.apps.1234567890-abcdefgh) after
+		     running `flutterfire configure` and adding GoogleService-Info.plist. -->
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.YOUR_CLIENT_ID</string>
+				<string>REPLACE_WITH_REVERSED_CLIENT_ID</string>
 			</array>
 		</dict>
-		-->
 	</array>
 
 	<!-- Camera / Photo Library access (for profile photo upload) -->

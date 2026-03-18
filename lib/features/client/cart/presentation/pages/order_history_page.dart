@@ -51,7 +51,25 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           title: Text('order.history'.tr()),
           elevation: 0,
         ),
-        body: BlocBuilder<OrderBloc, OrderState>(
+        body: BlocListener<OrderBloc, OrderState>(
+          listener: (context, state) {
+            state.maybeWhen(
+              reorderSuccess: (newOrderId) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('order.reorder_success'.tr()),
+                ));
+                context.push('/client/tracking/$newOrderId');
+              },
+              error: (message) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(message.tr()),
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ));
+              },
+              orElse: () {},
+            );
+          },
+          child: BlocBuilder<OrderBloc, OrderState>(
           builder: (context, state) {
             return state.maybeWhen(
               loading: () =>
@@ -66,6 +84,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             );
           },
         ),
+          ),
       ),
     );
   }
@@ -205,6 +224,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                         ?.copyWith(fontWeight: FontWeight.bold)),
                 Row(
                   children: [
+                    if (isDelivered || isCancelled)
+                      TextButton.icon(
+                        onPressed: () => context
+                            .read<OrderBloc>()
+                            .add(OrderEvent.reorderOrder(orderId)),
+                        icon: const Icon(Icons.replay, size: 16),
+                        label: Text('order.reorder'.tr()),
+                      ),
                     if (isDelivered)
                       TextButton(
                         onPressed: () =>

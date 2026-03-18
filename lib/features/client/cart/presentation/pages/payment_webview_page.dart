@@ -25,6 +25,7 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
   late final WebViewController _controller;
   bool _loading = true;
   bool _verifying = false;
+  bool _paymentFailed = false;
 
   @override
   void initState() {
@@ -83,37 +84,35 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
       result.fold(
         (_) {
           setState(() => _verifying = false);
-          _showPaymentFailedSnack();
+          _showPaymentFailed();
         },
         (isSuccess) {
           if (isSuccess) {
             context.go('/client/order-success/${widget.orderId}');
           } else {
             setState(() => _verifying = false);
-            _showPaymentFailedSnack();
+            _showPaymentFailed();
           }
         },
       );
     } catch (_) {
       if (mounted) {
         setState(() => _verifying = false);
-        _showPaymentFailedSnack();
+        _showPaymentFailed();
       }
     }
   }
 
-  void _showPaymentFailedSnack() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('payment.failed'.tr()),
-        backgroundColor: Theme.of(context).colorScheme.error,
-        action: SnackBarAction(
-          label: 'payment.retry'.tr(),
-          textColor: Colors.white,
-          onPressed: () => _controller.reload(),
-        ),
-      ),
-    );
+  void _showPaymentFailed() {
+    setState(() => _paymentFailed = true);
+  }
+
+  void _retryPayment() {
+    setState(() {
+      _paymentFailed = false;
+      _loading = true;
+    });
+    _controller.reload();
   }
 
   @override
@@ -146,6 +145,56 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
                       ),
                     ],
                   ],
+                ),
+              ),
+            ),
+          if (_paymentFailed)
+            Container(
+              color: Colors.black87,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error_outline,
+                          color: Theme.of(context).colorScheme.error,
+                          size: 64),
+                      const SizedBox(height: 16),
+                      Text(
+                        'payment.failed_title'.tr(),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'payment.failed_message'.tr(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: _retryPayment,
+                        icon: const Icon(Icons.replay),
+                        label: Text('payment.retry_payment'.tr()),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: () => context.pop(),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white54),
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        child: Text('common.cancel'.tr()),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

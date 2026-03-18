@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
@@ -351,6 +352,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     _stopSessionTimer();
     await _cancelSubscriptions();
+    // Revoke FCM token before clearing credentials
+    await _revokeFcmToken();
     try {
       await _authService.logout().catchError((_) {});
       getIt<WebSocketService>().disconnect();
@@ -369,6 +372,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     _logger.w('[Auth] Session expirée — déconnexion automatique.');
     _stopSessionTimer();
     await _cancelSubscriptions();
+    await _revokeFcmToken();
     getIt<WebSocketService>().disconnect();
     await _clearCredentials();
     emit(const AuthState.unauthenticated());
@@ -479,6 +483,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await _secureStorage.write(key: 'jwt_token', value: token);
     await _secureStorage.write(key: 'user_id', value: userId);
     await _secureStorage.write(key: 'current_mode', value: mode);
+  }
+
+  /// Révoque le token FCM côté Firebase et côté backend.
+  Future<void> _revokeFcmToken() async {
+    try {
+      final fcmToken = await getIt<NotificationService>().getFcmToken();
+      if (fcmToken != null) {
+        await getIt<UserRepository>().unregisterFcmToken(fcmToken).catchError((_) {});
+      }
+      await FirebaseMessaging.instance.deleteToken();
+    } catch (e) {
+      _logger.w('[Auth] Révocation token FCM échouée: $e');
+    }
   }
 
   Future<void> _clearCredentials() async {

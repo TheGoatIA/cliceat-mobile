@@ -118,6 +118,22 @@ class OrderRepository {
 
   // ─── Rate ─────────────────────────────────────────────────────────────────
 
+  Future<Either<AppError, OrderModel>> reorder(String id) async {
+    try {
+      final res = await _orderService.reorderOrder(id);
+      if (res.isSuccessful && res.body != null) {
+        final data =
+            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        return Right(OrderModel.fromJson(data));
+      }
+      return Left(AppError.fromResponse(
+          res.body, 'order.error_create',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
   Future<Either<AppError, void>> rateOrder(
       String id, int rating, String? comment) async {
     try {

@@ -443,12 +443,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 color: theme.colorScheme.onSurfaceVariant,
               ),
               children: [
-                const TextSpan(text: "En vous inscrivant, vous acceptez nos "),
+                TextSpan(text: 'auth.terms_prefix'.tr()),
                 WidgetSpan(
                   child: GestureDetector(
                     onTap: () => launchUrl(Uri.parse('https://cliceat.cm/terms')),
                     child: Text(
-                      "CGU",
+                      'auth.terms_cgu'.tr(),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.primary,
                         decoration: TextDecoration.underline,
@@ -456,12 +456,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     ),
                   ),
                 ),
-                const TextSpan(text: " et notre "),
+                TextSpan(text: 'auth.terms_conjunction'.tr()),
                 WidgetSpan(
                   child: GestureDetector(
                     onTap: () => launchUrl(Uri.parse('https://cliceat.cm/privacy')),
                     child: Text(
-                      "Politique de confidentialité",
+                      'auth.terms_privacy'.tr(),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.primary,
                         decoration: TextDecoration.underline,

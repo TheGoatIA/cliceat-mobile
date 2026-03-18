@@ -69,9 +69,12 @@ class DriverRepository {
     }
   }
 
-  Future<Either<AppError, void>> confirmDelivery(String id) async {
+  Future<Either<AppError, void>> confirmDelivery(
+    String id, {
+    Map<String, dynamic> metadata = const {},
+  }) async {
     try {
-      final res = await _missionService.confirmDelivery(id, {});
+      final res = await _missionService.confirmDelivery(id, metadata);
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(
           res.body, 'mission.error_update_status',

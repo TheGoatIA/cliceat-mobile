@@ -57,7 +57,11 @@
     "error_verify_email": "Impossible de vérifier l'e-mail. Le lien est peut-être expiré.",
     "error_resend_verification": "Impossible de renvoyer l'e-mail de vérification.",
     "or": "ou",
-    "continue_with_google": "Continuer avec Google"
+    "continue_with_google": "Continuer avec Google",
+    "terms_prefix": "En vous inscrivant, vous acceptez nos ",
+    "terms_cgu": "CGU",
+    "terms_conjunction": " et notre ",
+    "terms_privacy": "Politique de confidentialité"
   },
   "client": {
     "home_title": "Découvrir",
@@ -160,7 +164,9 @@
     "error_create": "Impossible de créer la commande.",
     "error_load": "Impossible de charger les commandes.",
     "error_cancel": "Impossible d'annuler la commande.",
-    "error_rate": "Impossible d'envoyer l'avis."
+    "error_rate": "Impossible d'envoyer l'avis.",
+    "reorder": "Re-commander",
+    "reorder_success": "Nouvelle commande créée avec succès"
   },
   "payment": {
     "title": "Paiement sécurisé",
@@ -168,7 +174,10 @@
     "cancel_message": "Êtes-vous sûr de vouloir annuler ce paiement ? Votre commande ne sera pas traitée.",
     "success": "Paiement réussi",
     "failed": "Paiement échoué",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "retry_payment": "Réessayer le paiement",
+    "failed_title": "Paiement échoué",
+    "failed_message": "Une erreur est survenue lors de la vérification. Veuillez réessayer."
   },
   "tracking": {
     "title": "Suivi de commande",
@@ -256,7 +265,19 @@
     "vehicle_motorcycle": "Moto",
     "vehicle_bicycle": "Vélo",
     "vehicle_car": "Voiture",
-    "vehicle_on_foot": "À pied"
+    "vehicle_on_foot": "À pied",
+    "navigate": "Naviguer",
+    "navigate_to_restaurant": "Naviguer vers le restaurant",
+    "navigate_to_client": "Naviguer vers le client",
+    "photo_proof_title": "Photo de livraison",
+    "photo_proof_message": "Prenez une photo pour confirmer la livraison.",
+    "photo_proof_take": "Prendre une photo",
+    "photo_proof_gallery": "Galerie",
+    "photo_proof_missing": "Une photo de livraison est requise.",
+    "cash_code_title": "Code de confirmation",
+    "cash_code_message": "Entrez le code fourni par le client pour confirmer le paiement en espèces.",
+    "cash_code_hint": "Code client",
+    "cash_code_confirm": "Confirmer"
   },
   "address": {
     "select_title": "Choisir une adresse",
