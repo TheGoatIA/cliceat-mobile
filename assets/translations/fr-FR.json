@@ -55,7 +55,9 @@
     "error_forgot_password": "Impossible d'envoyer le lien de réinitialisation.",
     "error_reset_password": "Impossible de réinitialiser le mot de passe. Le lien est peut-être expiré.",
     "error_verify_email": "Impossible de vérifier l'e-mail. Le lien est peut-être expiré.",
-    "error_resend_verification": "Impossible de renvoyer l'e-mail de vérification."
+    "error_resend_verification": "Impossible de renvoyer l'e-mail de vérification.",
+    "or": "ou",
+    "continue_with_google": "Continuer avec Google"
   },
   "client": {
     "home_title": "Découvrir",

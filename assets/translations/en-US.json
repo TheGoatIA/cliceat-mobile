@@ -55,7 +55,9 @@
     "error_forgot_password": "Unable to send reset link.",
     "error_reset_password": "Unable to reset password. The link may have expired.",
     "error_verify_email": "Unable to verify email. The link may have expired.",
-    "error_resend_verification": "Unable to resend verification email."
+    "error_resend_verification": "Unable to resend verification email.",
+    "or": "or",
+    "continue_with_google": "Continue with Google"
   },
   "client": {
     "home_title": "Discover",

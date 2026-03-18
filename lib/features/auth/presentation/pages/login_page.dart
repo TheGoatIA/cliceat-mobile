@@ -214,7 +214,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             Expanded(child: Divider()),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text('ou', style: TextStyle(color: Colors.grey)),
+              child: Text('auth.or'.tr(), style: const TextStyle(color: Colors.grey)),
             ),
             Expanded(child: Divider()),
           ]),
@@ -223,7 +223,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         OutlinedButton.icon(
           onPressed: () => _handleGoogleSignIn(context),
           icon: const Icon(Icons.g_mobiledata, size: 24),
-          label: const Text('Continuer avec Google'),
+          label: Text('auth.continue_with_google'.tr()),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
