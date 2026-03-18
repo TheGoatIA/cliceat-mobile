@@ -12,9 +12,12 @@ abstract class OrderService extends ChopperService {
   Future<Response<Map<String, dynamic>>> createOrder(
       @Body() Map<String, dynamic> body);
 
-  /// GET /orders — list client orders
+  /// GET /orders — list client orders (paginated)
   @GET()
-  Future<Response<Map<String, dynamic>>> getOrders();
+  Future<Response<Map<String, dynamic>>> getOrders({
+    @Query('page') int page = 1,
+    @Query('limit') int limit = 20,
+  });
 
   /// GET /orders/{id} — get order details
   @GET(path: '/{id}')
