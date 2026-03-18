@@ -4,6 +4,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 /// Affiche une bannière en bas de l'écran quand la connectivité est perdue.
 ///
 /// À utiliser comme wrapper au-dessus du widget racine de l'application :
@@ -109,7 +111,7 @@ class _OfflineBanner extends StatelessWidget {
         left: 16,
         right: 16,
       ),
-      color: isOffline ? Colors.red.shade700 : Colors.green.shade600,
+      color: isOffline ? AppTheme.errorColor : AppTheme.statusOnline,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

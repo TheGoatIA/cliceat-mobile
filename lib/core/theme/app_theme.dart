@@ -22,6 +22,19 @@ class AppTheme {
   static const Color errorColor = Color(0xFFDC2626);
   static const Color successColor = Color(0xFF16A34A);
 
+  // Semantic status colors — order & mission statuses
+  // Use these constants instead of inline Colors.X to support both light and dark themes.
+  static const Color statusPending   = Color(0xFFF59E0B); // amber
+  static const Color statusConfirmed = Color(0xFF3B82F6); // blue
+  static const Color statusPreparing = Color(0xFF8B5CF6); // violet
+  static const Color statusReady     = Color(0xFF14B8A6); // teal
+  static const Color statusPickedUp  = Color(0xFF6366F1); // indigo
+  static const Color statusDelivered = successColor;      // green
+  static const Color statusCancelled = errorColor;        // red
+  static const Color statusDefault   = Color(0xFF6B7280); // gray
+  static const Color statusOnline    = successColor;      // green (livreur en ligne)
+  static const Color statusOffline   = Color(0xFF9CA3AF); // gray (livreur hors ligne)
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,

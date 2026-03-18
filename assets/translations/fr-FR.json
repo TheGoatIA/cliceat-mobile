@@ -94,7 +94,8 @@
     "error_load": "Impossible de charger le restaurant.",
     "min_order": "Commande min.",
     "delivery_fee": "Livraison",
-    "choose_variation": "Choisir une option"
+    "choose_variation": "Choisir une option",
+    "closed": "Fermé"
   },
   "cart": {
     "title": "Mon Panier",
@@ -277,7 +278,8 @@
     "cash_code_title": "Code de confirmation",
     "cash_code_message": "Entrez le code fourni par le client pour confirmer le paiement en espèces.",
     "cash_code_hint": "Code client",
-    "cash_code_confirm": "Confirmer"
+    "cash_code_confirm": "Confirmer",
+    "active_missions": "Missions actives"
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -325,7 +327,9 @@
     "see_all": "Voir tout",
     "back": "Retour",
     "no_internet": "Pas de connexion internet",
-    "back_online": "Connexion rétablie"
+    "back_online": "Connexion rétablie",
+    "clear": "Effacer",
+    "try_other_query": "Essayez un autre terme de recherche"
   },
   "legal": {
     "terms_title": "Conditions Générales d'Utilisation",

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/di/injection.dart';
+import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/date_formatter.dart';
 import '../bloc/order_bloc.dart';
 
@@ -256,14 +257,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   Widget _buildStatusChip(String status, ThemeData theme) {
     final (label, color) = switch (status) {
-      'pending' => ('order.status_pending'.tr(), Colors.orange),
-      'confirmed' => ('order.status_confirmed'.tr(), Colors.blue),
-      'preparing' => ('order.status_preparing'.tr(), Colors.purple),
-      'ready' => ('order.status_ready'.tr(), Colors.teal),
-      'picked_up' => ('order.status_picked_up'.tr(), Colors.indigo),
-      'delivered' => ('order.status_delivered'.tr(), Colors.green),
-      'cancelled' => ('order.status_cancelled'.tr(), Colors.red),
-      _ => (status, Colors.grey),
+      'pending'   => ('order.status_pending'.tr(),   AppTheme.statusPending),
+      'confirmed' => ('order.status_confirmed'.tr(), AppTheme.statusConfirmed),
+      'preparing' => ('order.status_preparing'.tr(), AppTheme.statusPreparing),
+      'ready'     => ('order.status_ready'.tr(),     AppTheme.statusReady),
+      'picked_up' => ('order.status_picked_up'.tr(), AppTheme.statusPickedUp),
+      'delivered' => ('order.status_delivered'.tr(), AppTheme.statusDelivered),
+      'cancelled' => ('order.status_cancelled'.tr(), AppTheme.statusCancelled),
+      _           => (status,                        AppTheme.statusDefault),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

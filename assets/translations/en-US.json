@@ -94,7 +94,8 @@
     "error_load": "Unable to load restaurant.",
     "min_order": "Min. order",
     "delivery_fee": "Delivery",
-    "choose_variation": "Choose an option"
+    "choose_variation": "Choose an option",
+    "closed": "Closed"
   },
   "cart": {
     "title": "My Cart",
@@ -277,7 +278,8 @@
     "cash_code_title": "Confirmation code",
     "cash_code_message": "Enter the code provided by the client to confirm cash payment.",
     "cash_code_hint": "Client code",
-    "cash_code_confirm": "Confirm"
+    "cash_code_confirm": "Confirm",
+    "active_missions": "Active missions"
   },
   "address": {
     "select_title": "Choose an address",
@@ -325,7 +327,9 @@
     "see_all": "See all",
     "back": "Back",
     "no_internet": "No internet connection",
-    "back_online": "Back online"
+    "back_online": "Back online",
+    "clear": "Clear",
+    "try_other_query": "Try a different search term"
   },
   "legal": {
     "terms_title": "Terms of Service",

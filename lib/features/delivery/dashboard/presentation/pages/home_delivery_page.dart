@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../../../core/theme/app_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -219,7 +220,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     height: 10,
                     decoration: BoxDecoration(
                       color: isOnline
-                          ? Colors.green
+                          ? AppTheme.statusOnline
                           : theme.disabledColor,
                       shape: BoxShape.circle,
                     ),
@@ -230,7 +231,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                         ? 'delivery.online'.tr()
                         : 'delivery.offline'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: isOnline ? Colors.green : theme.disabledColor,
+                      color: isOnline ? AppTheme.statusOnline : theme.disabledColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -552,14 +553,14 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(Icons.check_circle_outline, color: Colors.green),
+        child: Icon(Icons.check_circle_outline, color: AppTheme.statusDelivered),
       ),
       title: Text('#$shortId'),
       subtitle: Text(address),
       trailing: Text(
         '+$amount FCFA',
         style: theme.textTheme.titleSmall
-            ?.copyWith(color: Colors.green, fontWeight: FontWeight.bold),
+            ?.copyWith(color: AppTheme.statusDelivered, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -737,7 +738,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                         icon: const Icon(Icons.check_circle_outline),
                         label: Text('delivery.confirm_delivery'.tr()),
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green),
+                            backgroundColor: AppTheme.statusDelivered),
                       ),
                     ),
                 ],
