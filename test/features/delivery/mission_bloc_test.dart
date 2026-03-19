@@ -50,7 +50,7 @@ void main() {
     getIt.unregister<AnalyticsService>();
   });
 
-  MissionBloc _buildBloc() => MissionBloc(mockRepo);
+  MissionBloc buildBloc() => MissionBloc(mockRepo);
 
   // ─── LoadActiveMissions ───────────────────────────────────────────────────
 
@@ -61,7 +61,7 @@ void main() {
         when(() => mockRepo.getActiveMissions())
             .thenAnswer((_) async => Right([_fakeMission()]));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const MissionEvent.loadActiveMissions()),
       expect: () => [
         const MissionState.loading(),
@@ -82,7 +82,7 @@ void main() {
         when(() => mockRepo.getActiveMissions())
             .thenAnswer((_) async => const Right([]));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const MissionEvent.loadActiveMissions()),
       expect: () => [
         const MissionState.loading(),
@@ -104,7 +104,7 @@ void main() {
             .thenAnswer((_) async =>
                 Left(const AppError(message: 'mission.error_load')));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const MissionEvent.loadActiveMissions()),
       expect: () => [
         const MissionState.loading(),
@@ -124,7 +124,7 @@ void main() {
         when(() => mockRepo.getActiveMissions())
             .thenAnswer((_) async => Right([_fakeMission()]));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) =>
           bloc.add(const MissionEvent.acceptMission('mission1')),
       expect: () => [
@@ -149,7 +149,7 @@ void main() {
             .thenAnswer((_) async =>
                 Left(const AppError(message: 'mission.error_accept')));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) =>
           bloc.add(const MissionEvent.acceptMission('mission1')),
       expect: () => [
@@ -170,7 +170,7 @@ void main() {
         when(() => mockRepo.getActiveMissions())
             .thenAnswer((_) async => const Right([]));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) =>
           bloc.add(const MissionEvent.rejectMission('mission1')),
       expect: () => [
@@ -197,7 +197,7 @@ void main() {
         when(() => mockRepo.getActiveMissions())
             .thenAnswer((_) async => const Right([]));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(
           const MissionEvent.updateStatus('mission1', 'picked_up')),
       expect: () => [
@@ -220,7 +220,7 @@ void main() {
         when(() => mockRepo.getActiveMissions())
             .thenAnswer((_) async => const Right([]));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(
           const MissionEvent.updateStatus('mission1', 'delivered')),
       expect: () => [
@@ -242,7 +242,7 @@ void main() {
 
     blocTest<MissionBloc, MissionState>(
       "statut inconnu → error sans chargement",
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(
           const MissionEvent.updateStatus('mission1', 'unknown_status')),
       expect: () => [

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -56,7 +55,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     ws.connect();
     _loadTracking();
     _etaTimer = Timer.periodic(
-        const Duration(seconds: 15), (_) => _refreshEta());
+      const Duration(seconds: 15),
+      (_) => _refreshEta(),
+    );
     _wsSub = ws.orderTrackingEvents.listen((event) {
       if (event['orderId'] == widget.orderId ||
           event['_id'] == widget.orderId) {
@@ -91,8 +92,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   Future<Uint8List> _buildDriverIcon() async {
     const size = 48.0;
     final recorder = ui.PictureRecorder();
-    final canvas =
-        Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
+    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
 
     // Blue circle for driver
     final paintOuter = Paint()..color = const Color(0xFF1565C0);
@@ -109,7 +109,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     final paintIcon = Paint()..color = Colors.white;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-          const Rect.fromLTWH(12, 18, 24, 8), const Radius.circular(4)),
+        const Rect.fromLTWH(12, 18, 24, 8),
+        const Radius.circular(4),
+      ),
       paintIcon,
     );
 
@@ -122,8 +124,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   Future<void> _onMapCreated(MapboxMap map) async {
     mapboxMap = map;
     _driverIcon = await _buildDriverIcon();
-    _annotationManager =
-        await map.annotations.createPointAnnotationManager();
+    _annotationManager = await map.annotations.createPointAnnotationManager();
     _updateDriverMarker();
   }
 
@@ -159,10 +160,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
 
     // Pan camera to driver location
     await mapboxMap?.flyTo(
-      CameraOptions(
-        center: point,
-        zoom: 15.0,
-      ),
+      CameraOptions(center: point, zoom: 15.0),
       MapAnimationOptions(duration: 1000),
     );
   }
@@ -173,8 +171,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       _etaTimer?.cancel();
       return;
     }
-    final result =
-        await getIt<OrderRepository>().getEta(widget.orderId);
+    final result = await getIt<OrderRepository>().getEta(widget.orderId);
     if (mounted) {
       result.fold((_) {}, (eta) => setState(() => _etaData = eta));
     }
@@ -216,9 +213,11 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             onMapCreated: _onMapCreated,
             cameraOptions: CameraOptions(
               center: Point(
-                  coordinates: Position(
-                      AppConstants.defaultLng,
-                      AppConstants.defaultLat)),
+                coordinates: Position(
+                  AppConstants.defaultLng,
+                  AppConstants.defaultLat,
+                ),
+              ),
               zoom: 14.0,
             ),
           ),
@@ -228,8 +227,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             child: CircleAvatar(
               backgroundColor: theme.cardTheme.color,
               child: IconButton(
-                icon: Icon(Icons.arrow_back,
-                    color: theme.colorScheme.onSurface),
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: theme.colorScheme.onSurface,
+                ),
                 onPressed: () {
                   HapticFeedback.lightImpact();
                   context.pop();
@@ -248,8 +249,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                 child: _loading
                     ? _buildLoadingPanel(theme)
                     : _error != null
-                        ? _buildErrorPanel(theme)
-                        : _buildTrackingPanel(theme),
+                    ? _buildErrorPanel(theme)
+                    : _buildTrackingPanel(theme),
               ),
             ),
           ),
@@ -262,8 +263,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     return Container(
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.all(32),
       child: const Center(child: CircularProgressIndicator()),
@@ -274,19 +274,21 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     return Container(
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(_error ?? 'common.error'.tr(),
-              style: TextStyle(color: theme.colorScheme.error)),
+          Text(
+            _error ?? 'common.error'.tr(),
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
-              onPressed: _loadTracking,
-              child: Text('common.retry'.tr())),
+            onPressed: _loadTracking,
+            child: Text('common.retry'.tr()),
+          ),
         ],
       ),
     );
@@ -304,13 +306,13 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     return Container(
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5))
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
         ],
       ),
       child: SafeArea(
@@ -324,8 +326,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2)),
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
             Padding(
@@ -336,32 +339,38 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('tracking.eta'.tr(),
-                          style: theme.textTheme.bodySmall),
+                      Text(
+                        'tracking.eta'.tr(),
+                        style: theme.textTheme.bodySmall,
+                      ),
                       Text(
                         etaDisplay,
-                        style: theme.textTheme.headlineLarge
-                            ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary),
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
                       ),
                     ],
                   ),
                   if (etaMinutes != null)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                          'tracking.eta_minutes'
-                              .tr(args: [etaMinutes.toString()]),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  theme.colorScheme.onSurfaceVariant)),
+                        'tracking.eta_minutes'.tr(
+                          args: [etaMinutes.toString()],
+                        ),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -379,11 +388,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                     backgroundImage: driverPhoto != null
                         ? NetworkImage(driverPhoto)
                         : null,
-                    backgroundColor:
-                        theme.colorScheme.primaryContainer,
+                    backgroundColor: theme.colorScheme.primaryContainer,
                     child: driverPhoto == null
-                        ? Icon(Icons.person,
-                            color: theme.colorScheme.primary)
+                        ? Icon(Icons.person, color: theme.colorScheme.primary)
                         : null,
                   ),
                   const SizedBox(width: 16),
@@ -391,31 +398,37 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(driverName,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(
-                                    fontWeight: FontWeight.bold)),
+                        Text(
+                          driverName,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         if (_trackingData?.driverPhone != null)
                           Row(
                             children: [
-                              const Icon(Icons.phone,
-                                  size: 16, color: Colors.grey),
+                              const Icon(
+                                Icons.phone,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
                               const SizedBox(width: 4),
-                              Text(_trackingData!.driverPhone!,
-                                  style: theme.textTheme.bodySmall),
+                              Text(
+                                _trackingData!.driverPhone!,
+                                style: theme.textTheme.bodySmall,
+                              ),
                             ],
                           ),
                       ],
                     ),
                   ),
                   CircleAvatar(
-                    backgroundColor:
-                        theme.colorScheme.primary.withValues(alpha: 0.1),
+                    backgroundColor: theme.colorScheme.primary.withValues(
+                      alpha: 0.1,
+                    ),
                     child: IconButton(
-                      icon: Icon(Icons.call,
-                          color: theme.colorScheme.primary),
-                      onPressed: () =>
-                          HapticFeedback.selectionClick(),
+                      icon: Icon(Icons.call, color: theme.colorScheme.primary),
+                      onPressed: () => HapticFeedback.selectionClick(),
                     ),
                   ),
                 ],
@@ -451,12 +464,15 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               for (int i = 0; i < labels.length; i++)
-                Text(labels[i],
-                    style: TextStyle(
-                        fontSize: 10,
-                        color: _currentStep >= i
-                            ? theme.colorScheme.primary
-                            : Colors.grey)),
+                Text(
+                  labels[i],
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: _currentStep >= i
+                        ? theme.colorScheme.primary
+                        : Colors.grey,
+                  ),
+                ),
             ],
           ),
         ],
@@ -476,8 +492,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             : theme.colorScheme.surfaceContainerHighest,
         shape: BoxShape.circle,
         border: isActive
-            ? Border.all(
-                color: theme.colorScheme.primaryContainer, width: 4)
+            ? Border.all(color: theme.colorScheme.primaryContainer, width: 4)
             : null,
       ),
       child: isCompleted

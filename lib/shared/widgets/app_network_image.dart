@@ -33,8 +33,8 @@ class AppNetworkImage extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        placeholder: (_, __) => _shimmer(context),
-        errorWidget: (_, __, ___) => _fallback(context),
+        placeholder: (_, _) => _shimmer(context),
+        errorWidget: (_, _, _) => _fallback(context),
       );
     } else {
       image = _fallback(context);
@@ -60,7 +60,7 @@ class AppNetworkImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
-      errorBuilder: (_, __, ___) => Container(
+      errorBuilder: (_, _, _) => Container(
         width: width,
         height: height,
         color: backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest,

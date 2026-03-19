@@ -1,6 +1,5 @@
 import 'package:chopper/chopper.dart';
 import 'package:http/http.dart' as base;
-import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -13,21 +12,19 @@ import 'package:cliceat_app/core/network/services/tracking_service.dart';
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
 class MockOrderService extends Mock implements OrderService {}
+
 class MockPaymentService extends Mock implements PaymentService {}
+
 class MockTrackingService extends Mock implements TrackingService {}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /// Construit une réponse Chopper simulée avec le body donné.
-Response<Map<String, dynamic>> _ok(Map<String, dynamic> body) => Response(
-      base.Response(body.toString(), 200),
-      body,
-    );
+Response<Map<String, dynamic>> _ok(Map<String, dynamic> body) =>
+    Response(base.Response(body.toString(), 200), body);
 
-Response<Map<String, dynamic>> _err(int status) => Response(
-      base.Response('error', status),
-      null,
-    );
+Response<Map<String, dynamic>> _err(int status) =>
+    Response(base.Response('error', status), null);
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
@@ -52,11 +49,12 @@ void main() {
 
   group('verifyPayment — whitelist stricte', () {
     /// Vérifie qu'un statut reconnu retourne Right(true).
-    Future<void> _expectSuccess(String status) async {
-      when(() => mockPaymentService.verifyPayment('order1'))
-          .thenAnswer((_) async => _ok({
-                'data': {'status': status},
-              }));
+    Future<void> expectSuccess(String status) async {
+      when(() => mockPaymentService.verifyPayment('order1')).thenAnswer(
+        (_) async => _ok({
+          'data': {'status': status},
+        }),
+      );
 
       final result = await repo.verifyPayment('order1');
 
@@ -68,67 +66,72 @@ void main() {
     }
 
     /// Vérifie qu'un statut invalide retourne Left(AppError).
-    Future<void> _expectFailure(Map<String, dynamic> body) async {
-      when(() => mockPaymentService.verifyPayment('order1'))
-          .thenAnswer((_) async => _ok(body));
+    Future<void> expectFailure(Map<String, dynamic> body) async {
+      when(
+        () => mockPaymentService.verifyPayment('order1'),
+      ).thenAnswer((_) async => _ok(body));
 
       final result = await repo.verifyPayment('order1');
 
       expect(result.isLeft(), true);
-      result.fold(
-        (err) {
-          expect(err.message, 'payment.failed');
-          expect(err.type, AppErrorType.server);
-        },
-        (_) => fail('Attendu Left, obtenu Right'),
-      );
+      result.fold((err) {
+        expect(err.message, 'payment.failed');
+        expect(err.type, AppErrorType.server);
+      }, (_) => fail('Attendu Left, obtenu Right'));
     }
 
     test("statut 'completed' → Right(true) ✅", () async {
-      await _expectSuccess('completed');
+      await expectSuccess('completed');
     });
 
     test("statut 'paid' → Right(true) ✅", () async {
-      await _expectSuccess('paid');
+      await expectSuccess('paid');
     });
 
     test("statut 'success' → Right(true) ✅", () async {
-      await _expectSuccess('success');
+      await expectSuccess('success');
     });
 
     test("statut 'approved' → Right(true) ✅", () async {
-      await _expectSuccess('approved');
+      await expectSuccess('approved');
     });
 
     test("statut '' (vide) → AppError payment.failed ❌", () async {
-      await _expectFailure({'data': {'status': ''}});
+      await expectFailure({
+        'data': {'status': ''},
+      });
     });
 
     test('statut null → AppError payment.failed ❌', () async {
-      await _expectFailure({'data': <String, dynamic>{}});
+      await expectFailure({'data': <String, dynamic>{}});
     });
 
-    test("statut 'pending' → Right(false) — pas une erreur mais pas un succès", () async {
-      when(() => mockPaymentService.verifyPayment('order1'))
-          .thenAnswer((_) async => _ok({
-                'data': {'status': 'pending'},
-              }));
+    test(
+      "statut 'pending' → Right(false) — pas une erreur mais pas un succès",
+      () async {
+        when(() => mockPaymentService.verifyPayment('order1')).thenAnswer(
+          (_) async => _ok({
+            'data': {'status': 'pending'},
+          }),
+        );
 
-      final result = await repo.verifyPayment('order1');
+        final result = await repo.verifyPayment('order1');
 
-      // 'pending' n'est pas dans la whitelist → isSuccess = false
-      expect(result.isRight(), true);
-      result.fold(
-        (_) => fail('Attendu Right pour statut connu non-succès'),
-        (ok) => expect(ok, false),
-      );
-    });
+        // 'pending' n'est pas dans la whitelist → isSuccess = false
+        expect(result.isRight(), true);
+        result.fold(
+          (_) => fail('Attendu Right pour statut connu non-succès'),
+          (ok) => expect(ok, false),
+        );
+      },
+    );
 
     test("statut 'fraudulent_unknown' → Right(false) ❌", () async {
-      when(() => mockPaymentService.verifyPayment('order1'))
-          .thenAnswer((_) async => _ok({
-                'data': {'status': 'fraudulent_unknown'},
-              }));
+      when(() => mockPaymentService.verifyPayment('order1')).thenAnswer(
+        (_) async => _ok({
+          'data': {'status': 'fraudulent_unknown'},
+        }),
+      );
 
       final result = await repo.verifyPayment('order1');
 
@@ -140,8 +143,9 @@ void main() {
     });
 
     test('réponse HTTP en erreur → Left(AppError)', () async {
-      when(() => mockPaymentService.verifyPayment('order1'))
-          .thenAnswer((_) async => _err(500));
+      when(
+        () => mockPaymentService.verifyPayment('order1'),
+      ).thenAnswer((_) async => _err(500));
 
       final result = await repo.verifyPayment('order1');
 
@@ -149,8 +153,9 @@ void main() {
     });
 
     test('exception réseau → Left(AppError.network)', () async {
-      when(() => mockPaymentService.verifyPayment('order1'))
-          .thenThrow(Exception('Network error'));
+      when(
+        () => mockPaymentService.verifyPayment('order1'),
+      ).thenThrow(Exception('Network error'));
 
       final result = await repo.verifyPayment('order1');
 
@@ -166,19 +171,18 @@ void main() {
 
   group('cancelOrder', () {
     test('annulation réussie → Right(null)', () async {
-      when(() => mockOrderService.cancelOrder('order1'))
-          .thenAnswer((_) async => Response(
-                base.Response('', 200),
-                <String, dynamic>{},
-              ));
+      when(() => mockOrderService.cancelOrder('order1')).thenAnswer(
+        (_) async => Response(base.Response('', 200), <String, dynamic>{}),
+      );
 
       final result = await repo.cancelOrder('order1');
       expect(result.isRight(), true);
     });
 
     test('erreur serveur → Left(AppError)', () async {
-      when(() => mockOrderService.cancelOrder('order1'))
-          .thenAnswer((_) async => _err(403));
+      when(
+        () => mockOrderService.cancelOrder('order1'),
+      ).thenAnswer((_) async => _err(403));
 
       final result = await repo.cancelOrder('order1');
       expect(result.isLeft(), true);

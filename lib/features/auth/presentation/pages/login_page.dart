@@ -128,7 +128,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         state.maybeWhen(
-          authenticated: (_, __, ___) => _onAuthenticated(context),
+          authenticated: (_, _, _) => _onAuthenticated(context),
           otpSent: (phone) => setState(() => _otpPhone = phone),
           emailVerificationRequired: (email) => context.go('/auth/verify-email?email=${Uri.encodeComponent(email)}'),
           error: (message) {

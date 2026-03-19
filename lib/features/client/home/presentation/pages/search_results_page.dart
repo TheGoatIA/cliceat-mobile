@@ -146,7 +146,7 @@ class _RestaurantSearchCard extends StatelessWidget {
                       width: 72,
                       height: 72,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
+                      errorBuilder: (_, _, _) =>
                           _placeholder(theme),
                     )
                   : _placeholder(theme),

@@ -17,6 +17,10 @@ import 'package:logger/logger.dart';
 /// 3. Autres threads : attendent `_pendingRefresh!.future`
 /// 4. Si refresh OK → nouveau token → on retente
 /// 5. Si refresh KO → on efface les credentials → l'app redirige vers login
+class _RefreshState {
+  Completer<String?>? pendingRefresh;
+}
+
 class RefreshInterceptor implements Interceptor {
   RefreshInterceptor(this._secureStorage, this._refreshCallback);
 
@@ -24,8 +28,8 @@ class RefreshInterceptor implements Interceptor {
   final Future<Response> Function() _refreshCallback;
   final Logger _logger = Logger();
 
-  /// Verrou : non-null quand un refresh est en cours.
-  Completer<String?>? _pendingRefresh;
+  /// État mutable encapsulé pour respecter l'immutabilité de l'intercepteur.
+  final _state = _RefreshState();
 
   @override
   FutureOr<Response<BodyType>> intercept<BodyType>(
@@ -58,26 +62,26 @@ class RefreshInterceptor implements Interceptor {
 
   Future<String?> _getOrStartRefresh() async {
     // Si un refresh est déjà en cours → attendre son résultat
-    if (_pendingRefresh != null) {
+    if (_state.pendingRefresh != null) {
       _logger.d('[RefreshInterceptor] Refresh déjà en cours — en attente...');
-      return _pendingRefresh!.future;
+      return _state.pendingRefresh!.future;
     }
 
     // Premier appelant → démarrer le refresh
-    _pendingRefresh = Completer<String?>();
+    _state.pendingRefresh = Completer<String?>();
 
     try {
       final newToken = await _doRefresh();
-      _pendingRefresh!.complete(newToken);
+      _state.pendingRefresh!.complete(newToken);
       return newToken;
     } catch (e, stack) {
       _logger.e('[RefreshInterceptor] Erreur lors du refresh', error: e, stackTrace: stack);
-      _pendingRefresh!.complete(null);
+      _state.pendingRefresh!.complete(null);
       return null;
     } finally {
       // Libérer le mutex après un court délai pour que les waiters puissent lire
       await Future<void>.delayed(const Duration(milliseconds: 50));
-      _pendingRefresh = null;
+      _state.pendingRefresh = null;
     }
   }
 

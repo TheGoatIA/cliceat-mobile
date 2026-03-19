@@ -139,7 +139,7 @@ class OrderRepository {
     try {
       final res = await _orderService.rateOrder(id, {
         'rating': rating,
-        if (comment != null) 'comment': comment,
+        'comment': comment,
       });
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(

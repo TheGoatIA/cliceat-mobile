@@ -12,7 +12,6 @@ import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/models/earnings_model.dart';
-import '../../../../../core/models/mission_model.dart';
 import '../../../../../core/repositories/driver_repository.dart';
 import '../../../../../core/services/websocket_service.dart';
 import '../../../../../shared/widgets/stat_card.dart';
@@ -102,8 +101,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
       _logger.w('Location permission denied');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('delivery.location_permission_required'.tr())),
+          SnackBar(content: Text('delivery.location_permission_required'.tr())),
         );
       }
       return;
@@ -121,17 +119,19 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
       );
     }
 
-    _locationSubscription = Geolocator.getPositionStream(
-      locationSettings: settings,
-    ).listen(
-      (position) {
-        getIt<DriverRepository>()
-            .updateLocation(position.latitude, position.longitude);
-        getIt<WebSocketService>()
-            .emitLocationUpdate(position.latitude, position.longitude);
-      },
-      onError: (e) => _logger.w('GPS stream error: $e'),
-    );
+    _locationSubscription =
+        Geolocator.getPositionStream(locationSettings: settings).listen((
+          position,
+        ) {
+          getIt<DriverRepository>().updateLocation(
+            position.latitude,
+            position.longitude,
+          );
+          getIt<WebSocketService>().emitLocationUpdate(
+            position.latitude,
+            position.longitude,
+          );
+        }, onError: (e) => _logger.w('GPS stream error: $e'));
   }
 
   void _stopLocationUpdates() {
@@ -149,9 +149,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
         listener: (context, state) {
           state.maybeWhen(
             actionSuccess: (message) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message.tr())),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(message.tr())));
             },
             error: (message) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -209,8 +209,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('delivery.status'.tr(),
-                  style: theme.textTheme.bodySmall),
+              Text('delivery.status'.tr(), style: theme.textTheme.bodySmall),
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -227,11 +226,11 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    isOnline
-                        ? 'delivery.online'.tr()
-                        : 'delivery.offline'.tr(),
+                    isOnline ? 'delivery.online'.tr() : 'delivery.offline'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: isOnline ? AppTheme.statusOnline : theme.disabledColor,
+                      color: isOnline
+                          ? AppTheme.statusOnline
+                          : theme.disabledColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -241,18 +240,17 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           ),
           Switch(
             value: isOnline,
-            activeTrackColor:
-                theme.colorScheme.primary.withValues(alpha: 0.5),
+            activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.5),
             onChanged: (value) async {
               setState(() => isOnline = value);
-              final result =
-                  await getIt<DriverRepository>().updateOnlineStatus(value);
+              final result = await getIt<DriverRepository>().updateOnlineStatus(
+                value,
+              );
               if (!mounted) return;
               result.fold(
                 (err) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text('common.network_error'.tr())),
+                    SnackBar(content: Text('common.network_error'.tr())),
                   );
                   setState(() => isOnline = !value);
                 },
@@ -294,8 +292,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
             Icon(
               isOnline ? Icons.radar : Icons.power_settings_new,
               size: 34,
-              color:
-                  isOnline ? theme.colorScheme.primary : theme.disabledColor,
+              color: isOnline ? theme.colorScheme.primary : theme.disabledColor,
             ),
             const SizedBox(height: 8),
             Text(
@@ -351,36 +348,40 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           loaded: (m) => m,
           orElse: () => <Map<String, dynamic>>[],
         );
-        final isLoading =
-            state.maybeWhen(loading: () => true, orElse: () => false);
+        final isLoading = state.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
 
         final pendingMissions = missions.where((m) {
           final status = m['status'] as String? ?? '';
           return status == 'pending' || status == 'assigned';
         }).toList();
 
-        final recentOrders =
-            (_earnings?.dailyBreakdown ?? []).isEmpty
-                ? <Map<String, dynamic>>[]
-                : <Map<String, dynamic>>[];
+        final recentOrders = (_earnings?.dailyBreakdown ?? []).isEmpty
+            ? <Map<String, dynamic>>[]
+            : <Map<String, dynamic>>[];
 
         return ListView(
           children: [
             if (pendingMissions.isNotEmpty) ...[
               Text(
                 'delivery.active_missions'.tr(),
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
-              ...pendingMissions
-                  .map((m) => _buildMissionCard(context, m, theme)),
+              ...pendingMissions.map(
+                (m) => _buildMissionCard(context, m, theme),
+              ),
               const SizedBox(height: 20),
             ],
             Text(
               'delivery.recent_deliveries'.tr(),
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             if (isLoading)
@@ -391,8 +392,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   padding: const EdgeInsets.all(24),
                   child: Text(
                     'delivery.no_history'.tr(),
-                    style: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ),
               )
@@ -409,8 +409,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   Future<void> _navigateTo(double lat, double lng, String label) async {
     final encoded = Uri.encodeComponent(label);
     // Try Google Maps first, then fallback to geo: URI
-    final gmapsUri =
-        Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving');
+    final gmapsUri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving',
+    );
     final geoUri = Uri.parse('geo:$lat,$lng?q=$lat,$lng($encoded)');
     if (await canLaunchUrl(gmapsUri)) {
       await launchUrl(gmapsUri, mode: LaunchMode.externalApplication);
@@ -468,7 +469,8 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
               decoration: InputDecoration(
                 hintText: 'delivery.cash_code_hint'.tr(),
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -505,8 +507,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     }
 
     // Step 2: Cash code (only for cash payment)
-    final paymentMethod =
-        mission['paymentMethod'] as String? ?? '';
+    final paymentMethod = mission['paymentMethod'] as String? ?? '';
     Map<String, dynamic> metadata = {};
     try {
       final bytes = await File(photoPath).readAsBytes();
@@ -524,20 +525,17 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     }
 
     // Step 3: Dispatch
-    if (!mounted) return;
+    if (!blocContext.mounted) return;
     blocContext.read<MissionBloc>().add(
-          MissionEvent.updateStatus(missionId, 'delivered',
-              metadata: metadata),
-        );
+      MissionEvent.updateStatus(missionId, 'delivered', metadata: metadata),
+    );
   }
 
-  Widget _buildRecentOrderTile(
-      Map<String, dynamic> order, ThemeData theme) {
-    final orderId =
-        order['_id']?.toString() ?? order['id']?.toString() ?? '#';
-    final address =
-        order['deliveryAddress']?['address'] as String? ?? '';
-    final amount = order['driverEarnings']?.toString() ??
+  Widget _buildRecentOrderTile(Map<String, dynamic> order, ThemeData theme) {
+    final orderId = order['_id']?.toString() ?? order['id']?.toString() ?? '#';
+    final address = order['deliveryAddress']?['address'] as String? ?? '';
+    final amount =
+        order['driverEarnings']?.toString() ??
         order['amount']?.toString() ??
         '';
     final shortId = orderId.length > 6
@@ -553,25 +551,27 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(Icons.check_circle_outline, color: AppTheme.statusDelivered),
+        child: Icon(
+          Icons.check_circle_outline,
+          color: AppTheme.statusDelivered,
+        ),
       ),
       title: Text('#$shortId'),
       subtitle: Text(address),
       trailing: Text(
         '+$amount FCFA',
-        style: theme.textTheme.titleSmall
-            ?.copyWith(color: AppTheme.statusDelivered, fontWeight: FontWeight.bold),
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: AppTheme.statusDelivered,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
 
-  Widget _buildNavigateButton(
-      Map<String, dynamic> mission, String status) {
+  Widget _buildNavigateButton(Map<String, dynamic> mission, String status) {
     // Navigate to restaurant when accepted, to client when in_transit
-    final restaurant =
-        mission['restaurant'] as Map<String, dynamic>?;
-    final deliveryAddress =
-        mission['deliveryAddress'] as Map<String, dynamic>?;
+    final restaurant = mission['restaurant'] as Map<String, dynamic>?;
+    final deliveryAddress = mission['deliveryAddress'] as Map<String, dynamic>?;
 
     double? lat;
     double? lng;
@@ -583,12 +583,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
       lng = (loc?['lng'] ?? loc?['longitude'])?.toDouble();
       label = restaurant['name'] as String? ?? '';
     } else if (status == 'in_transit' && deliveryAddress != null) {
-      lat = (deliveryAddress['lat'] ?? deliveryAddress['latitude'])
-          ?.toDouble();
+      lat = (deliveryAddress['lat'] ?? deliveryAddress['latitude'])?.toDouble();
       lng = (deliveryAddress['lng'] ?? deliveryAddress['longitude'])
           ?.toDouble();
-      label =
-          deliveryAddress['address'] as String? ?? '';
+      label = deliveryAddress['address'] as String? ?? '';
     }
 
     if (lat == null || lng == null) return const SizedBox.shrink();
@@ -618,14 +616,14 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     final missionId =
         mission['_id']?.toString() ?? mission['id']?.toString() ?? '';
     final restaurantName =
-        (mission['restaurant'] as Map<String, dynamic>?)?['name']
-                as String? ??
-            '';
+        (mission['restaurant'] as Map<String, dynamic>?)?['name'] as String? ??
+        '';
     final address =
         (mission['deliveryAddress'] as Map<String, dynamic>?)?['address']
-                as String? ??
-            '';
-    final amount = mission['driverEarnings']?.toString() ??
+            as String? ??
+        '';
+    final amount =
+        mission['driverEarnings']?.toString() ??
         mission['totalAmount']?.toString() ??
         '--';
     final status = mission['status'] as String? ?? '';
@@ -640,24 +638,25 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.delivery_dining,
-                    color: theme.colorScheme.primary),
+                Icon(Icons.delivery_dining, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     restaurantName.isNotEmpty
                         ? restaurantName
                         : 'delivery.status_waiting'.tr(),
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color:
-                        theme.colorScheme.primary.withValues(alpha: 0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -675,13 +674,14 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.location_on_outlined,
-                      size: 15,
-                      color: theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.location_on_outlined,
+                    size: 15,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 4),
                   Expanded(
-                    child: Text(address,
-                        style: theme.textTheme.bodySmall),
+                    child: Text(address, style: theme.textTheme.bodySmall),
                   ),
                 ],
               ),
@@ -692,9 +692,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => context
-                          .read<MissionBloc>()
-                          .add(MissionEvent.rejectMission(missionId)),
+                      onPressed: () => context.read<MissionBloc>().add(
+                        MissionEvent.rejectMission(missionId),
+                      ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: theme.colorScheme.error,
                         side: BorderSide(color: theme.colorScheme.error),
@@ -705,9 +705,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => context
-                          .read<MissionBloc>()
-                          .add(MissionEvent.acceptMission(missionId)),
+                      onPressed: () => context.read<MissionBloc>().add(
+                        MissionEvent.acceptMission(missionId),
+                      ),
                       child: Text('delivery.accept_mission'.tr()),
                     ),
                   ),
@@ -722,10 +722,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   if (status == 'accepted')
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () => context
-                            .read<MissionBloc>()
-                            .add(MissionEvent.updateStatus(
-                                missionId, 'picked_up')),
+                        onPressed: () => context.read<MissionBloc>().add(
+                          MissionEvent.updateStatus(missionId, 'picked_up'),
+                        ),
                         icon: const Icon(Icons.local_shipping_outlined),
                         label: Text('delivery.confirm_pickup'.tr()),
                       ),
@@ -733,12 +732,13 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   else
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () => _confirmDelivery(
-                            context, missionId, mission),
+                        onPressed: () =>
+                            _confirmDelivery(context, missionId, mission),
                         icon: const Icon(Icons.check_circle_outline),
                         label: Text('delivery.confirm_delivery'.tr()),
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.statusDelivered),
+                          backgroundColor: AppTheme.statusDelivered,
+                        ),
                       ),
                     ),
                 ],

@@ -190,7 +190,9 @@ class AuthRepository {
   // ─── Logout ───────────────────────────────────────────────────────────────
 
   Future<void> logout() async {
-    await _authService.logout().catchError((_) {});
+    try {
+      await _authService.logout();
+    } catch (_) {}
     await clearAuth();
   }
 

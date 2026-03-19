@@ -109,13 +109,13 @@ class _BannerItem extends StatelessWidget {
               ? Image.asset(
                   banner.imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _colorFallback(context),
+                  errorBuilder: (_, _, _) => _colorFallback(context),
                 )
               : CachedNetworkImage(
                   imageUrl: banner.imageUrl,
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => _colorFallback(context),
-                  errorWidget: (_, __, ___) => _colorFallback(context),
+                  placeholder: (_, _) => _colorFallback(context),
+                  errorWidget: (_, _, _) => _colorFallback(context),
                 ),
 
           // Gradient overlay

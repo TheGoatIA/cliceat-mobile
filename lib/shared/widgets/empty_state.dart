@@ -65,7 +65,7 @@ class EmptyState extends StatelessWidget {
       return Image.asset(
         imagePath!,
         height: 160,
-        errorBuilder: (_, __, ___) => _iconFallback(theme),
+        errorBuilder: (_, _, _) => _iconFallback(theme),
       );
     }
     return _iconFallback(theme);

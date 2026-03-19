@@ -1,6 +1,8 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logger/logger.dart';
+import '../../../../../core/errors/app_error.dart';
 import '../../../../../core/repositories/driver_repository.dart';
 import '../../../../../core/services/analytics_service.dart';
 import '../../../../../core/di/injection.dart';
@@ -79,7 +81,7 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
       _UpdateStatus event, Emitter<MissionState> emit) async {
     emit(const MissionState.loading());
 
-    late final result;
+    late final Either<AppError, void> result;
     switch (event.status) {
       case 'picked_up':
         result =

@@ -1,4 +1,3 @@
-import 'package:bloc_test/bloc_test.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,9 +6,8 @@ import 'package:cliceat_app/core/data/local/database.dart';
 import 'package:cliceat_app/features/client/cart/presentation/bloc/cart_cubit.dart';
 
 /// Crée une base Drift en mémoire pour les tests.
-AppDatabase _inMemoryDb() => AppDatabase.forTesting(
-      drift.DatabaseConnection(NativeDatabase.memory()),
-    );
+AppDatabase _inMemoryDb() =>
+    AppDatabase.forTesting(drift.DatabaseConnection(NativeDatabase.memory()));
 
 void main() {
   late AppDatabase db;

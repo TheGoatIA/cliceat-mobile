@@ -227,7 +227,7 @@ class _MapClientPageState extends State<MapClientPage> {
       RenderedQueryOptions(layerIds: [_kUnclusteredLayerId]),
     );
 
-    if (markerFeatures.isNotEmpty && context.mounted) {
+    if (markerFeatures.isNotEmpty && mounted) {
       final props = markerFeatures.first?.queriedFeature.feature['properties']
           as Map<String, dynamic>?;
       final id = props?['id'] as String? ?? '';

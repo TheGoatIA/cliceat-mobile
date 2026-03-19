@@ -8,7 +8,6 @@ import '../../../../../core/models/coupon_model.dart';
 import '../../../../../core/models/restaurant_model.dart';
 import '../../../../../core/repositories/coupon_repository.dart';
 import '../../../../../core/repositories/restaurant_repository.dart';
-import '../../../../../shared/widgets/app_network_image.dart';
 import '../../../../../shared/widgets/banner_carousel.dart';
 import '../../../../../shared/widgets/empty_state.dart';
 import '../../../../../shared/widgets/restaurant_card.dart';
@@ -46,11 +45,26 @@ class _HomeClientPageState extends State<HomeClientPage> {
   ];
 
   static const _emojiMap = {
-    'burger': '🍔', 'pizza': '🍕', 'poulet': '🍗', 'chicken': '🍗',
-    'salade': '🥗', 'salad': '🥗', 'ndolé': '🥘', 'ndole': '🥘',
-    'poisson': '🐟', 'fish': '🐟', 'sushi': '🍱', 'tacos': '🌮',
-    'sandwich': '🥙', 'pasta': '🍝', 'dessert': '🍰', 'jus': '🥤',
-    'rice': '🍚', 'riz': '🍚', 'viande': '🥩', 'meat': '🥩',
+    'burger': '🍔',
+    'pizza': '🍕',
+    'poulet': '🍗',
+    'chicken': '🍗',
+    'salade': '🥗',
+    'salad': '🥗',
+    'ndolé': '🥘',
+    'ndole': '🥘',
+    'poisson': '🐟',
+    'fish': '🐟',
+    'sushi': '🍱',
+    'tacos': '🌮',
+    'sandwich': '🥙',
+    'pasta': '🍝',
+    'dessert': '🍰',
+    'jus': '🥤',
+    'rice': '🍚',
+    'riz': '🍚',
+    'viande': '🥩',
+    'meat': '🥩',
   };
 
   @override
@@ -74,18 +88,17 @@ class _HomeClientPageState extends State<HomeClientPage> {
     setState(() => _loadingRestaurants = true);
     final result = await getIt<RestaurantRepository>().getFeaturedRestaurants();
     if (!mounted) return;
-    result.fold(
-      (_) => setState(() => _loadingRestaurants = false),
-      (restaurants) {
-        final categories = _extractCategories(restaurants);
-        setState(() {
-          _allRestaurants = restaurants;
-          _displayedRestaurants = restaurants;
-          _loadingRestaurants = false;
-          if (categories.isNotEmpty) _categories = categories;
-        });
-      },
-    );
+    result.fold((_) => setState(() => _loadingRestaurants = false), (
+      restaurants,
+    ) {
+      final categories = _extractCategories(restaurants);
+      setState(() {
+        _allRestaurants = restaurants;
+        _displayedRestaurants = restaurants;
+        _loadingRestaurants = false;
+        if (categories.isNotEmpty) _categories = categories;
+      });
+    });
   }
 
   Future<void> _loadBanners() async {
@@ -184,8 +197,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
               children: [
                 Text(
                   AppConstants.defaultCity,
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Icon(Icons.keyboard_arrow_down, size: 18),
               ],
@@ -277,9 +291,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: Theme.of(context)
-                    .colorScheme
-                    .surfaceContainerHighest,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
             )
           : BannerCarousel(banners: _banners, height: 160),
@@ -327,8 +339,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
                           ],
                         ),
                         child: Center(
-                          child: Text(emoji,
-                              style: const TextStyle(fontSize: 24)),
+                          child: Text(
+                            emoji,
+                            style: const TextStyle(fontSize: 24),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -338,9 +352,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: isSelected
-                              ? theme.colorScheme.primary
-                              : null,
+                          color: isSelected ? theme.colorScheme.primary : null,
                         ),
                         textAlign: TextAlign.center,
                         maxLines: 1,

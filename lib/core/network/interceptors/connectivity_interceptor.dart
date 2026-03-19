@@ -11,22 +11,26 @@ class NetworkException implements Exception {
   String toString() => 'NetworkException($messageKey)';
 }
 
+class _ConnectivityState {
+  List<ConnectivityResult>? cachedResult;
+  DateTime? lastCheck;
+}
+
 class ConnectivityInterceptor implements Interceptor {
-  List<ConnectivityResult>? _cachedResult;
-  DateTime? _lastCheck;
+  final _state = _ConnectivityState();
   static const _cacheDuration = Duration(seconds: 3);
 
   @override
   FutureOr<Response<BodyType>> intercept<BodyType>(
       Chain<BodyType> chain) async {
     final now = DateTime.now();
-    if (_cachedResult == null ||
-        _lastCheck == null ||
-        now.difference(_lastCheck!) > _cacheDuration) {
-      _cachedResult = await Connectivity().checkConnectivity();
-      _lastCheck = now;
+    if (_state.cachedResult == null ||
+        _state.lastCheck == null ||
+        now.difference(_state.lastCheck!) > _cacheDuration) {
+      _state.cachedResult = await Connectivity().checkConnectivity();
+      _state.lastCheck = now;
     }
-    if (_cachedResult!.contains(ConnectivityResult.none)) {
+    if (_state.cachedResult!.contains(ConnectivityResult.none)) {
       throw const NetworkException('common.network_error');
     }
     return chain.proceed(chain.request);

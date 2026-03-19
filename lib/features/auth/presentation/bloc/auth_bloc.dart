@@ -355,7 +355,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // Revoke FCM token before clearing credentials
     await _revokeFcmToken();
     try {
-      await _authService.logout().catchError((_) {});
+      try {
+        await _authService.logout();
+      } catch (_) {}
       getIt<WebSocketService>().disconnect();
       getIt<AnalyticsService>().logLogout();
       getIt<AnalyticsService>().clearUser();

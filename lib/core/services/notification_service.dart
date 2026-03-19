@@ -1,8 +1,6 @@
-import 'dart:collection';
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
@@ -10,8 +8,7 @@ import 'package:logger/logger.dart';
 
 // Top-level function for background message handling
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(
-    RemoteMessage message) async {
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('[FCM BG] messageId=${message.messageId}');
 }
 
@@ -29,7 +26,7 @@ class NotificationService {
   // Garde en mémoire les messageId déjà affichés pour éviter d'afficher deux
   // fois la même notification (foreground + background race).
   static const _deduplicationWindowMs = 30000; // 30 secondes
-  final _recentMessageIds = LinkedHashMap<String, DateTime>();
+  final _recentMessageIds = <String, DateTime>{};
 
   /// Call once after the router is ready to enable tap-to-route.
   void configureRouting(GlobalKey<NavigatorState> navigatorKey) {
@@ -39,8 +36,7 @@ class NotificationService {
   // ─── Initialization ───────────────────────────────────────────────────────
 
   Future<void> initialize() async {
-    FirebaseMessaging.onBackgroundMessage(
-        _firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     final settings = await _messaging.requestPermission(
       alert: true,
@@ -49,17 +45,16 @@ class NotificationService {
       criticalAlert: false, // criticalAlert nécessite une entitlement Apple
     );
 
-    if (settings.authorizationStatus ==
-        AuthorizationStatus.authorized) {
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       _logger.i('[Notif] Permission accordée.');
     } else {
       _logger.w('[Notif] Permission refusée : ${settings.authorizationStatus}');
     }
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initSettings =
-        InitializationSettings(android: androidSettings);
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+    const initSettings = InitializationSettings(android: androidSettings);
 
     await _localNotifications.initialize(
       settings: initSettings,
@@ -143,7 +138,8 @@ class NotificationService {
 
   void _routeFromMessage(RemoteMessage message) {
     final type = message.data['type'] as String? ?? '';
-    final orderId = message.data['orderId'] as String? ??
+    final orderId =
+        message.data['orderId'] as String? ??
         message.data['order_id'] as String? ??
         '';
     _navigate(type, orderId);
@@ -153,19 +149,13 @@ class NotificationService {
     try {
       final data = jsonDecode(payload) as Map<String, dynamic>;
       final type = data['type'] as String? ?? '';
-      final orderId = data['orderId'] as String? ??
-          data['order_id'] as String? ??
-          '';
+      final orderId =
+          data['orderId'] as String? ?? data['order_id'] as String? ?? '';
       _navigate(type, orderId);
     } catch (_) {
-      final orderIdMatch =
-          RegExp(r'orderId:\s*([^\s,}]+)').firstMatch(payload);
-      final typeMatch =
-          RegExp(r'type:\s*([^\s,}]+)').firstMatch(payload);
-      _navigate(
-        typeMatch?.group(1) ?? '',
-        orderIdMatch?.group(1) ?? '',
-      );
+      final orderIdMatch = RegExp(r'orderId:\s*([^\s,}]+)').firstMatch(payload);
+      final typeMatch = RegExp(r'type:\s*([^\s,}]+)').firstMatch(payload);
+      _navigate(typeMatch?.group(1) ?? '', orderIdMatch?.group(1) ?? '');
     }
   }
 
@@ -198,13 +188,11 @@ class NotificationService {
       enableVibration: true,
     );
 
-    const platformDetails =
-        NotificationDetails(android: androidDetails);
+    const platformDetails = NotificationDetails(android: androidDetails);
 
     // Utiliser un ID dérivé du messageId pour l'idempotence côté OS
-    final notifId = (message.messageId ?? message.sentTime.toString())
-        .hashCode
-        .abs() %
+    final notifId =
+        (message.messageId ?? message.sentTime.toString()).hashCode.abs() %
         100000;
 
     await _localNotifications.show(

@@ -23,7 +23,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   /// Constructeur pour les tests en mémoire.
-  AppDatabase.forTesting(DatabaseConnection connection) : super(connection);
+  AppDatabase.forTesting(super.connection);
 
   @override
   int get schemaVersion => 2;

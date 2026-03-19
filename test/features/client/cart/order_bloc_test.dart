@@ -51,7 +51,7 @@ void main() {
     getIt.unregister<AnalyticsService>();
   });
 
-  OrderBloc _buildBloc() => OrderBloc(mockRepo);
+  OrderBloc buildBloc() => OrderBloc(mockRepo);
 
   // ─── CreateOrder ──────────────────────────────────────────────────────────
 
@@ -64,7 +64,7 @@ void main() {
         when(() => mockRepo.createOrder(any()))
             .thenAnswer((_) async => Right(_fakeOrder()));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const OrderEvent.createOrder(payload)),
       expect: () => [
         const OrderState.loading(),
@@ -85,7 +85,7 @@ void main() {
         when(() => mockRepo.createOrder(any()))
             .thenAnswer((_) async => Left(AppError.network()));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const OrderEvent.createOrder(payload)),
       expect: () => [
         const OrderState.loading(),
@@ -110,7 +110,7 @@ void main() {
         when(() => mockRepo.getOrders())
             .thenAnswer((_) async => Right([_fakeOrder()]));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const OrderEvent.loadOrders()),
       expect: () => [
         const OrderState.loading(),
@@ -132,7 +132,7 @@ void main() {
             .thenAnswer((_) async =>
                 Left(const AppError(message: 'order.error_load')));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const OrderEvent.loadOrders()),
       expect: () => [
         const OrderState.loading(),
@@ -150,7 +150,7 @@ void main() {
         when(() => mockRepo.cancelOrder('order_abc123'))
             .thenAnswer((_) async => const Right(null));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) =>
           bloc.add(const OrderEvent.cancelOrder('order_abc123')),
       expect: () => [

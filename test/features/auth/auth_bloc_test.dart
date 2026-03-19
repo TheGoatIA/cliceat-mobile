@@ -12,6 +12,8 @@ import 'package:cliceat_app/core/repositories/user_repository.dart';
 import 'package:cliceat_app/core/services/analytics_service.dart';
 import 'package:cliceat_app/core/services/notification_service.dart';
 import 'package:cliceat_app/core/services/websocket_service.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:drift/native.dart';
 import 'package:cliceat_app/features/auth/data/datasources/auth_service.dart';
 import 'package:cliceat_app/features/auth/presentation/bloc/auth_bloc.dart';
 
@@ -19,7 +21,7 @@ import 'package:cliceat_app/features/auth/presentation/bloc/auth_bloc.dart';
 
 class MockAuthService extends Mock implements AuthService {}
 class MockSecureStorage extends Mock implements FlutterSecureStorage {}
-class MockAppDatabase extends Mock implements AppDatabase {}
+// class MockAppDatabase extends Mock implements AppDatabase {}
 class MockWebSocketService extends Mock implements WebSocketService {}
 class MockNotificationService extends Mock implements NotificationService {}
 class MockAnalyticsService extends Mock implements AnalyticsService {}
@@ -49,7 +51,7 @@ const _kValidToken =
 void main() {
   late MockAuthService mockAuthService;
   late MockSecureStorage mockStorage;
-  late MockAppDatabase mockDb;
+  late AppDatabase mockDb;
   late MockWebSocketService mockWs;
   late MockNotificationService mockNotif;
   late MockAnalyticsService mockAnalytics;
@@ -58,7 +60,7 @@ void main() {
   setUp(() {
     mockAuthService = MockAuthService();
     mockStorage = MockSecureStorage();
-    mockDb = MockAppDatabase();
+    mockDb = AppDatabase.forTesting(drift.DatabaseConnection(NativeDatabase.memory()));
     mockWs = MockWebSocketService();
     mockNotif = MockNotificationService();
     mockAnalytics = MockAnalyticsService();
@@ -108,14 +110,15 @@ void main() {
         .thenAnswer((_) async {});
   });
 
-  tearDown(() {
+  tearDown(() async {
+    await mockDb.close();
     getIt.unregister<WebSocketService>();
     getIt.unregister<NotificationService>();
     getIt.unregister<AnalyticsService>();
     getIt.unregister<UserRepository>();
   });
 
-  AuthBloc _buildBloc() => AuthBloc(
+  AuthBloc buildBloc() => AuthBloc(
         mockAuthService,
         mockStorage,
         mockDb,
@@ -126,7 +129,7 @@ void main() {
   group('AppStarted', () {
     blocTest<AuthBloc, AuthState>(
       'émet unauthenticated quand aucun token stocké',
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const AuthEvent.appStarted()),
       expect: () => [
         const AuthState.loading(),
@@ -144,13 +147,13 @@ void main() {
         when(() => mockStorage.read(key: 'current_mode'))
             .thenAnswer((_) async => 'client');
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const AuthEvent.appStarted()),
       expect: () => [
         const AuthState.loading(),
         isA<AuthState>().having(
           (s) => s.maybeWhen(
-            authenticated: (_, userId, __) => userId,
+            authenticated: (_, userId, _) => userId,
             orElse: () => null,
           ),
           'userId',
@@ -176,7 +179,7 @@ void main() {
         when(() => mockAuthService.login(any()))
             .thenAnswer((_) async => _buildResponse(successBody));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const AuthEvent.loginWithEmail(
         email: 'test@cliceat.cm',
         password: 'password123',
@@ -185,7 +188,7 @@ void main() {
         const AuthState.loading(),
         isA<AuthState>().having(
           (s) => s.maybeWhen(
-            authenticated: (_, userId, __) => userId,
+            authenticated: (_, userId, _) => userId,
             orElse: () => null,
           ),
           'userId',
@@ -203,7 +206,7 @@ void main() {
               status: 401,
             ));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const AuthEvent.loginWithEmail(
         email: 'test@cliceat.cm',
         password: 'wrong',
@@ -227,7 +230,7 @@ void main() {
         when(() => mockAuthService.login(any()))
             .thenThrow(Exception('Network error'));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const AuthEvent.loginWithEmail(
         email: 'test@cliceat.cm',
         password: 'password123',
@@ -248,7 +251,7 @@ void main() {
         when(() => mockAuthService.logout())
             .thenAnswer((_) async => _buildResponse({}));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const AuthEvent.logout()),
       expect: () => [
         const AuthState.loading(),
@@ -262,7 +265,7 @@ void main() {
   group('SessionExpired', () {
     blocTest<AuthBloc, AuthState>(
       'émet unauthenticated sur sessionExpired',
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const AuthEvent.sessionExpired()),
       expect: () => [const AuthState.unauthenticated()],
     );
@@ -280,7 +283,7 @@ void main() {
               status: 401,
             ));
       },
-      build: _buildBloc,
+      build: buildBloc,
       act: (bloc) => bloc.add(const AuthEvent.loginWithGoogle(
         token: 'invalid_google_token',
       )),

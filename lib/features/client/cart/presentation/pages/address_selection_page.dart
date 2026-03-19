@@ -242,7 +242,7 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: _addresses.length,
-                          separatorBuilder: (_, __) =>
+                          separatorBuilder: (_, _) =>
                               const Divider(height: 1),
                           itemBuilder: (context, index) {
                             final addr = _addresses[index];
