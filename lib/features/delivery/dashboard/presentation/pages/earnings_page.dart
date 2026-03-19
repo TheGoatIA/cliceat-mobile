@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/models/earnings_model.dart';
 import '../../../../../core/repositories/driver_repository.dart';

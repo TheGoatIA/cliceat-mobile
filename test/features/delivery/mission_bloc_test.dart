@@ -19,16 +19,12 @@ class MockAnalyticsService extends Mock implements AnalyticsService {}
 
 MissionModel _fakeMission({String id = 'mission1'}) => MissionModel(
       id: id,
-      orderId: 'order_abc',
       status: 'pending',
       restaurantLat: 4.0511,
       restaurantLng: 9.7679,
-      deliveryLat: 4.0600,
-      deliveryLng: 9.7800,
       restaurantName: 'Test Resto',
       clientName: 'Client Test',
-      deliveryAddress: '123 Rue Test, Douala',
-      estimatedAmount: 3500,
+      earnings: 3500,
     );
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -46,8 +42,8 @@ void main() {
     }
     getIt.registerSingleton<AnalyticsService>(mockAnalytics);
 
-    when(() => mockAnalytics.logMissionAccepted(any())).thenReturn(null);
-    when(() => mockAnalytics.logDeliveryCompleted(any())).thenReturn(null);
+    when(() => mockAnalytics.logMissionAccepted(any())).thenAnswer((_) async {});
+    when(() => mockAnalytics.logDeliveryCompleted(any())).thenAnswer((_) async {});
   });
 
   tearDown(() {

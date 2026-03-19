@@ -27,21 +27,31 @@ final class _$DriverService extends DriverService {
 
   @override
   Future<Response<Map<String, dynamic>>> updateStatus(
-      Map<String, dynamic> statusData) {
+    Map<String, dynamic> statusData,
+  ) {
     final Uri $url = Uri.parse('/delivery/me/status');
     final $body = statusData;
-    final Request $request =
-        Request('PATCH', $url, client.baseUrl, body: $body);
+    final Request $request = Request(
+      'PATCH',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 
   @override
   Future<Response<Map<String, dynamic>>> updateLocation(
-      Map<String, dynamic> locationData) {
+    Map<String, dynamic> locationData,
+  ) {
     final Uri $url = Uri.parse('/delivery/me/location');
     final $body = locationData;
-    final Request $request =
-        Request('PATCH', $url, client.baseUrl, body: $body);
+    final Request $request = Request(
+      'PATCH',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 }

@@ -106,7 +106,7 @@ final class _$AuthService extends AuthService {
 
   @override
   Future<Response<dynamic>> verifyEmail(String token) {
-    final Uri $url = Uri.parse('/auth/verify-email/$token');
+    final Uri $url = Uri.parse('/auth/verify-email/${token}');
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<dynamic, dynamic>($request);
   }

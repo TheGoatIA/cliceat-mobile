@@ -19,19 +19,19 @@ import '../../../../../shared/widgets/stat_card.dart';
 import '../bloc/mission_bloc.dart';
 
 // Platform-specific GPS settings
-const _androidLocationSettings = AndroidSettings(
+final _androidLocationSettings = AndroidSettings(
   accuracy: LocationAccuracy.high,
   distanceFilter: 15,
   forceLocationManager: false,
-  intervalDuration: Duration(seconds: 5),
-  foregroundNotificationConfig: ForegroundNotificationConfig(
+  intervalDuration: const Duration(seconds: 5),
+  foregroundNotificationConfig: const ForegroundNotificationConfig(
     notificationText: 'ClicEat : suivi de position en cours',
     notificationTitle: 'ClicEat Livreur',
     enableWakeLock: true,
   ),
 );
 
-const _appleLocationSettings = AppleSettings(
+final _appleLocationSettings = AppleSettings(
   accuracy: LocationAccuracy.high,
   activityType: ActivityType.automotiveNavigation,
   distanceFilter: 15,

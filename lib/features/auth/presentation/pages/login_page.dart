@@ -69,10 +69,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   Future<void> _handleGoogleSignIn(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      final googleSignIn = GoogleSignIn();
-      final account = await googleSignIn.signIn();
-      if (account == null) return; // user cancelled
-      final auth = await account.authentication;
+      final account = await GoogleSignIn.instance.authenticate();
+      final auth = account.authentication;
       final idToken = auth.idToken;
       if (idToken == null) {
         if (context.mounted) {
@@ -208,15 +206,15 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           onPressed: () => setState(() => _showRegister = true),
           child: Text('auth.no_account'.tr()),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(children: [
-            Expanded(child: Divider()),
+            const Expanded(child: Divider()),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text('auth.or'.tr(), style: const TextStyle(color: Colors.grey)),
             ),
-            Expanded(child: Divider()),
+            const Expanded(child: Divider()),
           ]),
         ),
         // Google Sign-In

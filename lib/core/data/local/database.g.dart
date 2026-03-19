@@ -2192,6 +2192,378 @@ class CartTableCompanion extends UpdateCompanion<CartTableData> {
   }
 }
 
+class $PendingActionsTableTable extends PendingActionsTable
+    with TableInfo<$PendingActionsTableTable, PendingActionsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PendingActionsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _retryCountMeta = const VerificationMeta(
+    'retryCount',
+  );
+  @override
+  late final GeneratedColumn<int> retryCount = GeneratedColumn<int>(
+    'retry_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    type,
+    payload,
+    retryCount,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_actions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingActionsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('retry_count')) {
+      context.handle(
+        _retryCountMeta,
+        retryCount.isAcceptableOrUnknown(data['retry_count']!, _retryCountMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PendingActionsTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingActionsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      retryCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}retry_count'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PendingActionsTableTable createAlias(String alias) {
+    return $PendingActionsTableTable(attachedDatabase, alias);
+  }
+}
+
+class PendingActionsTableData extends DataClass
+    implements Insertable<PendingActionsTableData> {
+  /// Identifiant unique de l'action (UUID générée localement).
+  final String id;
+
+  /// Type d'action : 'create_order' | 'cancel_order' | 'rate_order' | etc.
+  final String type;
+
+  /// Payload JSON sérialisé à envoyer.
+  final String payload;
+
+  /// Nombre de tentatives d'envoi déjà effectuées.
+  final int retryCount;
+
+  /// Date de création de l'action (pour trier / expirer les vieilles actions).
+  final DateTime createdAt;
+  const PendingActionsTableData({
+    required this.id,
+    required this.type,
+    required this.payload,
+    required this.retryCount,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['type'] = Variable<String>(type);
+    map['payload'] = Variable<String>(payload);
+    map['retry_count'] = Variable<int>(retryCount);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  PendingActionsTableCompanion toCompanion(bool nullToAbsent) {
+    return PendingActionsTableCompanion(
+      id: Value(id),
+      type: Value(type),
+      payload: Value(payload),
+      retryCount: Value(retryCount),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory PendingActionsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingActionsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      type: serializer.fromJson<String>(json['type']),
+      payload: serializer.fromJson<String>(json['payload']),
+      retryCount: serializer.fromJson<int>(json['retryCount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'type': serializer.toJson<String>(type),
+      'payload': serializer.toJson<String>(payload),
+      'retryCount': serializer.toJson<int>(retryCount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  PendingActionsTableData copyWith({
+    String? id,
+    String? type,
+    String? payload,
+    int? retryCount,
+    DateTime? createdAt,
+  }) => PendingActionsTableData(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    payload: payload ?? this.payload,
+    retryCount: retryCount ?? this.retryCount,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  PendingActionsTableData copyWithCompanion(PendingActionsTableCompanion data) {
+    return PendingActionsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      retryCount: data.retryCount.present
+          ? data.retryCount.value
+          : this.retryCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingActionsTableData(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('payload: $payload, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, type, payload, retryCount, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingActionsTableData &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.payload == this.payload &&
+          other.retryCount == this.retryCount &&
+          other.createdAt == this.createdAt);
+}
+
+class PendingActionsTableCompanion
+    extends UpdateCompanion<PendingActionsTableData> {
+  final Value<String> id;
+  final Value<String> type;
+  final Value<String> payload;
+  final Value<int> retryCount;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const PendingActionsTableCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PendingActionsTableCompanion.insert({
+    required String id,
+    required String type,
+    required String payload,
+    this.retryCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       type = Value(type),
+       payload = Value(payload);
+  static Insertable<PendingActionsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? type,
+    Expression<String>? payload,
+    Expression<int>? retryCount,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (payload != null) 'payload': payload,
+      if (retryCount != null) 'retry_count': retryCount,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PendingActionsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? type,
+    Value<String>? payload,
+    Value<int>? retryCount,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return PendingActionsTableCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      payload: payload ?? this.payload,
+      retryCount: retryCount ?? this.retryCount,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (retryCount.present) {
+      map['retry_count'] = Variable<int>(retryCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingActionsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('payload: $payload, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2200,6 +2572,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $CartTableTable cartTable = $CartTableTable(this);
+  late final $PendingActionsTableTable pendingActionsTable =
+      $PendingActionsTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2208,6 +2582,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userPrefsTable,
     restaurantsTable,
     cartTable,
+    pendingActionsTable,
   ];
 }
 
@@ -3265,6 +3640,224 @@ typedef $$CartTableTableProcessedTableManager =
       CartTableData,
       PrefetchHooks Function()
     >;
+typedef $$PendingActionsTableTableCreateCompanionBuilder =
+    PendingActionsTableCompanion Function({
+      required String id,
+      required String type,
+      required String payload,
+      Value<int> retryCount,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$PendingActionsTableTableUpdateCompanionBuilder =
+    PendingActionsTableCompanion Function({
+      Value<String> id,
+      Value<String> type,
+      Value<String> payload,
+      Value<int> retryCount,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$PendingActionsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $PendingActionsTableTable> {
+  $$PendingActionsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PendingActionsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $PendingActionsTableTable> {
+  $$PendingActionsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PendingActionsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PendingActionsTableTable> {
+  $$PendingActionsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$PendingActionsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PendingActionsTableTable,
+          PendingActionsTableData,
+          $$PendingActionsTableTableFilterComposer,
+          $$PendingActionsTableTableOrderingComposer,
+          $$PendingActionsTableTableAnnotationComposer,
+          $$PendingActionsTableTableCreateCompanionBuilder,
+          $$PendingActionsTableTableUpdateCompanionBuilder,
+          (
+            PendingActionsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $PendingActionsTableTable,
+              PendingActionsTableData
+            >,
+          ),
+          PendingActionsTableData,
+          PrefetchHooks Function()
+        > {
+  $$PendingActionsTableTableTableManager(
+    _$AppDatabase db,
+    $PendingActionsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PendingActionsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PendingActionsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$PendingActionsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<int> retryCount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PendingActionsTableCompanion(
+                id: id,
+                type: type,
+                payload: payload,
+                retryCount: retryCount,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String type,
+                required String payload,
+                Value<int> retryCount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PendingActionsTableCompanion.insert(
+                id: id,
+                type: type,
+                payload: payload,
+                retryCount: retryCount,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PendingActionsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PendingActionsTableTable,
+      PendingActionsTableData,
+      $$PendingActionsTableTableFilterComposer,
+      $$PendingActionsTableTableOrderingComposer,
+      $$PendingActionsTableTableAnnotationComposer,
+      $$PendingActionsTableTableCreateCompanionBuilder,
+      $$PendingActionsTableTableUpdateCompanionBuilder,
+      (
+        PendingActionsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $PendingActionsTableTable,
+          PendingActionsTableData
+        >,
+      ),
+      PendingActionsTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3275,4 +3868,6 @@ class $AppDatabaseManager {
       $$RestaurantsTableTableTableManager(_db, _db.restaurantsTable);
   $$CartTableTableTableManager get cartTable =>
       $$CartTableTableTableManager(_db, _db.cartTable);
+  $$PendingActionsTableTableTableManager get pendingActionsTable =>
+      $$PendingActionsTableTableTableManager(_db, _db.pendingActionsTable);
 }

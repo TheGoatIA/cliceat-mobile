@@ -43,8 +43,8 @@ void main() {
           orderId: any(named: 'orderId'),
           total: any(named: 'total'),
           deliveryFee: any(named: 'deliveryFee'),
-        )).thenReturn(null);
-    when(() => mockAnalytics.logOrderCancelled(any())).thenReturn(null);
+        )).thenAnswer((_) async {});
+    when(() => mockAnalytics.logOrderCancelled(any())).thenAnswer((_) async {});
   });
 
   tearDown(() {

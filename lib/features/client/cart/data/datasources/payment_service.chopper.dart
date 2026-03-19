@@ -20,17 +20,17 @@ final class _$PaymentService extends PaymentService {
 
   @override
   Future<Response<Map<String, dynamic>>> initializePayment(
-      Map<String, dynamic> body) {
+    Map<String, dynamic> body,
+  ) {
     final Uri $url = Uri.parse('/payments/initialize');
     final $body = body;
-    final Request $request =
-        Request('POST', $url, client.baseUrl, body: $body);
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 
   @override
   Future<Response<Map<String, dynamic>>> verifyPayment(String reference) {
-    final Uri $url = Uri.parse('/payments/$reference/verify');
+    final Uri $url = Uri.parse('/payments/${reference}/verify');
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }

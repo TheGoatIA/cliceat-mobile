@@ -56,7 +56,7 @@ abstract class NetworkModule {
         const TimeoutInterceptor(receiveTimeout: Duration(seconds: 30)),
 
         // Retry automatique : max 3 tentatives, backoff 1s → 2s → 4s
-        const RetryInterceptor(maxRetries: 3),
+        RetryInterceptor(maxRetries: 3),
 
         // Vérification connectivité avant la requête
         ConnectivityInterceptor(),

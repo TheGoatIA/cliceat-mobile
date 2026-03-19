@@ -153,9 +153,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
         ),
       );
     } else {
-      _driverAnnotation = _driverAnnotation!.copyWith(
-        PointAnnotationOptions(geometry: point),
-      );
+      _driverAnnotation!.geometry = point;
       await _annotationManager!.update(_driverAnnotation!);
     }
 

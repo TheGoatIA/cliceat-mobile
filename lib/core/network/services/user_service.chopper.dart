@@ -26,22 +26,40 @@ final class _$UserService extends UserService {
   }
 
   @override
-  Future<Response<Map<String, dynamic>>> updateMe(
-      Map<String, dynamic> body) {
+  Future<Response<Map<String, dynamic>>> updateMe(Map<String, dynamic> body) {
     final Uri $url = Uri.parse('/users/me');
     final $body = body;
-    final Request $request =
-        Request('PATCH', $url, client.baseUrl, body: $body);
+    final Request $request = Request(
+      'PATCH',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 
   @override
   Future<Response<Map<String, dynamic>>> registerFcmToken(
-      Map<String, dynamic> body) {
+    Map<String, dynamic> body,
+  ) {
     final Uri $url = Uri.parse('/users/me/device-token');
     final $body = body;
-    final Request $request =
-        Request('POST', $url, client.baseUrl, body: $body);
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> unregisterFcmToken(
+    Map<String, dynamic> body,
+  ) {
+    final Uri $url = Uri.parse('/users/me/device-token');
+    final $body = body;
+    final Request $request = Request(
+      'DELETE',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 
@@ -53,12 +71,10 @@ final class _$UserService extends UserService {
   }
 
   @override
-  Future<Response<Map<String, dynamic>>> addAddress(
-      Map<String, dynamic> body) {
+  Future<Response<Map<String, dynamic>>> addAddress(Map<String, dynamic> body) {
     final Uri $url = Uri.parse('/users/me/addresses');
     final $body = body;
-    final Request $request =
-        Request('POST', $url, client.baseUrl, body: $body);
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 

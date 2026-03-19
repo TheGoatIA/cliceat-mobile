@@ -141,6 +141,12 @@ class UserRepository {
     } catch (_) {}
   }
 
+  Future<void> unregisterFcmToken(String token) async {
+    try {
+      await _service.unregisterFcmToken({'token': token});
+    } catch (_) {}
+  }
+
   // ─── Cache helpers ────────────────────────────────────────────────────────
 
   Future<void> _cacheProfile(UserModel user) async {

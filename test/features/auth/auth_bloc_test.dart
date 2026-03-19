@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:chopper/chopper.dart';
+import 'package:http/http.dart' as base;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -91,19 +92,20 @@ void main() {
         .thenAnswer((_) async => 'fcm_token_test');
     when(() => mockUserRepo.registerFcmToken(any()))
         .thenAnswer((_) async {});
-    when(() => mockAnalytics.logLogin(any())).thenReturn(null);
-    when(() => mockAnalytics.logSignUp(any())).thenReturn(null);
-    when(() => mockAnalytics.logLogout()).thenReturn(null);
-    when(() => mockAnalytics.clearUser()).thenReturn(null);
-    when(() => mockAnalytics.setUserId(any())).thenReturn(null);
-    when(() => mockAnalytics.setUserMode(any())).thenReturn(null);
+    when(() => mockAnalytics.logLogin(any())).thenAnswer((_) async {});
+    when(() => mockAnalytics.logSignUp(any())).thenAnswer((_) async {});
+    when(() => mockAnalytics.logLogout()).thenAnswer((_) async {});
+    when(() => mockAnalytics.clearUser()).thenAnswer((_) async {});
+    when(() => mockAnalytics.setUserId(any())).thenAnswer((_) async {});
+    when(() => mockAnalytics.setUserMode(any())).thenAnswer((_) async {});
     when(() => mockStorage.write(key: any(named: 'key'), value: any(named: 'value')))
         .thenAnswer((_) async {});
     when(() => mockStorage.delete(key: any(named: 'key')))
         .thenAnswer((_) async {});
     when(() => mockStorage.read(key: any(named: 'key')))
         .thenAnswer((_) async => null);
-    when(() => mockDb.delete(any())).thenReturn(MockDeleteStatement());
+    when(() => mockUserRepo.unregisterFcmToken(any()))
+        .thenAnswer((_) async {});
   });
 
   tearDown(() {

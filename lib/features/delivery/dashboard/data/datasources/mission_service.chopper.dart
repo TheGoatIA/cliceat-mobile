@@ -48,21 +48,23 @@ final class _$MissionService extends MissionService {
 
   @override
   Future<Response<Map<String, dynamic>>> confirmDelivery(
-      String id, Map<String, dynamic> body) {
+    String id,
+    Map<String, dynamic> body,
+  ) {
     final Uri $url = Uri.parse('/delivery/orders/${id}/delivered');
     final $body = body;
-    final Request $request =
-        Request('POST', $url, client.baseUrl, body: $body);
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 
   @override
   Future<Response<Map<String, dynamic>>> reportMission(
-      String id, Map<String, dynamic> reportData) {
+    String id,
+    Map<String, dynamic> reportData,
+  ) {
     final Uri $url = Uri.parse('/delivery/orders/${id}/report');
     final $body = reportData;
-    final Request $request =
-        Request('POST', $url, client.baseUrl, body: $body);
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 }

@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:geolocator/geolocator.dart' hide Position;
 import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
@@ -174,7 +174,7 @@ class _MapClientPageState extends State<MapClientPage> {
       iconImage: _kMarkerImageId,
       iconSize: 0.9,
       iconAllowOverlap: true,
-      textField: ['get', 'name'],
+      textFieldExpression: ['get', 'name'],
       textSize: 10.0,
       textOffset: [0.0, 2.5],
       textAnchor: TextAnchor.TOP,
@@ -199,7 +199,7 @@ class _MapClientPageState extends State<MapClientPage> {
     );
 
     if (clusterFeatures.isNotEmpty) {
-      final coords = clusterFeatures.first?.feature['geometry']
+      final coords = clusterFeatures.first?.queriedFeature.feature['geometry']
           as Map<String, dynamic>?;
       final coordinates =
           coords?['coordinates'] as List<dynamic>?;
@@ -228,7 +228,7 @@ class _MapClientPageState extends State<MapClientPage> {
     );
 
     if (markerFeatures.isNotEmpty && context.mounted) {
-      final props = markerFeatures.first?.feature['properties']
+      final props = markerFeatures.first?.queriedFeature.feature['properties']
           as Map<String, dynamic>?;
       final id = props?['id'] as String? ?? '';
       if (id.isNotEmpty) {

@@ -11,7 +11,7 @@ class RetryInterceptor implements Interceptor {
   final int maxRetries;
   final Logger _logger = Logger();
 
-  const RetryInterceptor({this.maxRetries = 3});
+  RetryInterceptor({this.maxRetries = 3});
 
   @override
   FutureOr<Response<BodyType>> intercept<BodyType>(

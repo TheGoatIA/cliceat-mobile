@@ -20,6 +20,11 @@ abstract class UserService extends ChopperService {
   Future<Response<Map<String, dynamic>>> registerFcmToken(
       @Body() Map<String, dynamic> body);
 
+  /// DELETE /users/me/device-token — unregister FCM token on logout
+  @DELETE(path: '/me/device-token')
+  Future<Response<Map<String, dynamic>>> unregisterFcmToken(
+      @Body() Map<String, dynamic> body);
+
   /// GET /users/me/addresses
   @GET(path: '/me/addresses')
   Future<Response<Map<String, dynamic>>> getAddresses();

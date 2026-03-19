@@ -208,10 +208,10 @@ class NotificationService {
         100000;
 
     await _localNotifications.show(
-      notifId,
-      message.notification?.title,
-      message.notification?.body,
-      platformDetails,
+      id: notifId,
+      title: message.notification?.title,
+      body: message.notification?.body,
+      notificationDetails: platformDetails,
       payload: jsonEncode(message.data),
     );
   }

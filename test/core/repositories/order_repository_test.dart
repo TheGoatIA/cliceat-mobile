@@ -1,4 +1,5 @@
 import 'package:chopper/chopper.dart';
+import 'package:http/http.dart' as base;
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';

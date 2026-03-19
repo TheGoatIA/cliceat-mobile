@@ -57,7 +57,7 @@ class StatCard extends StatelessWidget {
               ? const SizedBox(
                   height: 20,
                   width: 60,
-                  child: LinearProgressIndicator(strokeWidth: 2),
+                  child: LinearProgressIndicator(),
                 )
               : Text(
                   value,
