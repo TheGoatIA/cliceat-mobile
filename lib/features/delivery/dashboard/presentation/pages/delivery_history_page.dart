@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/models/mission_model.dart';
-import '../../../../../core/repositories/driver_repository.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
 
 class DeliveryHistoryPage extends StatefulWidget {
   const DeliveryHistoryPage({super.key});

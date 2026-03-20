@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/models/address_model.dart';
-import '../../../../../core/repositories/user_repository.dart';
+import 'package:cliceat_app/shared/models/address_model.dart';
+import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 
 class AddressSelectionPage extends StatefulWidget {
   const AddressSelectionPage({super.key});

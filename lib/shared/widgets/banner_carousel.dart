@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../core/models/coupon_model.dart';
+import 'package:cliceat_app/features/client/cart/data/models/coupon_model.dart';
 
 /// Auto-paging promotional banner carousel.
 /// Falls back to a local asset banner when the [banners] list is empty.

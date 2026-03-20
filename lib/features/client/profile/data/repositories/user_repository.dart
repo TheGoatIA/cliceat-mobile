@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../errors/app_error.dart';
-import '../models/user_model.dart';
-import '../models/address_model.dart';
-import '../models/loyalty_model.dart';
-import '../network/services/user_service.dart';
+import 'package:cliceat_app/core/errors/app_error.dart';
+import 'package:cliceat_app/shared/models/user_model.dart';
+import 'package:cliceat_app/shared/models/address_model.dart';
+import 'package:cliceat_app/features/client/profile/data/models/loyalty_model.dart';
+import 'package:cliceat_app/core/network/services/user_service.dart';
 
 /// Abstracts user profile, addresses and loyalty data.
 class UserRepository {

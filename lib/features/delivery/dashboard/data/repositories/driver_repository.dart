@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
-import '../errors/app_error.dart';
-import '../models/mission_model.dart';
-import '../models/earnings_model.dart';
-import '../../features/delivery/dashboard/data/datasources/mission_service.dart';
-import '../../features/delivery/dashboard/data/datasources/driver_service.dart';
+import 'package:cliceat_app/core/errors/app_error.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/models/earnings_model.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/datasources/mission_service.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/datasources/driver_service.dart';
 
 /// Abstracts delivery driver operations: missions, earnings, status, location.
 class DriverRepository {

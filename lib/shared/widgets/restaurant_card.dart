@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/models/restaurant_model.dart';
+import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
 import 'app_network_image.dart';
 
 /// Reusable card that displays a [RestaurantModel].

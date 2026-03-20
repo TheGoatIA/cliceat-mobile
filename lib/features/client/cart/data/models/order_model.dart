@@ -1,4 +1,4 @@
-import 'address_model.dart';
+import 'package:cliceat_app/shared/models/address_model.dart';
 
 /// One item within an order.
 class OrderItemModel {

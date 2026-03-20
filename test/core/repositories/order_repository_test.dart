@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:cliceat_app/core/errors/app_error.dart';
-import 'package:cliceat_app/core/repositories/order_repository.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import 'package:cliceat_app/features/client/cart/data/datasources/order_service.dart';
 import 'package:cliceat_app/features/client/cart/data/datasources/payment_service.dart';
 import 'package:cliceat_app/core/network/services/tracking_service.dart';

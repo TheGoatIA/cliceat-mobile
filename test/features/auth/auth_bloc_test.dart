@@ -8,7 +8,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:cliceat_app/core/data/local/database.dart';
 import 'package:cliceat_app/core/di/injection.dart';
-import 'package:cliceat_app/core/repositories/user_repository.dart';
+import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import 'package:cliceat_app/core/services/analytics_service.dart';
 import 'package:cliceat_app/core/services/notification_service.dart';
 import 'package:cliceat_app/core/services/websocket_service.dart';

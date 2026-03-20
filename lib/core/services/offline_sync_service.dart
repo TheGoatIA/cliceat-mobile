@@ -7,7 +7,7 @@ import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/local/database.dart';
-import '../repositories/order_repository.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 
 /// Service de synchronisation hors-ligne.
 ///

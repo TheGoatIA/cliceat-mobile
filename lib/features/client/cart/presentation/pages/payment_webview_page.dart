@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/mixins/secure_screen_mixin.dart';
-import '../../../../../core/repositories/order_repository.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 
 class PaymentWebviewPage extends StatefulWidget {
   final String paymentUrl;

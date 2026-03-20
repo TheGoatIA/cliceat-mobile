@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/models/user_model.dart';
-import '../../../../../core/repositories/user_repository.dart';
+import 'package:cliceat_app/shared/models/user_model.dart';
+import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../client/profile/presentation/pages/profile_page.dart'
     show NotificationSettingsSheet;

@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:cliceat_app/core/errors/app_error.dart';
-import 'package:cliceat_app/core/models/order_model.dart';
-import 'package:cliceat_app/core/repositories/order_repository.dart';
+import 'package:cliceat_app/features/client/cart/data/models/order_model.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/services/analytics_service.dart';
 import 'package:cliceat_app/features/client/cart/presentation/bloc/order_bloc.dart';

@@ -5,10 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/models/address_model.dart';
-import '../../../../../core/models/loyalty_model.dart';
-import '../../../../../core/models/user_model.dart';
-import '../../../../../core/repositories/user_repository.dart';
+import 'package:cliceat_app/shared/models/address_model.dart';
+import 'package:cliceat_app/features/client/profile/data/models/loyalty_model.dart';
+import 'package:cliceat_app/shared/models/user_model.dart';
+import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 
 class ProfilePage extends StatefulWidget {

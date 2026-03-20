@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'package:dartz/dartz.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../errors/app_error.dart';
-import '../models/order_model.dart';
-import '../models/tracking_model.dart';
-import '../../features/client/cart/data/datasources/order_service.dart';
-import '../../features/client/cart/data/datasources/payment_service.dart';
-import '../network/services/tracking_service.dart';
+import 'package:cliceat_app/core/errors/app_error.dart';
+import 'package:cliceat_app/features/client/cart/data/models/order_model.dart';
+import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart';
+import 'package:cliceat_app/features/client/cart/data/datasources/order_service.dart';
+import 'package:cliceat_app/features/client/cart/data/datasources/payment_service.dart';
+import 'package:cliceat_app/core/network/services/tracking_service.dart';
 
 /// Statuts de paiement valides renvoyés par NotchPay / backend ClicEat.
 /// Toute valeur absente de cet ensemble est rejetée comme non-succès.

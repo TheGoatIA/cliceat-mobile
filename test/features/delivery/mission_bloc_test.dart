@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:cliceat_app/core/errors/app_error.dart';
-import 'package:cliceat_app/core/models/mission_model.dart';
-import 'package:cliceat_app/core/repositories/driver_repository.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/services/analytics_service.dart';
 import 'package:cliceat_app/features/delivery/dashboard/presentation/bloc/mission_bloc.dart';

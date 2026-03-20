@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/models/menu_item_model.dart';
-import '../../../../../core/models/restaurant_model.dart';
-import '../../../../../core/repositories/restaurant_repository.dart';
+import 'package:cliceat_app/features/client/home/data/models/menu_item_model.dart';
+import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
+import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import '../../../../../shared/widgets/app_network_image.dart';
 import '../../../cart/presentation/bloc/cart_cubit.dart';
 

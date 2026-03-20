@@ -2,8 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/repositories/restaurant_repository.dart';
-import '../../../../../core/models/restaurant_model.dart';
+import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
+import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
 import '../../../../../core/services/analytics_service.dart';
 
 class SearchResultsPage extends StatefulWidget {

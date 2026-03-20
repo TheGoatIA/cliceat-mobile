@@ -10,8 +10,8 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/models/restaurant_model.dart';
-import '../../../../../core/repositories/restaurant_repository.dart';
+import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
+import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import '../../../../../shared/widgets/app_network_image.dart';
 
 // ─── Source / Layer IDs ───────────────────────────────────────────────────────

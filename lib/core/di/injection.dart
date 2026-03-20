@@ -3,12 +3,12 @@ import 'package:injectable/injectable.dart';
 import 'injection.config.dart';
 
 // Repositories & services registered without code generation
-import '../repositories/auth_repository.dart';
-import '../repositories/order_repository.dart';
-import '../repositories/restaurant_repository.dart';
-import '../repositories/user_repository.dart';
-import '../repositories/driver_repository.dart';
-import '../repositories/coupon_repository.dart';
+import 'package:cliceat_app/features/auth/data/repositories/auth_repository.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
+import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
+import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/coupon_repository.dart';
 import '../services/analytics_service.dart';
 import '../data/local/daos/cart_dao.dart';
 import '../data/local/daos/restaurant_dao.dart';

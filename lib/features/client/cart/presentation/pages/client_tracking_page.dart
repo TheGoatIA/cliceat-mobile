@@ -7,8 +7,8 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/services.dart';
 import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../../core/models/tracking_model.dart';
-import '../../../../../core/repositories/order_repository.dart';
+import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import '../../../../../core/services/websocket_service.dart';
 
 class ClientTrackingPage extends StatefulWidget {

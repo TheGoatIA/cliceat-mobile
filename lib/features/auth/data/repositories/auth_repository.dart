@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../errors/app_error.dart';
-import '../models/user_model.dart';
-import '../../features/auth/data/datasources/auth_service.dart';
+import 'package:cliceat_app/core/errors/app_error.dart';
+import 'package:cliceat_app/shared/models/user_model.dart';
+import 'package:cliceat_app/features/auth/data/datasources/auth_service.dart';
 
 /// Abstracts all authentication operations and token persistence.
 class AuthRepository {

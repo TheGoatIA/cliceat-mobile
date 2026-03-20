@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logger/logger.dart';
 import '../../../../../core/errors/app_error.dart';
-import '../../../../../core/repositories/driver_repository.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
 import '../../../../../core/services/analytics_service.dart';
 import '../../../../../core/di/injection.dart';
 
