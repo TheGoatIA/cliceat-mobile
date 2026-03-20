@@ -74,7 +74,7 @@ final class _$AuthService extends AuthService {
 
   @override
   Future<Response<dynamic>> loginWithGoogle(Map<String, dynamic> body) {
-    final Uri $url = Uri.parse('/auth/google');
+    final Uri $url = Uri.parse('/auth/firebase');
     final $body = body;
     final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<dynamic, dynamic>($request);
@@ -82,7 +82,7 @@ final class _$AuthService extends AuthService {
 
   @override
   Future<Response<dynamic>> loginWithApple(Map<String, dynamic> body) {
-    final Uri $url = Uri.parse('/auth/apple');
+    final Uri $url = Uri.parse('/auth/firebase');
     final $body = body;
     final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<dynamic, dynamic>($request);

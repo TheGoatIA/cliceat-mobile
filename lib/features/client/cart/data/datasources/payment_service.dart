@@ -8,15 +8,15 @@ abstract class PaymentService extends ChopperService {
   static PaymentService create([ChopperClient? client]) =>
       _$PaymentService(client);
 
-  /// POST /payments/initialize — initiate a NotchPay payment
-  @POST(path: '/initialize')
+  /// POST /payments/init — initiate a NotchPay payment
+  @POST(path: '/init')
   Future<Response<Map<String, dynamic>>> initializePayment(
       @Body() Map<String, dynamic> body);
 
-  /// GET /payments/{reference}/verify — verify payment status
-  @GET(path: '/{reference}/verify')
+  /// GET /payments/{id}/status — verify payment status
+  @GET(path: '/{id}/status')
   Future<Response<Map<String, dynamic>>> verifyPayment(
-      @Path('reference') String reference);
+      @Path('id') String id);
 
   /// POST /payments/webhook — internal (backend handles this, not mobile)
   /// Exposed for reference only — not called from mobile directly.

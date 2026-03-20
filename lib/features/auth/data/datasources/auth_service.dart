@@ -29,10 +29,10 @@ abstract class AuthService extends ChopperService {
   Future<Response> loginWithFirebase(@Body() Map<String, dynamic> body);
 
   // Kept for backward compat aliases
-  @POST(path: '/google')
+  @POST(path: '/firebase')
   Future<Response> loginWithGoogle(@Body() Map<String, dynamic> body);
 
-  @POST(path: '/apple')
+  @POST(path: '/firebase')
   Future<Response> loginWithApple(@Body() Map<String, dynamic> body);
 
   @POST(path: '/forgot-password')

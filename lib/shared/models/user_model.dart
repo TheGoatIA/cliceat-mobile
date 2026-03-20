@@ -26,7 +26,8 @@ class UserModel {
       phone: json['phone']?.toString(),
       avatar: json['avatar']?.toString() ??
           json['profilePicture']?.toString() ??
-          json['avatarUrl']?.toString(),
+          json['avatarUrl']?.toString() ??
+          json['photoUrl']?.toString(),
       city: json['city']?.toString(),
       role: json['role']?.toString(),
     );

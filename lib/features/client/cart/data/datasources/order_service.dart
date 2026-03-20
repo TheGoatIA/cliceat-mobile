@@ -35,6 +35,7 @@ abstract class OrderService extends ChopperService {
   );
 
   /// POST /orders/{id}/reorder — create a new order from a past order
+  @Deprecated('Endpoint does not exist on backend')
   @POST(path: '/{id}/reorder')
   Future<Response<Map<String, dynamic>>> reorderOrder(
       @Path('id') String id);

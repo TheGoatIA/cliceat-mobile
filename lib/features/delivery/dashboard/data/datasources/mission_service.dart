@@ -35,6 +35,7 @@ abstract class MissionService extends ChopperService {
   );
 
   /// POST /delivery/orders/{id}/report (issue signaling)
+  @Deprecated('Endpoint does not exist on backend')
   @POST(path: '/orders/{id}/report')
   Future<Response<Map<String, dynamic>>> reportMission(
     @Path('id') String id,
