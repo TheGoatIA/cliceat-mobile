@@ -10,7 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../../core/di/injection.dart';
+import 'package:cliceat_app/di/injection.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/models/earnings_model.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
 import '../../../../../core/services/websocket_service.dart';

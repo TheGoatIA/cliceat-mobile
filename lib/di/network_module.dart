@@ -4,22 +4,22 @@ import 'package:chopper/chopper.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/io_client.dart';
-import '../network/interceptors/auth_interceptor.dart';
-import '../network/interceptors/refresh_interceptor.dart';
-import '../network/interceptors/connectivity_interceptor.dart';
-import '../network/interceptors/retry_interceptor.dart';
-import '../network/interceptors/timeout_interceptor.dart';
-import '../config/env_config.dart';
-import '../../features/auth/data/datasources/auth_service.dart';
-import '../../features/client/home/data/datasources/restaurant_service.dart';
-import '../../features/client/cart/data/datasources/order_service.dart';
-import '../../features/client/cart/data/datasources/payment_service.dart';
-import '../../features/delivery/dashboard/data/datasources/mission_service.dart';
-import '../../features/delivery/dashboard/data/datasources/driver_service.dart';
-import '../network/services/user_service.dart';
-import '../network/services/tracking_service.dart';
-import '../network/services/coupon_service.dart';
-import '../di/injection.dart';
+import 'package:cliceat_app/core/network/interceptors/auth_interceptor.dart';
+import 'package:cliceat_app/core/network/interceptors/refresh_interceptor.dart';
+import 'package:cliceat_app/core/network/interceptors/connectivity_interceptor.dart';
+import 'package:cliceat_app/core/network/interceptors/retry_interceptor.dart';
+import 'package:cliceat_app/core/network/interceptors/timeout_interceptor.dart';
+import 'package:cliceat_app/core/config/env_config.dart';
+import 'package:cliceat_app/core/../features/auth/data/datasources/auth_service.dart';
+import 'package:cliceat_app/core/../features/client/home/data/datasources/restaurant_service.dart';
+import 'package:cliceat_app/core/../features/client/cart/data/datasources/order_service.dart';
+import 'package:cliceat_app/core/../features/client/cart/data/datasources/payment_service.dart';
+import 'package:cliceat_app/core/../features/delivery/dashboard/data/datasources/mission_service.dart';
+import 'package:cliceat_app/core/../features/delivery/dashboard/data/datasources/driver_service.dart';
+import 'package:cliceat_app/core/network/services/user_service.dart';
+import 'package:cliceat_app/core/network/services/tracking_service.dart';
+import 'package:cliceat_app/core/network/services/coupon_service.dart';
+import 'package:cliceat_app/di/injection.dart';
 
 @module
 abstract class NetworkModule {

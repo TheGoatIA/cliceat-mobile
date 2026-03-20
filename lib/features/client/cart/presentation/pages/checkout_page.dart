@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/config/app_constants.dart';
-import '../../../../../core/di/injection.dart';
+import 'package:cliceat_app/di/injection.dart';
 import 'package:cliceat_app/features/client/cart/data/models/coupon_model.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/coupon_repository.dart';
 import '../bloc/order_bloc.dart';

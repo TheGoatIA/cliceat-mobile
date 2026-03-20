@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/config/app_constants.dart';
-import '../../../../../core/di/injection.dart';
+import 'package:cliceat_app/di/injection.dart';
 import 'package:cliceat_app/features/client/cart/data/models/coupon_model.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/coupon_repository.dart';

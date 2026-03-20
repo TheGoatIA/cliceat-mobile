@@ -55,6 +55,7 @@ class OrderModel {
   final String? notes;
   final DateTime? createdAt;
   final double? rating;
+  final String? invoiceUrl;
 
   const OrderModel({
     required this.id,
@@ -70,6 +71,7 @@ class OrderModel {
     this.notes,
     this.createdAt,
     this.rating,
+    this.invoiceUrl,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -105,6 +107,7 @@ class OrderModel {
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
       rating: (json['rating'] as num?)?.toDouble(),
+      invoiceUrl: json['invoiceUrl']?.toString(),
     );
   }
 
@@ -121,5 +124,6 @@ class OrderModel {
         if (notes != null) 'notes': notes,
         if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
         if (rating != null) 'rating': rating,
+        if (invoiceUrl != null) 'invoiceUrl': invoiceUrl,
       };
 }

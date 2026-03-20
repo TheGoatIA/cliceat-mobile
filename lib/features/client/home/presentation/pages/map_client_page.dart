@@ -9,7 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../../../../../core/config/app_constants.dart';
-import '../../../../../core/di/injection.dart';
+import 'package:cliceat_app/di/injection.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
 import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import '../../../../../shared/widgets/app_network_image.dart';

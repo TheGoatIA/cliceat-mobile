@@ -6,7 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/services.dart';
 import '../../../../../core/config/app_constants.dart';
-import '../../../../../core/di/injection.dart';
+import 'package:cliceat_app/di/injection.dart';
 import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import '../../../../../core/services/websocket_service.dart';

@@ -39,4 +39,8 @@ abstract class OrderService extends ChopperService {
   @POST(path: '/{id}/reorder')
   Future<Response<Map<String, dynamic>>> reorderOrder(
       @Path('id') String id);
+
+  /// GET /orders/{id}/invoice/download — stream order invoice PDF
+  @GET(path: '/{id}/invoice/download')
+  Future<Response<dynamic>> downloadInvoice(@Path('id') String id);
 }

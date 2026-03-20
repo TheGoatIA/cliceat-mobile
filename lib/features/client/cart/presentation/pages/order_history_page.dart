@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../core/di/injection.dart';
+import 'package:cliceat_app/di/injection.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/date_formatter.dart';
+import 'package:share_plus/share_plus.dart';
 import '../bloc/order_bloc.dart';
 
 class OrderHistoryPage extends StatefulWidget {
@@ -66,6 +67,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   content: Text(message.tr()),
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ));
+              },
+              invoiceDownloaded: (path) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Facture téléchargée avec succès !'),
+                  duration: Duration(seconds: 2),
+                ));
+                // ignore: deprecated_member_use
+                Share.shareXFiles([XFile(path)], text: 'Facture ClicEat');
               },
               orElse: () {},
             );
@@ -177,6 +186,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         (order['restaurant'] as Map<String, dynamic>?)?['name']
                 as String? ??
             '';
+    final invoiceUrl = order['invoiceUrl']?.toString();
     final isDelivered = status == 'delivered';
     final isCancelled = status == 'cancelled';
     final locale = context.locale.languageCode;
@@ -244,6 +254,16 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                         onPressed: () =>
                             context.push('/client/tracking/$orderId'),
                         child: Text('order.track_order'.tr()),
+                      ),
+                    if (isDelivered || invoiceUrl != null)
+                      IconButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Téléchargement en cours...')));
+                          context.read<OrderBloc>().add(OrderEvent.downloadInvoice(orderId));
+                        },
+                        icon: const Icon(Icons.download_rounded),
+                        tooltip: 'Télécharger la facture',
+                        color: theme.colorScheme.primary,
                       ),
                   ],
                 ),

@@ -1,4 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cliceat_app/di/injection.dart';
+import 'package:cliceat_app/core/config/env_config.dart';
 import 'package:dartz/dartz.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -270,5 +276,30 @@ class OrderRepository {
   Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_cacheKey);
+  }
+
+  // ─── Invoice ──────────────────────────────────────────────────────────────
+
+  Future<Either<AppError, String>> downloadInvoice(String orderId) async {
+    try {
+      final secureStorage = getIt<FlutterSecureStorage>();
+      final token = await secureStorage.read(key: 'jwt_token');
+      
+      final url = Uri.parse('${EnvConfig.apiBaseUrl}/orders/$orderId/invoice/download');
+      final response = await http.get(
+        url,
+        headers: token != null ? {'Authorization': 'Bearer $token'} : {},
+      );
+
+      if (response.statusCode == 200) {
+        final dir = await getApplicationDocumentsDirectory();
+        final file = File('${dir.path}/facture_cliceat_$orderId.pdf');
+        await file.writeAsBytes(response.bodyBytes);
+        return Right(file.path);
+      }
+      return const Left(AppError(message: 'order.error_download_invoice', type: AppErrorType.server));
+    } catch (_) {
+      return const Left(AppError(message: 'common.error_network', type: AppErrorType.network));
+    }
   }
 }

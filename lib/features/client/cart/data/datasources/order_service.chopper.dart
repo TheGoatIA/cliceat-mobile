@@ -78,4 +78,11 @@ final class _$OrderService extends OrderService {
     final Request $request = Request('POST', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
+
+  @override
+  Future<Response<dynamic>> downloadInvoice(String id) {
+    final Uri $url = Uri.parse('/orders/${id}/invoice/download');
+    final Request $request = Request('GET', $url, client.baseUrl);
+    return client.send<dynamic, dynamic>($request);
+  }
 }

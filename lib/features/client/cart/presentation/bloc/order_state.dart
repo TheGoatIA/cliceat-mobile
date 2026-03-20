@@ -15,5 +15,6 @@ class OrderState with _$OrderState {
   const factory OrderState.cancelled() = _Cancelled;
   const factory OrderState.rated() = _Rated;
   const factory OrderState.reorderSuccess(String newOrderId) = _ReorderSuccess;
+  const factory OrderState.invoiceDownloaded(String filePath) = _InvoiceDownloaded;
   const factory OrderState.error(String message) = _Error;
 }

@@ -10,7 +10,7 @@ import '../../../../core/data/local/database.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/websocket_service.dart';
 import '../../../../core/services/analytics_service.dart';
-import '../../../../core/di/injection.dart';
+import 'package:cliceat_app/di/injection.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import '../../data/datasources/auth_service.dart';
 

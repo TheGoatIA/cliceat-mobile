@@ -55,7 +55,7 @@ extension OrderEventPatterns on OrderEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _CreateOrder value)?  createOrder,TResult Function( _LoadOrders value)?  loadOrders,TResult Function( _LoadMoreOrders value)?  loadMoreOrders,TResult Function( _CancelOrder value)?  cancelOrder,TResult Function( _ReorderOrder value)?  reorderOrder,TResult Function( _RateOrder value)?  rateOrder,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _CreateOrder value)?  createOrder,TResult Function( _LoadOrders value)?  loadOrders,TResult Function( _LoadMoreOrders value)?  loadMoreOrders,TResult Function( _CancelOrder value)?  cancelOrder,TResult Function( _ReorderOrder value)?  reorderOrder,TResult Function( _RateOrder value)?  rateOrder,TResult Function( _DownloadInvoice value)?  downloadInvoice,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _CreateOrder() when createOrder != null:
@@ -64,7 +64,8 @@ return loadOrders(_that);case _LoadMoreOrders() when loadMoreOrders != null:
 return loadMoreOrders(_that);case _CancelOrder() when cancelOrder != null:
 return cancelOrder(_that);case _ReorderOrder() when reorderOrder != null:
 return reorderOrder(_that);case _RateOrder() when rateOrder != null:
-return rateOrder(_that);case _:
+return rateOrder(_that);case _DownloadInvoice() when downloadInvoice != null:
+return downloadInvoice(_that);case _:
   return orElse();
 
 }
@@ -82,7 +83,7 @@ return rateOrder(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _CreateOrder value)  createOrder,required TResult Function( _LoadOrders value)  loadOrders,required TResult Function( _LoadMoreOrders value)  loadMoreOrders,required TResult Function( _CancelOrder value)  cancelOrder,required TResult Function( _ReorderOrder value)  reorderOrder,required TResult Function( _RateOrder value)  rateOrder,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _CreateOrder value)  createOrder,required TResult Function( _LoadOrders value)  loadOrders,required TResult Function( _LoadMoreOrders value)  loadMoreOrders,required TResult Function( _CancelOrder value)  cancelOrder,required TResult Function( _ReorderOrder value)  reorderOrder,required TResult Function( _RateOrder value)  rateOrder,required TResult Function( _DownloadInvoice value)  downloadInvoice,}){
 final _that = this;
 switch (_that) {
 case _CreateOrder():
@@ -91,7 +92,8 @@ return loadOrders(_that);case _LoadMoreOrders():
 return loadMoreOrders(_that);case _CancelOrder():
 return cancelOrder(_that);case _ReorderOrder():
 return reorderOrder(_that);case _RateOrder():
-return rateOrder(_that);case _:
+return rateOrder(_that);case _DownloadInvoice():
+return downloadInvoice(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -108,7 +110,7 @@ return rateOrder(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _CreateOrder value)?  createOrder,TResult? Function( _LoadOrders value)?  loadOrders,TResult? Function( _LoadMoreOrders value)?  loadMoreOrders,TResult? Function( _CancelOrder value)?  cancelOrder,TResult? Function( _ReorderOrder value)?  reorderOrder,TResult? Function( _RateOrder value)?  rateOrder,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _CreateOrder value)?  createOrder,TResult? Function( _LoadOrders value)?  loadOrders,TResult? Function( _LoadMoreOrders value)?  loadMoreOrders,TResult? Function( _CancelOrder value)?  cancelOrder,TResult? Function( _ReorderOrder value)?  reorderOrder,TResult? Function( _RateOrder value)?  rateOrder,TResult? Function( _DownloadInvoice value)?  downloadInvoice,}){
 final _that = this;
 switch (_that) {
 case _CreateOrder() when createOrder != null:
@@ -117,7 +119,8 @@ return loadOrders(_that);case _LoadMoreOrders() when loadMoreOrders != null:
 return loadMoreOrders(_that);case _CancelOrder() when cancelOrder != null:
 return cancelOrder(_that);case _ReorderOrder() when reorderOrder != null:
 return reorderOrder(_that);case _RateOrder() when rateOrder != null:
-return rateOrder(_that);case _:
+return rateOrder(_that);case _DownloadInvoice() when downloadInvoice != null:
+return downloadInvoice(_that);case _:
   return null;
 
 }
@@ -134,7 +137,7 @@ return rateOrder(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Map<String, dynamic> payload)?  createOrder,TResult Function()?  loadOrders,TResult Function()?  loadMoreOrders,TResult Function( String orderId)?  cancelOrder,TResult Function( String orderId)?  reorderOrder,TResult Function( String orderId,  int rating,  String? comment)?  rateOrder,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Map<String, dynamic> payload)?  createOrder,TResult Function()?  loadOrders,TResult Function()?  loadMoreOrders,TResult Function( String orderId)?  cancelOrder,TResult Function( String orderId)?  reorderOrder,TResult Function( String orderId,  int rating,  String? comment)?  rateOrder,TResult Function( String orderId)?  downloadInvoice,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateOrder() when createOrder != null:
 return createOrder(_that.payload);case _LoadOrders() when loadOrders != null:
@@ -142,7 +145,8 @@ return loadOrders();case _LoadMoreOrders() when loadMoreOrders != null:
 return loadMoreOrders();case _CancelOrder() when cancelOrder != null:
 return cancelOrder(_that.orderId);case _ReorderOrder() when reorderOrder != null:
 return reorderOrder(_that.orderId);case _RateOrder() when rateOrder != null:
-return rateOrder(_that.orderId,_that.rating,_that.comment);case _:
+return rateOrder(_that.orderId,_that.rating,_that.comment);case _DownloadInvoice() when downloadInvoice != null:
+return downloadInvoice(_that.orderId);case _:
   return orElse();
 
 }
@@ -160,7 +164,7 @@ return rateOrder(_that.orderId,_that.rating,_that.comment);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Map<String, dynamic> payload)  createOrder,required TResult Function()  loadOrders,required TResult Function()  loadMoreOrders,required TResult Function( String orderId)  cancelOrder,required TResult Function( String orderId)  reorderOrder,required TResult Function( String orderId,  int rating,  String? comment)  rateOrder,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Map<String, dynamic> payload)  createOrder,required TResult Function()  loadOrders,required TResult Function()  loadMoreOrders,required TResult Function( String orderId)  cancelOrder,required TResult Function( String orderId)  reorderOrder,required TResult Function( String orderId,  int rating,  String? comment)  rateOrder,required TResult Function( String orderId)  downloadInvoice,}) {final _that = this;
 switch (_that) {
 case _CreateOrder():
 return createOrder(_that.payload);case _LoadOrders():
@@ -168,7 +172,8 @@ return loadOrders();case _LoadMoreOrders():
 return loadMoreOrders();case _CancelOrder():
 return cancelOrder(_that.orderId);case _ReorderOrder():
 return reorderOrder(_that.orderId);case _RateOrder():
-return rateOrder(_that.orderId,_that.rating,_that.comment);case _:
+return rateOrder(_that.orderId,_that.rating,_that.comment);case _DownloadInvoice():
+return downloadInvoice(_that.orderId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -185,7 +190,7 @@ return rateOrder(_that.orderId,_that.rating,_that.comment);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Map<String, dynamic> payload)?  createOrder,TResult? Function()?  loadOrders,TResult? Function()?  loadMoreOrders,TResult? Function( String orderId)?  cancelOrder,TResult? Function( String orderId)?  reorderOrder,TResult? Function( String orderId,  int rating,  String? comment)?  rateOrder,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Map<String, dynamic> payload)?  createOrder,TResult? Function()?  loadOrders,TResult? Function()?  loadMoreOrders,TResult? Function( String orderId)?  cancelOrder,TResult? Function( String orderId)?  reorderOrder,TResult? Function( String orderId,  int rating,  String? comment)?  rateOrder,TResult? Function( String orderId)?  downloadInvoice,}) {final _that = this;
 switch (_that) {
 case _CreateOrder() when createOrder != null:
 return createOrder(_that.payload);case _LoadOrders() when loadOrders != null:
@@ -193,7 +198,8 @@ return loadOrders();case _LoadMoreOrders() when loadMoreOrders != null:
 return loadMoreOrders();case _CancelOrder() when cancelOrder != null:
 return cancelOrder(_that.orderId);case _ReorderOrder() when reorderOrder != null:
 return reorderOrder(_that.orderId);case _RateOrder() when rateOrder != null:
-return rateOrder(_that.orderId,_that.rating,_that.comment);case _:
+return rateOrder(_that.orderId,_that.rating,_that.comment);case _DownloadInvoice() when downloadInvoice != null:
+return downloadInvoice(_that.orderId);case _:
   return null;
 
 }
@@ -540,6 +546,72 @@ as String?,
 }
 
 /// @nodoc
+
+
+class _DownloadInvoice implements OrderEvent {
+  const _DownloadInvoice(this.orderId);
+  
+
+ final  String orderId;
+
+/// Create a copy of OrderEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DownloadInvoiceCopyWith<_DownloadInvoice> get copyWith => __$DownloadInvoiceCopyWithImpl<_DownloadInvoice>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadInvoice&&(identical(other.orderId, orderId) || other.orderId == orderId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,orderId);
+
+@override
+String toString() {
+  return 'OrderEvent.downloadInvoice(orderId: $orderId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DownloadInvoiceCopyWith<$Res> implements $OrderEventCopyWith<$Res> {
+  factory _$DownloadInvoiceCopyWith(_DownloadInvoice value, $Res Function(_DownloadInvoice) _then) = __$DownloadInvoiceCopyWithImpl;
+@useResult
+$Res call({
+ String orderId
+});
+
+
+
+
+}
+/// @nodoc
+class __$DownloadInvoiceCopyWithImpl<$Res>
+    implements _$DownloadInvoiceCopyWith<$Res> {
+  __$DownloadInvoiceCopyWithImpl(this._self, this._then);
+
+  final _DownloadInvoice _self;
+  final $Res Function(_DownloadInvoice) _then;
+
+/// Create a copy of OrderEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? orderId = null,}) {
+  return _then(_DownloadInvoice(
+null == orderId ? _self.orderId : orderId // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$OrderState {
 
 
@@ -583,7 +655,7 @@ extension OrderStatePatterns on OrderState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Created value)?  created,TResult Function( _OrdersLoaded value)?  ordersLoaded,TResult Function( _LoadingMore value)?  loadingMore,TResult Function( _Cancelled value)?  cancelled,TResult Function( _Rated value)?  rated,TResult Function( _ReorderSuccess value)?  reorderSuccess,TResult Function( _Error value)?  error,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Created value)?  created,TResult Function( _OrdersLoaded value)?  ordersLoaded,TResult Function( _LoadingMore value)?  loadingMore,TResult Function( _Cancelled value)?  cancelled,TResult Function( _Rated value)?  rated,TResult Function( _ReorderSuccess value)?  reorderSuccess,TResult Function( _InvoiceDownloaded value)?  invoiceDownloaded,TResult Function( _Error value)?  error,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
@@ -594,7 +666,8 @@ return ordersLoaded(_that);case _LoadingMore() when loadingMore != null:
 return loadingMore(_that);case _Cancelled() when cancelled != null:
 return cancelled(_that);case _Rated() when rated != null:
 return rated(_that);case _ReorderSuccess() when reorderSuccess != null:
-return reorderSuccess(_that);case _Error() when error != null:
+return reorderSuccess(_that);case _InvoiceDownloaded() when invoiceDownloaded != null:
+return invoiceDownloaded(_that);case _Error() when error != null:
 return error(_that);case _:
   return orElse();
 
@@ -613,7 +686,7 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Created value)  created,required TResult Function( _OrdersLoaded value)  ordersLoaded,required TResult Function( _LoadingMore value)  loadingMore,required TResult Function( _Cancelled value)  cancelled,required TResult Function( _Rated value)  rated,required TResult Function( _ReorderSuccess value)  reorderSuccess,required TResult Function( _Error value)  error,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Created value)  created,required TResult Function( _OrdersLoaded value)  ordersLoaded,required TResult Function( _LoadingMore value)  loadingMore,required TResult Function( _Cancelled value)  cancelled,required TResult Function( _Rated value)  rated,required TResult Function( _ReorderSuccess value)  reorderSuccess,required TResult Function( _InvoiceDownloaded value)  invoiceDownloaded,required TResult Function( _Error value)  error,}){
 final _that = this;
 switch (_that) {
 case _Initial():
@@ -624,7 +697,8 @@ return ordersLoaded(_that);case _LoadingMore():
 return loadingMore(_that);case _Cancelled():
 return cancelled(_that);case _Rated():
 return rated(_that);case _ReorderSuccess():
-return reorderSuccess(_that);case _Error():
+return reorderSuccess(_that);case _InvoiceDownloaded():
+return invoiceDownloaded(_that);case _Error():
 return error(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -642,7 +716,7 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Created value)?  created,TResult? Function( _OrdersLoaded value)?  ordersLoaded,TResult? Function( _LoadingMore value)?  loadingMore,TResult? Function( _Cancelled value)?  cancelled,TResult? Function( _Rated value)?  rated,TResult? Function( _ReorderSuccess value)?  reorderSuccess,TResult? Function( _Error value)?  error,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Created value)?  created,TResult? Function( _OrdersLoaded value)?  ordersLoaded,TResult? Function( _LoadingMore value)?  loadingMore,TResult? Function( _Cancelled value)?  cancelled,TResult? Function( _Rated value)?  rated,TResult? Function( _ReorderSuccess value)?  reorderSuccess,TResult? Function( _InvoiceDownloaded value)?  invoiceDownloaded,TResult? Function( _Error value)?  error,}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
@@ -653,7 +727,8 @@ return ordersLoaded(_that);case _LoadingMore() when loadingMore != null:
 return loadingMore(_that);case _Cancelled() when cancelled != null:
 return cancelled(_that);case _Rated() when rated != null:
 return rated(_that);case _ReorderSuccess() when reorderSuccess != null:
-return reorderSuccess(_that);case _Error() when error != null:
+return reorderSuccess(_that);case _InvoiceDownloaded() when invoiceDownloaded != null:
+return invoiceDownloaded(_that);case _Error() when error != null:
 return error(_that);case _:
   return null;
 
@@ -671,7 +746,7 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( String orderId,  String? paymentUrl)?  created,TResult Function( List<Map<String, dynamic>> orders)?  ordersLoaded,TResult Function( List<Map<String, dynamic>> orders)?  loadingMore,TResult Function()?  cancelled,TResult Function()?  rated,TResult Function( String newOrderId)?  reorderSuccess,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( String orderId,  String? paymentUrl)?  created,TResult Function( List<Map<String, dynamic>> orders)?  ordersLoaded,TResult Function( List<Map<String, dynamic>> orders)?  loadingMore,TResult Function()?  cancelled,TResult Function()?  rated,TResult Function( String newOrderId)?  reorderSuccess,TResult Function( String filePath)?  invoiceDownloaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
@@ -681,7 +756,8 @@ return ordersLoaded(_that.orders);case _LoadingMore() when loadingMore != null:
 return loadingMore(_that.orders);case _Cancelled() when cancelled != null:
 return cancelled();case _Rated() when rated != null:
 return rated();case _ReorderSuccess() when reorderSuccess != null:
-return reorderSuccess(_that.newOrderId);case _Error() when error != null:
+return reorderSuccess(_that.newOrderId);case _InvoiceDownloaded() when invoiceDownloaded != null:
+return invoiceDownloaded(_that.filePath);case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -700,7 +776,7 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( String orderId,  String? paymentUrl)  created,required TResult Function( List<Map<String, dynamic>> orders)  ordersLoaded,required TResult Function( List<Map<String, dynamic>> orders)  loadingMore,required TResult Function()  cancelled,required TResult Function()  rated,required TResult Function( String newOrderId)  reorderSuccess,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( String orderId,  String? paymentUrl)  created,required TResult Function( List<Map<String, dynamic>> orders)  ordersLoaded,required TResult Function( List<Map<String, dynamic>> orders)  loadingMore,required TResult Function()  cancelled,required TResult Function()  rated,required TResult Function( String newOrderId)  reorderSuccess,required TResult Function( String filePath)  invoiceDownloaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
@@ -710,7 +786,8 @@ return ordersLoaded(_that.orders);case _LoadingMore():
 return loadingMore(_that.orders);case _Cancelled():
 return cancelled();case _Rated():
 return rated();case _ReorderSuccess():
-return reorderSuccess(_that.newOrderId);case _Error():
+return reorderSuccess(_that.newOrderId);case _InvoiceDownloaded():
+return invoiceDownloaded(_that.filePath);case _Error():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
 
@@ -728,7 +805,7 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( String orderId,  String? paymentUrl)?  created,TResult? Function( List<Map<String, dynamic>> orders)?  ordersLoaded,TResult? Function( List<Map<String, dynamic>> orders)?  loadingMore,TResult? Function()?  cancelled,TResult? Function()?  rated,TResult? Function( String newOrderId)?  reorderSuccess,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( String orderId,  String? paymentUrl)?  created,TResult? Function( List<Map<String, dynamic>> orders)?  ordersLoaded,TResult? Function( List<Map<String, dynamic>> orders)?  loadingMore,TResult? Function()?  cancelled,TResult? Function()?  rated,TResult? Function( String newOrderId)?  reorderSuccess,TResult? Function( String filePath)?  invoiceDownloaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
@@ -738,7 +815,8 @@ return ordersLoaded(_that.orders);case _LoadingMore() when loadingMore != null:
 return loadingMore(_that.orders);case _Cancelled() when cancelled != null:
 return cancelled();case _Rated() when rated != null:
 return rated();case _ReorderSuccess() when reorderSuccess != null:
-return reorderSuccess(_that.newOrderId);case _Error() when error != null:
+return reorderSuccess(_that.newOrderId);case _InvoiceDownloaded() when invoiceDownloaded != null:
+return invoiceDownloaded(_that.filePath);case _Error() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -1146,6 +1224,72 @@ class __$ReorderSuccessCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') $Res call({Object? newOrderId = null,}) {
   return _then(_ReorderSuccess(
 null == newOrderId ? _self.newOrderId : newOrderId // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _InvoiceDownloaded implements OrderState {
+  const _InvoiceDownloaded(this.filePath);
+  
+
+ final  String filePath;
+
+/// Create a copy of OrderState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$InvoiceDownloadedCopyWith<_InvoiceDownloaded> get copyWith => __$InvoiceDownloadedCopyWithImpl<_InvoiceDownloaded>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InvoiceDownloaded&&(identical(other.filePath, filePath) || other.filePath == filePath));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,filePath);
+
+@override
+String toString() {
+  return 'OrderState.invoiceDownloaded(filePath: $filePath)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$InvoiceDownloadedCopyWith<$Res> implements $OrderStateCopyWith<$Res> {
+  factory _$InvoiceDownloadedCopyWith(_InvoiceDownloaded value, $Res Function(_InvoiceDownloaded) _then) = __$InvoiceDownloadedCopyWithImpl;
+@useResult
+$Res call({
+ String filePath
+});
+
+
+
+
+}
+/// @nodoc
+class __$InvoiceDownloadedCopyWithImpl<$Res>
+    implements _$InvoiceDownloadedCopyWith<$Res> {
+  __$InvoiceDownloadedCopyWithImpl(this._self, this._then);
+
+  final _InvoiceDownloaded _self;
+  final $Res Function(_InvoiceDownloaded) _then;
+
+/// Create a copy of OrderState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? filePath = null,}) {
+  return _then(_InvoiceDownloaded(
+null == filePath ? _self.filePath : filePath // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

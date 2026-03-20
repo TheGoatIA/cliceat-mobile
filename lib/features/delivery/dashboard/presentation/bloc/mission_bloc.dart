@@ -5,7 +5,7 @@ import 'package:logger/logger.dart';
 import '../../../../../core/errors/app_error.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
 import '../../../../../core/services/analytics_service.dart';
-import '../../../../../core/di/injection.dart';
+import 'package:cliceat_app/di/injection.dart';
 
 part 'mission_event.dart';
 part 'mission_state.dart';

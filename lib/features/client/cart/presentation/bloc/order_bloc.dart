@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logger/logger.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import '../../../../../core/services/analytics_service.dart';
-import '../../../../../core/di/injection.dart';
+import 'package:cliceat_app/di/injection.dart';
 
 part 'order_event.dart';
 part 'order_state.dart';
@@ -27,6 +27,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     on<_CancelOrder>(_onCancelOrder);
     on<_ReorderOrder>(_onReorderOrder);
     on<_RateOrder>(_onRateOrder);
+    on<_DownloadInvoice>(_onDownloadInvoice);
   }
 
   // ─── Getters for the UI ───────────────────────────────────────────────────
@@ -151,5 +152,21 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       },
       (_) => emit(const OrderState.rated()),
     );
+  }
+
+  Future<void> _onDownloadInvoice(
+      _DownloadInvoice event, Emitter<OrderState> emit) async {
+    final result = await _orderRepository.downloadInvoice(event.orderId);
+    result.fold(
+      (err) {
+        _logger.e('Error downloading invoice: ${err.message}');
+        emit(OrderState.error(err.message));
+      },
+      (path) => emit(OrderState.invoiceDownloaded(path)),
+    );
+    // Restore the list state seamlessly
+    if (_accumulated.isNotEmpty) {
+      emit(OrderState.ordersLoaded(List.unmodifiable(_accumulated)));
+    }
   }
 }

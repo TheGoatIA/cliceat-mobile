@@ -12,4 +12,5 @@ class OrderEvent with _$OrderEvent {
       {required String orderId,
       required int rating,
       String? comment}) = _RateOrder;
+  const factory OrderEvent.downloadInvoice(String orderId) = _DownloadInvoice;
 }

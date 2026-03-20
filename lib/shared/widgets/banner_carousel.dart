@@ -24,9 +24,34 @@ class _BannerCarouselState extends State<BannerCarousel> {
 
   static final _fallback = [
     BannerModel(
-      id: 'local_promo',
-      imageUrl: 'assets/images/banner_promo.jpg',
-      title: 'Livraison Gratuite sur votre 1ère commande',
+      id: 'local_promo_1',
+      imageUrl: 'assets/images/banner_promo_1.jpg',
+      title: '',
+    ),
+    BannerModel(
+      id: 'local_promo_2',
+      imageUrl: 'assets/images/banner_promo_2.jpg',
+      title: '',
+    ),
+    BannerModel(
+      id: 'local_promo_3',
+      imageUrl: 'assets/images/banner_promo_3.jpg',
+      title: '',
+    ),
+    BannerModel(
+      id: 'local_promo_4',
+      imageUrl: 'assets/images/banner_promo_4.jpg',
+      title: '',
+    ),
+    BannerModel(
+      id: 'local_promo_5',
+      imageUrl: 'assets/images/banner_promo_5.jpg',
+      title: '',
+    ),
+    BannerModel(
+      id: 'local_promo_6',
+      imageUrl: 'assets/images/banner_promo_6.jpg',
+      title: '',
     ),
   ];
 
