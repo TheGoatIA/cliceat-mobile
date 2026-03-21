@@ -45,13 +45,11 @@ class _LoginPageState extends State<LoginPage> {
 
   void _loginWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser != null) {
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-        if (!mounted) return;
-        if (googleAuth.idToken != null) {
-           context.read<AuthBloc>().add(AuthEvent.loginWithGoogle(token: googleAuth.idToken!));
-        }
+      final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      if (!mounted) return;
+      if (googleAuth.idToken != null) {
+        context.read<AuthBloc>().add(AuthEvent.loginWithGoogle(token: googleAuth.idToken!));
       }
     } catch (e) {
       debugPrint('Google Error: $e');
