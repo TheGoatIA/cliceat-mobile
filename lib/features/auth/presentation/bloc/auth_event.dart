@@ -8,7 +8,6 @@ class AuthEvent with _$AuthEvent {
   const factory AuthEvent.loginWithEmail({required String email, required String password}) = _LoginWithEmail;
   const factory AuthEvent.loginWithGoogle({required String token}) = _LoginWithGoogle;
   const factory AuthEvent.loginWithApple({required String token}) = _LoginWithApple;
-<<<<<<< HEAD
   const factory AuthEvent.register({
     required String name,
     required String email,
@@ -19,8 +18,6 @@ class AuthEvent with _$AuthEvent {
   const factory AuthEvent.resetPassword({required String token, required String newPassword}) = _ResetPassword;
   const factory AuthEvent.verifyEmail({required String token}) = _VerifyEmail;
   const factory AuthEvent.resendVerificationEmail({required String email}) = _ResendVerificationEmail;
-=======
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   const factory AuthEvent.logout() = _Logout;
   const factory AuthEvent.switchMode({required String mode}) = _SwitchMode;
   /// Émis par le timer interne quand le JWT a expiré.

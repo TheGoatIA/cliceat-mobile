@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:cliceat_app/di/injection.dart';
+import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
 

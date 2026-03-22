@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cliceat_app/di/injection.dart';
+import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
 import '../../../../../core/services/analytics_service.dart';

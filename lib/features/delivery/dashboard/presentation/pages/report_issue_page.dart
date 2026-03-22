@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
@@ -75,7 +76,6 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                 ),
                 const SizedBox(height: 16),
                 ..._reasons.map((reason) => 
-                  // ignore: deprecated_member_use
                   RadioListTile<String>(
                     title: Text(reason),
                     value: reason,

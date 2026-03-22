@@ -131,22 +131,14 @@ return updateStatus(_that);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  loadActiveMissions,TResult Function( String missionId)?  acceptMission,TResult Function( String missionId)?  rejectMission,TResult Function( String missionId,  String status,  Map<String, dynamic> metadata)?  updateStatus,required TResult orElse(),}) {final _that = this;
-=======
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  loadActiveMissions,TResult Function( String missionId)?  acceptMission,TResult Function( String missionId)?  rejectMission,TResult Function( String missionId,  String status)?  updateStatus,required TResult orElse(),}) {final _that = this;
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 switch (_that) {
 case _Started() when started != null:
 return started();case _LoadActiveMissions() when loadActiveMissions != null:
 return loadActiveMissions();case _AcceptMission() when acceptMission != null:
 return acceptMission(_that.missionId);case _RejectMission() when rejectMission != null:
 return rejectMission(_that.missionId);case _UpdateStatus() when updateStatus != null:
-<<<<<<< HEAD
 return updateStatus(_that.missionId,_that.status,_that.metadata);case _:
-=======
-return updateStatus(_that.missionId,_that.status);case _:
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   return orElse();
 
 }
@@ -164,22 +156,14 @@ return updateStatus(_that.missionId,_that.status);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
 @optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  loadActiveMissions,required TResult Function( String missionId)  acceptMission,required TResult Function( String missionId)  rejectMission,required TResult Function( String missionId,  String status,  Map<String, dynamic> metadata)  updateStatus,}) {final _that = this;
-=======
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  loadActiveMissions,required TResult Function( String missionId)  acceptMission,required TResult Function( String missionId)  rejectMission,required TResult Function( String missionId,  String status)  updateStatus,}) {final _that = this;
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 switch (_that) {
 case _Started():
 return started();case _LoadActiveMissions():
 return loadActiveMissions();case _AcceptMission():
 return acceptMission(_that.missionId);case _RejectMission():
 return rejectMission(_that.missionId);case _UpdateStatus():
-<<<<<<< HEAD
 return updateStatus(_that.missionId,_that.status,_that.metadata);case _:
-=======
-return updateStatus(_that.missionId,_that.status);case _:
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   throw StateError('Unexpected subclass');
 
 }
@@ -196,22 +180,14 @@ return updateStatus(_that.missionId,_that.status);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  loadActiveMissions,TResult? Function( String missionId)?  acceptMission,TResult? Function( String missionId)?  rejectMission,TResult? Function( String missionId,  String status,  Map<String, dynamic> metadata)?  updateStatus,}) {final _that = this;
-=======
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  loadActiveMissions,TResult? Function( String missionId)?  acceptMission,TResult? Function( String missionId)?  rejectMission,TResult? Function( String missionId,  String status)?  updateStatus,}) {final _that = this;
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 switch (_that) {
 case _Started() when started != null:
 return started();case _LoadActiveMissions() when loadActiveMissions != null:
 return loadActiveMissions();case _AcceptMission() when acceptMission != null:
 return acceptMission(_that.missionId);case _RejectMission() when rejectMission != null:
 return rejectMission(_that.missionId);case _UpdateStatus() when updateStatus != null:
-<<<<<<< HEAD
 return updateStatus(_that.missionId,_that.status,_that.metadata);case _:
-=======
-return updateStatus(_that.missionId,_that.status);case _:
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   return null;
 
 }
@@ -419,16 +395,11 @@ as String,
 
 
 class _UpdateStatus implements MissionEvent {
-<<<<<<< HEAD
   const _UpdateStatus(this.missionId, this.status, {final  Map<String, dynamic> metadata = const {}}): _metadata = metadata;
-=======
-  const _UpdateStatus(this.missionId, this.status);
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   
 
  final  String missionId;
  final  String status;
-<<<<<<< HEAD
  final  Map<String, dynamic> _metadata;
 @JsonKey() Map<String, dynamic> get metadata {
   if (_metadata is EqualUnmodifiableMapView) return _metadata;
@@ -436,8 +407,6 @@ class _UpdateStatus implements MissionEvent {
   return EqualUnmodifiableMapView(_metadata);
 }
 
-=======
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 
 /// Create a copy of MissionEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -449,28 +418,16 @@ _$UpdateStatusCopyWith<_UpdateStatus> get copyWith => __$UpdateStatusCopyWithImp
 
 @override
 bool operator ==(Object other) {
-<<<<<<< HEAD
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateStatus&&(identical(other.missionId, missionId) || other.missionId == missionId)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._metadata, _metadata));
-=======
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateStatus&&(identical(other.missionId, missionId) || other.missionId == missionId)&&(identical(other.status, status) || other.status == status));
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 }
 
 
 @override
-<<<<<<< HEAD
 int get hashCode => Object.hash(runtimeType,missionId,status,const DeepCollectionEquality().hash(_metadata));
 
 @override
 String toString() {
   return 'MissionEvent.updateStatus(missionId: $missionId, status: $status, metadata: $metadata)';
-=======
-int get hashCode => Object.hash(runtimeType,missionId,status);
-
-@override
-String toString() {
-  return 'MissionEvent.updateStatus(missionId: $missionId, status: $status)';
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 }
 
 
@@ -481,11 +438,7 @@ abstract mixin class _$UpdateStatusCopyWith<$Res> implements $MissionEventCopyWi
   factory _$UpdateStatusCopyWith(_UpdateStatus value, $Res Function(_UpdateStatus) _then) = __$UpdateStatusCopyWithImpl;
 @useResult
 $Res call({
-<<<<<<< HEAD
  String missionId, String status, Map<String, dynamic> metadata
-=======
- String missionId, String status
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 });
 
 
@@ -502,20 +455,12 @@ class __$UpdateStatusCopyWithImpl<$Res>
 
 /// Create a copy of MissionEvent
 /// with the given fields replaced by the non-null parameter values.
-<<<<<<< HEAD
 @pragma('vm:prefer-inline') $Res call({Object? missionId = null,Object? status = null,Object? metadata = null,}) {
   return _then(_UpdateStatus(
 null == missionId ? _self.missionId : missionId // ignore: cast_nullable_to_non_nullable
 as String,null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,metadata: null == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
-=======
-@pragma('vm:prefer-inline') $Res call({Object? missionId = null,Object? status = null,}) {
-  return _then(_UpdateStatus(
-null == missionId ? _self.missionId : missionId // ignore: cast_nullable_to_non_nullable
-as String,null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   ));
 }
 
@@ -566,25 +511,15 @@ extension MissionStatePatterns on MissionState {
 /// }
 /// ```
 
-<<<<<<< HEAD
 @optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Loaded value)?  loaded,TResult Function( _Error value)?  error,TResult Function( _ActionSuccess value)?  actionSuccess,required TResult orElse(),}){
-=======
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Loaded value)?  loaded,TResult Function( _ActionSuccess value)?  actionSuccess,TResult Function( _Error value)?  error,required TResult orElse(),}){
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial(_that);case _Loading() when loading != null:
 return loading(_that);case _Loaded() when loaded != null:
-<<<<<<< HEAD
 return loaded(_that);case _Error() when error != null:
 return error(_that);case _ActionSuccess() when actionSuccess != null:
 return actionSuccess(_that);case _:
-=======
-return loaded(_that);case _ActionSuccess() when actionSuccess != null:
-return actionSuccess(_that);case _Error() when error != null:
-return error(_that);case _:
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   return orElse();
 
 }
@@ -602,25 +537,15 @@ return error(_that);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
 @optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Loaded value)  loaded,required TResult Function( _Error value)  error,required TResult Function( _ActionSuccess value)  actionSuccess,}){
-=======
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Loaded value)  loaded,required TResult Function( _ActionSuccess value)  actionSuccess,required TResult Function( _Error value)  error,}){
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 final _that = this;
 switch (_that) {
 case _Initial():
 return initial(_that);case _Loading():
 return loading(_that);case _Loaded():
-<<<<<<< HEAD
 return loaded(_that);case _Error():
 return error(_that);case _ActionSuccess():
 return actionSuccess(_that);case _:
-=======
-return loaded(_that);case _ActionSuccess():
-return actionSuccess(_that);case _Error():
-return error(_that);case _:
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   throw StateError('Unexpected subclass');
 
 }
@@ -637,25 +562,15 @@ return error(_that);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
 @optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Loaded value)?  loaded,TResult? Function( _Error value)?  error,TResult? Function( _ActionSuccess value)?  actionSuccess,}){
-=======
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Loaded value)?  loaded,TResult? Function( _ActionSuccess value)?  actionSuccess,TResult? Function( _Error value)?  error,}){
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial(_that);case _Loading() when loading != null:
 return loading(_that);case _Loaded() when loaded != null:
-<<<<<<< HEAD
 return loaded(_that);case _Error() when error != null:
 return error(_that);case _ActionSuccess() when actionSuccess != null:
 return actionSuccess(_that);case _:
-=======
-return loaded(_that);case _ActionSuccess() when actionSuccess != null:
-return actionSuccess(_that);case _Error() when error != null:
-return error(_that);case _:
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   return null;
 
 }
@@ -672,24 +587,14 @@ return error(_that);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<Map<String, dynamic>> missions)?  loaded,TResult Function( String message)?  error,TResult Function( String message)?  actionSuccess,required TResult orElse(),}) {final _that = this;
-=======
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<Map<String, dynamic>> missions)?  loaded,TResult Function( String message)?  actionSuccess,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-<<<<<<< HEAD
 return loaded(_that.missions);case _Error() when error != null:
 return error(_that.message);case _ActionSuccess() when actionSuccess != null:
 return actionSuccess(_that.message);case _:
-=======
-return loaded(_that.missions);case _ActionSuccess() when actionSuccess != null:
-return actionSuccess(_that.message);case _Error() when error != null:
-return error(_that.message);case _:
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   return orElse();
 
 }
@@ -707,24 +612,14 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
 @optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<Map<String, dynamic>> missions)  loaded,required TResult Function( String message)  error,required TResult Function( String message)  actionSuccess,}) {final _that = this;
-=======
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<Map<String, dynamic>> missions)  loaded,required TResult Function( String message)  actionSuccess,required TResult Function( String message)  error,}) {final _that = this;
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Loaded():
-<<<<<<< HEAD
 return loaded(_that.missions);case _Error():
 return error(_that.message);case _ActionSuccess():
 return actionSuccess(_that.message);case _:
-=======
-return loaded(_that.missions);case _ActionSuccess():
-return actionSuccess(_that.message);case _Error():
-return error(_that.message);case _:
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   throw StateError('Unexpected subclass');
 
 }
@@ -741,24 +636,14 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<Map<String, dynamic>> missions)?  loaded,TResult? Function( String message)?  error,TResult? Function( String message)?  actionSuccess,}) {final _that = this;
-=======
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<Map<String, dynamic>> missions)?  loaded,TResult? Function( String message)?  actionSuccess,TResult? Function( String message)?  error,}) {final _that = this;
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-<<<<<<< HEAD
 return loaded(_that.missions);case _Error() when error != null:
 return error(_that.message);case _ActionSuccess() when actionSuccess != null:
 return actionSuccess(_that.message);case _:
-=======
-return loaded(_that.missions);case _ActionSuccess() when actionSuccess != null:
-return actionSuccess(_that.message);case _Error() when error != null:
-return error(_that.message);case _:
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   return null;
 
 }
@@ -905,7 +790,6 @@ as List<Map<String, dynamic>>,
 /// @nodoc
 
 
-<<<<<<< HEAD
 class _Error implements MissionState {
   const _Error(this.message);
   
@@ -972,8 +856,6 @@ as String,
 /// @nodoc
 
 
-=======
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 class _ActionSuccess implements MissionState {
   const _ActionSuccess(this.message);
   
@@ -1037,73 +919,4 @@ as String,
 
 }
 
-<<<<<<< HEAD
-=======
-/// @nodoc
-
-
-class _Error implements MissionState {
-  const _Error(this.message);
-  
-
- final  String message;
-
-/// Create a copy of MissionState
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$ErrorCopyWith<_Error> get copyWith => __$ErrorCopyWithImpl<_Error>(this, _$identity);
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Error&&(identical(other.message, message) || other.message == message));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,message);
-
-@override
-String toString() {
-  return 'MissionState.error(message: $message)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$ErrorCopyWith<$Res> implements $MissionStateCopyWith<$Res> {
-  factory _$ErrorCopyWith(_Error value, $Res Function(_Error) _then) = __$ErrorCopyWithImpl;
-@useResult
-$Res call({
- String message
-});
-
-
-
-
-}
-/// @nodoc
-class __$ErrorCopyWithImpl<$Res>
-    implements _$ErrorCopyWith<$Res> {
-  __$ErrorCopyWithImpl(this._self, this._then);
-
-  final _Error _self;
-  final $Res Function(_Error) _then;
-
-/// Create a copy of MissionState
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
-  return _then(_Error(
-null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
-
-
-}
-
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 // dart format on

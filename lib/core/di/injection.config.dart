@@ -20,15 +20,12 @@ import '../../features/client/cart/data/datasources/order_service.dart'
     as _i271;
 import '../../features/client/cart/data/datasources/payment_service.dart'
     as _i816;
-import '../../features/client/cart/presentation/bloc/order_bloc.dart' as _i438;
 import '../../features/client/home/data/datasources/restaurant_service.dart'
     as _i813;
 import '../../features/delivery/dashboard/data/datasources/driver_service.dart'
     as _i170;
 import '../../features/delivery/dashboard/data/datasources/mission_service.dart'
     as _i304;
-import '../../features/delivery/dashboard/presentation/bloc/mission_bloc.dart'
-    as _i203;
 import '../data/local/database.dart' as _i475;
 import 'network_module.dart' as _i567;
 
@@ -61,18 +58,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i170.DriverService>(
       () => networkModule.getDriverService(gh<_i31.ChopperClient>()),
     );
-    gh.factory<_i203.MissionBloc>(
-      () => _i203.MissionBloc(gh<_i304.MissionService>()),
-    );
     gh.factory<_i797.AuthBloc>(
       () => _i797.AuthBloc(
         gh<_i1060.AuthService>(),
         gh<_i558.FlutterSecureStorage>(),
         gh<_i475.AppDatabase>(),
       ),
-    );
-    gh.factory<_i438.OrderBloc>(
-      () => _i438.OrderBloc(gh<_i271.OrderService>()),
     );
     return this;
   }

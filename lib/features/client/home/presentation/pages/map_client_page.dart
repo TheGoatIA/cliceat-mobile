@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -10,7 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../../../../../core/config/app_constants.dart';
-import 'package:cliceat_app/di/injection.dart';
+import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
 import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import '../../../../../shared/widgets/app_network_image.dart';
@@ -22,13 +21,6 @@ const _kClusterCircleLayerId = 'cluster-circles';
 const _kClusterCountLayerId = 'cluster-count';
 const _kUnclusteredLayerId = 'unclustered-points';
 const _kMarkerImageId = 'restaurant-marker';
-=======
-import 'package:flutter/material.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart' as geo;
-import 'package:cliceat_app/core/services/location_service.dart';
-import 'package:cliceat_app/core/di/injection.dart';
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 
 class MapClientPage extends StatefulWidget {
   const MapClientPage({super.key});
@@ -38,20 +30,13 @@ class MapClientPage extends StatefulWidget {
 }
 
 class _MapClientPageState extends State<MapClientPage> {
-<<<<<<< HEAD
   MapboxMap? _mapboxMap;
   List<RestaurantModel> _restaurants = [];
   bool _loading = true;
-=======
-  MapboxMap? mapboxMap;
-  geo.Position? currentPosition;
-  bool isLoading = true;
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
     _loadRestaurants();
   }
 
@@ -297,34 +282,10 @@ class _MapClientPageState extends State<MapClientPage> {
         MapAnimationOptions(duration: 800),
       );
     } catch (_) {}
-=======
-    _initLocation();
-  }
-
-  Future<void> _initLocation() async {
-    final locationService = getIt<LocationService>();
-    final position = await locationService.getCurrentPosition();
-    setState(() {
-      currentPosition = position;
-      isLoading = false;
-    });
-  }
-
-  void _onMapCreated(MapboxMap mapboxMap) {
-    this.mapboxMap = mapboxMap;
-    // Activate location puck
-    mapboxMap.location.updateSettings(
-      LocationComponentSettings(
-        enabled: true,
-        pulsingEnabled: true,
-      )
-    );
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   }
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     final theme = Theme.of(context);
     return Scaffold(
       body: Stack(
@@ -518,35 +479,6 @@ class _MapClientPageState extends State<MapClientPage> {
                   ),
                 ),
         ],
-=======
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    return Scaffold(
-      body: MapWidget(
-        key: const ValueKey("mapWidget"),
-        cameraOptions: CameraOptions(
-          center: currentPosition != null 
-              ? Point(coordinates: Position(currentPosition!.longitude, currentPosition!.latitude))
-              : Point(coordinates: Position(9.7093, 4.0511)), // Douala par défaut
-          zoom: 14.0,
-        ),
-        onMapCreated: _onMapCreated,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if (currentPosition != null && mapboxMap != null) {
-            mapboxMap?.setCamera(
-              CameraOptions(
-                center: Point(coordinates: Position(currentPosition!.longitude, currentPosition!.latitude)),
-                zoom: 16.0,
-              )
-            );
-          }
-        },
-        child: const Icon(Icons.my_location),
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
       ),
     );
   }

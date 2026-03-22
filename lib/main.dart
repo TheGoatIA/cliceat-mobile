@@ -14,7 +14,7 @@ import 'package:cliceat_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:cliceat_app/features/client/cart/presentation/bloc/cart_cubit.dart';
 import 'core/theme/app_theme.dart';
 import 'routes/app_router.dart';
-import 'di/injection.dart';
+import 'core/di/injection.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/widgets/connectivity_banner.dart';

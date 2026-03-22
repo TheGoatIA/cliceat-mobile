@@ -2,15 +2,11 @@ import 'package:chopper/chopper.dart';
 
 part 'order_service.chopper.dart';
 
-<<<<<<< HEAD
 /// Orders endpoints — base: /orders
-=======
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 @ChopperApi(baseUrl: '/orders')
 abstract class OrderService extends ChopperService {
   static OrderService create([ChopperClient? client]) => _$OrderService(client);
 
-<<<<<<< HEAD
   /// POST /orders — create a new order
   @POST()
   Future<Response<Map<String, dynamic>>> createOrder(
@@ -47,24 +43,4 @@ abstract class OrderService extends ChopperService {
   /// GET /orders/{id}/invoice/download — stream order invoice PDF
   @GET(path: '/{id}/invoice/download')
   Future<Response<dynamic>> downloadInvoice(@Path('id') String id);
-=======
-  @POST()
-  Future<Response<Map<String, dynamic>>> createOrder(
-    @Body() Map<String, dynamic> orderData,
-  );
-
-  @GET(path: '/me')
-  Future<Response<Map<String, dynamic>>> getMyOrders();
-
-  @GET(path: '/{id}')
-  Future<Response<Map<String, dynamic>>> getOrderDetails(
-    @Path('id') String id,
-  );
-
-  @POST(path: '/{id}/rate')
-  Future<Response<Map<String, dynamic>>> rateOrder(
-    @Path('id') String id,
-    @Body() Map<String, dynamic> ratingData,
-  );
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 }

@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
@@ -51,14 +52,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 title: const Text('Choisissez votre profil'),
                 content: Column(
                   children: [
-                    // ignore: deprecated_member_use
                     RadioListTile<String>(
                       title: const Text('Client (Commander à manger)'),
                       value: 'client',
                       groupValue: _selectedRole,
                       onChanged: (val) => setState(() => _selectedRole = val!),
                     ),
-                    // ignore: deprecated_member_use
                     RadioListTile<String>(
                       title: const Text('Livreur Indépendant (Travailler)'),
                       value: 'delivery',

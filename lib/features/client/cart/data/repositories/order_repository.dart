@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:cliceat_app/di/injection.dart';
+import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/config/env_config.dart';
 import 'package:dartz/dartz.dart';
 import 'package:logger/logger.dart';

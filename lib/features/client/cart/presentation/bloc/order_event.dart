@@ -2,7 +2,6 @@ part of 'order_bloc.dart';
 
 @freezed
 class OrderEvent with _$OrderEvent {
-<<<<<<< HEAD
   const factory OrderEvent.createOrder(Map<String, dynamic> payload) =
       _CreateOrder;
   const factory OrderEvent.loadOrders() = _LoadOrders;
@@ -14,8 +13,4 @@ class OrderEvent with _$OrderEvent {
       required int rating,
       String? comment}) = _RateOrder;
   const factory OrderEvent.downloadInvoice(String orderId) = _DownloadInvoice;
-=======
-  const factory OrderEvent.createOrder(Map<String, dynamic> payload) = _CreateOrder;
-  const factory OrderEvent.fetchMyOrders() = _FetchMyOrders;
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 }

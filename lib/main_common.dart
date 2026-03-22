@@ -10,7 +10,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import 'core/config/app_constants.dart';
 import 'core/config/flavor_config.dart';
-import 'di/injection.dart';
+import 'core/di/injection.dart';
 import 'routes/app_router.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/services/notification_service.dart';

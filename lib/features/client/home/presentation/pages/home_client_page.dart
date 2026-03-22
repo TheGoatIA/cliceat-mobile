@@ -2,9 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-<<<<<<< HEAD
 import '../../../../../core/config/app_constants.dart';
-import 'package:cliceat_app/di/injection.dart';
+import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/cart/data/models/coupon_model.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/coupon_repository.dart';
@@ -13,11 +12,6 @@ import '../../../../../shared/widgets/banner_carousel.dart';
 import '../../../../../shared/widgets/empty_state.dart';
 import '../../../../../shared/widgets/restaurant_card.dart';
 import '../../../../../shared/widgets/section_header.dart';
-=======
-import 'package:chopper/chopper.dart';
-import '../../../../../core/di/injection.dart';
-import '../../data/datasources/restaurant_service.dart';
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 
 class HomeClientPage extends StatefulWidget {
   const HomeClientPage({super.key});
@@ -197,14 +191,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
       appBar: AppBar(
         title: Column(
           children: [
-<<<<<<< HEAD
             Text('client.deliver_to'.tr(), style: theme.textTheme.bodySmall),
-=======
-            Text(
-              'client.deliver_to'.tr(),
-              style: theme.textTheme.bodySmall,
-            ),
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -294,7 +281,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
       ),
     );
   }
-<<<<<<< HEAD
 
   Widget _buildBannerCarousel() {
     return Container(
@@ -309,50 +295,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
               ),
             )
           : BannerCarousel(banners: _banners, height: 160),
-=======
-  
-  Widget _buildPromotionsCarousel(BuildContext context) {
-    return Container(
-      height: 160,
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      child: PageView.builder(
-        itemCount: 3,
-        itemBuilder: (context, index) {
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
-              image: const DecorationImage(
-                image: NetworkImage('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop'),
-                fit: BoxFit.cover,
-              )
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
-                  begin: Alignment.bottomLeft,
-                  end: Alignment.topRight,
-                )
-              ),
-              child: const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text('Livraison Gratuite', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                    Text('Sur votre 1ère commande', style: TextStyle(color: Colors.white, fontSize: 14)),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
     );
   }
 
@@ -367,7 +309,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
-<<<<<<< HEAD
             itemCount: _categories.length,
             itemBuilder: (_, index) {
               final (emoji, label) = _categories[index];
@@ -419,40 +360,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       ),
                     ],
                   ),
-=======
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              return Container(
-                width: 80,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                child: Column(
-                  children: [
-                    Container(
-                      height: 60,
-                      width: 60,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardTheme.color,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          )
-                        ]
-                      ),
-                      child: Center(child: Icon(Icons.fastfood, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      categories[index],
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
                 ),
               );
             },
@@ -466,142 +373,11 @@ class _HomeClientPageState extends State<HomeClientPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-<<<<<<< HEAD
         SectionHeader(
           title: _isSearching
               ? 'client.search_results'.tr()
               : 'client.recommended'.tr(),
           actionLabel: _isSearching ? null : 'client.see_all'.tr(),
-=======
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'client.recommended'.tr(),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              Text(
-                'client.see_all'.tr(),
-                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
-              )
-            ],
-          ),
-        ),
-        FutureBuilder<Response>(
-          future: getIt<RestaurantService>().getRestaurants("Douala", null, null),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator()));
-            }
-            if (snapshot.hasError || !snapshot.hasData || snapshot.data?.body == null) {
-              return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: Text("Impossible de charger les restaurants.")));
-            }
-            
-            final responseBody = snapshot.data!.body;
-            List<dynamic> restaurants = [];
-            if (responseBody is Map && responseBody.containsKey('data')) {
-              restaurants = responseBody['data'] as List<dynamic>;
-            } else if (responseBody is List) {
-              restaurants = responseBody;
-            }
-
-            if (restaurants.isEmpty) {
-               return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: Text("Aucun restaurant disponible dans votre zone.")));
-            }
-
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: restaurants.length,
-              itemBuilder: (context, index) {
-                final restaurant = restaurants[index];
-                final id = restaurant['id']?.toString() ?? (index + 1).toString();
-                final name = restaurant['name'] ?? 'Restaurant Gourmet';
-                final cuisine = restaurant['cuisineType'] ?? 'Cuisine Locale';
-                final rating = restaurant['rating']?.toString() ?? 'N/A';
-                final minTime = restaurant['deliveryTimeMinutes']?.toString() ?? '30';
-                // La variable `image` n'étant pas systématique dans la db, on laisse le placeholder s'il n'y a rien.
-                final image = restaurant['coverImage'] ?? 'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1000&auto=format&fit=crop';
-
-                return GestureDetector(
-                  onTap: () => context.push('/restaurant/$id'),
-                  child: Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 150,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: NetworkImage(image),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    name,
-                                    style: Theme.of(context).textTheme.titleLarge,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.secondary,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.star, size: 14, color: Theme.of(context).colorScheme.onSecondary),
-                                      const SizedBox(width: 4),
-                                      Text(rating, style: Theme.of(context).textTheme.labelLarge),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              cuisine,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.delivery_dining, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                const SizedBox(width: 4),
-                                Text('Frais variables', style: Theme.of(context).textTheme.bodySmall), // Les frais dépendent de la distance (Mapbox)
-                                const SizedBox(width: 16),
-                                Icon(Icons.timer, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                const SizedBox(width: 4),
-                                Text('$minTime min', style: Theme.of(context).textTheme.bodySmall),
-                              ],
-                            )
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                );
-              },
-            );
-          }
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
         ),
         _buildRestaurantList(context),
       ],

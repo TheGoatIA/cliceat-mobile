@@ -7,11 +7,6 @@ import '../../../cart/presentation/pages/cart_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import 'home_client_page.dart';
 import 'map_client_page.dart';
-<<<<<<< HEAD
-=======
-import '../../../cart/presentation/pages/cart_page.dart';
-import '../../../profile/presentation/pages/profile_page.dart';
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 
 class ClientMainTab extends StatefulWidget {
   const ClientMainTab({super.key});
@@ -23,20 +18,12 @@ class ClientMainTab extends StatefulWidget {
 class _ClientMainTabState extends State<ClientMainTab> {
   int _currentIndex = 0;
 
-<<<<<<< HEAD
   // IndexedStack maintient l'état de chaque page entre les navigations.
   static const _pages = [
     HomeClientPage(),
     MapClientPage(),
     CartPage(),
     ProfilePage(),
-=======
-  late final List<Widget> _pages = [
-    const HomeClientPage(),
-    const MapClientPage(),
-    const CartPage(),
-    const ProfilePage(),
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   ];
 
   @override
@@ -62,7 +49,6 @@ class _ClientMainTabState extends State<ClientMainTab> {
             activeIcon: const Icon(Icons.map),
             label: 'client.nav_map'.tr(),
           ),
-<<<<<<< HEAD
           // BlocSelector : ne reconstruit QUE le badge quand itemCount change.
           // Évite de reconstruire tout le Scaffold à chaque ajout/retrait.
           BottomNavigationBarItem(
@@ -80,11 +66,6 @@ class _ClientMainTabState extends State<ClientMainTab> {
                 active: true,
               ),
             ),
-=======
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            activeIcon: const Icon(Icons.shopping_cart),
->>>>>>> f4ae7071d0194c2614232d12bef533974729effa
             label: 'client.nav_cart'.tr(),
           ),
           BottomNavigationBarItem(
