@@ -5,6 +5,9 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+import java.util.Properties
+import java.io.FileInputStream
+
 android {
     namespace = "cm.cliceat.app"
     compileSdk = flutter.compileSdkVersion
@@ -17,7 +20,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -35,7 +38,7 @@ android {
         // Create key.properties with: storeFile, storePassword, keyAlias, keyPassword.
         // Run: keytool -genkey -v -keystore cliceat-release.jks -alias cliceat -keyalg RSA
         create("release") {
-            val props = java.util.Properties()
+            val props = Properties()
             val keyPropsFile = rootProject.file("key.properties")
             if (keyPropsFile.exists()) {
                 props.load(keyPropsFile.inputStream())
