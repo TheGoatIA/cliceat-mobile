@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import '../../../../../core/di/injection.dart';
 import '../../data/datasources/mission_service.dart';
@@ -38,7 +39,7 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Signaler un problème'),
+        title: Text('common.report_issue_title'.tr()),
         backgroundColor: Theme.of(context).colorScheme.error,
         foregroundColor: Theme.of(context).colorScheme.onError,
       ),
@@ -111,7 +112,7 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                       );
                       if(mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Signalement envoyé. Le support vous contactera.')),
+                          SnackBar(content: Text('common.report_sent'.tr())),
                         );
                         context.pop();
                       }
@@ -119,7 +120,7 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                       debugPrint('Error reporting mission: $e');
                       if(mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Erreur réseau. Veuillez réessayer.')),
+                            SnackBar(content: Text('common.network_error'.tr())),
                         );
                       }
                     } finally {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ConfirmPickupPage extends StatelessWidget {
   const ConfirmPickupPage({super.key});
@@ -9,7 +10,7 @@ class ConfirmPickupPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Commande #10842'),
+        title: Text('delivery.confirm_pickup_title'.tr(args: ['10842'])),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -34,12 +35,12 @@ class ConfirmPickupPage extends StatelessWidget {
                     children: [
                       Icon(Icons.restaurant, color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 16),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Mets Traditionnels', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                            Text('Vérifiez les articles avant de partir'),
+                            const Text('Mets Traditionnels', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                            Text('delivery.verify_items'.tr()),
                           ],
                         ),
                       )
@@ -47,7 +48,7 @@ class ConfirmPickupPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Articles (3)', style: Theme.of(context).textTheme.titleLarge),
+                Text('delivery.items_count'.tr(args: ['3']), style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 Expanded(
                   child: ListView(
@@ -70,7 +71,7 @@ class ConfirmPickupPage extends StatelessWidget {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.call),
-                        label: const Text('Appeler Resto'),
+                        label: Text('common.call_restaurant'.tr()),
                         onPressed: () {
                           HapticFeedback.lightImpact();
                         },
@@ -80,7 +81,7 @@ class ConfirmPickupPage extends StatelessWidget {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.warning_amber),
-                        label: const Text('Signaler'),
+                        label: Text('common.report_issue'.tr()),
                         style: OutlinedButton.styleFrom(foregroundColor: Colors.orange),
                         onPressed: () {
                           HapticFeedback.lightImpact();
@@ -121,8 +122,8 @@ class ConfirmPickupPage extends StatelessWidget {
                              child: Icon(Icons.arrow_forward_ios, color: Theme.of(context).colorScheme.primary),
                            ),
                          ),
-                         const Center(
-                           child: Text('Confirmer la récupération', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                         Center(
+                           child: Text('delivery.confirm_pickup'.tr(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                          )
                        ],
                      ),

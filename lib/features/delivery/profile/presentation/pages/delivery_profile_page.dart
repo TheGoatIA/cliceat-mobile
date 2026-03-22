@@ -63,8 +63,8 @@ class DeliveryProfilePage extends StatelessWidget {
               const SizedBox(height: 32),
 
               OutlinedButton.icon(
-                icon: const Icon(Icons.restaurant),
-                label: const Text('Passer en mode Client'),
+                icon: const Icon(Icons.swap_horiz),
+                label: Text('delivery.switch_client_mode'.tr()),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

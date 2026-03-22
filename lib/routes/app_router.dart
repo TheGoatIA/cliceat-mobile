@@ -20,6 +20,8 @@ import '../../features/client/cart/presentation/pages/payment_webview_page.dart'
 import '../../features/client/cart/presentation/pages/address_selection_page.dart';
 import '../../features/client/cart/presentation/pages/order_history_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/delivery_main_tab.dart';
+import '../../features/delivery/dashboard/presentation/pages/mission_incoming_page.dart';
+import '../../features/delivery/dashboard/data/models/mission_model.dart';
 import '../../features/legal/presentation/pages/terms_page.dart';
 import '../../features/legal/presentation/pages/privacy_page.dart';
 
@@ -216,6 +218,15 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.delivery,
       builder: (context, state) => const DeliveryMainTab(),
+      routes: [
+        GoRoute(
+          path: 'incoming',
+          builder: (context, state) {
+            final mission = state.extra as MissionModel;
+            return MissionIncomingPage(mission: mission);
+          },
+        ),
+      ],
     ),
 
     // ── Legal routes (publiques) ───────────────────────────────────────────────

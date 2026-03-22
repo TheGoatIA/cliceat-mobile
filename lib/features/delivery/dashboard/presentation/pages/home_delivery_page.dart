@@ -2,12 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:logger/logger.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/services/websocket_service.dart';
 import '../../data/repositories/driver_repository.dart';
 import '../../data/models/earnings_model.dart';
+import '../../data/models/mission_model.dart';
 import '../bloc/mission_bloc.dart';
 import '../../../../../shared/widgets/stat_card.dart';
 
@@ -34,8 +37,16 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     super.initState();
     _missionBloc = getIt<MissionBloc>()
       ..add(const MissionEvent.loadActiveMissions());
-    _wsSubscription = getIt<WebSocketService>().missionEvents.listen((_) {
+    _wsSubscription = getIt<WebSocketService>().missionEvents.listen((data) {
       _missionBloc.add(const MissionEvent.loadActiveMissions());
+      if (mounted) {
+        try {
+          final mission = MissionModel.fromJson(data);
+          context.push('/delivery/incoming', extra: mission);
+        } catch (e) {
+          _logger.e('Error parsing mission from websocket: $e');
+        }
+      }
     });
     _loadEarnings();
   }
@@ -237,29 +248,56 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
       children: [
         Text('Dernières livraisons', style: theme.textTheme.titleLarge),
         const SizedBox(height: 16),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 2,
-          itemBuilder: (context, index) {
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.check_circle, color: Colors.green),
-              ),
-              title: const Text('Commande #10842'),
-              subtitle: const Text('Livré à 14:30 • Akwa'),
-              trailing: Text(
-                '+1500 FCFA',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
+        BlocBuilder<MissionBloc, MissionState>(
+          bloc: _missionBloc,
+          builder: (context, state) {
+            return state.maybeWhen(
+              loaded: (missionsData) {
+                final missions = missionsData
+                    .map((m) => MissionModel.fromJson(m))
+                    .where((m) => m.status == 'delivered')
+                    .toList();
+
+                if (missions.isEmpty) {
+                  return Center(
+                    child: Text('delivery.no_recent_deliveries'.tr()),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: missions.length,
+                  itemBuilder: (context, index) {
+                    final mission = missions[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.check_circle, color: Colors.green),
+                      ),
+                      title: Text('Commande #${mission.id.length > 5 ? mission.id.substring(mission.id.length - 5) : mission.id}'),
+                      subtitle: Text('Livré à ${mission.clientName ?? "Client"}'),
+                      trailing: Text(
+                        '+${mission.earnings.toStringAsFixed(0)} FCFA',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              orElse: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
                 ),
               ),
             );

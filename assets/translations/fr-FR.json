@@ -12,11 +12,7 @@
     "login_subtitle": "Nous vous enverrons un code de validation par SMS.",
     "phone_hint": "Numéro de téléphone",
     "phone_error": "Veuillez entrer un numéro valide",
-    "login_title": "Connexion",
-    "login_phone_title": "Entrez votre numéro",
-    "login_subtitle": "Nous vous enverrons un code de validation par SMS.",
-    "phone_hint": "Numéro de téléphone",
-    "phone_error": "Veuillez entrer un numéro valide",
+
     "send_otp": "Envoyer le code OTP",
     "verify_otp_title": "Vérification",
     "verify_subtitle": "Validation SMS",
@@ -232,8 +228,7 @@
     "offline": "HORS LIGNE",
     "status_waiting": "En attente de commandes...",
     "status_offline": "Vous êtes hors ligne",
-    "status_waiting": "En attente de commandes...",
-    "status_offline": "Vous êtes hors ligne",
+
     "todays_earnings": "Gains du jour",
     "deliveries": "Livraisons",
     "status": "Statut",
@@ -286,7 +281,21 @@
     "cash_code_message": "Entrez le code fourni par le client pour confirmer le paiement en espèces.",
     "cash_code_hint": "Code client",
     "cash_code_confirm": "Confirmer",
-    "active_missions": "Missions actives"
+    "active_missions": "Missions actives",
+    "waiting": "En attente",
+    "restaurant_view": "Vue Restaurant",
+    "swipe_to_accept": "GLISSER POUR ACCEPTER",
+    "confirm_pickup_title": "Commande #{}",
+    "verify_items": "Vérifiez les articles avant de partir",
+    "items_count": "Articles ({})",
+    "dropoff_client": "Livraison Client",
+    "instructions": "Instructions: \"{}\"",
+    "payment_title": "Paiement",
+    "cash_to_collect": "Cash à récolter",
+    "delivery_success_bonus": "Livraison terminée avec succès ! +{} FCFA",
+    "confirm_dropoff": "Confirmer la Livraison",
+    "no_recent_deliveries": "Aucune livraison récente.",
+    "switch_client_mode": "Passer en mode Client"
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -336,7 +345,13 @@
     "no_internet": "Pas de connexion internet",
     "back_online": "Connexion rétablie",
     "clear": "Effacer",
-    "try_other_query": "Essayez un autre terme de recherche"
+    "try_other_query": "Essayez un autre terme de recherche",
+    "call_restaurant": "Appeler Resto",
+    "call_client": "Appeler Client",
+    "message": "Message",
+    "report_issue": "Signaler",
+    "report_issue_title": "Signaler un problème",
+    "report_sent": "Signalement envoyé. Le support vous contactera."
   },
   "legal": {
     "terms_title": "Conditions Générales d'Utilisation",

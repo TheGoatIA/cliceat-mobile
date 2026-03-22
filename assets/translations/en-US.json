@@ -12,11 +12,7 @@
     "login_subtitle": "We will send you a verification code via SMS.",
     "phone_hint": "Phone number",
     "phone_error": "Please enter a valid number",
-    "login_title": "Login",
-    "login_phone_title": "Enter your number",
-    "login_subtitle": "We will send you a verification code via SMS.",
-    "phone_hint": "Phone number",
-    "phone_error": "Please enter a valid number",
+
     "send_otp": "Send OTP Code",
     "verify_otp_title": "Verification",
     "verify_subtitle": "SMS Validation",
@@ -230,8 +226,7 @@
     "dashboard_title": "Dashboard",
     "online": "ONLINE",
     "offline": "OFFLINE",
-    "status_waiting": "Waiting for orders...",
-    "status_offline": "You are offline",
+
     "todays_earnings": "Today's earnings",
     "deliveries": "Deliveries",
     "status": "Status",
@@ -284,7 +279,21 @@
     "cash_code_message": "Enter the code provided by the client to confirm cash payment.",
     "cash_code_hint": "Client code",
     "cash_code_confirm": "Confirm",
-    "active_missions": "Active missions"
+    "active_missions": "Active missions",
+    "waiting": "Waiting",
+    "restaurant_view": "Restaurant View",
+    "swipe_to_accept": "SWIPE TO ACCEPT",
+    "confirm_pickup_title": "Order #{}",
+    "verify_items": "Verify items before leaving",
+    "items_count": "Items ({})",
+    "dropoff_client": "Client Delivery",
+    "instructions": "Instructions: \"{}\"",
+    "payment_title": "Payment",
+    "cash_to_collect": "Cash to collect",
+    "delivery_success_bonus": "Delivery successfully completed! +{} FCFA",
+    "confirm_dropoff": "Confirm Delivery",
+    "no_recent_deliveries": "No recent deliveries.",
+    "switch_client_mode": "Switch to Client mode"
   },
   "address": {
     "select_title": "Choose an address",
@@ -334,7 +343,13 @@
     "no_internet": "No internet connection",
     "back_online": "Back online",
     "clear": "Clear",
-    "try_other_query": "Try a different search term"
+    "try_other_query": "Try a different search term",
+    "call_restaurant": "Call Restaurant",
+    "call_client": "Call Client",
+    "message": "Message",
+    "report_issue": "Report",
+    "report_issue_title": "Report an issue",
+    "report_sent": "Report sent. Support will contact you."
   },
   "legal": {
     "terms_title": "Terms of Service",

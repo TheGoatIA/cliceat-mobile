@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class DropoffPage extends StatelessWidget {
   const DropoffPage({super.key});
@@ -9,7 +10,7 @@ class DropoffPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Livraison Client'),
+        title: Text('delivery.dropoff_client'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -30,15 +31,15 @@ class DropoffPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
-                      Icon(Icons.person_pin_circle, size: 48, color: Colors.green),
-                      SizedBox(height: 12),
-                      Text('Boris Gautier', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 4),
-                      Text('Akwa (Proche ancienne direction)'),
-                      SizedBox(height: 12),
-                      Text('Instructions: "Bâtiment blanc au 2ème étage, sonnez à la porte 4"', style: TextStyle(fontStyle: FontStyle.italic)),
+                      const Icon(Icons.person_pin_circle, size: 48, color: Colors.green),
+                      const SizedBox(height: 12),
+                      const Text('Boris Gautier', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      const Text('Akwa (Proche ancienne direction)'),
+                      const SizedBox(height: 12),
+                      Text('delivery.instructions'.tr(args: ['Bâtiment blanc au 2ème étage, sonnez à la porte 4']), style: const TextStyle(fontStyle: FontStyle.italic)),
                     ],
                   ),
                 ),
@@ -53,7 +54,7 @@ class DropoffPage extends StatelessWidget {
                            foregroundColor: Colors.white,
                          ),
                          icon: const Icon(Icons.call),
-                         label: const Text('Appeler Client'),
+                         label: Text('common.call_client'.tr()),
                          onPressed: () {
                            HapticFeedback.lightImpact();
                          },
@@ -68,7 +69,7 @@ class DropoffPage extends StatelessWidget {
                            foregroundColor: Colors.white,
                          ),
                          icon: const Icon(Icons.chat),
-                         label: const Text('Message'),
+                         label: Text('common.message'.tr()),
                          onPressed: () {
                            HapticFeedback.lightImpact();
                          },
@@ -77,12 +78,12 @@ class DropoffPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 32),
-                const Text('Paiement', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('delivery.payment_title'.tr(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.money, color: Colors.green, size: 32),
-                  title: const Text('Cash à récolter'),
+                  title: Text('delivery.cash_to_collect'.tr()),
                   trailing: const Text('10 500 FCFA', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 ),
                 const Divider(),
@@ -97,7 +98,7 @@ class DropoffPage extends StatelessWidget {
                     context.go('/delivery');
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Livraison terminée avec succès ! +1 500 FCFA'),
+                        content: Text('delivery.delivery_success_bonus'.tr(args: ['1 500'])),
                         backgroundColor: Colors.green.shade700,
                       ),
                     );
@@ -125,8 +126,8 @@ class DropoffPage extends StatelessWidget {
                              child: const Icon(Icons.arrow_forward_ios, color: Colors.green),
                            ),
                          ),
-                         const Center(
-                           child: Text('Confirmer la Livraison', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                         Center(
+                           child: Text('delivery.confirm_dropoff'.tr(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                          )
                        ],
                      ),
