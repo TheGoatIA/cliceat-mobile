@@ -21,6 +21,7 @@ abstract class AuthService extends ChopperService {
   @POST(path: '/refresh')
   Future<Response> refreshToken();
 
+<<<<<<< HEAD
   @POST(path: '/logout')
   Future<Response> logout();
 
@@ -46,4 +47,11 @@ abstract class AuthService extends ChopperService {
 
   @POST(path: '/resend-verification-email')
   Future<Response> resendVerificationEmail(@Body() Map<String, dynamic> body);
+=======
+  @POST(path: '/google')
+  Future<Response> loginWithGoogle(@Body() Map<String, dynamic> body);
+
+  @POST(path: '/apple')
+  Future<Response> loginWithApple(@Body() Map<String, dynamic> body);
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 }

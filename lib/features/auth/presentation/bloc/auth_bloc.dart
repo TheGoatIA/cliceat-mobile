@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+<<<<<<< HEAD
 import 'package:logger/logger.dart';
 import '../../../../core/data/local/database.dart';
 import '../../../../core/services/notification_service.dart';
@@ -13,14 +14,22 @@ import '../../../../core/services/analytics_service.dart';
 import 'package:cliceat_app/di/injection.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import '../../data/datasources/auth_service.dart';
+=======
+import '../../../../core/data/local/database.dart';
+import '../../data/datasources/auth_service.dart';
+import 'package:logger/logger.dart';
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 
 part 'auth_event.dart';
 part 'auth_state.dart';
 part 'auth_bloc.freezed.dart';
 
+<<<<<<< HEAD
 /// Intervalle de vérification d'expiration du token JWT (toutes les 5 minutes).
 const _kSessionCheckInterval = Duration(minutes: 5);
 
+=======
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 @injectable
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService _authService;
@@ -28,17 +37,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AppDatabase _db;
   final Logger _logger = Logger();
 
+<<<<<<< HEAD
   /// Toutes les StreamSubscriptions ouvertes après auth, fermées dans [close].
   final List<StreamSubscription<dynamic>> _subscriptions = [];
 
   /// Timer périodique de vérification d'expiration du JWT.
   Timer? _sessionTimer;
 
+=======
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   AuthBloc(
     this._authService,
     this._secureStorage,
     this._db,
   ) : super(const AuthState.initial()) {
+<<<<<<< HEAD
     on<_AppStarted>(_onAppStarted);
     on<_SendOtp>(_onSendOtp);
     on<_VerifyOtp>(_onVerifyOtp);
@@ -389,10 +402,169 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         Timer.periodic(_kSessionCheckInterval, (_) {
       if (_isTokenExpired(token)) {
         add(const AuthEvent.sessionExpired());
+=======
+    
+    // Check local session
+    on<_AppStarted>((event, emit) async {
+      emit(const AuthState.loading());
+      try {
+        final token = await _secureStorage.read(key: 'jwt_token');
+        final userId = await _secureStorage.read(key: 'user_id');
+        final currentMode = await _secureStorage.read(key: 'current_mode') ?? 'client';
+        
+        if (token != null && userId != null) {
+          emit(AuthState.authenticated(token: token, userId: userId, currentMode: currentMode));
+        } else {
+          emit(const AuthState.unauthenticated());
+        }
+      } catch (e) {
+        _logger.e("Error checking auth state: $e");
+        emit(const AuthState.unauthenticated());
+      }
+    });
+
+    on<_SendOtp>((event, emit) async {
+      emit(const AuthState.loading());
+      try {
+        final res = await _authService.sendOtp({
+          "phone": event.phone,
+          "channel": "sms"
+        });
+        if (res.isSuccessful) {
+          emit(AuthState.otpSent(phone: event.phone));
+        } else {
+          emit(const AuthState.unauthenticated());
+        }
+      } catch (e) {
+        _logger.e("Error sending OTP: $e");
+        emit(const AuthState.unauthenticated());
+      }
+    });
+
+    on<_VerifyOtp>((event, emit) async {
+      emit(const AuthState.loading());
+      try {
+        final res = await _authService.verifyOtp({
+          "phone": event.phone,
+          "otp": event.otp
+        });
+        if (res.isSuccessful && res.body != null) {
+          final data = res.body as Map<String, dynamic>;
+          final token = data['token'] as String;
+          final user = data['user'] as Map<String, dynamic>;
+          final userId = user['id'] as String;
+          
+          await _persistAuth(token, userId, 'client');
+          emit(AuthState.authenticated(token: token, userId: userId, currentMode: 'client'));
+        } else {
+          emit(const AuthState.unauthenticated());
+        }
+      } catch (e) {
+        _logger.e("Error verifying OTP: $e");
+        emit(const AuthState.unauthenticated());
+      }
+    });
+
+    on<_LoginWithEmail>((event, emit) async {
+      emit(const AuthState.loading());
+      try {
+        final res = await _authService.login({
+          "email": event.email,
+          "password": event.password
+        });
+        if (res.isSuccessful && res.body != null) {
+          final data = res.body as Map<String, dynamic>;
+          final token = data['token'] as String;
+          final user = data['user'] as Map<String, dynamic>;
+          final userId = user['id'].toString();
+          
+          await _persistAuth(token, userId, 'client');
+          emit(AuthState.authenticated(token: token, userId: userId, currentMode: 'client'));
+        } else {
+          emit(const AuthState.unauthenticated());
+        }
+      } catch (e) {
+        _logger.e("Error logging in: $e");
+        emit(const AuthState.unauthenticated());
+      }
+    });
+
+    on<_LoginWithGoogle>((event, emit) async {
+       emit(const AuthState.loading());
+       try {
+         final res = await _authService.loginWithGoogle({
+           "token": event.token,
+         });
+         
+         if (res.isSuccessful && res.body != null) {
+           final data = res.body as Map<String, dynamic>;
+           final token = data['token'] as String;
+           final user = data['user'] as Map<String, dynamic>;
+           final userId = user['id'].toString();
+           
+           await _persistAuth(token, userId, 'client');
+           emit(AuthState.authenticated(token: token, userId: userId, currentMode: 'client'));
+         } else {
+           emit(const AuthState.unauthenticated());
+         }
+       } catch (e) {
+         _logger.e("Error logging in with Google: $e");
+         emit(const AuthState.unauthenticated());
+       }
+    });
+
+    on<_LoginWithApple>((event, emit) async {
+       emit(const AuthState.loading());
+       try {
+         final res = await _authService.loginWithApple({
+           "token": event.token,
+         });
+         
+         if (res.isSuccessful && res.body != null) {
+           final data = res.body as Map<String, dynamic>;
+           final token = data['token'] as String;
+           final user = data['user'] as Map<String, dynamic>;
+           final userId = user['id'].toString();
+           
+           await _persistAuth(token, userId, 'client');
+           emit(AuthState.authenticated(token: token, userId: userId, currentMode: 'client'));
+         } else {
+           emit(const AuthState.unauthenticated());
+         }
+       } catch (e) {
+         _logger.e("Error logging in with Apple: $e");
+         emit(const AuthState.unauthenticated());
+       }
+    });
+    
+    on<_SwitchMode>((event, emit) async {
+      state.maybeWhen(
+        authenticated: (token, userId, currentMode) async {
+          await _secureStorage.write(key: 'current_mode', value: event.mode);
+          emit(AuthState.authenticated(token: token, userId: userId, currentMode: event.mode));
+        },
+        orElse: () {},
+      );
+    });
+
+    on<_Logout>((event, emit) async {
+      emit(const AuthState.loading());
+      try {
+        await _secureStorage.delete(key: 'jwt_token');
+        await _secureStorage.delete(key: 'user_id');
+        await _secureStorage.delete(key: 'current_mode');
+        // Clear UserPrefs Table
+        await _db.delete(_db.userPrefsTable).go();
+        emit(const AuthState.unauthenticated());
+      } catch (e) {
+        _logger.e("Error logging out: $e");
+        emit(const AuthState.unauthenticated());
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
       }
     });
   }
 
+<<<<<<< HEAD
   void _stopSessionTimer() {
     _sessionTimer?.cancel();
     _sessionTimer = null;
@@ -481,11 +653,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+=======
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   Future<void> _persistAuth(String token, String userId, String mode) async {
     await _secureStorage.write(key: 'jwt_token', value: token);
     await _secureStorage.write(key: 'user_id', value: userId);
     await _secureStorage.write(key: 'current_mode', value: mode);
   }
+<<<<<<< HEAD
 
   /// Révoque le token FCM côté Firebase et côté backend.
   Future<void> _revokeFcmToken() async {
@@ -521,4 +696,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await _cancelSubscriptions();
     return super.close();
   }
+=======
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 }

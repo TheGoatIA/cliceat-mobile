@@ -20,7 +20,11 @@ final class _$DriverService extends DriverService {
 
   @override
   Future<Response<Map<String, dynamic>>> getMyEarnings() {
+<<<<<<< HEAD
     final Uri $url = Uri.parse('/delivery/me/earnings');
+=======
+    final Uri $url = Uri.parse('/drivers/me/earnings');
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
@@ -29,7 +33,11 @@ final class _$DriverService extends DriverService {
   Future<Response<Map<String, dynamic>>> updateStatus(
     Map<String, dynamic> statusData,
   ) {
+<<<<<<< HEAD
     final Uri $url = Uri.parse('/delivery/me/status');
+=======
+    final Uri $url = Uri.parse('/drivers/me/status');
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
     final $body = statusData;
     final Request $request = Request(
       'PATCH',
@@ -39,6 +47,7 @@ final class _$DriverService extends DriverService {
     );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
+<<<<<<< HEAD
 
   @override
   Future<Response<Map<String, dynamic>>> updateLocation(
@@ -54,4 +63,6 @@ final class _$DriverService extends DriverService {
     );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
+=======
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 }

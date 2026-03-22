@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>ClicEat a besoin de votre position pour suivre les livraisons et trouver les restaurants autour de vous.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>En mode "Livreur", ClicEat a besoin de votre position en arrière-plan pour que les clients voient votre progression vers la destination.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>ClicEat a besoin de votre position pour le suivi des livraisons en temps réel.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

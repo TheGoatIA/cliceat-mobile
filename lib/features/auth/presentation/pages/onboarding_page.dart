@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../shared/widgets/primary_button.dart';
 
 class OnboardingPage extends StatelessWidget {
@@ -17,14 +18,14 @@ class OnboardingPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              // Placeholder for Lottie illustration
+              // Illustration Principale
               Container(
                 height: 250,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
                   shape: BoxShape.circle,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
-                child: const Icon(Icons.delivery_dining, size: 100, color: Colors.grey),
+                child: Icon(Icons.delivery_dining, size: 100, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 48),
               Text(
