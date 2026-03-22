@@ -33,7 +33,8 @@ class RefreshInterceptor implements Interceptor {
 
   @override
   FutureOr<Response<BodyType>> intercept<BodyType>(
-      Chain<BodyType> chain) async {
+    Chain<BodyType> chain,
+  ) async {
     final response = await chain.proceed(chain.request);
 
     if (response.statusCode != 401) return response;
@@ -51,10 +52,9 @@ class RefreshInterceptor implements Interceptor {
     // ── Retenter la requête originale avec le nouveau token ────────────────
 
     _logger.d('[RefreshInterceptor] Token rafraîchi — rejeu de la requête.');
-    final retried = chain.request.copyWith(headers: {
-      ...chain.request.headers,
-      'Authorization': 'Bearer $newToken',
-    });
+    final retried = chain.request.copyWith(
+      headers: {...chain.request.headers, 'Authorization': 'Bearer $newToken'},
+    );
     return chain.proceed(retried);
   }
 
@@ -75,7 +75,11 @@ class RefreshInterceptor implements Interceptor {
       _state.pendingRefresh!.complete(newToken);
       return newToken;
     } catch (e, stack) {
-      _logger.e('[RefreshInterceptor] Erreur lors du refresh', error: e, stackTrace: stack);
+      _logger.e(
+        '[RefreshInterceptor] Erreur lors du refresh',
+        error: e,
+        stackTrace: stack,
+      );
       _state.pendingRefresh!.complete(null);
       return null;
     } finally {

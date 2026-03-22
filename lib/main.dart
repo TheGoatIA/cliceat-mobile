@@ -49,9 +49,7 @@ Future<void> _bootstrap() async {
   await EasyLocalization.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize Crashlytics
   if (!kDebugMode) {
@@ -84,7 +82,6 @@ Future<void> _bootstrap() async {
   );
 }
 
-
 class ClicEatApp extends StatelessWidget {
   const ClicEatApp({super.key});
 
@@ -95,9 +92,7 @@ class ClicEatApp extends StatelessWidget {
         BlocProvider(
           create: (_) => getIt<AuthBloc>()..add(const AuthEvent.appStarted()),
         ),
-        BlocProvider(
-          create: (_) => getIt<CartCubit>(),
-        ),
+        BlocProvider(create: (_) => getIt<CartCubit>()),
       ],
       child: MaterialApp.router(
         title: 'ClicEat',

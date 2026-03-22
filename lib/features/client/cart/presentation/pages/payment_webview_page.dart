@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -26,6 +27,24 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
   bool _loading = true;
   bool _verifying = false;
   bool _paymentFailed = false;
+=======
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
+
+class PaymentWebViewPage extends StatefulWidget {
+  final String paymentUrl;
+  
+  const PaymentWebViewPage({super.key, required this.paymentUrl});
+
+  @override
+  State<PaymentWebViewPage> createState() => _PaymentWebViewPageState();
+}
+
+class _PaymentWebViewPageState extends State<PaymentWebViewPage> {
+  late final WebViewController _controller;
+  bool _isLoading = true;
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
 
   @override
   void initState() {
@@ -34,6 +53,7 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+<<<<<<< HEAD
           onPageStarted: (_) => setState(() => _loading = true),
           onPageFinished: (_) => setState(() => _loading = false),
           onNavigationRequest: (request) {
@@ -66,6 +86,26 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
               return NavigationDecision.prevent;
             }
 
+=======
+          onPageStarted: (String url) {
+            setState(() {
+              _isLoading = true;
+            });
+          },
+          onPageFinished: (String url) {
+            setState(() {
+              _isLoading = false;
+            });
+            // We can check if the URL contains a success or failure callback from our backend/NotchPay
+            if (url.contains('/payment/success')) {
+              _handlePaymentSuccess();
+            } else if (url.contains('/payment/cancel') || url.contains('/payment/failed')) {
+              _handlePaymentFailure();
+            }
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            // Validate if we should allow navigation
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
             return NavigationDecision.navigate;
           },
         ),
@@ -73,6 +113,7 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
       ..loadRequest(Uri.parse(widget.paymentUrl));
   }
 
+<<<<<<< HEAD
   /// Verify with backend that payment actually succeeded before showing success.
   Future<void> _verifyPaymentThenNavigate() async {
     if (_verifying) return;
@@ -113,6 +154,18 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
       _loading = true;
     });
     _controller.reload();
+=======
+  void _handlePaymentSuccess() {
+    // Navigate to order-success page. In a real scenario, this gets the orderId.
+    context.go('/order-success', extra: 'CMD-NOTCH-999'); 
+  }
+
+  void _handlePaymentFailure() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('payment.failed'.tr())),
+    );
+    context.pop(); // Go back to checkout on failure
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
   }
 
   @override
@@ -122,13 +175,19 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
         title: Text('payment.title'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.close),
+<<<<<<< HEAD
           onPressed: () => _showCancelDialog(context),
         ),
         elevation: 0,
+=======
+          onPressed: () => context.pop(), // Cancel payment
+        ),
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
       ),
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
+<<<<<<< HEAD
           if (_loading || _verifying)
             Container(
               color: Colors.black26,
@@ -224,6 +283,12 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
+=======
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+>>>>>>> f4ae7071d0194c2614232d12bef533974729effa
         ],
       ),
     );

@@ -5,38 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:logger/logger.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:cliceat_app/di/injection.dart';
-import 'package:cliceat_app/features/delivery/dashboard/data/models/earnings_model.dart';
-import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
-import '../../../../../core/services/websocket_service.dart';
-import '../../../../../shared/widgets/stat_card.dart';
-import '../bloc/mission_bloc.dart';
-
-// Platform-specific GPS settings
-final _androidLocationSettings = AndroidSettings(
-  accuracy: LocationAccuracy.high,
-  distanceFilter: 15,
-  forceLocationManager: false,
-  intervalDuration: const Duration(seconds: 5),
-  foregroundNotificationConfig: const ForegroundNotificationConfig(
-    notificationText: 'ClicEat : suivi de position en cours',
-    notificationTitle: 'ClicEat Livreur',
-    enableWakeLock: true,
-  ),
-);
-
-final _appleLocationSettings = AppleSettings(
-  accuracy: LocationAccuracy.high,
-  activityType: ActivityType.automotiveNavigation,
-  distanceFilter: 15,
-  pauseLocationUpdatesAutomatically: false,
-  showBackgroundLocationIndicator: true,
-);
 
 class HomeDeliveryPage extends StatefulWidget {
   const HomeDeliveryPage({super.key});
@@ -143,47 +111,29 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return BlocProvider.value(
-      value: _missionBloc,
-      child: BlocListener<MissionBloc, MissionState>(
-        listener: (context, state) {
-          state.maybeWhen(
-            actionSuccess: (message) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(message.tr())));
-            },
-            error: (message) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message.tr()),
-                  backgroundColor: theme.colorScheme.error,
-                ),
-              );
-            },
-            orElse: () {},
-          );
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text('delivery.dashboard_title'.tr()),
-            elevation: 0,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('delivery.dashboard_title'.tr()),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () {},
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildOnlineToggle(theme),
-                const SizedBox(height: 16),
-                _buildStatusCard(theme),
-                const SizedBox(height: 16),
-                _buildTodayStats(theme),
-                const SizedBox(height: 16),
-                Expanded(child: _buildMissionsAndRecent(theme)),
-              ],
-            ),
-          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildOnlineToggle(theme),
+            const SizedBox(height: 24),
+            _buildStatusCard(theme),
+            const SizedBox(height: 24),
+            _buildTodayStats(theme),
+            const SizedBox(height: 24),
+            _buildRecentDeliveries(theme),
+          ],
         ),
       ),
     );
@@ -197,7 +147,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -209,7 +159,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('delivery.status'.tr(), style: theme.textTheme.bodySmall),
+              Text('Statut', style: theme.textTheme.bodySmall),
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -218,19 +168,15 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     width: 10,
                     height: 10,
                     decoration: BoxDecoration(
-                      color: isOnline
-                          ? AppTheme.statusOnline
-                          : theme.disabledColor,
+                      color: isOnline ? Colors.green : Colors.grey,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     isOnline ? 'delivery.online'.tr() : 'delivery.offline'.tr(),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: isOnline
-                          ? AppTheme.statusOnline
-                          : theme.disabledColor,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: isOnline ? Colors.green : Colors.grey,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -241,27 +187,12 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           Switch(
             value: isOnline,
             activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.5),
-            onChanged: (value) async {
-              setState(() => isOnline = value);
-              final result = await getIt<DriverRepository>().updateOnlineStatus(
-                value,
-              );
-              if (!mounted) return;
-              result.fold(
-                (err) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('common.network_error'.tr())),
-                  );
-                  setState(() => isOnline = !value);
-                },
-                (_) {
-                  if (value) {
-                    _startLocationUpdates();
-                  } else {
-                    _stopLocationUpdates();
-                  }
-                },
-              );
+            activeColor: theme.colorScheme.primary,
+            onChanged: (value) {
+              setState(() {
+                isOnline = value;
+                // TODO: Dispatch event to bloc to trigger GPS Background Service
+              });
             },
           ),
         ],
@@ -275,8 +206,8 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
       height: 110,
       decoration: BoxDecoration(
         color: isOnline
-            ? theme.colorScheme.primary.withValues(alpha: 0.08)
-            : theme.disabledColor.withValues(alpha: 0.04),
+            ? theme.colorScheme.primary.withValues(alpha: 0.1)
+            : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isOnline
@@ -291,18 +222,16 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           children: [
             Icon(
               isOnline ? Icons.radar : Icons.power_settings_new,
-              size: 34,
-              color: isOnline ? theme.colorScheme.primary : theme.disabledColor,
+              size: 48,
+              color: isOnline ? theme.colorScheme.primary : Colors.grey,
             ),
             const SizedBox(height: 8),
             Text(
               isOnline
-                  ? 'delivery.status_waiting'.tr()
-                  : 'delivery.status_offline'.tr(),
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: isOnline
-                    ? theme.colorScheme.primary
-                    : theme.disabledColor,
+                  ? 'delivery.waiting_mission'.tr()
+                  : 'Vous êtes hors ligne',
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: isOnline ? theme.colorScheme.primary : Colors.grey,
               ),
             ),
           ],
@@ -489,264 +418,41 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     );
   }
 
-  // ─── Confirm delivery flow (photo + optional cash code) ──────────────────
-
-  Future<void> _confirmDelivery(
-    BuildContext blocContext,
-    String missionId,
-    Map<String, dynamic> mission,
-  ) async {
-    // Step 1: Photo proof
-    final photoPath = await _pickDeliveryPhoto();
-    if (!mounted) return;
-    if (photoPath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('delivery.photo_proof_missing'.tr())),
-      );
-      return;
-    }
-
-    // Step 2: Cash code (only for cash payment)
-    final paymentMethod = mission['paymentMethod'] as String? ?? '';
-    Map<String, dynamic> metadata = {};
-    try {
-      final bytes = await File(photoPath).readAsBytes();
-      metadata['photoBase64'] = base64Encode(bytes);
-    } catch (_) {
-      metadata['photoPath'] = photoPath;
-    }
-
-    if (paymentMethod == 'cash') {
-      if (!mounted) return;
-      final code = await _askCashCode();
-      if (!mounted) return;
-      if (code == null || code.isEmpty) return;
-      metadata['cashCode'] = code;
-    }
-
-    // Step 3: Dispatch
-    if (!blocContext.mounted) return;
-    blocContext.read<MissionBloc>().add(
-      MissionEvent.updateStatus(missionId, 'delivered', metadata: metadata),
-    );
-  }
-
-  Widget _buildRecentOrderTile(Map<String, dynamic> order, ThemeData theme) {
-    final orderId = order['_id']?.toString() ?? order['id']?.toString() ?? '#';
-    final address = order['deliveryAddress']?['address'] as String? ?? '';
-    final amount =
-        order['driverEarnings']?.toString() ??
-        order['amount']?.toString() ??
-        '';
-    final shortId = orderId.length > 6
-        ? orderId.substring(orderId.length - 6)
-        : orderId;
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          Icons.check_circle_outline,
-          color: AppTheme.statusDelivered,
-        ),
-      ),
-      title: Text('#$shortId'),
-      subtitle: Text(address),
-      trailing: Text(
-        '+$amount FCFA',
-        style: theme.textTheme.titleSmall?.copyWith(
-          color: AppTheme.statusDelivered,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavigateButton(Map<String, dynamic> mission, String status) {
-    // Navigate to restaurant when accepted, to client when in_transit
-    final restaurant = mission['restaurant'] as Map<String, dynamic>?;
-    final deliveryAddress = mission['deliveryAddress'] as Map<String, dynamic>?;
-
-    double? lat;
-    double? lng;
-    String label = '';
-
-    if (status == 'accepted' && restaurant != null) {
-      final loc = restaurant['location'] as Map<String, dynamic>?;
-      lat = (loc?['lat'] ?? loc?['latitude'])?.toDouble();
-      lng = (loc?['lng'] ?? loc?['longitude'])?.toDouble();
-      label = restaurant['name'] as String? ?? '';
-    } else if (status == 'in_transit' && deliveryAddress != null) {
-      lat = (deliveryAddress['lat'] ?? deliveryAddress['latitude'])?.toDouble();
-      lng = (deliveryAddress['lng'] ?? deliveryAddress['longitude'])
-          ?.toDouble();
-      label = deliveryAddress['address'] as String? ?? '';
-    }
-
-    if (lat == null || lng == null) return const SizedBox.shrink();
-
-    final navLat = lat;
-    final navLng = lng;
-    final navLabel = label;
-    final navKey = status == 'accepted'
-        ? 'delivery.navigate_to_restaurant'
-        : 'delivery.navigate_to_client';
-
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => _navigateTo(navLat, navLng, navLabel),
-        icon: const Icon(Icons.navigation_outlined),
-        label: Text(navKey.tr()),
-      ),
-    );
-  }
-
-  Widget _buildMissionCard(
-    BuildContext context,
-    Map<String, dynamic> mission,
-    ThemeData theme,
-  ) {
-    final missionId =
-        mission['_id']?.toString() ?? mission['id']?.toString() ?? '';
-    final restaurantName =
-        (mission['restaurant'] as Map<String, dynamic>?)?['name'] as String? ??
-        '';
-    final address =
-        (mission['deliveryAddress'] as Map<String, dynamic>?)?['address']
-            as String? ??
-        '';
-    final amount =
-        mission['driverEarnings']?.toString() ??
-        mission['totalAmount']?.toString() ??
-        '--';
-    final status = mission['status'] as String? ?? '';
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.delivery_dining, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    restaurantName.isNotEmpty
-                        ? restaurantName
-                        : 'delivery.status_waiting'.tr(),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+  Widget _buildRecentDeliveries(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Dernières livraisons', style: theme.textTheme.titleLarge),
+        const SizedBox(height: 16),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 2,
+          itemBuilder: (context, index) {
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '+$amount FCFA',
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
+                child: const Icon(Icons.check_circle, color: Colors.green),
+              ),
+              title: const Text('Commande #10842'),
+              subtitle: const Text('Livré à 14:30 • Akwa'),
+              trailing: Text(
+                '+1500 FCFA',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
-            if (address.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on_outlined,
-                    size: 15,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(address, style: theme.textTheme.bodySmall),
-                  ),
-                ],
               ),
-            ],
-            const SizedBox(height: 12),
-            if (status == 'pending' || status == 'assigned')
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => context.read<MissionBloc>().add(
-                        MissionEvent.rejectMission(missionId),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.error,
-                        side: BorderSide(color: theme.colorScheme.error),
-                      ),
-                      child: Text('delivery.reject_mission'.tr()),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => context.read<MissionBloc>().add(
-                        MissionEvent.acceptMission(missionId),
-                      ),
-                      child: Text('delivery.accept_mission'.tr()),
-                    ),
-                  ),
-                ],
-              )
-            else if (status == 'accepted' || status == 'in_transit') ...[
-              // Navigation button
-              _buildNavigateButton(mission, status),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  if (status == 'accepted')
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => context.read<MissionBloc>().add(
-                          MissionEvent.updateStatus(missionId, 'picked_up'),
-                        ),
-                        icon: const Icon(Icons.local_shipping_outlined),
-                        label: Text('delivery.confirm_pickup'.tr()),
-                      ),
-                    )
-                  else
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () =>
-                            _confirmDelivery(context, missionId, mission),
-                        icon: const Icon(Icons.check_circle_outline),
-                        label: Text('delivery.confirm_delivery'.tr()),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.statusDelivered,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ],
+            );
+          },
         ),
-      ),
+      ],
     );
   }
 }

@@ -22,7 +22,8 @@ class ConnectivityInterceptor implements Interceptor {
 
   @override
   FutureOr<Response<BodyType>> intercept<BodyType>(
-      Chain<BodyType> chain) async {
+    Chain<BodyType> chain,
+  ) async {
     final now = DateTime.now();
     if (_state.cachedResult == null ||
         _state.lastCheck == null ||
