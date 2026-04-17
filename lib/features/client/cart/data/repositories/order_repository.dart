@@ -8,6 +8,7 @@ import 'package:cliceat_app/core/config/env_config.dart';
 import 'package:dartz/dartz.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/client/cart/data/models/order_model.dart';
 import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart';
@@ -19,7 +20,8 @@ import 'package:cliceat_app/core/network/services/tracking_service.dart';
 /// Toute valeur absente de cet ensemble est rejetée comme non-succès.
 const _kPaymentSuccessStatuses = {'completed', 'success', 'approved', 'paid'};
 
-/// Abstracts order operations and provides local caching via SharedPreferences.
+/// Manages orders, reordering, and invoices.
+@lazySingleton
 class OrderRepository {
   final OrderService _orderService;
   final PaymentService _paymentService;

@@ -1,9 +1,11 @@
 import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/client/cart/data/models/coupon_model.dart';
 import 'package:cliceat_app/core/network/services/coupon_service.dart';
 
 /// Abstracts coupon validation and banner fetching.
+@lazySingleton
 class CouponRepository {
   final CouponService _service;
 

@@ -48,19 +48,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_FLUTTERFIRE_CONFIGURE',
-    appId: '1:1234567890:android:abcdef0123456789',
-    messagingSenderId: '1234567890',
-    projectId: 'cliceat-app-prod',
-    storageBucket: 'cliceat-app-prod.appspot.com',
+    apiKey: 'AIzaSyC309pj9uYcrr2wTBhmX-37Uh9A5OL9Y0Y',
+    appId: '1:224830319268:android:2197269aa3124b00c99431',
+    messagingSenderId: '224830319268',
+    projectId: 'cliceat-78a4d',
+    storageBucket: 'cliceat-78a4d.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_FLUTTERFIRE_CONFIGURE',
-    appId: '1:1234567890:ios:abcdef0123456789',
-    messagingSenderId: '1234567890',
-    projectId: 'cliceat-app-prod',
-    storageBucket: 'cliceat-app-prod.appspot.com',
-    iosBundleId: 'cm.cliceat.app',
+    apiKey: 'AIzaSyClohyoggIuHizuVJrSW2uLzodWGqxNTRc',
+    appId: '1:224830319268:ios:3426a22999905d8ec99431',
+    messagingSenderId: '224830319268',
+    projectId: 'cliceat-78a4d',
+    storageBucket: 'cliceat-78a4d.firebasestorage.app',
+    iosBundleId: 'com.tbg.cliceat',
   );
+
 }

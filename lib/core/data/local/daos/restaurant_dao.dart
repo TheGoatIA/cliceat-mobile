@@ -1,7 +1,9 @@
 import 'package:drift/drift.dart' as drift;
+import 'package:injectable/injectable.dart';
 import '../database.dart';
 
 /// Data Access Object for restaurant cache operations.
+@lazySingleton
 class RestaurantDao {
   final AppDatabase _db;
 

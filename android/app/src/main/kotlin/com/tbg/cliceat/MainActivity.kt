@@ -1,4 +1,4 @@
-package com.example.cliceat_app
+package com.tbg.cliceat
 
 import io.flutter.embedding.android.FlutterActivity
 

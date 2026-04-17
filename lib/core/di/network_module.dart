@@ -11,6 +11,9 @@ import '../../features/client/cart/data/datasources/order_service.dart';
 import '../../features/client/cart/data/datasources/payment_service.dart';
 import '../../features/delivery/dashboard/data/datasources/mission_service.dart';
 import '../../features/delivery/dashboard/data/datasources/driver_service.dart';
+import '../network/services/user_service.dart';
+import '../network/services/coupon_service.dart';
+import '../network/services/tracking_service.dart';
 import '../di/injection.dart';
 
 @module
@@ -27,6 +30,9 @@ abstract class NetworkModule {
         PaymentService.create(),
         MissionService.create(),
         DriverService.create(),
+        UserService.create(),
+        CouponService.create(),
+        TrackingService.create(),
       ],
       converter: const JsonConverter(),
       interceptors: [
@@ -55,4 +61,13 @@ abstract class NetworkModule {
 
   @lazySingleton
   DriverService getDriverService(ChopperClient client) => client.getService<DriverService>();
+
+  @lazySingleton
+  UserService getUserService(ChopperClient client) => client.getService<UserService>();
+
+  @lazySingleton
+  CouponService getCouponService(ChopperClient client) => client.getService<CouponService>();
+
+  @lazySingleton
+  TrackingService getTrackingService(ChopperClient client) => client.getService<TrackingService>();
 }

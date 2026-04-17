@@ -234,24 +234,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       });
       if (res.isSuccessful && res.body != null) {
         final body = res.body as Map<String, dynamic>?;
+        final parsed = _parseAuthResponse(res.body);
+        final hasTokens = parsed != null;
+
         final requiresVerification =
-            body?['requiresEmailVerification'] as bool? ?? false;
-        if (requiresVerification) {
+            body?['requiresEmailVerification'] as bool? ??
+            (!hasTokens &&
+                (body?['message']
+                        ?.toString()
+                        .toLowerCase()
+                        .contains('verify') ??
+                    false));
+
+        if (requiresVerification || !hasTokens) {
           emit(AuthState.emailVerificationRequired(email: event.email));
           return;
         }
-        final parsed = _parseAuthResponse(res.body);
-        if (parsed != null) {
-          await _persistAuth(parsed.$1, parsed.$2, 'client');
-          await _postAuthSetup(parsed.$1);
-          _startSessionTimer(parsed.$1);
-          getIt<AnalyticsService>().logSignUp('email');
-          getIt<AnalyticsService>().setUserId(parsed.$2);
-          emit(AuthState.authenticated(
-              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
-        } else {
-          emit(const AuthState.error(message: 'auth.error_invalid_response'));
-        }
+
+        // We are guaranteed to have tokens here
+        await _persistAuth(parsed.$1, parsed.$2, 'client');
+        await _postAuthSetup(parsed.$1);
+        _startSessionTimer(parsed.$1);
+        getIt<AnalyticsService>().logSignUp('email');
+        getIt<AnalyticsService>().setUserId(parsed.$2);
+        emit(AuthState.authenticated(
+            token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
       } else {
         final msg = _extractError(res.body, 'auth.error_register');
         emit(AuthState.error(message: msg));

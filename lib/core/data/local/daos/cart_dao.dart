@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart' as drift;
+import 'package:injectable/injectable.dart';
 import '../database.dart';
 
 /// Data Access Object for cart operations.
 /// Works directly with the existing [AppDatabase] without code generation.
+@lazySingleton
 class CartDao {
   final AppDatabase _db;
 

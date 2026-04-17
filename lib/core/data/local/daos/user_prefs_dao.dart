@@ -1,7 +1,9 @@
 import 'package:drift/drift.dart' as drift;
+import 'package:injectable/injectable.dart';
 import '../database.dart';
 
 /// Data Access Object for user preferences.
+@lazySingleton
 class UserPrefsDao {
   final AppDatabase _db;
 

@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
+import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 
 // Top-level function for background message handling
@@ -12,6 +13,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('[FCM BG] messageId=${message.messageId}');
 }
 
+@lazySingleton
 class NotificationService {
   NotificationService(this._logger);
 

@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
 import 'package:cliceat_app/core/data/local/daos/restaurant_dao.dart';
@@ -8,6 +9,7 @@ import 'package:cliceat_app/features/client/home/data/datasources/restaurant_ser
 
 /// Abstracts restaurant data access with cache-through strategy.
 /// Network-first for listings, falls back to Drift cache on failure.
+@lazySingleton
 class RestaurantRepository {
   final RestaurantService _service;
   final RestaurantDao _dao;

@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.tbg.cliceat",
+    "sha256_cert_fingerprints": [
+      "AB:B1:1D:08:0F:AF:EC:21:14:8E:EA:3A:69:3D:CC:A4:F0:F0:E9:D1:9D:F2:67:36:3B:5A:AA:F7:FE:AE:0F:96"
+    ]
+  }
+}]

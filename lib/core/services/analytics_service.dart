@@ -1,8 +1,10 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 
 /// Centralised Firebase Analytics wrapper.
 /// All analytics events in the app should go through this service.
+@lazySingleton
 class AnalyticsService {
   final FirebaseAnalytics _analytics;
   final Logger _logger;

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
+import 'package:injectable/injectable.dart';
 
 import '../config/env_config.dart';
 
@@ -20,6 +21,7 @@ enum WsStatus { connected, disconnected, reconnecting }
 /// Toutes les 25 secondes, un événement `ping` est émis au serveur.
 /// Si aucun `pong` n'est reçu dans les 5 secondes suivantes, la connexion
 /// est considérée perdue et une reconnexion est déclenchée.
+@lazySingleton
 class WebSocketService {
   WebSocketService(this._secureStorage, this._logger);
 
@@ -27,6 +29,7 @@ class WebSocketService {
   final Logger _logger;
 
   io.Socket? _socket;
+  bool _manualDisconnect = false;
 
   // ─── Streams ──────────────────────────────────────────────────────────────
 
@@ -66,11 +69,13 @@ class WebSocketService {
   bool get isConnected => _socket?.connected == true;
 
   Future<void> connect() async {
+    _manualDisconnect = false;
     if (_socket != null && _socket!.connected) return;
     await _doConnect();
   }
 
   void disconnect() {
+    _manualDisconnect = true;
     _stopReconnect();
     _stopHeartbeat();
     _socket?.disconnect();
@@ -91,6 +96,8 @@ class WebSocketService {
     final token = await _secureStorage.read(key: 'jwt_token');
     if (token == null) {
       _logger.w('[WS] Pas de token JWT — connexion annulée.');
+      _stopReconnect(); // Stop any pending reconnection attempts
+      _statusController.add(WsStatus.disconnected);
       return;
     }
 
@@ -155,6 +162,7 @@ class WebSocketService {
   // ─── Reconnection (exponential backoff) ───────────────────────────────────
 
   void _scheduleReconnect() {
+    if (_manualDisconnect) return;
     if (_reconnectTimer?.isActive == true) return;
     if (_retryCount >= _maxRetries) {
       _logger.e('[WS] Nombre max de tentatives atteint ($_maxRetries). Abandon.');

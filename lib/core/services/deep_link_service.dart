@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
 
+import 'package:injectable/injectable.dart';
+
 /// Handles incoming deep links and routes them to the correct page.
 ///
 /// Supported schemes:
@@ -14,6 +16,7 @@ import 'package:logger/logger.dart';
 ///   https://cliceat.cm/reset-password?token= → /auth/reset-password?token=XXX
 ///   https://cliceat.cm/verify-email?token=   → /auth/verify-email?token=XXX
 ///   https://cliceat.cm/restaurant/ID         → /restaurant/ID
+@lazySingleton
 class DeepLinkService {
   final AppLinks _appLinks = AppLinks();
   final Logger _logger;

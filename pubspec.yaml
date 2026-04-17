@@ -77,10 +77,10 @@ dependencies:
   flutter_dotenv: ^6.0.0
   app_links: ^6.3.2
   intl: ^0.20.2
-  flutter_windowmanager: ^0.2.0
   uuid: ^4.5.1
   socket_io_client: ^3.1.4
   sign_in_with_apple: ^7.0.1
+  screen_protector: ^1.5.1
 
 dev_dependencies:
   flutter_test:
@@ -95,6 +95,7 @@ dev_dependencies:
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
   build_runner: ^2.12.2
+  change_app_package_name: ^1.4.0
   chopper_generator: ^8.6.0
   drift_dev: ^2.32.0
   injectable_generator: ^2.12.1

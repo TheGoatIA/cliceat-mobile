@@ -77,7 +77,7 @@ Future<void> _bootstrap() async {
       supportedLocales: const [Locale('fr', 'FR'), Locale('en', 'US')],
       path: 'assets/translations',
       fallbackLocale: const Locale('fr', 'FR'),
-      child: const ConnectivityBanner(child: ClicEatApp()),
+      child: const ClicEatApp(),
     ),
   );
 }
@@ -96,6 +96,7 @@ class ClicEatApp extends StatelessWidget {
       ],
       child: MaterialApp.router(
         title: 'ClicEat',
+        debugShowCheckedModeBanner: false,
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
@@ -103,6 +104,7 @@ class ClicEatApp extends StatelessWidget {
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
         routerConfig: appRouter,
+        builder: (context, child) => ConnectivityBanner(child: child!),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logger/logger.dart';
 import '../../../../../core/errors/app_error.dart';
@@ -11,6 +12,7 @@ part 'mission_event.dart';
 part 'mission_state.dart';
 part 'mission_bloc.freezed.dart';
 
+@injectable
 class MissionBloc extends Bloc<MissionEvent, MissionState> {
   final DriverRepository _driverRepository;
   final Logger _logger = Logger();

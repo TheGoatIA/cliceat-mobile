@@ -1,18 +1,13 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:flutter/widgets.dart';
+import 'package:screen_protector/screen_protector.dart';
 import 'package:logger/logger.dart';
 
 /// Mixin à appliquer sur les [State] des pages affichant des données
 /// sensibles (paiement, profil, mot de passe).
 ///
-/// Active [FLAG_SECURE] sur Android pour :
+/// Active la protection sur Android et iOS pour :
 /// - Bloquer les captures d'écran
 /// - Masquer le contenu dans le sélecteur d'application (App Switcher)
-///
-/// Sur iOS, le système floute automatiquement le contenu dans le
-/// sélecteur d'app. `FLAG_SECURE` n'existe pas sur iOS.
 ///
 /// Usage :
 /// ```dart
@@ -37,22 +32,22 @@ mixin SecureScreenMixin<T extends StatefulWidget> on State<T> {
   }
 
   Future<void> _enableSecureMode() async {
-    if (!Platform.isAndroid) return;
     try {
-      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-      _logger.d('[SecureScreen] FLAG_SECURE activé.');
+      await ScreenProtector.protectDataLeakageOn();
+      await ScreenProtector.preventScreenshotOn();
+      _logger.d('[SecureScreen] Protection activée.');
     } catch (e) {
-      _logger.w('[SecureScreen] Impossible d\'activer FLAG_SECURE: $e');
+      _logger.w('[SecureScreen] Impossible d\'activer la protection: $e');
     }
   }
 
   Future<void> _disableSecureMode() async {
-    if (!Platform.isAndroid) return;
     try {
-      await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-      _logger.d('[SecureScreen] FLAG_SECURE désactivé.');
+      await ScreenProtector.protectDataLeakageOff();
+      await ScreenProtector.preventScreenshotOff();
+      _logger.d('[SecureScreen] Protection désactivée.');
     } catch (e) {
-      _logger.w('[SecureScreen] Impossible de désactiver FLAG_SECURE: $e');
+      _logger.w('[SecureScreen] Impossible de désactiver la protection: $e');
     }
   }
 }
