@@ -1,5 +1,7 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:injectable/injectable.dart';
 
+@lazySingleton
 class LocationService {
   /// Request permissions and get current position
   Future<Position?> getCurrentPosition() async {

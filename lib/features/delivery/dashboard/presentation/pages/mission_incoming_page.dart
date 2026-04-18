@@ -3,9 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+
+import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
+import 'package:cliceat_app/features/delivery/dashboard/presentation/bloc/mission_bloc.dart';
 
 class MissionIncomingPage extends StatefulWidget {
-  const MissionIncomingPage({super.key});
+  final MissionModel mission;
+  
+  const MissionIncomingPage({super.key, required this.mission});
 
   @override
   State<MissionIncomingPage> createState() => _MissionIncomingPageState();
@@ -44,7 +51,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
 
   void _onTimeout() {
     if (mounted) {
-       // dispatch timeout event to bloc
+       getIt<MissionBloc>().add(MissionEvent.rejectMission(widget.mission.id));
        context.pop(); // return to dashboard
        ScaffoldMessenger.of(context).showSnackBar(
          SnackBar(content: Text('delivery.mission_expired'.tr())),
@@ -71,7 +78,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
               children: [
                 _buildTimerBar(),
                 const SizedBox(height: 24),
-                _buildMapMockup(),
+                _buildRealMap(),
                 const SizedBox(height: 24),
                 _buildOrderDetails(),
                 const Spacer(),
@@ -111,35 +118,73 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
     );
   }
 
-  // A small card simulating the pickup & dropoff
-  Widget _buildMapMockup() {
+  // Displaying an actual map preview instead of a static image
+  Widget _buildRealMap() {
+    final lat = widget.mission.restaurantLat ?? 4.0511; // Default Douala
+    final lng = widget.mission.restaurantLng ?? 9.7093;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
       height: 180,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.grey.shade900,
         borderRadius: BorderRadius.circular(16),
-        image: const DecorationImage(
-           image: NetworkImage('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=600&auto=format&fit=crop'),
-           fit: BoxFit.cover,
-        )
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-             begin: Alignment.topCenter,
-             end: Alignment.bottomCenter,
-             colors: [Colors.black.withValues(alpha: 0.1), Colors.black.withValues(alpha: 0.7)],
-          )
-        ),
-        alignment: Alignment.bottomCenter,
-        padding: const EdgeInsets.all(16),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
           children: [
-             Text('2.5 km', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-             Text('~ 12 min', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+            MapWidget(
+              key: const ValueKey("incomingMissionMapPreview"),
+              cameraOptions: CameraOptions(
+                center: Point(coordinates: Position(lng, lat)),
+                zoom: 15.0,
+                pitch: 45.0,
+              ),
+              onMapCreated: (mapboxMap) {
+                // Disable map interactions for this preview card
+                mapboxMap.gestures.updateSettings(
+                  GesturesSettings(
+                    scrollEnabled: false,
+                    pinchToZoomEnabled: false,
+                    pitchEnabled: false,
+                    rotateEnabled: false,
+                    doubleTapToZoomInEnabled: false,
+                    doubleTouchToZoomOutEnabled: false,
+                  ),
+                );
+              },
+            ),
+            // A static pin in the center to represent the restaurant
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 24.0),
+                child: Icon(Icons.location_on, color: Colors.orange, size: 40),
+              ),
+            ),
+            // The gradient overlay
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.black.withValues(alpha: 0.0), Colors.black.withValues(alpha: 0.8)],
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                     Text('delivery.waiting'.tr(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                     Text('delivery.restaurant_view'.tr(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -164,12 +209,12 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
                  child: const Icon(Icons.storefront, color: Colors.orange),
                ),
                const SizedBox(width: 16),
-               const Expanded(
+               Expanded(
                  child: Column(
                    crossAxisAlignment: CrossAxisAlignment.start,
                    children: [
-                     Text('Mets Traditionnels', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
-                     Text('Makepe, Douala', style: TextStyle(color: Colors.grey)),
+                     Text(widget.mission.restaurantName ?? 'delivery.unknown_restaurant'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
+                     Text(widget.mission.restaurantAddress ?? 'delivery.unknown_address'.tr(), style: const TextStyle(color: Colors.grey)),
                    ]
                  )
                )
@@ -184,23 +229,23 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
                  child: const Icon(Icons.person, color: Colors.green),
                ),
                const SizedBox(width: 16),
-               const Expanded(
+               Expanded(
                  child: Column(
                    crossAxisAlignment: CrossAxisAlignment.start,
                    children: [
-                     Text('Client: Boris', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
-                     Text('Akwa (Proche ancienne direction)', style: TextStyle(color: Colors.grey)),
+                     Text('Client: ${widget.mission.clientName ?? "Anonyme"}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
+                     Text(widget.mission.deliveryAddress?.address ?? 'delivery.unknown_delivery_address'.tr(), style: const TextStyle(color: Colors.grey)),
                    ]
                  )
                )
              ]
            ),
            const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider()),
-           const Row(
+           Row(
              mainAxisAlignment: MainAxisAlignment.spaceBetween,
              children: [
-               Text('Gain estimé', style: TextStyle(fontSize: 16, color: Colors.black54)),
-               Text('1500 FCFA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.green)),
+               Text('delivery.estimated_gain'.tr(), style: const TextStyle(fontSize: 16, color: Colors.black54)),
+               Text('${widget.mission.earnings.toStringAsFixed(0)} FCFA', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.green)),
              ]
            )
          ],
@@ -220,8 +265,9 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
             onDismissed: (_) {
               _timer?.cancel();
               HapticFeedback.heavyImpact();
+              getIt<MissionBloc>().add(MissionEvent.acceptMission(widget.mission.id));
               // Navigate to active navigation
-              context.go('/delivery/navigation');
+              context.pushReplacement('/delivery/active-navigation', extra: widget.mission);
             },
             background: Container(
                decoration: BoxDecoration(
@@ -265,11 +311,11 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
                ),
             ),
           ),
-          const SizedBox(height: 24),
-          TextButton(
+           TextButton(
              onPressed: () {
                HapticFeedback.mediumImpact();
                _timer?.cancel();
+               getIt<MissionBloc>().add(MissionEvent.rejectMission(widget.mission.id));
                context.pop();
              },
              child: Text('delivery.reject'.tr(), style: const TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),

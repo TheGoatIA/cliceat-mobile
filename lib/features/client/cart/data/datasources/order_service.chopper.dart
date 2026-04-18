@@ -20,36 +20,69 @@ final class _$OrderService extends OrderService {
 
   @override
   Future<Response<Map<String, dynamic>>> createOrder(
-    Map<String, dynamic> orderData,
+    Map<String, dynamic> body,
   ) {
     final Uri $url = Uri.parse('/orders');
-    final $body = orderData;
+    final $body = body;
     final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 
   @override
-  Future<Response<Map<String, dynamic>>> getMyOrders() {
-    final Uri $url = Uri.parse('/orders/me');
-    final Request $request = Request('GET', $url, client.baseUrl);
+  Future<Response<Map<String, dynamic>>> getOrders({
+    int page = 1,
+    int limit = 20,
+  }) {
+    final Uri $url = Uri.parse('/orders');
+    final Map<String, dynamic> $params = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+    };
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+    );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 
   @override
-  Future<Response<Map<String, dynamic>>> getOrderDetails(String id) {
+  Future<Response<Map<String, dynamic>>> getOrderById(String id) {
     final Uri $url = Uri.parse('/orders/${id}');
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 
   @override
+  Future<Response<Map<String, dynamic>>> cancelOrder(String id) {
+    final Uri $url = Uri.parse('/orders/${id}/cancel');
+    final Request $request = Request('POST', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
   Future<Response<Map<String, dynamic>>> rateOrder(
     String id,
-    Map<String, dynamic> ratingData,
+    Map<String, dynamic> body,
   ) {
     final Uri $url = Uri.parse('/orders/${id}/rate');
-    final $body = ratingData;
+    final $body = body;
     final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> reorderOrder(String id) {
+    final Uri $url = Uri.parse('/orders/${id}/reorder');
+    final Request $request = Request('POST', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> downloadInvoice(String id) {
+    final Uri $url = Uri.parse('/orders/${id}/invoice/download');
+    final Request $request = Request('GET', $url, client.baseUrl);
+    return client.send<dynamic, dynamic>($request);
   }
 }

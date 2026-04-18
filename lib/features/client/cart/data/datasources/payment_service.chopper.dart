@@ -19,25 +19,32 @@ final class _$PaymentService extends PaymentService {
   final Type definitionType = PaymentService;
 
   @override
-  Future<Response<Map<String, dynamic>>> initPayment(
-    Map<String, dynamic> paymentData,
+  Future<Response<Map<String, dynamic>>> initializePayment(
+    Map<String, dynamic> body,
   ) {
     final Uri $url = Uri.parse('/payments/init');
-    final $body = paymentData;
+    final $body = body;
     final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> verifyPayment(String id) {
+    final Uri $url = Uri.parse('/payments/${id}/status');
+    final Request $request = Request('GET', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> getPaymentMethods() {
+    final Uri $url = Uri.parse('/payments/methods');
+    final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 
   @override
   Future<Response<Map<String, dynamic>>> getMyPayments() {
     final Uri $url = Uri.parse('/payments/me');
-    final Request $request = Request('GET', $url, client.baseUrl);
-    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
-  }
-
-  @override
-  Future<Response<Map<String, dynamic>>> getPaymentStatus(String id) {
-    final Uri $url = Uri.parse('/payments/${id}/status');
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }

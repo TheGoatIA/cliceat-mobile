@@ -1,56 +1,111 @@
 import 'dart:async';
+
 import 'package:chopper/chopper.dart';
+import 'package:cliceat_app/core/services/token_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../../features/auth/data/datasources/auth_service.dart';
+import 'package:logger/logger.dart';
+
+/// Intercepte les réponses 401, rafraîchit le JWT et rejoue la requête.
+///
+/// ── Mutex via Completer ────────────────────────────────────────────────────
+/// Si plusieurs requêtes reçoivent un 401 simultanément (ex. : app au premier
+/// plan après veille), un seul appel de refresh est émis. Les autres attendent
+/// la résolution du [Completer] partagé avant de retenter.
+///
+/// ── Séquence ──────────────────────────────────────────────────────────────
+/// 1. Requête → 401
+/// 2. Premier thread : crée le Completer, appelle _refreshCallback
+/// 3. Autres threads : attendent `_pendingRefresh!.future`
+/// 4. Si refresh OK → nouveau token → on retente
+/// 5. Si refresh KO → on efface les credentials → l'app redirige vers login
+class _RefreshState {
+  Completer<String?>? pendingRefresh;
+}
 
 class RefreshInterceptor implements Interceptor {
-  final FlutterSecureStorage _secureStorage;
-  final AuthService Function() _getAuthService;
-  static bool _isRefreshing = false;
+  RefreshInterceptor(this._secureStorage, this._tokenService);
 
-  RefreshInterceptor(this._secureStorage, this._getAuthService);
+  final FlutterSecureStorage _secureStorage;
+  final TokenService _tokenService;
+  final Logger _logger = Logger();
+
+  /// État mutable encapsulé pour respecter l'immutabilité de l'intercepteur.
+  final _state = _RefreshState();
 
   @override
-  FutureOr<Response<BodyType>> intercept<BodyType>(Chain<BodyType> chain) async {
+  FutureOr<Response<BodyType>> intercept<BodyType>(
+    Chain<BodyType> chain,
+  ) async {
     final response = await chain.proceed(chain.request);
 
-    if (response.statusCode == 401 && !_isRefreshing) {
-      if (chain.request.url.path.contains('/auth/login') ||
-          chain.request.url.path.contains('/auth/refresh')) {
-        return response; // Do not intercept login or refresh failures here
-      }
+    if (response.statusCode != 401) return response;
 
-      _isRefreshing = true;
-      try {
-        final authService = _getAuthService();
-        final refreshResponse = await authService.refreshToken();
+    // ── Attendre le refresh en cours ou en démarrer un ────────────────────
 
-        if (refreshResponse.isSuccessful) {
-          final body = refreshResponse.body as Map<String, dynamic>?;
-          if (body != null && body['token'] != null) {
-            final newToken = body['token'] as String;
-            await _secureStorage.write(key: 'jwt_token', value: newToken);
+    final newToken = await _getOrStartRefresh();
 
-            // Retry the original request with the new token
-            final newRequest = chain.request.copyWith(headers: {
-              ...chain.request.headers,
-              'Authorization': 'Bearer $newToken',
-            });
-            _isRefreshing = false;
-            return chain.proceed(newRequest);
-          }
-        }
-      } catch (e) {
-        // Refresh failed, user needs to relogin
-      } finally {
-        _isRefreshing = false;
-      }
-
-      // If refresh failed, we might want to trigger a global logout event here
-      // For now, clear token to force login on next auth check
-      await _secureStorage.delete(key: 'jwt_token');
+    if (newToken == null) {
+      // Refresh échoué → l'AuthBloc recevra un sessionExpired via le storage
+      _logger.w('[RefreshInterceptor] Refresh échoué — session expirée.');
+      return response;
     }
 
-    return response;
+    // ── Retenter la requête originale avec le nouveau token ────────────────
+
+    _logger.d('[RefreshInterceptor] Token rafraîchi — rejeu de la requête.');
+    final retried = chain.request.copyWith(
+      headers: {...chain.request.headers, 'Authorization': 'Bearer $newToken'},
+    );
+    return chain.proceed(retried);
+  }
+
+  // ─── Mutex ────────────────────────────────────────────────────────────────
+
+  Future<String?> _getOrStartRefresh() async {
+    // Si un refresh est déjà en cours → attendre son résultat
+    if (_state.pendingRefresh != null) {
+      _logger.d('[RefreshInterceptor] Refresh déjà en cours — en attente...');
+      return _state.pendingRefresh!.future;
+    }
+
+    // Premier appelant → démarrer le refresh
+    _state.pendingRefresh = Completer<String?>();
+
+    try {
+      final newToken = await _doRefresh();
+      _state.pendingRefresh!.complete(newToken);
+      return newToken;
+    } catch (e, stack) {
+      _logger.e(
+        '[RefreshInterceptor] Erreur lors du refresh',
+        error: e,
+        stackTrace: stack,
+      );
+      _state.pendingRefresh!.complete(null);
+      return null;
+    } finally {
+      // Libérer le mutex après un court délai pour que les waiters puissent lire
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      _state.pendingRefresh = null;
+    }
+  }
+
+  Future<String?> _doRefresh() async {
+    try {
+      final newToken = await _tokenService.refreshToken();
+      if (newToken != null) return newToken;
+
+      // Refresh non fructueux → nettoyer les credentials
+      await _clearCredentials();
+      return null;
+    } catch (_) {
+      await _clearCredentials();
+      rethrow;
+    }
+  }
+
+  Future<void> _clearCredentials() async {
+    await _secureStorage.delete(key: 'jwt_token');
+    await _secureStorage.delete(key: 'user_id');
   }
 }

@@ -1,6 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:logger/logger.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import '../../../../../core/di/injection.dart';
 import '../../data/datasources/mission_service.dart';
@@ -14,6 +17,7 @@ class ReportIssuePage extends StatefulWidget {
 }
 
 class _ReportIssuePageState extends State<ReportIssuePage> {
+  final Logger _logger = getIt<Logger>();
   String? _selectedReason;
   final TextEditingController _detailsController = TextEditingController();
 
@@ -37,7 +41,7 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Signaler un problème'),
+        title: Text('common.report_issue_title'.tr()),
         backgroundColor: Theme.of(context).colorScheme.error,
         foregroundColor: Theme.of(context).colorScheme.onError,
       ),
@@ -75,12 +79,13 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                 ),
                 const SizedBox(height: 16),
                 ..._reasons.map((reason) => 
-                  // ignore: deprecated_member_use
                   RadioListTile<String>(
                     title: Text(reason),
                     value: reason,
+                    // ignore: deprecated_member_use
                     groupValue: _selectedReason,
                     activeColor: Theme.of(context).colorScheme.error,
+                    // ignore: deprecated_member_use
                     onChanged: (value) {
                       setState(() => _selectedReason = value);
                     },
@@ -111,15 +116,15 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                       );
                       if(mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Signalement envoyé. Le support vous contactera.')),
+                          SnackBar(content: Text('common.report_sent'.tr())),
                         );
                         context.pop();
                       }
                     } catch (e) {
-                      debugPrint('Error reporting mission: $e');
+                      _logger.e('Error reporting mission: $e');
                       if(mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Erreur réseau. Veuillez réessayer.')),
+                            SnackBar(content: Text('common.network_error'.tr())),
                         );
                       }
                     } finally {

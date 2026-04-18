@@ -9,7 +9,7 @@ class OrderHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<OrderBloc>()..add(const OrderEvent.fetchMyOrders()),
+      create: (context) => getIt<OrderBloc>()..add(const LoadOrders()),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Historique des commandes'),
@@ -22,7 +22,7 @@ class OrderHistoryPage extends StatelessWidget {
                 return state.maybeWhen(
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (msg) => Center(child: Text(msg, style: const TextStyle(color: Colors.red))),
-                  loaded: (orders) {
+                  ordersLoaded: (orders) {
                     if (orders.isEmpty) {
                       return const Center(child: Text("Vous n'avez passé aucune commande."));
                     }

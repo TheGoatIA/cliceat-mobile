@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/services.dart';
 import '../../../../../shared/widgets/primary_button.dart';
+import '../bloc/cart_cubit.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -17,42 +19,73 @@ class CartPage extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: 2, // Fake items
-                  separatorBuilder: (context, index) => const Divider(),
-                  itemBuilder: (context, index) {
-                    return _buildCartItem(context, index);
-                  },
-                ),
+      body: BlocBuilder<CartCubit, CartState>(
+        builder: (context, state) {
+          if (state.items.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.shopping_cart_outlined,
+                      size: 80,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  const SizedBox(height: 16),
+                  Text(
+                    'cart.empty'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'cart.empty_subtitle'.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
               ),
-              _buildSummary(context),
-            ],
-          ),
-        ),
+            );
+          }
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: state.items.length,
+                      separatorBuilder: (context, index) => const Divider(),
+                      itemBuilder: (context, index) {
+                        final item = state.items[index];
+                        return _buildCartItem(context, item, state);
+                      },
+                    ),
+                  ),
+                  _buildSummary(context, state),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildCartItem(BuildContext context, int index) {
+  Widget _buildCartItem(BuildContext context, CartItem item, CartState state) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
           width: 80,
           height: 80,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            image: const DecorationImage(
-              image: NetworkImage('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=300&auto=format&fit=crop'),
-              fit: BoxFit.cover,
-            )
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
+          child: Center(
+            child: Icon(Icons.fastfood,
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
         const SizedBox(width: 12),
@@ -61,12 +94,12 @@ class CartPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Menu Burger Classic',
+                item.name,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 4),
               Text(
-                '4000 FCFA',
+                '${(item.price * item.quantity).toStringAsFixed(0)} FCFA',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.bold,
@@ -81,14 +114,23 @@ class CartPage extends StatelessWidget {
               icon: const Icon(Icons.remove_circle_outline),
               onPressed: () {
                 HapticFeedback.selectionClick();
+                context
+                    .read<CartCubit>()
+                    .updateQuantity(item.id, item.quantity - 1);
               },
             ),
-            const Text('1', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(
+              '${item.quantity}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               color: Theme.of(context).colorScheme.primary,
               onPressed: () {
                 HapticFeedback.selectionClick();
+                context
+                    .read<CartCubit>()
+                    .updateQuantity(item.id, item.quantity + 1);
               },
             ),
           ],
@@ -97,7 +139,10 @@ class CartPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSummary(BuildContext context) {
+  Widget _buildSummary(BuildContext context, CartState state) {
+    final deliveryFee = state.deliveryFee;
+    final total = state.subtotal + deliveryFee;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -118,7 +163,7 @@ class CartPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('cart.sub_total'.tr()),
-                const Text('8000 FCFA'),
+                Text('${state.subtotal.toStringAsFixed(0)} FCFA'),
               ],
             ),
             const SizedBox(height: 8),
@@ -126,7 +171,7 @@ class CartPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('cart.delivery_fee'.tr()),
-                const Text('1000 FCFA'),
+                Text('${deliveryFee.toStringAsFixed(0)} FCFA'),
               ],
             ),
             const Padding(
@@ -136,16 +181,21 @@ class CartPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('cart.total'.tr(), style: Theme.of(context).textTheme.titleLarge),
-                Text('9000 FCFA', style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                )),
+                Text('cart.total'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  '${total.toStringAsFixed(0)} FCFA',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
               ],
             ),
             const SizedBox(height: 24),
             PrimaryButton(
-              text: '${'cart.checkout_btn'.tr()} (9000 FCFA)',
+              text:
+                  '${'cart.checkout_btn'.tr()} (${total.toStringAsFixed(0)} FCFA)',
               onPressed: () {
                 context.push('/checkout');
               },

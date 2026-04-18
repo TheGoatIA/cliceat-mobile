@@ -6,8 +6,16 @@ part 'auth_service.chopper.dart';
 abstract class AuthService extends ChopperService {
   static AuthService create([ChopperClient? client]) => _$AuthService(client);
 
+  @POST(path: '/register')
+  Future<Response> register(@Body() Map<String, dynamic> body);
+
   @POST(path: '/login')
   Future<Response> login(@Body() Map<String, dynamic> body);
+
+  /// Login dédié livreur — body: { phone: string, password: string }
+  /// Endpoint backend: POST /auth/delivery/login
+  @POST(path: '/delivery/login')
+  Future<Response> loginDelivery(@Body() Map<String, dynamic> body);
 
   @POST(path: '/phone/send-otp')
   Future<Response> sendOtp(@Body() Map<String, dynamic> body);
@@ -18,9 +26,29 @@ abstract class AuthService extends ChopperService {
   @POST(path: '/refresh')
   Future<Response> refreshToken();
 
-  @POST(path: '/google')
+  @POST(path: '/logout')
+  Future<Response> logout();
+
+  /// Firebase social auth (Google or Apple)
+  @POST(path: '/firebase')
+  Future<Response> loginWithFirebase(@Body() Map<String, dynamic> body);
+
+  // Kept for backward compat aliases
+  @POST(path: '/firebase')
   Future<Response> loginWithGoogle(@Body() Map<String, dynamic> body);
 
-  @POST(path: '/apple')
+  @POST(path: '/firebase')
   Future<Response> loginWithApple(@Body() Map<String, dynamic> body);
+
+  @POST(path: '/forgot-password')
+  Future<Response> forgotPassword(@Body() Map<String, dynamic> body);
+
+  @POST(path: '/reset-password')
+  Future<Response> resetPassword(@Body() Map<String, dynamic> body);
+
+  @GET(path: '/verify-email/{token}')
+  Future<Response> verifyEmail(@Path('token') String token);
+
+  @POST(path: '/resend-verification-email')
+  Future<Response> resendVerificationEmail(@Body() Map<String, dynamic> body);
 }

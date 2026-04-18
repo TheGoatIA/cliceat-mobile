@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'home_delivery_page.dart';
-import 'map_delivery_page.dart';
 import 'earnings_page.dart';
-import '../../../profile/presentation/pages/delivery_profile_page.dart';
+import 'delivery_history_page.dart';
+import 'delivery_profile_page.dart';
 
 class DeliveryMainTab extends StatefulWidget {
   const DeliveryMainTab({super.key});
@@ -17,8 +17,8 @@ class _DeliveryMainTabState extends State<DeliveryMainTab> {
 
   late final List<Widget> _pages = [
     const HomeDeliveryPage(),
-    const MapDeliveryPage(),
     const EarningsPage(),
+    const DeliveryHistoryPage(),
     const DeliveryProfilePage(),
   ];
 
@@ -36,19 +36,19 @@ class _DeliveryMainTabState extends State<DeliveryMainTab> {
             label: 'delivery.dashboard_title'.tr(),
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.map_outlined),
-            activeIcon: const Icon(Icons.map),
-            label: 'delivery.nav_map'.tr(),
-          ),
-          BottomNavigationBarItem(
             icon: const Icon(Icons.account_balance_wallet_outlined),
             activeIcon: const Icon(Icons.account_balance_wallet),
-            label: 'delivery.nav_earnings'.tr(),
+            label: 'delivery.earnings'.tr(),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.history_outlined),
+            activeIcon: const Icon(Icons.history),
+            label: 'delivery.history'.tr(),
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.person_outline),
             activeIcon: const Icon(Icons.person),
-            label: 'delivery.nav_profile'.tr(),
+            label: 'common.profile'.tr(),
           ),
         ],
       ),
