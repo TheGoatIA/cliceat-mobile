@@ -2,24 +2,110 @@
   "splash_title": "ClicEat",
   "onboarding": {
     "welcome": "Bienvenue sur ClicEat",
-    "subtitle": "La meilleure plateforme de livraison au Cameroun. Choisissez votre profil pour commencer.",
+    "subtitle": "La meilleure plateforme de livraison au Cameroun.",
     "btn_client": "Je veux commander",
     "btn_delivery": "Je suis livreur"
   },
   "auth": {
     "login_phone_title": "Connectez-vous avec votre mobile",
-    "phone_hint": "Numéro de téléphone (+237)",
+    "login_email_title": "Connexion par email",
+    "phone_hint": "Numéro de téléphone",
+    "email_hint": "Adresse email",
+    "password_hint": "Mot de passe",
     "send_otp": "Envoyer le code OTP",
     "verify_otp_title": "Vérification OTP",
     "otp_hint": "Code à 6 chiffres",
-    "verify_btn": "Vérifier et continuer"
+    "verify_btn": "Vérifier et continuer",
+    "login_btn": "Se connecter",
+    "logout": "Se déconnecter",
+    "forgot_password": "Mot de passe oublié?",
+    "google_signin": "Continuer avec Google",
+    "otp_resend": "Renvoyer le code",
+    "otp_sent_to": "Code envoyé au",
+    "delivery_mode": "Mode livreur",
+    "client_mode": "Mode client"
   },
   "client": {
     "home_title": "Découvrir",
     "search_hint": "Plats, restaurants, cuisines...",
     "categories": "Catégories",
     "recommended": "Pour vous",
-    "popular": "Populaires cette semaine"
+    "popular": "Populaires",
+    "featured": "En vedette",
+    "nearby": "À proximité",
+    "all_restaurants": "Tous les restaurants",
+    "open_now": "Ouvert maintenant",
+    "closed": "Fermé",
+    "min_order": "Commande min.",
+    "delivery_time": "min de livraison",
+    "add_to_cart": "Ajouter au panier",
+    "view_menu": "Voir le menu",
+    "no_restaurants": "Aucun restaurant disponible",
+    "loading_restaurants": "Chargement des restaurants..."
+  },
+  "cart": {
+    "title": "Mon panier",
+    "empty": "Votre panier est vide",
+    "empty_subtitle": "Ajoutez des plats de vos restaurants préférés",
+    "browse_restaurants": "Parcourir les restaurants",
+    "subtotal": "Sous-total",
+    "delivery_fee": "Frais de livraison",
+    "discount": "Réduction",
+    "total": "Total",
+    "promo_hint": "Code promo",
+    "apply_coupon": "Appliquer",
+    "checkout": "Commander",
+    "clear": "Vider",
+    "items": "articles",
+    "coupon_success": "Coupon appliqué",
+    "coupon_invalid": "Coupon invalide ou expiré"
+  },
+  "checkout": {
+    "title": "Finaliser la commande",
+    "delivery_address": "Adresse de livraison",
+    "payment_method": "Mode de paiement",
+    "mobile_money": "Mobile Money",
+    "mobile_money_sub": "Orange Money, MTN MoMo, Wave",
+    "wallet": "Portefeuille ClicEat",
+    "cash": "Paiement à la livraison",
+    "special_instructions": "Instructions spéciales",
+    "instructions_hint": "Sans piment, bien cuit...",
+    "confirm": "Confirmer la commande",
+    "address_placeholder": "Entrez votre adresse de livraison",
+    "new_address": "Nouvelle adresse"
+  },
+  "tracking": {
+    "title": "Suivi de commande",
+    "confirmed": "Commande confirmée",
+    "preparing": "En préparation",
+    "picked_up": "Prise en charge",
+    "on_the_way": "En route",
+    "delivered": "Livré",
+    "eta": "Arrivée dans",
+    "eta_minutes": "min",
+    "done": "Terminé — Retour à l'accueil"
+  },
+  "chat": {
+    "title": "Messages",
+    "no_conversations": "Aucune conversation",
+    "no_conversations_sub": "Vos conversations apparaîtront ici.",
+    "no_messages": "Démarrez la conversation",
+    "input_hint": "Écrivez un message...",
+    "send": "Envoyer"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "loyalty": "Points de fidélité",
+    "loyalty_subtitle": "Utilisez vos points pour des réductions",
+    "history": "Historique",
+    "addresses": "Mes adresses",
+    "add_address": "Ajouter une adresse",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "theme": "Thème",
+    "notifications": "Notifications",
+    "edit_profile": "Modifier le profil",
+    "my_orders": "Mes commandes"
   },
   "delivery": {
     "dashboard_title": "Tableau de bord",
@@ -27,10 +113,32 @@
     "offline": "HORS LIGNE",
     "waiting_mission": "En attente de missions...",
     "todays_earnings": "Gains du jour",
-    "deliveries": "Livraisons"
+    "deliveries": "Livraisons",
+    "accept": "Accepter",
+    "reject": "Refuser",
+    "pickup": "Confirmer la prise en charge",
+    "delivered": "Confirmer la livraison",
+    "no_orders": "Aucune commande en attente"
+  },
+  "nav": {
+    "home": "Accueil",
+    "cart": "Panier",
+    "chat": "Messages",
+    "profile": "Profil",
+    "dashboard": "Tableau de bord"
   },
   "common": {
     "error": "Une erreur est survenue.",
-    "network_error": "Problème de connexion. Veuillez vérifier votre réseau."
+    "network_error": "Problème de connexion. Vérifiez votre réseau.",
+    "retry": "Réessayer",
+    "loading": "Chargement...",
+    "ok": "OK",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "save": "Enregistrer",
+    "back": "Retour",
+    "close": "Fermer",
+    "offline": "Pas de connexion internet"
   }
 }

@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../cart/presentation/bloc/cart_bloc.dart';
+import '../../../../../../../core/di/injection.dart';
+import '../../../../../../../core/network/socket_service.dart';
+import '../../../../../../../core/services/connectivity_service.dart';
 import 'home_client_page.dart';
+import '../../../../../chat/presentation/pages/conversations_page.dart';
+import '../../../../../client/profile/presentation/pages/profile_page.dart';
 
 class ClientMainTab extends StatefulWidget {
   const ClientMainTab({super.key});
@@ -10,102 +18,77 @@ class ClientMainTab extends StatefulWidget {
 }
 
 class _ClientMainTabState extends State<ClientMainTab> {
-  int _index = 0;
+  int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const HomeClientPage(),
-    const _ComingSoonPage(
-      icon: Icons.map_rounded,
-      title: 'Carte',
-      subtitle: 'Trouvez les restaurants près de vous',
-    ),
-    const _ComingSoonPage(
-      icon: Icons.shopping_cart_rounded,
-      title: 'Panier',
-      subtitle: 'Votre panier est vide',
-    ),
-    const _ComingSoonPage(
-      icon: Icons.person_rounded,
-      title: 'Profil',
-      subtitle: 'Gérez votre compte',
-    ),
+  static const _pages = [
+    HomeClientPage(),
+    ConversationsPage(),
+    ProfilePage(),
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      body: IndexedStack(
-        index: _index,
-        children: _pages,
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home_rounded),
-            label: 'client.home_title'.tr(),
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map_rounded),
-            label: 'Carte',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
-            selectedIcon: Icon(Icons.shopping_cart_rounded),
-            label: 'Panier',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: 'Profil',
-          ),
-        ],
-      ),
-    );
+  void initState() {
+    super.initState();
+    getIt<SocketService>().connect();
   }
-}
 
-class _ComingSoonPage extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  const _ComingSoonPage({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
+  @override
+  void dispose() {
+    getIt<SocketService>().disconnect();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return BlocProvider(
+      create: (_) => CartBloc(),
+      child: Scaffold(
+        body: Column(
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+            const OfflineBanner(),
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _pages,
               ),
-              child: Icon(icon,
-                  size: 40, color: theme.colorScheme.primary),
             ),
-            const SizedBox(height: 20),
-            Text(title, style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface
-                      .withValues(alpha: 0.5)),
+          ],
+        ),
+        floatingActionButton: BlocBuilder<CartBloc, CartState>(
+          builder: (context, cart) {
+            if (cart.itemCount == 0) return const SizedBox.shrink();
+            return FloatingActionButton.extended(
+              onPressed: () => context.push('/cart'),
+              icon: Badge(
+                label: Text('${cart.itemCount}'),
+                child: const Icon(Icons.shopping_cart),
+              ),
+              label: Text(
+                '${cart.total.toStringAsFixed(0)} XAF',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            );
+          },
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (i) =>
+              setState(() => _currentIndex = i),
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home),
+              label: 'nav.home'.tr(),
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.chat_bubble_outline),
+              selectedIcon: const Icon(Icons.chat_bubble),
+              label: 'nav.chat'.tr(),
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.person_outline),
+              selectedIcon: const Icon(Icons.person),
+              label: 'nav.profile'.tr(),
             ),
           ],
         ),
