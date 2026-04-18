@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/di/injection.dart';
+import 'core/services/notification_service.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/data/datasources/auth_service.dart';
 
@@ -15,14 +17,17 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: '.env');
-
   await EasyLocalization.ensureInitialized();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
   configureDependencies();
+
+  await getIt<NotificationService>().initialize();
 
   runApp(
     EasyLocalization(
@@ -39,11 +44,15 @@ class ClicEatApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AuthBloc(
-        getIt<AuthService>(),
-        getIt<FlutterSecureStorage>(),
-      ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => AuthBloc(
+            getIt<AuthService>(),
+            getIt<FlutterSecureStorage>(),
+          ),
+        ),
+      ],
       child: MaterialApp.router(
         title: 'ClicEat',
         localizationsDelegates: context.localizationDelegates,
@@ -53,6 +62,7 @@ class ClicEatApp extends StatelessWidget {
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
         routerConfig: appRouter,
+        debugShowCheckedModeBanner: false,
       ),
     );
   }

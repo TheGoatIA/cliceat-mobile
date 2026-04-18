@@ -6,6 +6,12 @@ import '../../features/auth/data/datasources/auth_service.dart';
 import '../../features/client/home/data/datasources/restaurant_service.dart';
 import 'services/delivery_service.dart';
 import 'services/order_service.dart';
+import 'services/payment_service.dart';
+import 'services/chat_service.dart';
+import 'services/tracking_service.dart';
+import 'services/user_profile_service.dart';
+import 'services/coupon_service.dart';
+import 'services/banner_service.dart';
 
 part 'api_client.chopper.dart';
 
@@ -22,6 +28,12 @@ ChopperClient buildChopperClient() {
       RestaurantService.create(),
       DeliveryService.create(),
       OrderService.create(),
+      PaymentService.create(),
+      ChatService.create(),
+      TrackingService.create(),
+      UserProfileService.create(),
+      CouponService.create(),
+      BannerService.create(),
     ],
     converter: const JsonConverter(),
     interceptors: [
