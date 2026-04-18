@@ -59,6 +59,9 @@ android/*.jks
 android/*.keystore
 *.jks
 *.keystore
+*.pem
+*.p12
+*.cer
 
 # iOS signing
 ios/Runner/GoogleService-Info.plist

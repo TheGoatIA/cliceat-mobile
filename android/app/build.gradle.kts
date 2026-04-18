@@ -29,12 +29,29 @@ android {
 
     defaultConfig {
         applicationId = "com.tbg.cliceat"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        // Explicit SDK versions for auditability
+        minSdk = 23        // Android 6.0
+        targetSdk = 35     // Mandatory for Play Store (Aug 2024)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+        }
+        create("prod") {
+            dimension = "environment"
+            // No suffix for production
+        }
     }
 
     signingConfigs {

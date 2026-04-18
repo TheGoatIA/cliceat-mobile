@@ -22,6 +22,8 @@ import 'core/services/precache_service.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/client/cart/presentation/bloc/cart_cubit.dart';
 import 'firebase_options.dart';
+import 'core/config/env_config.dart';
+import 'package:http_certificate_pinning/http_certificate_pinning.dart';
 
 /// Bootstrap commun à tous les flavors.
 /// Appelé depuis [main_dev.dart], [main_staging.dart] et [main_prod.dart]
@@ -70,7 +72,7 @@ Future<void> _bootstrap() async {
     };
   }
 
-  configureDependencies();
+  await configureDependencies();
 
   getIt<NotificationService>().configureRouting(rootNavigatorKey);
   await getIt<NotificationService>().initialize();
@@ -80,6 +82,27 @@ Future<void> _bootstrap() async {
   // Initialisation des services offline et cache
   getIt<SyncManagerService>().initialize();
   getIt<PrecacheService>().startPrecaching();
+
+  // ─── Certificate Pinning (Sécurité) ───────────────────────────────────────
+  // Validation du certificat SHA-256 aux lancements (Anti MITM)
+  if (FlavorConfig.isProd && EnvConfig.sslFingerprint.isNotEmpty) {
+    try {
+      final secureResult = await HttpCertificatePinning.check(
+        serverURL: FlavorConfig.apiBaseUrl.split('/api')[0], // Extract domain e.g., https://api.cliceat.cm
+        headerHttp: {},
+        sha: SHA.SHA256,
+        allowedSHAFingerprints: [EnvConfig.sslFingerprint],
+        timeout: 20,
+      );
+      if (kDebugMode) print('Cert Pinning OK: $secureResult');
+    } catch (e, stack) {
+      if (!kDebugMode) {
+        FirebaseCrashlytics.instance.recordError(e, stack, fatal: true, reason: 'Certificate Pinning Failed');
+      }
+      // On peut potentiellement bloquer l'app ici si le pinning échoue en production.
+      debugPrint('🚨 ALERTE SÉCURITÉ : MITM DÉTECTÉ OU CERTIFICAT INVALIDE 🚨');
+    }
+  }
 
   runApp(
     EasyLocalization(
