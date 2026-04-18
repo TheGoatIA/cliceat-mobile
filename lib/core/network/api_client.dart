@@ -2,6 +2,7 @@ import 'package:chopper/chopper.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/env_config.dart';
 import 'interceptors/auth_interceptor.dart';
+import 'interceptors/refresh_interceptor.dart';
 import '../../features/auth/data/datasources/auth_service.dart';
 import '../../features/client/home/data/datasources/restaurant_service.dart';
 import 'services/delivery_service.dart';
@@ -21,6 +22,7 @@ abstract class ApiClient extends ChopperService {
 }
 
 ChopperClient buildChopperClient() {
+  const storage = FlutterSecureStorage();
   return ChopperClient(
     baseUrl: Uri.parse(EnvConfig.apiBaseUrl),
     services: [
@@ -37,8 +39,10 @@ ChopperClient buildChopperClient() {
     ],
     converter: const JsonConverter(),
     interceptors: [
+      AuthInterceptor(storage),
+      RefreshInterceptor(storage),
+      TimeoutInterceptor(),
       HttpLoggingInterceptor(),
-      AuthInterceptor(const FlutterSecureStorage()),
     ],
   );
 }
