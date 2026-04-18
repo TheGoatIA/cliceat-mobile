@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../network/interceptors/auth_interceptor.dart';
 import '../network/interceptors/refresh_interceptor.dart';
 import '../network/interceptors/connectivity_interceptor.dart';
+import '../services/token_service.dart';
 import '../config/env_config.dart';
 import '../../features/auth/data/datasources/auth_service.dart';
 import '../../features/client/home/data/datasources/restaurant_service.dart';
@@ -19,12 +20,15 @@ import '../network/services/ai_service.dart';
 import '../network/services/review_service.dart';
 import '../network/services/platform_service.dart';
 import '../../features/chat/data/datasources/chat_service.dart';
-import '../di/injection.dart';
+import '../../features/client/wallet/data/datasources/wallet_service.dart';
+import '../../features/client/dispute/data/datasources/dispute_service.dart';
+import '../../features/client/home/data/datasources/promotion_service.dart';
+import '../../features/delivery/dashboard/data/datasources/payout_service.dart';
 
 @module
 abstract class NetworkModule {
   @lazySingleton
-  ChopperClient chopperClient(FlutterSecureStorage secureStorage) {
+  ChopperClient chopperClient(FlutterSecureStorage secureStorage, TokenService tokenService) {
     // We pass a lazy getter for the AuthService into the RefreshInterceptor 
     return ChopperClient(
       baseUrl: Uri.parse(EnvConfig.apiBaseUrl),
@@ -43,13 +47,17 @@ abstract class NetworkModule {
         ReviewService.create(),
         PlatformService.create(),
         ChatService.create(),
+        WalletService.create(),
+        DisputeService.create(),
+        PromotionService.create(),
+        PayoutService.create(),
       ],
       converter: const JsonConverter(),
       interceptors: [
         HttpLoggingInterceptor(),
         ConnectivityInterceptor(),
         AuthInterceptor(secureStorage),
-        RefreshInterceptor(secureStorage, () => getIt<AuthService>().refreshToken()),
+        RefreshInterceptor(secureStorage, tokenService),
       ],
     );
   }
@@ -95,4 +103,16 @@ abstract class NetworkModule {
 
   @lazySingleton
   ChatService getChatService(ChopperClient client) => client.getService<ChatService>();
+
+  @lazySingleton
+  WalletService getWalletService(ChopperClient client) => client.getService<WalletService>();
+
+  @lazySingleton
+  DisputeService getDisputeService(ChopperClient client) => client.getService<DisputeService>();
+
+  @lazySingleton
+  PromotionService getPromotionService(ChopperClient client) => client.getService<PromotionService>();
+
+  @lazySingleton
+  PayoutService getPayoutService(ChopperClient client) => client.getService<PayoutService>();
 }

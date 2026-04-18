@@ -110,13 +110,12 @@ class AnalyticsService {
   }
 
   Future<void> logPaymentInitiated(
-      double amount, String method) async {
+      String orderId, String method) async {
     try {
       await _analytics.logEvent(
         name: 'payment_initiated',
         parameters: {
-          'currency': 'XAF',
-          'value': amount,
+          'order_id': orderId,
           'payment_method': method,
         },
       );

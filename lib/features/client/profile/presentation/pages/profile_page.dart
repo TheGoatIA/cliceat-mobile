@@ -11,6 +11,8 @@ import 'package:cliceat_app/features/client/profile/data/models/loyalty_model.da
 import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
+import 'package:cliceat_app/core/theme/presentation/bloc/theme_cubit.dart';
+import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -21,54 +23,46 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  UserModel? _user;
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfile();
-  }
-
-  Future<void> _loadProfile() async {
-    setState(() => _loading = true);
-    final result = await getIt<UserRepository>().getProfile();
-    if (!mounted) return;
-    result.fold(
-      (_) => setState(() => _loading = false),
-      (user) => setState(() {
-        _user = user;
-        _loading = false;
-      }),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : CustomScrollView(
-              slivers: [
-                _buildSliverHeader(theme),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                    child: _buildMenuSection(context, theme),
-                  ),
-                ),
-              ],
-            ),
+    return BlocProvider(
+      create: (context) => getIt<ProfileCubit>()..loadProfile(),
+      child: BlocBuilder<ProfileCubit, ProfileState>(
+        builder: (context, state) {
+          return state.maybeWhen(
+            loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+            error: (msg) => Scaffold(body: Center(child: Text(msg))),
+            loaded: (user) => _buildProfileContent(context, user, theme),
+            orElse: () => const SizedBox.shrink(),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildSliverHeader(ThemeData theme) {
-    final name = _user?.name ?? 'profile.default_name'.tr();
-    final email = _user?.email ?? '';
-    final phone = _user?.phone ?? '';
-    final photo = _user?.avatar;
+  Widget _buildProfileContent(BuildContext context, UserModel user, ThemeData theme) {
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverHeader(theme, user),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              child: _buildMenuSection(context, theme, user),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliverHeader(ThemeData theme, UserModel user) {
+    final name = user.name;
+    final email = user.email ?? '';
+    final phone = user.phone ?? '';
+    final photo = user.avatar;
 
     return SliverAppBar(
       expandedHeight: 230,
@@ -129,7 +123,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => _showEditProfile(context),
+                      onTap: () => _showEditProfile(context, user),
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
@@ -190,7 +184,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context, ThemeData theme) {
+  Widget _buildMenuSection(BuildContext context, ThemeData theme, UserModel user) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -204,7 +198,7 @@ class _ProfilePageState extends State<ProfilePage> {
             icon: Icons.person_outline_rounded,
             title: 'profile.edit_profile'.tr(),
             color: theme.colorScheme.primary,
-            onTap: () => _showEditProfile(context),
+            onTap: () => _showEditProfile(context, user),
           ),
           _buildDivider(theme),
           _buildMenuItem(
@@ -215,12 +209,18 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           _buildDivider(theme),
           _buildMenuItem(
+            icon: Icons.account_balance_wallet_outlined,
+            title: 'wallet.title'.tr(),
+            color: Colors.teal,
+            onTap: () => context.push('/client/wallet'),
+          ),
+          _buildDivider(theme),
+          _buildMenuItem(
             icon: Icons.card_giftcard_outlined,
             title: 'profile.loyalty'.tr(),
             color: theme.colorScheme.secondary,
             onTap: () => _showLoyalty(context),
-            trailing: _user != null
-                ? Container(
+            trailing: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
@@ -236,8 +236,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         color: theme.colorScheme.secondary,
                       ),
                     ),
-                  )
-                : null,
+                  ),
           ),
           _buildDivider(theme),
           _buildMenuItem(
@@ -267,6 +266,13 @@ class _ProfilePageState extends State<ProfilePage> {
             color: Colors.amber.shade700,
             onTap: () => context.push('/client/profile/reviews'),
           ),
+          _buildDivider(theme),
+          _buildMenuItem(
+            icon: Icons.gavel_outlined,
+            title: 'dispute.history_title'.tr(),
+            color: Colors.redAccent,
+            onTap: () => context.push('/client/dispute/history'),
+          ),
         ], theme),
 
         const SizedBox(height: 20),
@@ -287,6 +293,20 @@ class _ProfilePageState extends State<ProfilePage> {
             title: 'profile.language'.tr(),
             color: const Color(0xFF0097A7),
             onTap: () => _showLanguagePicker(context),
+          ),
+          _buildDivider(theme),
+          BlocBuilder<ThemeCubit, ThemeMode>(
+            builder: (context, mode) {
+              return _buildSwitchTile(
+                icon: mode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+                title: 'profile.dark_mode'.tr(),
+                value: mode == ThemeMode.dark,
+                onChanged: (v) {
+                  context.read<ThemeCubit>().setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
+                },
+                theme: theme,
+              );
+            },
           ),
           _buildDivider(theme),
           _buildMenuItem(
@@ -457,8 +477,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // ── Modals ──────────────────────────────────────────────────────────────────
 
-  void _showEditProfile(BuildContext context) {
-    final nameController = TextEditingController(text: _user?.name ?? '');
+  void _showEditProfile(BuildContext context, UserModel user) {
+    final nameController = TextEditingController(text: user.name);
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
@@ -520,8 +540,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         );
                       }
                     },
-                    (user) {
-                      if (mounted) setState(() => _user = user);
+                    (updatedUser) {
+                      // ProfileCubit will handle the state update and UI refresh
                     },
                   );
                 },
@@ -1084,6 +1104,33 @@ class _ProfilePageState extends State<ProfilePage> {
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => const NotificationSettingsSheet(),
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required IconData icon,
+    required String title,
+    required bool value,
+    required Function(bool) onChanged,
+    required ThemeData theme,
+  }) {
+    return SwitchListTile(
+      value: value,
+      onChanged: onChanged,
+      secondary: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 22),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
 }

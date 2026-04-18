@@ -22,6 +22,7 @@ import '../../features/client/cart/presentation/pages/order_history_page.dart';
 import '../../features/client/cart/presentation/pages/order_rating_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/delivery_main_tab.dart';
 import '../../features/delivery/dashboard/presentation/pages/mission_incoming_page.dart';
+import '../../features/delivery/dashboard/presentation/pages/payout_page.dart';
 import '../../features/delivery/dashboard/data/models/mission_model.dart';
 import '../../features/legal/presentation/pages/terms_page.dart';
 import '../../features/legal/presentation/pages/privacy_page.dart';
@@ -31,6 +32,9 @@ import '../../features/chat/data/models/chat_model.dart';
 import '../../features/client/referral/presentation/pages/referral_page.dart';
 import '../../features/client/ai/presentation/pages/ai_assistant_page.dart';
 import '../../features/client/review/presentation/pages/my_reviews_page.dart';
+import '../../features/client/wallet/presentation/pages/wallet_page.dart';
+import '../../features/client/dispute/presentation/pages/create_dispute_page.dart';
+import '../../features/client/dispute/presentation/pages/dispute_history_page.dart';
 
 // ─── Navigator key ────────────────────────────────────────────────────────────
 
@@ -185,6 +189,21 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => const MyReviewsPage(),
         ),
         GoRoute(
+          path: 'wallet',
+          builder: (context, state) => const WalletPage(),
+        ),
+        GoRoute(
+          path: 'dispute/history',
+          builder: (context, state) => const DisputeHistoryPage(),
+        ),
+        GoRoute(
+          path: 'dispute/create/:orderId',
+          builder: (context, state) {
+            final orderId = state.pathParameters['orderId']!;
+            return CreateDisputePage(orderId: orderId);
+          },
+        ),
+        GoRoute(
           path: 'cart',
           builder: (context, state) => const CartPage(),
         ),
@@ -261,6 +280,10 @@ final GoRouter appRouter = GoRouter(
             final mission = state.extra as MissionModel;
             return MissionIncomingPage(mission: mission);
           },
+        ),
+        GoRoute(
+          path: 'payouts',
+          builder: (context, state) => const PayoutPage(),
         ),
       ],
     ),

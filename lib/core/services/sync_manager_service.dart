@@ -5,6 +5,8 @@ import 'package:cliceat_app/core/data/local/daos/pending_actions_dao.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/chat/data/repositories/chat_repository.dart';
 import 'package:cliceat_app/features/client/review/data/repositories/review_repository.dart';
+import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
+import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 
@@ -91,6 +93,14 @@ class SyncManagerService {
           deliveryRating: payload['deliveryRating'],
           comment: payload['comment'],
         );
+        return result.isRight();
+      } else if (type == 'update_profile') {
+        final repo = getIt<UserRepository>();
+        final result = await repo.updateProfile(payload);
+        return result.isRight();
+      } else if (type == 'toggle_favorite') {
+        final repo = getIt<RestaurantRepository>();
+        final result = await repo.toggleFavorite(payload['restaurantId']);
         return result.isRight();
       }
       

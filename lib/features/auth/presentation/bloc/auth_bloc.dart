@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,6 +10,8 @@ import '../../../../core/data/local/database.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/websocket_service.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/services/token_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import '../../data/datasources/auth_service.dart';
@@ -31,6 +33,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// Toutes les StreamSubscriptions ouvertes après auth, fermées dans [close].
   final List<StreamSubscription<dynamic>> _subscriptions = [];
 
+  final TokenService _tokenService;
+
   /// Timer périodique de vérification d'expiration du JWT.
   Timer? _sessionTimer;
 
@@ -38,6 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     this._authService,
     this._secureStorage,
     this._db,
+    this._tokenService,
   ) : super(const AuthState.initial()) {
     on<_AppStarted>(_onAppStarted);
     on<_SendOtp>(_onSendOtp);
@@ -67,7 +72,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await _secureStorage.read(key: 'current_mode') ?? 'client';
       if (token != null && userId != null) {
         // Vérifier que le token n'a pas déjà expiré avant de restaurer la session
-        if (_isTokenExpired(token)) {
+        if (_tokenService.isTokenExpired(token)) {
           _logger.w('[Auth] Token expiré au démarrage — déconnexion.');
           await _clearCredentials();
           emit(const AuthState.unauthenticated());
@@ -166,8 +171,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  /// Handler dédié au login livreur → POST /auth/delivery/login
-  /// Le backend attend { phone, password } (pas email).
   Future<void> _onLoginDelivery(
       _LoginDelivery event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
@@ -428,7 +431,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     _stopSessionTimer();
     _sessionTimer =
         Timer.periodic(_kSessionCheckInterval, (_) {
-      if (_isTokenExpired(token)) {
+      if (_tokenService.isTokenExpired(token)) {
         add(const AuthEvent.sessionExpired());
       }
     });
@@ -439,39 +442,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     _sessionTimer = null;
   }
 
-  /// Décode le payload JWT (base64url) et vérifie le champ `exp`.
-  /// Retourne `true` si le token est expiré ou non décodable.
-  bool _isTokenExpired(String token) {
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) return true;
-      // Base64url → base64 standard
-      final payload = parts[1].replaceAll('-', '+').replaceAll('_', '/');
-      final decoded = utf8.decode(
-        base64Decode(payload.padRight(
-          payload.length + (4 - payload.length % 4) % 4,
-          '=',
-        )),
-      );
-      final map = jsonDecode(decoded) as Map<String, dynamic>;
-      final exp = map['exp'] as int?;
-      if (exp == null) return false;
-      final expiry = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
-      // Considérer expiré si moins de 2 minutes restantes
-      return DateTime.now().isAfter(
-          expiry.subtract(const Duration(minutes: 2)));
-    } catch (_) {
-      return false; // Token malformé → ne pas déconnecter de force
-    }
-  }
-
   // ─── Post-auth setup ──────────────────────────────────────────────────────
 
   /// Appelé après chaque authentification réussie.
   /// Connecte le WebSocket et enregistre le token FCM.
-  /// Les erreurs FCM et WebSocket sont indépendantes pour éviter les races.
   Future<void> _postAuthSetup(String token) async {
-    // WebSocket — indépendant de FCM
+    // WebSocket
     try {
       final wsSub = getIt<WebSocketService>().statusStream.listen(
         (status) => _logger.d('[Auth/WS] Statut: $status'),
@@ -483,11 +459,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       _logger.w('[Auth] Connexion WebSocket échouée: $e');
     }
 
-    // FCM — indépendant du WebSocket
+    // FCM
     try {
       final fcmToken = await getIt<NotificationService>().getFcmToken();
       if (fcmToken != null) {
-        await getIt<UserRepository>().registerFcmToken(fcmToken);
+        final lang = Intl.getCurrentLocale().split('_').first;
+        await getIt<UserRepository>().registerFcmToken(fcmToken, lang: lang);
       }
     } catch (e) {
       _logger.w('[Auth] Enregistrement FCM échoué: $e');

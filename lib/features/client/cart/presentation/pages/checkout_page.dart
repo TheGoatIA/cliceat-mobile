@@ -4,12 +4,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:screen_protector/screen_protector.dart';
 import '../../../../../core/config/app_constants.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/cart/data/models/coupon_model.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/coupon_repository.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/cart_cubit.dart';
+import '../../../../../core/services/analytics_service.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -31,9 +33,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Map<String, dynamic>? _selectedAddress;
 
   @override
+  void initState() {
+    super.initState();
+    // Empêcher la capture d'écran sur la page de paiement
+    ScreenProtector.preventScreenshotOn();
+    
+    // Analytics
+    final subtotal = context.read<CartCubit>().state.subtotal;
+    getIt<AnalyticsService>().logBeginCheckout(subtotal);
+  }
+
+  @override
   void dispose() {
     _couponController.dispose();
     _notesController.dispose();
+    // Autoriser à nouveau la capture d'écran en quittant
+    ScreenProtector.preventScreenshotOff();
     super.dispose();
   }
 
@@ -211,6 +226,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
             TextButton(
               onPressed: () async {
+                HapticFeedback.lightImpact();
                 final addr =
                     await context.push<Map<String, dynamic>>(
                         '/client/address-selection');
@@ -218,7 +234,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   setState(() => _selectedAddress = addr);
                 }
               },
-              child: Text('checkout.change'.tr()),
+              child: Semantics(
+                label: 'checkout.change'.tr(),
+                button: true,
+                child: Text('checkout.change'.tr()),
+              ),
             ),
           ],
         ),
@@ -311,6 +331,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 textCapitalization: TextCapitalization.characters,
                 decoration: InputDecoration(
                   hintText: 'checkout.enter_coupon'.tr(),
+                  labelText: 'checkout.promo_code'.tr(),
                   prefixIcon: const Icon(Icons.local_offer_outlined),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
@@ -429,8 +450,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ),
             ),
             if (isSelected)
-              Icon(Icons.check_circle,
-                  color: theme.colorScheme.primary),
+              Semantics(
+                label: 'Selected',
+                selected: true,
+                child: Icon(Icons.check_circle,
+                    color: theme.colorScheme.primary),
+              ),
           ],
         ),
       ),

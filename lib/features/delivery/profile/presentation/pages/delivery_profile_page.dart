@@ -52,6 +52,7 @@ class DeliveryProfilePage extends StatelessWidget {
               
               _buildSectionTitle(context, 'Paramètres du compte'),
               _buildListTile(context, icon: Icons.person_outline, title: 'Informations personnelles', onTap: () {}),
+              _buildListTile(context, icon: Icons.account_balance_wallet_outlined, title: 'Portefeuille & Retraits', onTap: () => context.push('/delivery/payouts')),
               _buildListTile(context, icon: Icons.map_outlined, title: 'Zones de livraison préférées', onTap: () {}),
               _buildListTile(context, icon: Icons.airport_shuttle_outlined, title: 'Mon Véhicule (Moto)', onTap: () {}),
 

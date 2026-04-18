@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cliceat_app/core/services/token_service.dart';
 import 'package:logger/logger.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:injectable/injectable.dart';
@@ -23,9 +23,9 @@ enum WsStatus { connected, disconnected, reconnecting }
 /// est considérée perdue et une reconnexion est déclenchée.
 @lazySingleton
 class WebSocketService {
-  WebSocketService(this._secureStorage, this._logger);
+  WebSocketService(this._tokenService, this._logger);
 
-  final FlutterSecureStorage _secureStorage;
+  final TokenService _tokenService;
   final Logger _logger;
 
   io.Socket? _socket;
@@ -105,9 +105,9 @@ class WebSocketService {
   // ─── Connection logic ─────────────────────────────────────────────────────
 
   Future<void> _doConnect() async {
-    final token = await _secureStorage.read(key: 'jwt_token');
+    final token = await _tokenService.getToken();
     if (token == null) {
-      _logger.w('[WS] Pas de token JWT — connexion annulée.');
+      _logger.w('[WS] Pas de token JWT valide — connexion annulée.');
       _stopReconnect(); // Stop any pending reconnection attempts
       _statusController.add(WsStatus.disconnected);
       return;

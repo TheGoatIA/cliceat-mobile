@@ -243,6 +243,32 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
               ),
             ),
           ),
+          // Indicateur visuel et sémantique de l'état du réseau
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            right: 16,
+            child: StreamBuilder<WsStatus>(
+              stream: getIt<WebSocketService>().statusStream,
+              builder: (context, snapshot) {
+                final status = snapshot.data ?? WsStatus.disconnected;
+                return Semantics(
+                  label: 'Recherche de connexion en temps réel',
+                  value: status.name,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: status == WsStatus.connected
+                          ? Colors.green
+                          : Colors.red,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
           Positioned(
             bottom: 0,
             left: 0,
@@ -358,22 +384,26 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                     ],
                   ),
                   if (etaMinutes != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'tracking.eta_minutes'.tr(
-                          args: [etaMinutes.toString()],
+                    Semantics(
+                      label: 'Temps de livraison restant',
+                      value: '$etaMinutes minutes',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
                         ),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurfaceVariant,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'tracking.eta_minutes'.tr(
+                            args: [etaMinutes.toString()],
+                          ),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ),
@@ -447,13 +477,17 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                         );
                       }
                     },
-                    child: CircleAvatar(
-                      radius: 26,
-                      backgroundColor: theme.colorScheme.primary.withValues(
-                        alpha: 0.12,
+                    child: Semantics(
+                      label: 'Appeler le livreur',
+                      button: true,
+                      child: CircleAvatar(
+                        radius: 26,
+                        backgroundColor: theme.colorScheme.primary.withValues(
+                          alpha: 0.12,
+                        ),
+                        child: Icon(Icons.call_rounded,
+                            color: theme.colorScheme.primary, size: 24),
                       ),
-                      child: Icon(Icons.call_rounded,
-                          color: theme.colorScheme.primary, size: 24),
                     ),
                   ),
                 ],
@@ -516,7 +550,17 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   Widget _buildStepCircle(int step, ThemeData theme) {
     final isCompleted = _currentStep >= step;
     final isActive = _currentStep == step;
-    return AnimatedContainer(
+    final stepLabel = [
+      'tracking.step_confirmed'.tr(),
+      'tracking.step_preparing'.tr(),
+      'tracking.step_on_the_way'.tr(),
+      'tracking.step_delivered'.tr(),
+    ][step];
+
+    return Semantics(
+      label: 'Étape $stepLabel',
+      value: isCompleted ? 'Terminée' : (isActive ? 'En cours' : 'À venir'),
+      child: AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       width: isActive ? 32 : 28,
       height: isActive ? 32 : 28,
@@ -543,6 +587,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       child: isCompleted
           ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
           : null,
+      ),
     );
   }
 

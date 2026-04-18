@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/config/app_constants.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/banner/data/models/banner_model.dart';
@@ -12,6 +13,8 @@ import '../../../../../shared/widgets/banner_carousel.dart';
 import '../../../../../shared/widgets/empty_state.dart';
 import '../../../../../shared/widgets/restaurant_card.dart';
 import '../../../../../shared/widgets/section_header.dart';
+import '../bloc/promotion_cubit.dart';
+import '../../../../../shared/widgets/promotion_banner.dart';
 
 class HomeClientPage extends StatefulWidget {
   const HomeClientPage({super.key});
@@ -187,68 +190,74 @@ class _HomeClientPageState extends State<HomeClientPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          children: [
-            Text('client.deliver_to'.tr(), style: theme.textTheme.bodySmall),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  AppConstants.defaultCity,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+    return BlocProvider(
+      create: (context) => getIt<PromotionCubit>()..loadGlobalPromotions(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Column(
+            children: [
+              Text('client.deliver_to'.tr(), style: theme.textTheme.bodySmall),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    AppConstants.defaultCity,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const Icon(Icons.keyboard_arrow_down, size: 18),
-              ],
+                  const Icon(Icons.keyboard_arrow_down, size: 18),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline),
+              onPressed: () => context.push('/client/chat'),
+              tooltip: 'chat.title'.tr(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () {},
+              tooltip: 'Notifications',
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline),
-            onPressed: () => context.push('/client/chat'),
-            tooltip: 'chat.title'.tr(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-            tooltip: 'Notifications',
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        color: theme.colorScheme.primary,
-        onRefresh: () async {
-          _searchController.clear();
-          setState(() {
-            _searchQuery = '';
-            _selectedCategory = null;
-          });
-          await _loadData();
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 8),
-              _buildSearchBar(context),
-              const SizedBox(height: 4),
-              if (!_isSearching) _buildBannerCarousel(),
-              _buildCategories(context),
-              _buildRestaurantSection(context),
-              const SizedBox(height: 24),
-            ],
+        body: RefreshIndicator(
+          color: theme.colorScheme.primary,
+          onRefresh: () async {
+            _searchController.clear();
+            setState(() {
+              _searchQuery = '';
+              _selectedCategory = null;
+            });
+            await _loadData();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 8),
+                _buildSearchBar(context),
+                const SizedBox(height: 4),
+                if (!_isSearching) ...[
+                  _buildBannerCarousel(),
+                  _buildPromotions(context),
+                ],
+                _buildCategories(context),
+                _buildRestaurantSection(context),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/client/ai'),
-        icon: const Icon(Icons.psychology),
-        label: Text('ai.ask'.tr()),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => context.push('/client/ai'),
+          icon: const Icon(Icons.psychology),
+          label: Text('ai.ask'.tr()),
+        ),
       ),
     );
   }
@@ -305,6 +314,34 @@ class _HomeClientPageState extends State<HomeClientPage> {
               ),
             )
           : BannerCarousel(banners: _banners, height: 160),
+    );
+  }
+
+  Widget _buildPromotions(BuildContext context) {
+    return BlocBuilder<PromotionCubit, PromotionState>(
+      builder: (context, state) {
+        return state.maybeWhen(
+          loaded: (promotions) {
+            if (promotions.isEmpty) return const SizedBox.shrink();
+            return Column(
+              children: [
+                SectionHeader(title: 'promotion.exclusive_offers'.tr()),
+                PromotionBanner(
+                  promotions: promotions,
+                  onTap: (promo) {
+                    final restaurantId = promo['restaurantId'] as String?;
+                    if (restaurantId != null) {
+                      context.push('/client/restaurant/$restaurantId');
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          },
+          orElse: () => const SizedBox.shrink(),
+        );
+      },
     );
   }
 

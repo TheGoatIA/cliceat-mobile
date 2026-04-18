@@ -16,6 +16,7 @@ import '../../data/models/earnings_model.dart';
 import '../../data/models/mission_model.dart';
 import '../bloc/mission_bloc.dart';
 import '../../../../../shared/widgets/stat_card.dart';
+import '../../../../../core/services/analytics_service.dart';
 
 class HomeDeliveryPage extends StatefulWidget {
   const HomeDeliveryPage({super.key});
@@ -141,6 +142,13 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
             duration: const Duration(seconds: 2),
           ),
         );
+        
+        // Analytics
+        if (_isOnline) {
+          getIt<AnalyticsService>().logDriverOnline(true);
+        } else {
+          getIt<AnalyticsService>().logDriverOnline(false);
+        }
       },
     );
   }

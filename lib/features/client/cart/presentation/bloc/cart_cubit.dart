@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart' as drift;
 import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/data/local/database.dart';
+import '../../../../../core/services/analytics_service.dart';
 
 class CartItem {
   final String id;
@@ -66,11 +66,11 @@ class CartState {
       restaurantId != null && restaurantId != newRestaurantId;
 }
 
-@injectable
 class CartCubit extends Cubit<CartState> {
   final AppDatabase _db;
+  final AnalyticsService _analytics;
 
-  CartCubit(this._db) : super(const CartState(items: [])) {
+  CartCubit(this._db, this._analytics) : super(const CartState(items: [])) {
     loadCart();
   }
 
@@ -89,6 +89,7 @@ class CartCubit extends Cubit<CartState> {
             ))
         .toList();
     emit(state.copyWith(items: items));
+    _analytics.logViewCart(state.subtotal);
   }
 
   /// Adds an item. If [deliveryFee] is provided, updates the cart's delivery fee.
@@ -134,6 +135,12 @@ class CartCubit extends Cubit<CartState> {
     if (deliveryFee != null) {
       emit(state.copyWith(deliveryFee: deliveryFee));
     }
+    _analytics.logAddToCart(
+      itemId: itemId,
+      itemName: name,
+      price: price,
+      restaurantId: restaurantId,
+    );
   }
 
   Future<void> removeItem(String id) async {

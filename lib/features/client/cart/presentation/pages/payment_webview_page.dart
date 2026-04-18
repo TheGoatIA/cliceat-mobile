@@ -5,6 +5,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import '../../../../../core/mixins/secure_screen_mixin.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
+import '../../../../../core/services/analytics_service.dart';
 
 class PaymentWebviewPage extends StatefulWidget {
   final String paymentUrl;
@@ -71,6 +72,9 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
         ),
       )
       ..loadRequest(Uri.parse(widget.paymentUrl));
+    
+    // Analytics
+    getIt<AnalyticsService>().logPaymentInitiated(widget.orderId, 'notchpay');
   }
 
   /// Verify with backend that payment actually succeeded before showing success.

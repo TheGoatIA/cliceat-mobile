@@ -139,6 +139,20 @@ class $UserPrefsTableTable extends UserPrefsTable
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isDarkModeMeta = const VerificationMeta(
+    'isDarkMode',
+  );
+  @override
+  late final GeneratedColumn<bool> isDarkMode = GeneratedColumn<bool>(
+    'is_dark_mode',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_dark_mode" IN (0, 1))',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     userId,
@@ -153,6 +167,7 @@ class $UserPrefsTableTable extends UserPrefsTable
     isOnline,
     currentMode,
     fcmToken,
+    isDarkMode,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -252,6 +267,15 @@ class $UserPrefsTableTable extends UserPrefsTable
         fcmToken.isAcceptableOrUnknown(data['fcm_token']!, _fcmTokenMeta),
       );
     }
+    if (data.containsKey('is_dark_mode')) {
+      context.handle(
+        _isDarkModeMeta,
+        isDarkMode.isAcceptableOrUnknown(
+          data['is_dark_mode']!,
+          _isDarkModeMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -309,6 +333,10 @@ class $UserPrefsTableTable extends UserPrefsTable
         DriftSqlType.string,
         data['${effectivePrefix}fcm_token'],
       ),
+      isDarkMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_dark_mode'],
+      ),
     );
   }
 
@@ -332,6 +360,7 @@ class UserPrefsTableData extends DataClass
   final bool isOnline;
   final String currentMode;
   final String? fcmToken;
+  final bool? isDarkMode;
   const UserPrefsTableData({
     required this.userId,
     this.name,
@@ -345,6 +374,7 @@ class UserPrefsTableData extends DataClass
     required this.isOnline,
     required this.currentMode,
     this.fcmToken,
+    this.isDarkMode,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -373,6 +403,9 @@ class UserPrefsTableData extends DataClass
     if (!nullToAbsent || fcmToken != null) {
       map['fcm_token'] = Variable<String>(fcmToken);
     }
+    if (!nullToAbsent || isDarkMode != null) {
+      map['is_dark_mode'] = Variable<bool>(isDarkMode);
+    }
     return map;
   }
 
@@ -398,6 +431,9 @@ class UserPrefsTableData extends DataClass
       fcmToken: fcmToken == null && nullToAbsent
           ? const Value.absent()
           : Value(fcmToken),
+      isDarkMode: isDarkMode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isDarkMode),
     );
   }
 
@@ -419,6 +455,7 @@ class UserPrefsTableData extends DataClass
       isOnline: serializer.fromJson<bool>(json['isOnline']),
       currentMode: serializer.fromJson<String>(json['currentMode']),
       fcmToken: serializer.fromJson<String?>(json['fcmToken']),
+      isDarkMode: serializer.fromJson<bool?>(json['isDarkMode']),
     );
   }
   @override
@@ -437,6 +474,7 @@ class UserPrefsTableData extends DataClass
       'isOnline': serializer.toJson<bool>(isOnline),
       'currentMode': serializer.toJson<String>(currentMode),
       'fcmToken': serializer.toJson<String?>(fcmToken),
+      'isDarkMode': serializer.toJson<bool?>(isDarkMode),
     };
   }
 
@@ -453,6 +491,7 @@ class UserPrefsTableData extends DataClass
     bool? isOnline,
     String? currentMode,
     Value<String?> fcmToken = const Value.absent(),
+    Value<bool?> isDarkMode = const Value.absent(),
   }) => UserPrefsTableData(
     userId: userId ?? this.userId,
     name: name.present ? name.value : this.name,
@@ -466,6 +505,7 @@ class UserPrefsTableData extends DataClass
     isOnline: isOnline ?? this.isOnline,
     currentMode: currentMode ?? this.currentMode,
     fcmToken: fcmToken.present ? fcmToken.value : this.fcmToken,
+    isDarkMode: isDarkMode.present ? isDarkMode.value : this.isDarkMode,
   );
   UserPrefsTableData copyWithCompanion(UserPrefsTableCompanion data) {
     return UserPrefsTableData(
@@ -489,6 +529,9 @@ class UserPrefsTableData extends DataClass
           ? data.currentMode.value
           : this.currentMode,
       fcmToken: data.fcmToken.present ? data.fcmToken.value : this.fcmToken,
+      isDarkMode: data.isDarkMode.present
+          ? data.isDarkMode.value
+          : this.isDarkMode,
     );
   }
 
@@ -506,7 +549,8 @@ class UserPrefsTableData extends DataClass
           ..write('vehicleType: $vehicleType, ')
           ..write('isOnline: $isOnline, ')
           ..write('currentMode: $currentMode, ')
-          ..write('fcmToken: $fcmToken')
+          ..write('fcmToken: $fcmToken, ')
+          ..write('isDarkMode: $isDarkMode')
           ..write(')'))
         .toString();
   }
@@ -525,6 +569,7 @@ class UserPrefsTableData extends DataClass
     isOnline,
     currentMode,
     fcmToken,
+    isDarkMode,
   );
   @override
   bool operator ==(Object other) =>
@@ -541,7 +586,8 @@ class UserPrefsTableData extends DataClass
           other.vehicleType == this.vehicleType &&
           other.isOnline == this.isOnline &&
           other.currentMode == this.currentMode &&
-          other.fcmToken == this.fcmToken);
+          other.fcmToken == this.fcmToken &&
+          other.isDarkMode == this.isDarkMode);
 }
 
 class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
@@ -557,6 +603,7 @@ class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
   final Value<bool> isOnline;
   final Value<String> currentMode;
   final Value<String?> fcmToken;
+  final Value<bool?> isDarkMode;
   final Value<int> rowid;
   const UserPrefsTableCompanion({
     this.userId = const Value.absent(),
@@ -571,6 +618,7 @@ class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
     this.isOnline = const Value.absent(),
     this.currentMode = const Value.absent(),
     this.fcmToken = const Value.absent(),
+    this.isDarkMode = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserPrefsTableCompanion.insert({
@@ -586,6 +634,7 @@ class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
     this.isOnline = const Value.absent(),
     this.currentMode = const Value.absent(),
     this.fcmToken = const Value.absent(),
+    this.isDarkMode = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : userId = Value(userId);
   static Insertable<UserPrefsTableData> custom({
@@ -601,6 +650,7 @@ class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
     Expression<bool>? isOnline,
     Expression<String>? currentMode,
     Expression<String>? fcmToken,
+    Expression<bool>? isDarkMode,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -616,6 +666,7 @@ class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
       if (isOnline != null) 'is_online': isOnline,
       if (currentMode != null) 'current_mode': currentMode,
       if (fcmToken != null) 'fcm_token': fcmToken,
+      if (isDarkMode != null) 'is_dark_mode': isDarkMode,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -633,6 +684,7 @@ class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
     Value<bool>? isOnline,
     Value<String>? currentMode,
     Value<String?>? fcmToken,
+    Value<bool?>? isDarkMode,
     Value<int>? rowid,
   }) {
     return UserPrefsTableCompanion(
@@ -648,6 +700,7 @@ class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
       isOnline: isOnline ?? this.isOnline,
       currentMode: currentMode ?? this.currentMode,
       fcmToken: fcmToken ?? this.fcmToken,
+      isDarkMode: isDarkMode ?? this.isDarkMode,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -691,6 +744,9 @@ class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
     if (fcmToken.present) {
       map['fcm_token'] = Variable<String>(fcmToken.value);
     }
+    if (isDarkMode.present) {
+      map['is_dark_mode'] = Variable<bool>(isDarkMode.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -712,6 +768,7 @@ class UserPrefsTableCompanion extends UpdateCompanion<UserPrefsTableData> {
           ..write('isOnline: $isOnline, ')
           ..write('currentMode: $currentMode, ')
           ..write('fcmToken: $fcmToken, ')
+          ..write('isDarkMode: $isDarkMode, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5099,6 +5156,7 @@ typedef $$UserPrefsTableTableCreateCompanionBuilder =
       Value<bool> isOnline,
       Value<String> currentMode,
       Value<String?> fcmToken,
+      Value<bool?> isDarkMode,
       Value<int> rowid,
     });
 typedef $$UserPrefsTableTableUpdateCompanionBuilder =
@@ -5115,6 +5173,7 @@ typedef $$UserPrefsTableTableUpdateCompanionBuilder =
       Value<bool> isOnline,
       Value<String> currentMode,
       Value<String?> fcmToken,
+      Value<bool?> isDarkMode,
       Value<int> rowid,
     });
 
@@ -5184,6 +5243,11 @@ class $$UserPrefsTableTableFilterComposer
 
   ColumnFilters<String> get fcmToken => $composableBuilder(
     column: $table.fcmToken,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDarkMode => $composableBuilder(
+    column: $table.isDarkMode,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5256,6 +5320,11 @@ class $$UserPrefsTableTableOrderingComposer
     column: $table.fcmToken,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isDarkMode => $composableBuilder(
+    column: $table.isDarkMode,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserPrefsTableTableAnnotationComposer
@@ -5310,6 +5379,11 @@ class $$UserPrefsTableTableAnnotationComposer
 
   GeneratedColumn<String> get fcmToken =>
       $composableBuilder(column: $table.fcmToken, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDarkMode => $composableBuilder(
+    column: $table.isDarkMode,
+    builder: (column) => column,
+  );
 }
 
 class $$UserPrefsTableTableTableManager
@@ -5361,6 +5435,7 @@ class $$UserPrefsTableTableTableManager
                 Value<bool> isOnline = const Value.absent(),
                 Value<String> currentMode = const Value.absent(),
                 Value<String?> fcmToken = const Value.absent(),
+                Value<bool?> isDarkMode = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UserPrefsTableCompanion(
                 userId: userId,
@@ -5375,6 +5450,7 @@ class $$UserPrefsTableTableTableManager
                 isOnline: isOnline,
                 currentMode: currentMode,
                 fcmToken: fcmToken,
+                isDarkMode: isDarkMode,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5391,6 +5467,7 @@ class $$UserPrefsTableTableTableManager
                 Value<bool> isOnline = const Value.absent(),
                 Value<String> currentMode = const Value.absent(),
                 Value<String?> fcmToken = const Value.absent(),
+                Value<bool?> isDarkMode = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UserPrefsTableCompanion.insert(
                 userId: userId,
@@ -5405,6 +5482,7 @@ class $$UserPrefsTableTableTableManager
                 isOnline: isOnline,
                 currentMode: currentMode,
                 fcmToken: fcmToken,
+                isDarkMode: isDarkMode,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

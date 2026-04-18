@@ -72,4 +72,11 @@ final class _$RestaurantService extends RestaurantService {
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<dynamic, dynamic>($request);
   }
+
+  @override
+  Future<Response<dynamic>> toggleFavorite(String id) {
+    final Uri $url = Uri.parse('/restaurants/${id}/favorite');
+    final Request $request = Request('POST', $url, client.baseUrl);
+    return client.send<dynamic, dynamic>($request);
+  }
 }

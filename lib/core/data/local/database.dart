@@ -52,7 +52,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -71,6 +71,9 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 5) {
             await m.createTable(ordersTable);
+          }
+          if (from < 6) {
+            await m.addColumn(userPrefsTable, userPrefsTable.isDarkMode);
           }
         },
         beforeOpen: (details) async {

@@ -15,7 +15,10 @@ import 'routes/app_router.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/presentation/bloc/theme_cubit.dart';
 import 'core/widgets/connectivity_banner.dart';
+import 'core/services/sync_manager_service.dart';
+import 'core/services/precache_service.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/client/cart/presentation/bloc/cart_cubit.dart';
 import 'firebase_options.dart';
@@ -74,6 +77,10 @@ Future<void> _bootstrap() async {
 
   getIt<DeepLinkService>().initialize(rootNavigatorKey);
 
+  // Initialisation des services offline et cache
+  getIt<SyncManagerService>().initialize();
+  getIt<PrecacheService>().startPrecaching();
+
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('fr', 'FR'), Locale('en', 'US')],
@@ -98,16 +105,21 @@ class ClicEatApp extends StatelessWidget {
         BlocProvider(
           create: (_) => getIt<CartCubit>(),
         ),
+        BlocProvider(
+          create: (_) => getIt<ThemeCubit>(),
+        ),
       ],
-      child: MaterialApp.router(
-        title: 'ClicEat',
-        localizationsDelegates: context.localizationDelegates,
-        supportedLocales: context.supportedLocales,
-        locale: context.locale,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        routerConfig: appRouter,
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, mode) {
+          return MaterialApp.router(
+            title: 'ClicEat',
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: mode,
+            routerConfig: appRouter,
         // Bannière de flavor en overlay (dev/staging uniquement)
         builder: FlavorConfig.isProd
             ? null
@@ -117,6 +129,8 @@ class ClicEatApp extends StatelessWidget {
                   color: FlavorConfig.isDev ? Colors.red : Colors.orange,
                   child: child!,
                 ),
+          );
+        },
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'package:cliceat_app/features/client/home/data/models/menu_item_model.dar
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
 import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import '../../../../../shared/widgets/app_network_image.dart';
+import '../../../../../core/services/analytics_service.dart';
 import '../../../cart/presentation/bloc/cart_cubit.dart';
 
 class RestaurantDetailPage extends StatefulWidget {
@@ -44,6 +45,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
           _restaurant = restaurant;
           _loading = false;
         });
+        getIt<AnalyticsService>().logRestaurantViewed(restaurant.id, restaurant.name);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             context.read<CartCubit>().setDeliveryFee(

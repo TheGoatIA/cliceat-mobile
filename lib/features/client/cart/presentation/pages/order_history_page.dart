@@ -479,6 +479,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 4),
                         ),
+                      IconButton(
+                        icon: const Icon(Icons.help_outline_rounded, size: 20),
+                        onPressed: () => context.push('/client/dispute/create/$orderId'),
+                        tooltip: 'order.report_problem'.tr(),
+                        color: theme.colorScheme.onSurfaceVariant,
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
                       if (isDelivered || invoiceUrl != null)
                         IconButton(
                           icon: const Icon(

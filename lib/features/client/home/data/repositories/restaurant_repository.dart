@@ -119,6 +119,16 @@ class RestaurantRepository {
     }
   }
 
+  Future<Either<AppError, void>> toggleFavorite(String id) async {
+    try {
+      final res = await _service.toggleFavorite(id);
+      if (res.isSuccessful) return const Right(null);
+      return Left(AppError.fromResponse(res.body, 'common.error'));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
   List<Map<String, dynamic>> _extractList(dynamic body) {

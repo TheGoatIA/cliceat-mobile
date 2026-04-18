@@ -44,4 +44,9 @@ class UserPrefsDao {
         userId,
         UserPrefsTableCompanion(language: drift.Value(lang)),
       );
+
+  Future<void> setDarkMode(String userId, bool? isDark) => updateField(
+        userId,
+        UserPrefsTableCompanion(isDarkMode: drift.Value(isDark)),
+      );
 }

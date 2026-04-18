@@ -19,6 +19,7 @@ class UserPrefsTable extends Table {
   // Shared
   TextColumn get currentMode => text().withDefault(const Constant('client'))(); // 'client' or 'delivery'
   TextColumn get fcmToken => text().nullable()();
+  BoolColumn get isDarkMode => boolean().nullable()();
 
   @override
   Set<Column> get primaryKey => {userId};

@@ -25,4 +25,7 @@ abstract class RestaurantService extends ChopperService {
 
   @GET(path: '/{id}/menu')
   Future<Response> getRestaurantMenu(@Path('id') String id);
+
+  @POST(path: '/{id}/favorite')
+  Future<Response> toggleFavorite(@Path('id') String id);
 }

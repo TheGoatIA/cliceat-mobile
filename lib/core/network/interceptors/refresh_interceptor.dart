@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:chopper/chopper.dart';
+import 'package:cliceat_app/core/services/token_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 
@@ -22,10 +23,10 @@ class _RefreshState {
 }
 
 class RefreshInterceptor implements Interceptor {
-  RefreshInterceptor(this._secureStorage, this._refreshCallback);
+  RefreshInterceptor(this._secureStorage, this._tokenService);
 
   final FlutterSecureStorage _secureStorage;
-  final Future<Response> Function() _refreshCallback;
+  final TokenService _tokenService;
   final Logger _logger = Logger();
 
   /// État mutable encapsulé pour respecter l'immutabilité de l'intercepteur.
@@ -91,19 +92,8 @@ class RefreshInterceptor implements Interceptor {
 
   Future<String?> _doRefresh() async {
     try {
-      final refreshRes = await _refreshCallback();
-
-      if (refreshRes.isSuccessful && refreshRes.body != null) {
-        final body = refreshRes.body as Map<String, dynamic>?;
-        final tokens = body?['tokens'] as Map<String, dynamic>?;
-        final newToken = tokens?['accessToken'] as String?;
-
-        if (newToken != null && newToken.isNotEmpty) {
-          await _secureStorage.write(key: 'jwt_token', value: newToken);
-          _logger.i('[RefreshInterceptor] Nouveau token stocké.');
-          return newToken;
-        }
-      }
+      final newToken = await _tokenService.refreshToken();
+      if (newToken != null) return newToken;
 
       // Refresh non fructueux → nettoyer les credentials
       await _clearCredentials();

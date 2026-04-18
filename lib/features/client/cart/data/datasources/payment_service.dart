@@ -22,4 +22,8 @@ abstract class PaymentService extends ChopperService {
   /// Exposed for reference only — not called from mobile directly.
   @GET(path: '/methods')
   Future<Response<Map<String, dynamic>>> getPaymentMethods();
+
+  /// GET /payments/me — fetch user's transaction history
+  @GET(path: '/me')
+  Future<Response<Map<String, dynamic>>> getMyPayments();
 }

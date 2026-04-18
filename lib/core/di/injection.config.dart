@@ -35,14 +35,27 @@ import '../../features/client/cart/data/repositories/coupon_repository.dart'
     as _i863;
 import '../../features/client/cart/data/repositories/order_repository.dart'
     as _i1060;
-import '../../features/client/cart/presentation/bloc/cart_cubit.dart' as _i308;
 import '../../features/client/cart/presentation/bloc/order_bloc.dart' as _i438;
+import '../../features/client/dispute/data/datasources/dispute_service.dart'
+    as _i214;
+import '../../features/client/dispute/data/repositories/dispute_repository.dart'
+    as _i136;
+import '../../features/client/dispute/presentation/bloc/dispute_cubit.dart'
+    as _i24;
+import '../../features/client/home/data/datasources/promotion_service.dart'
+    as _i996;
 import '../../features/client/home/data/datasources/restaurant_service.dart'
     as _i813;
+import '../../features/client/home/data/repositories/promotion_repository.dart'
+    as _i241;
 import '../../features/client/home/data/repositories/restaurant_repository.dart'
     as _i1001;
+import '../../features/client/home/presentation/bloc/promotion_cubit.dart'
+    as _i340;
 import '../../features/client/profile/data/repositories/user_repository.dart'
     as _i482;
+import '../../features/client/profile/presentation/bloc/profile_cubit.dart'
+    as _i747;
 import '../../features/client/referral/data/repositories/referral_repository.dart'
     as _i1030;
 import '../../features/client/referral/presentation/cubit/referral_cubit.dart'
@@ -51,14 +64,26 @@ import '../../features/client/review/data/repositories/review_repository.dart'
     as _i656;
 import '../../features/client/review/presentation/cubit/review_cubit.dart'
     as _i787;
+import '../../features/client/wallet/data/datasources/wallet_service.dart'
+    as _i667;
+import '../../features/client/wallet/data/repositories/wallet_repository.dart'
+    as _i691;
+import '../../features/client/wallet/presentation/bloc/wallet_cubit.dart'
+    as _i341;
 import '../../features/delivery/dashboard/data/datasources/driver_service.dart'
     as _i170;
 import '../../features/delivery/dashboard/data/datasources/mission_service.dart'
     as _i304;
+import '../../features/delivery/dashboard/data/datasources/payout_service.dart'
+    as _i580;
 import '../../features/delivery/dashboard/data/repositories/driver_repository.dart'
     as _i530;
+import '../../features/delivery/dashboard/data/repositories/payout_repository.dart'
+    as _i964;
 import '../../features/delivery/dashboard/presentation/bloc/mission_bloc.dart'
     as _i203;
+import '../../features/delivery/dashboard/presentation/bloc/payout_cubit.dart'
+    as _i704;
 import '../data/local/daos/cart_dao.dart' as _i322;
 import '../data/local/daos/chat_dao.dart' as _i468;
 import '../data/local/daos/menu_dao.dart' as _i594;
@@ -78,8 +103,11 @@ import '../services/analytics_service.dart' as _i222;
 import '../services/deep_link_service.dart' as _i391;
 import '../services/location_service.dart' as _i669;
 import '../services/notification_service.dart' as _i941;
+import '../services/precache_service.dart' as _i1048;
 import '../services/sync_manager_service.dart' as _i114;
+import '../services/token_service.dart' as _i227;
 import '../services/websocket_service.dart' as _i555;
+import '../theme/presentation/bloc/theme_cubit.dart' as _i787;
 import 'core_module.dart' as _i154;
 import 'network_module.dart' as _i567;
 
@@ -98,7 +126,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => coreModule.secureStorage,
     );
     gh.lazySingleton<_i669.LocationService>(() => _i669.LocationService());
-    gh.factory<_i308.CartCubit>(() => _i308.CartCubit(gh<_i475.AppDatabase>()));
     gh.lazySingleton<_i322.CartDao>(
       () => _i322.CartDao(gh<_i475.AppDatabase>()),
     );
@@ -117,14 +144,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i941.NotificationService>(
       () => _i941.NotificationService(gh<_i974.Logger>()),
     );
+    gh.lazySingleton<_i1048.PrecacheService>(
+      () => _i1048.PrecacheService(gh<_i974.Logger>()),
+    );
     gh.lazySingleton<_i427.OrderDao>(
       () => _i427.OrderDao(gh<_i475.AppDatabase>()),
     );
-    gh.lazySingleton<_i31.ChopperClient>(
-      () => networkModule.chopperClient(gh<_i558.FlutterSecureStorage>()),
-    );
-    gh.lazySingleton<_i555.WebSocketService>(
-      () => _i555.WebSocketService(
+    gh.lazySingleton<_i227.TokenService>(
+      () => _i227.TokenService(
         gh<_i558.FlutterSecureStorage>(),
         gh<_i974.Logger>(),
       ),
@@ -137,6 +164,20 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i902.PendingActionsDao>(
       () => _i902.PendingActionsDao(gh<_i475.AppDatabase>()),
+    );
+    gh.lazySingleton<_i31.ChopperClient>(
+      () => networkModule.chopperClient(
+        gh<_i558.FlutterSecureStorage>(),
+        gh<_i227.TokenService>(),
+      ),
+    );
+    gh.lazySingleton<_i787.ThemeCubit>(
+      () =>
+          _i787.ThemeCubit(gh<_i658.UserPrefsDao>(), gh<_i227.TokenService>()),
+    );
+    gh.lazySingleton<_i555.WebSocketService>(
+      () =>
+          _i555.WebSocketService(gh<_i227.TokenService>(), gh<_i974.Logger>()),
     );
     gh.lazySingleton<_i1060.AuthService>(
       () => networkModule.getAuthService(gh<_i31.ChopperClient>()),
@@ -180,6 +221,18 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i321.ChatService>(
       () => networkModule.getChatService(gh<_i31.ChopperClient>()),
     );
+    gh.lazySingleton<_i667.WalletService>(
+      () => networkModule.getWalletService(gh<_i31.ChopperClient>()),
+    );
+    gh.lazySingleton<_i214.DisputeService>(
+      () => networkModule.getDisputeService(gh<_i31.ChopperClient>()),
+    );
+    gh.lazySingleton<_i996.PromotionService>(
+      () => networkModule.getPromotionService(gh<_i31.ChopperClient>()),
+    );
+    gh.lazySingleton<_i580.PayoutService>(
+      () => networkModule.getPayoutService(gh<_i31.ChopperClient>()),
+    );
     gh.factory<_i48.AiRepository>(
       () => _i48.AiRepository(gh<_i176.AiService>()),
     );
@@ -197,6 +250,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i1060.AuthService>(),
         gh<_i558.FlutterSecureStorage>(),
         gh<_i475.AppDatabase>(),
+        gh<_i227.TokenService>(),
       ),
     );
     gh.factory<_i1030.ReferralRepository>(
@@ -211,11 +265,17 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i558.FlutterSecureStorage>(),
       ),
     );
+    gh.lazySingleton<_i241.PromotionRepository>(
+      () => _i241.PromotionRepository(gh<_i996.PromotionService>()),
+    );
     gh.lazySingleton<_i530.DriverRepository>(
       () => _i530.DriverRepository(
         gh<_i304.MissionService>(),
         gh<_i170.DriverService>(),
       ),
+    );
+    gh.lazySingleton<_i964.PayoutRepository>(
+      () => _i964.PayoutRepository(gh<_i580.PayoutService>()),
     );
     gh.factory<_i796.ChatRepository>(
       () => _i796.ChatRepository(
@@ -223,6 +283,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i468.ChatDao>(),
         gh<_i902.PendingActionsDao>(),
       ),
+    );
+    gh.lazySingleton<_i136.DisputeRepository>(
+      () => _i136.DisputeRepository(gh<_i214.DisputeService>()),
     );
     gh.factory<_i359.BannerRepository>(
       () => _i359.BannerRepository(gh<_i525.PlatformService>()),
@@ -255,6 +318,15 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i438.OrderBloc>(
       () => _i438.OrderBloc(gh<_i1060.OrderRepository>()),
     );
+    gh.lazySingleton<_i691.WalletRepository>(
+      () => _i691.WalletRepository(
+        gh<_i667.WalletService>(),
+        gh<_i816.PaymentService>(),
+      ),
+    );
+    gh.factory<_i340.PromotionCubit>(
+      () => _i340.PromotionCubit(gh<_i241.PromotionRepository>()),
+    );
     gh.lazySingleton<_i1001.RestaurantRepository>(
       () => _i1001.RestaurantRepository(
         gh<_i813.RestaurantService>(),
@@ -262,11 +334,23 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i594.MenuDao>(),
       ),
     );
+    gh.factory<_i747.ProfileCubit>(
+      () => _i747.ProfileCubit(gh<_i482.UserRepository>()),
+    );
     gh.factory<_i305.ChatCubit>(
       () => _i305.ChatCubit(gh<_i796.ChatRepository>()),
     );
+    gh.factory<_i24.DisputeCubit>(
+      () => _i24.DisputeCubit(gh<_i136.DisputeRepository>()),
+    );
     gh.factory<_i203.MissionBloc>(
       () => _i203.MissionBloc(gh<_i530.DriverRepository>()),
+    );
+    gh.factory<_i704.PayoutCubit>(
+      () => _i704.PayoutCubit(gh<_i964.PayoutRepository>()),
+    );
+    gh.factory<_i341.WalletCubit>(
+      () => _i341.WalletCubit(gh<_i691.WalletRepository>()),
     );
     return this;
   }

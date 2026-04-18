@@ -7,6 +7,7 @@ class UserModel {
   final String? avatar;
   final String? city;
   final String? role;
+  final double? balance;
 
   const UserModel({
     required this.id,
@@ -16,6 +17,7 @@ class UserModel {
     this.avatar,
     this.city,
     this.role,
+    this.balance,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,7 @@ class UserModel {
           json['photoUrl']?.toString(),
       city: json['city']?.toString(),
       role: json['role']?.toString(),
+      balance: (json['balance'] ?? json['wallet']?['balance'] ?? 0.0) as double,
     );
   }
 
@@ -41,6 +44,7 @@ class UserModel {
         if (avatar != null) 'avatar': avatar,
         if (city != null) 'city': city,
         if (role != null) 'role': role,
+        'balance': balance ?? 0.0,
       };
 
   UserModel copyWith({
@@ -49,6 +53,7 @@ class UserModel {
     String? phone,
     String? avatar,
     String? city,
+    double? balance,
   }) =>
       UserModel(
         id: id,
@@ -57,6 +62,7 @@ class UserModel {
         phone: phone ?? this.phone,
         avatar: avatar ?? this.avatar,
         city: city ?? this.city,
+        balance: balance ?? this.balance,
         role: role,
       );
 }

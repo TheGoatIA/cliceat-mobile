@@ -137,9 +137,12 @@ class UserRepository {
 
   // ─── FCM token ────────────────────────────────────────────────────────────
 
-  Future<void> registerFcmToken(String token) async {
+  Future<void> registerFcmToken(String token, {String? lang}) async {
     try {
-      await _service.registerFcmToken({'token': token});
+      await _service.registerFcmToken({
+        'token': token,
+        'language': lang,
+      });
     } catch (_) {}
   }
 
