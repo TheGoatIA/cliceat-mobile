@@ -113,10 +113,10 @@ import 'network_module.dart' as _i567;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
-  _i174.GetIt init({
+  Future<_i174.GetIt> init({
     String? environment,
     _i526.EnvironmentFilter? environmentFilter,
-  }) {
+  }) async {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final coreModule = _$CoreModule();
     final networkModule = _$NetworkModule();
@@ -165,11 +165,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i902.PendingActionsDao>(
       () => _i902.PendingActionsDao(gh<_i475.AppDatabase>()),
     );
-    gh.lazySingleton<_i31.ChopperClient>(
+    await gh.lazySingletonAsync<_i31.ChopperClient>(
       () => networkModule.chopperClient(
         gh<_i558.FlutterSecureStorage>(),
         gh<_i227.TokenService>(),
       ),
+      preResolve: true,
     );
     gh.lazySingleton<_i787.ThemeCubit>(
       () =>
@@ -317,12 +318,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i787.ReviewCubit>(
       () => _i787.ReviewCubit(gh<_i656.ReviewRepository>()),
     );
-    gh.factory<_i438.OrderBloc>(
-      () => _i438.OrderBloc(
-        gh<_i1060.OrderRepository>(),
-        gh<_i555.WebSocketService>(),
-      ),
-    );
     gh.lazySingleton<_i691.WalletRepository>(
       () => _i691.WalletRepository(
         gh<_i667.WalletService>(),
@@ -337,6 +332,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i813.RestaurantService>(),
         gh<_i471.RestaurantDao>(),
         gh<_i594.MenuDao>(),
+      ),
+    );
+    gh.factory<_i438.OrderBloc>(
+      () => _i438.OrderBloc(
+        gh<_i1060.OrderRepository>(),
+        gh<_i555.WebSocketService>(),
       ),
     );
     gh.factory<_i747.ProfileCubit>(

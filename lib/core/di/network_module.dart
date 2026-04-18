@@ -32,11 +32,12 @@ import '../network/pinned_client_provider.dart';
 @module
 abstract class NetworkModule {
   @lazySingleton
-  ChopperClient chopperClient(FlutterSecureStorage secureStorage, TokenService tokenService) {
-    // We pass a lazy getter for the AuthService into the RefreshInterceptor 
+  @preResolve
+  Future<ChopperClient> chopperClient(FlutterSecureStorage secureStorage, TokenService tokenService) async {
+    final httpClient = await PinnedHttpClientProvider.getClient();
     return ChopperClient(
       baseUrl: Uri.parse(EnvConfig.apiBaseUrl),
-      client: PinnedHttpClientProvider.getClient(),
+      client: httpClient,
       services: [
         AuthService.create(),
         RestaurantService.create(),

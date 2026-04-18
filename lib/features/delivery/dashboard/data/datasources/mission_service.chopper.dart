@@ -51,7 +51,7 @@ final class _$MissionService extends MissionService {
     String id,
     Map<String, dynamic> body,
   ) {
-    final Uri $url = Uri.parse('/delivery/orders/${id}/delivered');
+    final Uri $url = Uri.parse('/delivery/orders/${id}/confirm');
     final $body = body;
     final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);

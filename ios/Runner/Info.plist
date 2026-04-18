@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>ClicEat a besoin de votre position pour suivre les livraisons et trouver les restaurants autour de vous.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>En mode "Livreur", ClicEat a besoin de votre position en arrière-plan pour que les clients voient votre progression vers la destination.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>ClicEat a besoin de votre position pour le suivi des livraisons en temps réel.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -56,6 +50,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
+		<string>location</string>
 	</array>
 
 	<!-- Custom URI scheme: cliceat:// -->
@@ -71,10 +66,6 @@
 				<string>cliceat</string>
 			</array>
 		</dict>
-		<!-- Google Sign-In: REVERSED_CLIENT_ID from GoogleService-Info.plist.
-		     Replace REPLACE_WITH_REVERSED_CLIENT_ID with the actual value
-		     (e.g. com.googleusercontent.apps.1234567890-abcdefgh) after
-		     running `flutterfire configure` and adding GoogleService-Info.plist. -->
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
@@ -85,16 +76,20 @@
 		</dict>
 	</array>
 
-	<!-- Camera / Photo Library access (for profile photo upload) -->
+	<!-- Permissions descriptions -->
 	<key>NSCameraUsageDescription</key>
 	<string>ClicEat a besoin d'accéder à votre appareil photo pour mettre à jour votre photo de profil.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>ClicEat a besoin d'accéder à votre galerie pour mettre à jour votre photo de profil.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>ClicEat a besoin d'accéder à votre microphone pour envoyer des messages vocaux dans le chat.</string>
 
-	<!-- Location access (required for delivery tracking and restaurant map) -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>ClicEat utilise votre position pour afficher les restaurants près de vous et estimer les délais de livraison.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>ClicEat utilise votre position en arrière-plan pour le suivi des livraisons en temps réel.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>En mode Livreur, ClicEat a besoin de votre position en arrière-plan pour le suivi temps réel.</string>
+
 </dict>
 </plist>

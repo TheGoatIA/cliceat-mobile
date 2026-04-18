@@ -72,7 +72,7 @@ Future<void> _bootstrap() async {
     };
   }
 
-  configureDependencies();
+  await configureDependencies();
 
   getIt<NotificationService>().configureRouting(rootNavigatorKey);
   await getIt<NotificationService>().initialize();
