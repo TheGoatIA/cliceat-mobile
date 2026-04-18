@@ -83,6 +83,8 @@ dependencies:
   screen_protector: ^1.5.1
   timeago: ^3.7.1
   flutter_dotenv: ^6.0.0
+  http_certificate_pinning: ^3.0.1
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:
