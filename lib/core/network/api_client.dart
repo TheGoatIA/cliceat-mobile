@@ -4,6 +4,8 @@ import '../config/env_config.dart';
 import 'interceptors/auth_interceptor.dart';
 import '../../features/auth/data/datasources/auth_service.dart';
 import '../../features/client/home/data/datasources/restaurant_service.dart';
+import 'services/delivery_service.dart';
+import 'services/order_service.dart';
 
 part 'api_client.chopper.dart';
 
@@ -18,6 +20,8 @@ ChopperClient buildChopperClient() {
     services: [
       AuthService.create(),
       RestaurantService.create(),
+      DeliveryService.create(),
+      OrderService.create(),
     ],
     converter: const JsonConverter(),
     interceptors: [
