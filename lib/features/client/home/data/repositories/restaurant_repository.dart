@@ -3,9 +3,13 @@ import 'package:drift/drift.dart' as drift;
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
+import 'package:cliceat_app/features/client/home/data/models/menu_item_model.dart';
 import 'package:cliceat_app/core/data/local/daos/restaurant_dao.dart';
 import 'package:cliceat_app/core/data/local/database.dart';
 import 'package:cliceat_app/features/client/home/data/datasources/restaurant_service.dart';
+
+import 'package:cliceat_app/core/data/local/daos/menu_dao.dart';
+import 'dart:convert';
 
 /// Abstracts restaurant data access with cache-through strategy.
 /// Network-first for listings, falls back to Drift cache on failure.
@@ -13,8 +17,9 @@ import 'package:cliceat_app/features/client/home/data/datasources/restaurant_ser
 class RestaurantRepository {
   final RestaurantService _service;
   final RestaurantDao _dao;
+  final MenuDao _menuDao;
 
-  RestaurantRepository(this._service, this._dao);
+  RestaurantRepository(this._service, this._dao, this._menuDao);
 
   // ─── Listings ─────────────────────────────────────────────────────────────
 
@@ -30,7 +35,7 @@ class RestaurantRepository {
         final raw = _extractList(res.body);
         final models = raw.map(RestaurantModel.fromJson).toList();
         await _dao.evictStale();
-        await _dao.upsertAll(_toCompanions(models));
+        await _dao.upsertAll(models.map(_toCompanion).toList());
         return Right(models);
       }
       // Cache fallback
@@ -53,7 +58,7 @@ class RestaurantRepository {
       if (res.isSuccessful && res.body != null) {
         final raw = _extractList(res.body);
         final models = raw.map(RestaurantModel.fromJson).toList();
-        await _dao.upsertAll(_toCompanions(models));
+        await _dao.upsertAll(models.map(_toCompanion).toList());
         return Right(models);
       }
       return Left(AppError.fromResponse(res.body, 'common.error'));
@@ -86,17 +91,30 @@ class RestaurantRepository {
             ? res.body['data'] as Map<String, dynamic>
             : res.body as Map<String, dynamic>;
         final model = RestaurantModel.fromJson(data);
+        
+        // Save to cache
+        await _dao.upsert(_toCompanion(model));
+        if (model.menus.isNotEmpty) {
+          await _menuDao.replaceItemsForRestaurant(id, _toMenuCompanions(id, model.menus));
+        }
+        
         return Right(model);
       }
-      // Try cache (without menus)
+      // Try cache
       final cached = await _dao.getById(id);
-      if (cached != null) return Right(_fromRow(cached));
+      if (cached != null) {
+        final menuRows = await _menuDao.getByRestaurant(id);
+        return Right(_fromRowWithMenus(cached, menuRows));
+      }
       return Left(AppError.fromResponse(
           res.body, 'restaurant.error_load',
           statusCode: res.statusCode));
     } catch (_) {
       final cached = await _dao.getById(id);
-      if (cached != null) return Right(_fromRow(cached));
+      if (cached != null) {
+        final menuRows = await _menuDao.getByRestaurant(id);
+        return Right(_fromRowWithMenus(cached, menuRows));
+      }
       return Left(AppError.network());
     }
   }
@@ -113,25 +131,36 @@ class RestaurantRepository {
     return [];
   }
 
-  List<RestaurantsTableCompanion> _toCompanions(
-      List<RestaurantModel> models) {
-    return models
-        .map((r) => RestaurantsTableCompanion.insert(
-              id: r.id,
-              name: r.name,
-              city: r.city ?? 'Douala',
-              lat: r.lat,
-              lng: r.lng,
-              isOpen: drift.Value(r.isOpen),
-              deliveryFee: drift.Value(r.deliveryFee),
-              description: drift.Value(r.description),
-              logoUrl: drift.Value(r.logoUrl),
-              coverUrl: drift.Value(r.coverImage),
-              rating: drift.Value(r.rating),
-              minOrder: drift.Value(r.minOrder ?? 0.0),
-              avgDeliveryTime: drift.Value(r.deliveryTimeMinutes),
-            ))
-        .toList();
+  RestaurantsTableCompanion _toCompanion(RestaurantModel r) {
+    return RestaurantsTableCompanion.insert(
+      id: r.id,
+      name: r.name,
+      city: r.city ?? 'Douala',
+      lat: r.lat,
+      lng: r.lng,
+      isOpen: drift.Value(r.isOpen),
+      deliveryFee: drift.Value(r.deliveryFee),
+      description: drift.Value(r.description),
+      logoUrl: drift.Value(r.logoUrl),
+      coverUrl: drift.Value(r.coverImage),
+      rating: drift.Value(r.rating),
+      minOrder: drift.Value(r.minOrder ?? 0.0),
+      avgDeliveryTime: drift.Value(r.deliveryTimeMinutes),
+    );
+  }
+
+  List<MenuItemsTableCompanion> _toMenuCompanions(String restaurantId, List<MenuItemModel> menus) {
+    return menus.map((m) => MenuItemsTableCompanion.insert(
+      id: m.id,
+      restaurantId: restaurantId,
+      name: m.name,
+      price: m.price,
+      description: drift.Value(m.description),
+      imageUrl: drift.Value(m.image),
+      category: drift.Value(m.category),
+      isAvailable: drift.Value(m.isAvailable),
+      extrasJson: drift.Value(jsonEncode(m.variations.map((v) => v.toJson()).toList())),
+    )).toList();
   }
 
   List<RestaurantModel> _fromRows(List<RestaurantsTableData> rows) =>
@@ -152,4 +181,43 @@ class RestaurantRepository {
         minOrder: r.minOrder,
         deliveryTimeMinutes: r.avgDeliveryTime,
       );
+
+  RestaurantModel _fromRowWithMenus(RestaurantsTableData r, List<MenuItemsTableData> menuRows) {
+    final menus = menuRows.map((m) {
+      List<MenuVariationModel> variations = [];
+      if (m.extrasJson != null) {
+        try {
+          final List<dynamic> decoded = jsonDecode(m.extrasJson!);
+          variations = decoded.map((e) => MenuVariationModel.fromJson(e as Map<String, dynamic>)).toList();
+        } catch (_) {}
+      }
+      return MenuItemModel(
+        id: m.id,
+        name: m.name,
+        description: m.description,
+        price: m.price,
+        image: m.imageUrl,
+        category: m.category,
+        isAvailable: m.isAvailable,
+        variations: variations,
+      );
+    }).toList();
+
+    return RestaurantModel(
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      city: r.city,
+      lat: r.lat,
+      lng: r.lng,
+      logoUrl: r.logoUrl,
+      coverImage: r.coverUrl,
+      rating: r.rating,
+      isOpen: r.isOpen,
+      deliveryFee: r.deliveryFee,
+      minOrder: r.minOrder,
+      deliveryTimeMinutes: r.avgDeliveryTime,
+      menus: menus,
+    );
+  }
 }

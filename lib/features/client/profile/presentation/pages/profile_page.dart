@@ -3,12 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/shared/models/address_model.dart';
 import 'package:cliceat_app/features/client/profile/data/models/loyalty_model.dart';
 import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
+import 'package:cliceat_app/core/theme/app_theme.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -45,149 +47,313 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text('profile.title'.tr()),
-        elevation: 0,
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildHeader(theme),
-                  const SizedBox(height: 8),
-                  _buildMenuSection(context, theme),
-                ],
-              ),
+          : CustomScrollView(
+              slivers: [
+                _buildSliverHeader(theme),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    child: _buildMenuSection(context, theme),
+                  ),
+                ),
+              ],
             ),
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
+  Widget _buildSliverHeader(ThemeData theme) {
     final name = _user?.name ?? 'profile.default_name'.tr();
     final email = _user?.email ?? '';
     final phone = _user?.phone ?? '';
     final photo = _user?.avatar;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-      decoration: BoxDecoration(color: theme.colorScheme.primary),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 48,
-            backgroundColor:
-                theme.colorScheme.onPrimary.withValues(alpha: 0.2),
-            backgroundImage: photo != null ? NetworkImage(photo) : null,
-            child: photo == null
-                ? Text(
-                    name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onPrimary,
+    return SliverAppBar(
+      expandedHeight: 230,
+      pinned: true,
+      backgroundColor: theme.colorScheme.primary,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      leading: const SizedBox.shrink(),
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.primary,
+                theme.colorScheme.primary.withValues(alpha: 0.85),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 16),
+                // Avatar avec badge edit
+                Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          width: 3,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 48,
+                        backgroundColor:
+                            Colors.white.withValues(alpha: 0.2),
+                        backgroundImage: photo != null &&
+                                photo.isNotEmpty
+                            ? NetworkImage(photo)
+                            : null,
+                        child: photo == null || photo.isEmpty
+                            ? Text(
+                                name.isNotEmpty
+                                    ? name[0].toUpperCase()
+                                    : 'U',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : null,
+                      ),
                     ),
-                  )
-                : null,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            name,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: theme.colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
+                    GestureDetector(
+                      onTap: () => _showEditProfile(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.camera_alt_rounded,
+                          size: 16,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  name,
+                  style: GoogleFonts.nunito(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                if (email.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      email,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ),
+                if (phone.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      phone,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
-          if (email.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              email,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
-              ),
-            ),
-          ],
-          if (phone.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              phone,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onPrimary.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildMenuSection(BuildContext context, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 8),
-          _buildSectionTitle('profile.account'.tr(), theme),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+
+        // Section Mon Compte
+        _buildSectionHeader('profile.account'.tr(), theme),
+        const SizedBox(height: 8),
+        _buildMenuGroup([
           _buildMenuItem(
-            icon: Icons.person_outline,
+            icon: Icons.person_outline_rounded,
             title: 'profile.edit_profile'.tr(),
+            color: theme.colorScheme.primary,
             onTap: () => _showEditProfile(context),
           ),
+          _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.location_on_outlined,
             title: 'profile.my_addresses'.tr(),
+            color: AppTheme.statusPending,
             onTap: () => _showAddresses(context),
           ),
+          _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.card_giftcard_outlined,
             title: 'profile.loyalty'.tr(),
+            color: theme.colorScheme.secondary,
             onTap: () => _showLoyalty(context),
+            trailing: _user != null
+                ? Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.secondary
+                          .withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      'profile.points'.tr(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                  )
+                : null,
           ),
-          const SizedBox(height: 16),
-          _buildSectionTitle('profile.orders'.tr(), theme),
+          _buildDivider(theme),
+          _buildMenuItem(
+            icon: Icons.group_add_outlined,
+            title: 'referral.title'.tr(),
+            color: Colors.orange,
+            onTap: () => context.push('/client/profile/referrals'),
+          ),
+        ], theme),
+
+        const SizedBox(height: 20),
+
+        // Section Commandes
+        _buildSectionHeader('profile.orders'.tr(), theme),
+        const SizedBox(height: 8),
+        _buildMenuGroup([
           _buildMenuItem(
             icon: Icons.receipt_long_outlined,
             title: 'profile.order_history'.tr(),
+            color: const Color(0xFF6200EA),
             onTap: () => context.push('/client/orders'),
           ),
-          const SizedBox(height: 16),
-          _buildSectionTitle('profile.settings'.tr(), theme),
+          _buildDivider(theme),
+          _buildMenuItem(
+            icon: Icons.rate_review_outlined,
+            title: 'review.my_reviews'.tr(),
+            color: Colors.amber.shade700,
+            onTap: () => context.push('/client/profile/reviews'),
+          ),
+        ], theme),
+
+        const SizedBox(height: 20),
+
+        // Section Paramètres
+        _buildSectionHeader('profile.settings'.tr(), theme),
+        const SizedBox(height: 8),
+        _buildMenuGroup([
           _buildMenuItem(
             icon: Icons.notifications_outlined,
             title: 'profile.notifications'.tr(),
+            color: const Color(0xFFFF6D00),
             onTap: () => _showNotificationSettings(context),
           ),
+          _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.language_outlined,
             title: 'profile.language'.tr(),
+            color: const Color(0xFF0097A7),
             onTap: () => _showLanguagePicker(context),
           ),
+          _buildDivider(theme),
           _buildMenuItem(
-            icon: Icons.help_outline,
+            icon: Icons.help_outline_rounded,
             title: 'profile.help'.tr(),
+            color: const Color(0xFF388E3C),
             onTap: () => _showHelp(context),
           ),
-          const SizedBox(height: 16),
-          _buildLogoutButton(context, theme),
-          const SizedBox(height: 32),
-        ],
+        ], theme),
+
+        const SizedBox(height: 28),
+
+        // Logout button
+        _buildLogoutButton(context, theme),
+
+        const SizedBox(height: 16),
+
+        // Version info
+        Center(
+          child: Text(
+            'ClicEat v1.0.0',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        title.toUpperCase(),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Text(
-        title,
-        style: theme.textTheme.titleSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
-        ),
+  Widget _buildMenuGroup(List<Widget> children, ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _buildDivider(ThemeData theme) {
+    return Divider(
+      height: 1,
+      thickness: 0.5,
+      indent: 56,
+      color: theme.dividerColor.withValues(alpha: 0.4),
     );
   }
 
@@ -195,19 +361,48 @@ class _ProfilePageState extends State<ProfilePage> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    required Color color,
     Widget? trailing,
   }) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 4),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        trailing: trailing ?? const Icon(Icons.chevron_right, size: 20),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: () {
-          HapticFeedback.lightImpact();
+          HapticFeedback.selectionClick();
           onTap();
         },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              if (trailing != null)
+                trailing
+              else
+                const Icon(Icons.chevron_right_rounded,
+                    size: 20, color: Colors.grey),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -221,6 +416,8 @@ class _ProfilePageState extends State<ProfilePage> {
           showDialog(
             context: context,
             builder: (_) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               title: Text('profile.logout_confirm_title'.tr()),
               content: Text('profile.logout_confirm_message'.tr()),
               actions: [
@@ -228,15 +425,18 @@ class _ProfilePageState extends State<ProfilePage> {
                   onPressed: () => Navigator.pop(context),
                   child: Text('common.cancel'.tr()),
                 ),
-                TextButton(
+                ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    context.read<AuthBloc>().add(const AuthEvent.logout());
+                    context
+                        .read<AuthBloc>()
+                        .add(const AuthEvent.logout());
                   },
-                  child: Text(
-                    'profile.logout'.tr(),
-                    style: TextStyle(color: theme.colorScheme.error),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.error,
+                    foregroundColor: Colors.white,
                   ),
+                  child: Text('profile.logout'.tr()),
                 ),
               ],
             ),
@@ -244,12 +444,12 @@ class _ProfilePageState extends State<ProfilePage> {
         },
         style: OutlinedButton.styleFrom(
           foregroundColor: theme.colorScheme.error,
-          side: BorderSide(color: theme.colorScheme.error),
+          side: BorderSide(
+              color: theme.colorScheme.error.withValues(alpha: 0.4)),
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
-        icon: const Icon(Icons.logout),
+        icon: const Icon(Icons.logout_rounded),
         label: Text('profile.logout'.tr()),
       ),
     );
@@ -258,14 +458,13 @@ class _ProfilePageState extends State<ProfilePage> {
   // ── Modals ──────────────────────────────────────────────────────────────────
 
   void _showEditProfile(BuildContext context) {
-    final nameController =
-        TextEditingController(text: _user?.name ?? '');
+    final nameController = TextEditingController(text: _user?.name ?? '');
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
           left: 24,
@@ -277,28 +476,42 @@ class _ProfilePageState extends State<ProfilePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Handle bar
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             Text(
               'profile.edit_profile'.tr(),
-              style: theme.textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             TextField(
               controller: nameController,
               decoration: InputDecoration(
                 labelText: 'profile.name'.tr(),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.person_outline),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
                   final result = await getIt<UserRepository>()
-                      .updateProfile({'name': nameController.text.trim()});
+                      .updateProfile(
+                          {'name': nameController.text.trim()});
                   result.fold(
                     (err) {
                       if (mounted) {
@@ -312,6 +525,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                   );
                 },
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12))),
                 child: Text('common.save'.tr()),
               ),
             ),
@@ -321,111 +538,340 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // === FIX: Ajout d'adresse implémenté ===
   void _showAddresses(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        expand: false,
-        builder: (_, scrollController) => FutureBuilder<
-            List<AddressModel>>(
-          future: getIt<UserRepository>()
-              .getAddresses()
-              .then((r) => r.fold((_) => <AddressModel>[], (a) => a)),
-          builder: (context, snapshot) {
-            final addresses = snapshot.data ?? [];
-            return Column(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          Future<List<AddressModel>> futureAddresses =
+              getIt<UserRepository>()
+                  .getAddresses()
+                  .then((r) => r.fold((_) => <AddressModel>[], (a) => a));
+
+          return DraggableScrollableSheet(
+            initialChildSize: 0.6,
+            minChildSize: 0.4,
+            maxChildSize: 0.9,
+            expand: false,
+            builder: (_, scrollController) => Column(
               children: [
+                // Handle + header
                 Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  padding: const EdgeInsets.fromLTRB(24, 16, 8, 0),
+                  child: Column(
                     children: [
-                      Text(
-                        'profile.my_addresses'.tr(),
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(ctx).dividerColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.add),
-                        onPressed: () {},
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'profile.my_addresses'.tr(),
+                            style: GoogleFonts.nunito(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          // === BOUTON AJOUTER — implémenté ===
+                          IconButton(
+                            icon: const Icon(
+                                Icons.add_circle_outline_rounded),
+                            color:
+                                Theme.of(ctx).colorScheme.primary,
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _showAddAddressForm(context);
+                            },
+                            tooltip: 'profile.add_address'.tr(),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
                 Expanded(
-                  child: addresses.isEmpty
-                      ? Center(
-                          child: Text('profile.no_addresses'.tr()))
-                      : ListView.builder(
-                          controller: scrollController,
-                          itemCount: addresses.length,
-                          itemBuilder: (_, i) {
-                            final addr = addresses[i];
-                            return Dismissible(
-                              key: Key(addr.id.isNotEmpty
-                                  ? addr.id
-                                  : 'addr_$i'),
-                              direction: DismissDirection.endToStart,
-                              background: Container(
+                  child: FutureBuilder<List<AddressModel>>(
+                    future: futureAddresses,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(
+                            child: CircularProgressIndicator());
+                      }
+                      final addresses = snapshot.data ?? [];
+                      if (addresses.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment:
+                                MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.location_off_outlined,
+                                size: 48,
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .error,
-                                alignment: Alignment.centerRight,
-                                padding:
-                                    const EdgeInsets.only(right: 16),
-                                child: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.white),
+                                    .onSurfaceVariant
+                                    .withValues(alpha: 0.4),
                               ),
-                              confirmDismiss: (_) async {
-                                if (addr.id.isEmpty) return false;
-                                final result =
-                                    await getIt<UserRepository>()
-                                        .deleteAddress(addr.id);
-                                return result.isRight();
-                              },
-                              child: ListTile(
-                                leading: const Icon(
-                                    Icons.location_on_outlined),
-                                title: Text(addr.address),
-                                subtitle: addr.label != null
-                                    ? Text(addr.label!)
-                                    : null,
-                                trailing: IconButton(
-                                  icon: Icon(
-                                    Icons.delete_outline,
-                                    color:
-                                        Theme.of(context)
-                                            .colorScheme
-                                            .error,
-                                    size: 20,
+                              const SizedBox(height: 12),
+                              Text('profile.no_addresses'.tr(),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  _showAddAddressForm(context);
+                                },
+                                icon: const Icon(Icons.add),
+                                label: Text(
+                                    'profile.add_address'.tr()),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      return ListView.separated(
+                        controller: scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: addresses.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(height: 8),
+                        itemBuilder: (_, i) {
+                          final addr = addresses[i];
+                          return Dismissible(
+                            key: Key(addr.id.isNotEmpty
+                                ? addr.id
+                                : 'addr_$i'),
+                            direction:
+                                DismissDirection.endToStart,
+                            background: Container(
+                              padding: const EdgeInsets.only(
+                                  right: 20),
+                              decoration: BoxDecoration(
+                                color:
+                                    Theme.of(context).colorScheme.error,
+                                borderRadius:
+                                    BorderRadius.circular(16),
+                              ),
+                              alignment: Alignment.centerRight,
+                              child: const Icon(
+                                Icons.delete_outline_rounded,
+                                color: Colors.white,
+                              ),
+                            ),
+                            confirmDismiss: (_) async {
+                              if (addr.id.isEmpty) return false;
+                              final result =
+                                  await getIt<UserRepository>()
+                                      .deleteAddress(addr.id);
+                              return result.isRight();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .cardTheme
+                                    .color,
+                                borderRadius:
+                                    BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withValues(alpha: 0.1),
+                                      borderRadius:
+                                          BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.location_on_rounded,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                      size: 20,
+                                    ),
                                   ),
-                                  onPressed: () async {
-                                    if (addr.id.isEmpty) return;
-                                    final result =
-                                        await getIt<UserRepository>()
-                                            .deleteAddress(addr.id);
-                                    if (result.isRight() &&
-                                        context.mounted) {
-                                      Navigator.pop(context);
-                                      _showAddresses(context);
-                                    }
-                                  },
-                                ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (addr.label != null)
+                                          Text(
+                                            addr.label!,
+                                            style: const TextStyle(
+                                              fontWeight:
+                                                  FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        Text(
+                                          addr.address,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                          maxLines: 2,
+                                          overflow:
+                                              TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
-            );
-          },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Implémenté: formulaire ajout d'adresse → POST /users/me/addresses
+  void _showAddAddressForm(BuildContext context) {
+    final addressCtrl = TextEditingController();
+    final labelCtrl = TextEditingController();
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              'profile.add_address'.tr(),
+              style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: labelCtrl,
+              decoration: InputDecoration(
+                labelText: 'profile.address_label'.tr(),
+                hintText: 'profile.address_label_hint'.tr(),
+                prefixIcon: const Icon(Icons.bookmark_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: addressCtrl,
+              maxLines: 2,
+              decoration: InputDecoration(
+                labelText: 'profile.address_street'.tr(),
+                hintText: 'profile.address_street_hint'.tr(),
+                prefixIcon: const Icon(Icons.location_on_outlined),
+              ),
+            ),
+            const SizedBox(height: 20),
+            StatefulBuilder(
+              builder: (ctx, setLocalState) => SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final address = addressCtrl.text.trim();
+                    if (address.isEmpty) return;
+
+                    Navigator.pop(ctx);
+
+                    final result =
+                        await getIt<UserRepository>().addAddress({
+                      'address': address,
+                      if (labelCtrl.text.trim().isNotEmpty)
+                        'label': labelCtrl.text.trim(),
+                    });
+
+                    result.fold(
+                      (err) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(err.message.tr()),
+                              backgroundColor:
+                                  theme.colorScheme.error,
+                            ),
+                          );
+                        }
+                      },
+                      (_) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('profile.address_added'.tr()),
+                              backgroundColor: AppTheme.successColor,
+                            ),
+                          );
+                          _showAddresses(context);
+                        }
+                      },
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text('common.add'.tr()),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -435,7 +881,7 @@ class _ProfilePageState extends State<ProfilePage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => FutureBuilder<LoyaltyModel?>(
         future: getIt<UserRepository>()
             .getLoyalty()
@@ -444,23 +890,59 @@ class _ProfilePageState extends State<ProfilePage> {
           final theme = Theme.of(context);
           final points = snapshot.data?.points ?? 0;
           return Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.card_giftcard,
-                    size: 64, color: theme.colorScheme.secondary),
+                // Handle
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: theme.dividerColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Points badge
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.colorScheme.secondary,
+                        theme.colorScheme.secondary.withValues(alpha: 0.7),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$points',
+                        style: GoogleFonts.nunito(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        'pts',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'profile.loyalty'.tr(),
-                  style: theme.textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '$points pts',
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: theme.colorScheme.primary,
+                  style: GoogleFonts.nunito(
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -468,8 +950,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 Text(
                   'profile.loyalty_desc'.tr(),
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
+                const SizedBox(height: 16),
               ],
             ),
           );
@@ -482,48 +967,70 @@ class _ProfilePageState extends State<ProfilePage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(ctx).dividerColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             Text(
               'profile.language'.tr(),
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading:
-                  const Text('🇫🇷', style: TextStyle(fontSize: 24)),
-              title: const Text('Français'),
-              trailing:
-                  context.locale == const Locale('fr', 'FR')
-                      ? const Icon(Icons.check)
-                      : null,
-              onTap: () {
-                context.setLocale(const Locale('fr', 'FR'));
-                Navigator.pop(ctx);
-              },
-            ),
-            ListTile(
-              leading:
-                  const Text('🇬🇧', style: TextStyle(fontSize: 24)),
-              title: const Text('English'),
-              trailing:
-                  context.locale == const Locale('en', 'US')
-                      ? const Icon(Icons.check)
-                      : null,
-              onTap: () {
-                context.setLocale(const Locale('en', 'US'));
-                Navigator.pop(ctx);
-              },
-            ),
+            const SizedBox(height: 12),
+            _buildLanguageTile(ctx, 'Français', '🇫🇷', const Locale('fr', 'FR')),
+            _buildLanguageTile(ctx, 'English', '🇬🇧', const Locale('en', 'US')),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile(
+      BuildContext ctx, String lang, String flag, Locale locale) {
+    final theme = Theme.of(ctx);
+    final isSelected = ctx.locale == locale;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          ctx.setLocale(locale);
+          Navigator.pop(ctx);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          child: Row(
+            children: [
+              Text(flag, style: const TextStyle(fontSize: 24)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  lang,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+              if (isSelected)
+                Icon(Icons.check_circle_rounded,
+                    color: theme.colorScheme.primary, size: 22),
+            ],
+          ),
         ),
       ),
     );
@@ -533,29 +1040,37 @@ class _ProfilePageState extends State<ProfilePage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.help_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.primary),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: const Color(0xFF388E3C).withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.help_outline_rounded,
+                  size: 32, color: Color(0xFF388E3C)),
+            ),
             const SizedBox(height: 16),
             Text(
               'profile.help'.tr(),
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 16),
             const Text('support@cliceat.cm',
                 style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             const Text('WhatsApp: +237 6XX XXX XXX',
                 style: TextStyle(fontSize: 14, color: Colors.grey)),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -567,7 +1082,7 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => const NotificationSettingsSheet(),
     );
   }
@@ -575,7 +1090,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
 // ── Notification Settings Sheet ─────────────────────────────────────────────
 
-/// Notification preference toggles backed by [SharedPreferences].
 class NotificationSettingsSheet extends StatefulWidget {
   const NotificationSettingsSheet({super.key});
 
@@ -621,33 +1135,53 @@ class _NotificationSettingsSheetState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: theme.dividerColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
           Text(
             'profile.notifications'.tr(),
-            style: theme.textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: GoogleFonts.nunito(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             'profile.notifications_subtitle'.tr(),
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           if (!_loaded)
             const Center(child: CircularProgressIndicator())
           else ...[
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              secondary: Icon(Icons.receipt_long,
-                  color: theme.colorScheme.primary),
+              secondary: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.receipt_long,
+                    color: theme.colorScheme.primary, size: 20),
+              ),
               title: Text('profile.notif_order_updates'.tr()),
-              subtitle:
-                  Text('profile.notif_order_updates_desc'.tr()),
+              subtitle: Text('profile.notif_order_updates_desc'.tr()),
               value: _orderUpdates,
               onChanged: (v) {
                 setState(() => _orderUpdates = v);
@@ -657,11 +1191,18 @@ class _NotificationSettingsSheetState
             const Divider(height: 1),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              secondary: Icon(Icons.local_offer,
-                  color: theme.colorScheme.secondary),
+              secondary: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.local_offer,
+                    color: theme.colorScheme.secondary, size: 20),
+              ),
               title: Text('profile.notif_promotions'.tr()),
-              subtitle:
-                  Text('profile.notif_promotions_desc'.tr()),
+              subtitle: Text('profile.notif_promotions_desc'.tr()),
               value: _promotions,
               onChanged: (v) {
                 setState(() => _promotions = v);
@@ -671,11 +1212,18 @@ class _NotificationSettingsSheetState
             const Divider(height: 1),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              secondary: Icon(Icons.restaurant_menu,
-                  color: theme.colorScheme.tertiary),
+              secondary: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.restaurant_menu,
+                    color: theme.colorScheme.tertiary, size: 20),
+              ),
               title: Text('profile.notif_new_restaurants'.tr()),
-              subtitle:
-                  Text('profile.notif_new_restaurants_desc'.tr()),
+              subtitle: Text('profile.notif_new_restaurants_desc'.tr()),
               value: _newRestaurants,
               onChanged: (v) {
                 setState(() => _newRestaurants = v);
@@ -683,7 +1231,7 @@ class _NotificationSettingsSheetState
               },
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
         ],
       ),
     );

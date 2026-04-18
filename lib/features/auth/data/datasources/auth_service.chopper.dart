@@ -35,6 +35,14 @@ final class _$AuthService extends AuthService {
   }
 
   @override
+  Future<Response<dynamic>> loginDelivery(Map<String, dynamic> body) {
+    final Uri $url = Uri.parse('/auth/delivery/login');
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
   Future<Response<dynamic>> sendOtp(Map<String, dynamic> body) {
     final Uri $url = Uri.parse('/auth/phone/send-otp');
     final $body = body;

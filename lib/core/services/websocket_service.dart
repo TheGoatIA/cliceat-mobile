@@ -47,6 +47,18 @@ class WebSocketService {
   Stream<Map<String, dynamic>> get orderTrackingEvents =>
       _orderTrackingEventController.stream;
 
+  /// Stream temps réel de la position du livreur.
+  /// Emis par le backend via l'événement `driver_location_updated`.
+  /// Payload attendu: { lat: double, lng: double, orderId: String }
+  final _driverLocationController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get driverLocationEvents =>
+      _driverLocationController.stream;
+
+  final _chatEventController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get chatEvents => _chatEventController.stream;
+
   // ─── Reconnection state ───────────────────────────────────────────────────
 
   static const _maxRetries = 8;
@@ -136,6 +148,17 @@ class WebSocketService {
     _socket!.on('order_status_updated', (data) {
       _logger.i('[WS] Statut commande mis à jour: $data');
       _orderTrackingEventController.add(_toMap(data));
+    });
+
+    _socket!.on('new_message', (data) {
+      _logger.i('[WS] Nouveau message chat: $data');
+      _chatEventController.add(_toMap(data));
+    });
+
+    // Position livreur en temps réel (client side)
+    _socket!.on('driver_location_updated', (data) {
+      _logger.d('[WS] Position livreur reçue: $data');
+      _driverLocationController.add(_toMap(data));
     });
 
     _socket!.onDisconnect((_) {

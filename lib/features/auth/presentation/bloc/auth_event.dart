@@ -6,6 +6,8 @@ class AuthEvent with _$AuthEvent {
   const factory AuthEvent.sendOtp({required String phone}) = _SendOtp;
   const factory AuthEvent.verifyOtp({required String phone, required String otp}) = _VerifyOtp;
   const factory AuthEvent.loginWithEmail({required String email, required String password}) = _LoginWithEmail;
+  /// Login dédié livreur → POST /auth/delivery/login { phone, password }
+  const factory AuthEvent.loginDelivery({required String phone, required String password}) = _LoginDelivery;
   const factory AuthEvent.loginWithGoogle({required String token}) = _LoginWithGoogle;
   const factory AuthEvent.loginWithApple({required String token}) = _LoginWithApple;
   const factory AuthEvent.register({
@@ -23,3 +25,4 @@ class AuthEvent with _$AuthEvent {
   /// Émis par le timer interne quand le JWT a expiré.
   const factory AuthEvent.sessionExpired() = _SessionExpired;
 }
+

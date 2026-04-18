@@ -10,6 +10,7 @@ import 'package:logger/logger.dart';
 // Top-level function for background message handling
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // En arrière-plan, on utilise debugPrint car le Logger peut ne pas être prêt
   debugPrint('[FCM BG] messageId=${message.messageId}');
 }
 
@@ -61,7 +62,7 @@ class NotificationService {
     await _localNotifications.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: (response) {
-        _logger.i('[Notif] Tap sur notification locale: ${response.payload}');
+        _logger.i('[Notif] Tap sur notification locale — payload: ${response.payload}');
         _routeFromPayloadString(response.payload ?? '');
       },
     );

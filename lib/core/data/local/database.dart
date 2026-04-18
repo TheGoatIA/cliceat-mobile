@@ -9,6 +9,19 @@ import 'tables/restaurants_table.dart';
 import 'tables/cart_table.dart';
 import 'tables/pending_actions_table.dart';
 
+import 'tables/menu_items_table.dart';
+import 'tables/conversations_table.dart';
+import 'tables/messages_table.dart';
+import 'tables/orders_table.dart';
+
+import 'daos/menu_dao.dart';
+import 'daos/chat_dao.dart';
+import 'daos/pending_actions_dao.dart';
+import 'daos/cart_dao.dart';
+import 'daos/restaurant_dao.dart';
+import 'daos/user_prefs_dao.dart';
+import 'daos/order_dao.dart';
+
 part 'database.g.dart';
 
 @DriftDatabase(
@@ -16,7 +29,20 @@ part 'database.g.dart';
     UserPrefsTable,
     RestaurantsTable,
     CartTable,
-    PendingActionsTable, // ajouté en v2
+    PendingActionsTable,
+    MenuItemsTable,
+    ConversationsTable,
+    MessagesTable,
+    OrdersTable,
+  ],
+  daos: [
+    CartDao,
+    RestaurantDao,
+    UserPrefsDao,
+    MenuDao,
+    ChatDao,
+    PendingActionsDao,
+    OrderDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -26,15 +52,25 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => m.createAll(),
         onUpgrade: (m, from, to) async {
-          // v1 → v2 : ajout de la table pending_actions
           if (from < 2) {
             await m.createTable(pendingActionsTable);
+          }
+          if (from < 3) {
+            await m.createTable(menuItemsTable);
+            await m.createTable(conversationsTable);
+            await m.createTable(messagesTable);
+          }
+          if (from < 4) {
+            await m.addColumn(messagesTable, messagesTable.status);
+          }
+          if (from < 5) {
+            await m.createTable(ordersTable);
           }
         },
         beforeOpen: (details) async {

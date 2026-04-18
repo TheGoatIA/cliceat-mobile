@@ -19,11 +19,18 @@ import '../../features/client/cart/presentation/pages/order_success_page.dart';
 import '../../features/client/cart/presentation/pages/payment_webview_page.dart';
 import '../../features/client/cart/presentation/pages/address_selection_page.dart';
 import '../../features/client/cart/presentation/pages/order_history_page.dart';
+import '../../features/client/cart/presentation/pages/order_rating_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/delivery_main_tab.dart';
 import '../../features/delivery/dashboard/presentation/pages/mission_incoming_page.dart';
 import '../../features/delivery/dashboard/data/models/mission_model.dart';
 import '../../features/legal/presentation/pages/terms_page.dart';
 import '../../features/legal/presentation/pages/privacy_page.dart';
+import '../../features/chat/presentation/pages/chat_list_page.dart';
+import '../../features/chat/presentation/pages/chat_detail_page.dart';
+import '../../features/chat/data/models/chat_model.dart';
+import '../../features/client/referral/presentation/pages/referral_page.dart';
+import '../../features/client/ai/presentation/pages/ai_assistant_page.dart';
+import '../../features/client/review/presentation/pages/my_reviews_page.dart';
 
 // ─── Navigator key ────────────────────────────────────────────────────────────
 
@@ -155,6 +162,29 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const ClientMainTab(),
       routes: [
         GoRoute(
+          path: 'ai',
+          builder: (context, state) => const AiAssistantPage(),
+        ),
+        GoRoute(
+          path: 'chat',
+          builder: (context, state) => const ChatListPage(),
+        ),
+        GoRoute(
+          path: 'chat/:id',
+          builder: (context, state) {
+            final conv = state.extra as ConversationModel;
+            return ChatDetailPage(conversation: conv);
+          },
+        ),
+        GoRoute(
+          path: 'profile/referrals',
+          builder: (context, state) => const ReferralPage(),
+        ),
+        GoRoute(
+          path: 'profile/reviews',
+          builder: (context, state) => const MyReviewsPage(),
+        ),
+        GoRoute(
           path: 'cart',
           builder: (context, state) => const CartPage(),
         ),
@@ -165,6 +195,12 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'orders',
           builder: (context, state) => const OrderHistoryPage(),
+        ),
+        GoRoute(
+          path: 'rate/:orderId',
+          builder: (context, state) => OrderRatingPage(
+            orderId: state.pathParameters['orderId']!,
+          ),
         ),
         GoRoute(
           path: 'tracking/:orderId',

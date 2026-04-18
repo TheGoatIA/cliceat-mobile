@@ -43,6 +43,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<_SendOtp>(_onSendOtp);
     on<_VerifyOtp>(_onVerifyOtp);
     on<_LoginWithEmail>(_onLoginWithEmail);
+    on<_LoginDelivery>(_onLoginDelivery);
     on<_LoginWithGoogle>(_onLoginWithGoogle);
     on<_LoginWithApple>(_onLoginWithApple);
     on<_Register>(_onRegister);
@@ -161,6 +162,39 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (e) {
       _logger.e('[Auth] Erreur login email: $e');
+      emit(const AuthState.error(message: 'common.network_error'));
+    }
+  }
+
+  /// Handler dédié au login livreur → POST /auth/delivery/login
+  /// Le backend attend { phone, password } (pas email).
+  Future<void> _onLoginDelivery(
+      _LoginDelivery event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _authService.loginDelivery({
+        'phone': event.phone,
+        'password': event.password,
+      });
+      if (res.isSuccessful && res.body != null) {
+        final parsed = _parseAuthResponse(res.body);
+        if (parsed != null) {
+          await _persistAuth(parsed.$1, parsed.$2, 'delivery');
+          await _postAuthSetup(parsed.$1);
+          _startSessionTimer(parsed.$1);
+          getIt<AnalyticsService>().logLogin('delivery_phone');
+          getIt<AnalyticsService>().setUserId(parsed.$2);
+          emit(AuthState.authenticated(
+              token: parsed.$1, userId: parsed.$2, currentMode: 'delivery'));
+        } else {
+          emit(const AuthState.error(message: 'auth.error_invalid_response'));
+        }
+      } else {
+        final msg = _extractError(res.body, 'auth.error_invalid_credentials');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e('[Auth] Erreur login livreur: $e');
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }

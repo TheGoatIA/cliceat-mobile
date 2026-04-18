@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/config/app_constants.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart';
@@ -211,6 +213,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
           MapWidget(
             key: const ValueKey("clientTrackingMap"),
             onMapCreated: _onMapCreated,
+            styleUri: theme.brightness == Brightness.dark
+                ? MapboxStyles.DARK
+                : MapboxStyles.MAPBOX_STREETS,
             cameraOptions: CameraOptions(
               center: Point(
                 coordinates: Position(
@@ -422,13 +427,33 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                       ],
                     ),
                   ),
-                  CircleAvatar(
-                    backgroundColor: theme.colorScheme.primary.withValues(
-                      alpha: 0.1,
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.call, color: theme.colorScheme.primary),
-                      onPressed: () => HapticFeedback.selectionClick(),
+                  GestureDetector(
+                    onTap: () async {
+                      final phone = _trackingData?.driverPhone;
+                      if (phone == null || phone.isEmpty) return;
+
+                      HapticFeedback.mediumImpact();
+                      // Nettoyer le numéro (enlever espaces)
+                      final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+                      final uri = Uri.parse('tel:$cleaned');
+
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('tracking.call_unavailable'.tr())),
+                        );
+                      }
+                    },
+                    child: CircleAvatar(
+                      radius: 26,
+                      backgroundColor: theme.colorScheme.primary.withValues(
+                        alpha: 0.12,
+                      ),
+                      child: Icon(Icons.call_rounded,
+                          color: theme.colorScheme.primary, size: 24),
                     ),
                   ),
                 ],
@@ -459,18 +484,26 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
               ],
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               for (int i = 0; i < labels.length; i++)
-                Text(
-                  labels[i],
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: _currentStep >= i
-                        ? theme.colorScheme.primary
-                        : Colors.grey,
+                SizedBox(
+                  width: 58,
+                  child: Text(
+                    labels[i],
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
+                      fontSize: 10,
+                      fontWeight: _currentStep >= i
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: _currentStep >= i
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.5),
+                    ),
                   ),
                 ),
             ],
@@ -483,31 +516,47 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   Widget _buildStepCircle(int step, ThemeData theme) {
     final isCompleted = _currentStep >= step;
     final isActive = _currentStep == step;
-    return Container(
-      width: 24,
-      height: 24,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: isActive ? 32 : 28,
+      height: isActive ? 32 : 28,
       decoration: BoxDecoration(
         color: isCompleted
             ? theme.colorScheme.primary
             : theme.colorScheme.surfaceContainerHighest,
         shape: BoxShape.circle,
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                )
+              ]
+            : null,
         border: isActive
-            ? Border.all(color: theme.colorScheme.primaryContainer, width: 4)
+            ? Border.all(
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                width: 4)
             : null,
       ),
       child: isCompleted
-          ? const Icon(Icons.check, size: 14, color: Colors.white)
+          ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
           : null,
     );
   }
 
   Widget _buildStepLine(int step, ThemeData theme) {
     return Expanded(
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
         height: 4,
-        color: _currentStep > step
-            ? theme.colorScheme.primary
-            : theme.colorScheme.surfaceContainerHighest,
+        decoration: BoxDecoration(
+          color: _currentStep > step
+              ? theme.colorScheme.primary
+              : theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(2),
+        ),
       ),
     );
   }

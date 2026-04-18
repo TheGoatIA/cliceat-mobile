@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/config/app_constants.dart';
 import 'package:cliceat_app/core/di/injection.dart';
-import 'package:cliceat_app/features/client/cart/data/models/coupon_model.dart';
+import 'package:cliceat_app/features/client/banner/data/models/banner_model.dart';
+import 'package:cliceat_app/features/client/banner/data/repositories/banner_repository.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
-import 'package:cliceat_app/features/client/cart/data/repositories/coupon_repository.dart';
 import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import '../../../../../shared/widgets/banner_carousel.dart';
 import '../../../../../shared/widgets/empty_state.dart';
@@ -103,7 +103,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   Future<void> _loadBanners() async {
     setState(() => _loadingBanners = true);
-    final result = await getIt<CouponRepository>().getBanners();
+    final result = await getIt<BannerRepository>().getBanners();
     if (!mounted) return;
     result.fold(
       (_) => setState(() => _loadingBanners = false),
@@ -208,6 +208,11 @@ class _HomeClientPageState extends State<HomeClientPage> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.chat_bubble_outline),
+            onPressed: () => context.push('/client/chat'),
+            tooltip: 'chat.title'.tr(),
+          ),
+          IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {},
             tooltip: 'Notifications',
@@ -239,6 +244,11 @@ class _HomeClientPageState extends State<HomeClientPage> {
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/client/ai'),
+        icon: const Icon(Icons.psychology),
+        label: Text('ai.ask'.tr()),
       ),
     );
   }

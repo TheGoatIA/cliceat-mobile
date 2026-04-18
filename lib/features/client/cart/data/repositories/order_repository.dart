@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:cliceat_app/shared/models/address_model.dart';
+import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cliceat_app/core/data/local/daos/order_dao.dart';
+import 'package:cliceat_app/core/data/local/database.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/config/env_config.dart';
 import 'package:dartz/dartz.dart';
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/client/cart/data/models/order_model.dart';
@@ -26,14 +29,16 @@ class OrderRepository {
   final OrderService _orderService;
   final PaymentService _paymentService;
   final TrackingService _trackingService;
-  final Logger _logger = Logger();
+  final OrderDao _orderDao;
+  final Logger _logger;
 
-  static const _cacheKey = 'cached_orders';
 
   OrderRepository(
     this._orderService,
     this._paymentService,
     this._trackingService,
+    this._orderDao,
+    this._logger,
   );
 
   // ─── Create ───────────────────────────────────────────────────────────────
@@ -124,15 +129,43 @@ class OrderRepository {
     }
   }
 
-  // ─── Rate ─────────────────────────────────────────────────────────────────
+  // ─── Rate / Reorder ───────────────────────────────────────────────────────
 
+  /// Crée un nouveau order à partir d'un order existant.
+  ///
+  /// L'endpoint `/orders/:id/reorder` n'existe pas côté backend.
+  /// On récupère la commande originale et on crée un nouvel order avec
+  /// les mêmes items, restaurant et adresse de livraison.
   Future<Either<AppError, OrderModel>> reorder(String id) async {
     try {
-      final res = await _orderService.reorderOrder(id);
+      // 1. Récupérer la commande originale
+      final existingRes = await _orderService.getOrderById(id);
+      if (!existingRes.isSuccessful || existingRes.body == null) {
+        return Left(AppError.fromResponse(
+            existingRes.body, 'order.error_load',
+            statusCode: existingRes.statusCode));
+      }
+      final data = existingRes.body!['data'] as Map<String, dynamic>? ??
+          existingRes.body!;
+      final existing = OrderModel.fromJson(data);
+
+      // 2. Construire le payload du nouvel order
+      final payload = <String, dynamic>{
+        'restaurantId': existing.restaurantId,
+        'items': existing.items
+            .map((i) => {'menuItemId': i.itemId, 'quantity': i.quantity})
+            .toList(),
+        if (existing.deliveryAddress != null)
+          'deliveryAddress': existing.deliveryAddress!.toJson(),
+        'paymentMethod': existing.paymentMethod ?? 'cash',
+      };
+
+      // 3. Créer la nouvelle commande
+      final res = await _orderService.createOrder(payload);
       if (res.isSuccessful && res.body != null) {
-        final data =
+        final newData =
             res.body!['data'] as Map<String, dynamic>? ?? res.body!;
-        return Right(OrderModel.fromJson(data));
+        return Right(OrderModel.fromJson(newData));
       }
       return Left(AppError.fromResponse(
           res.body, 'order.error_create',
@@ -244,40 +277,86 @@ class OrderRepository {
 
   // ─── Local cache ──────────────────────────────────────────────────────────
 
+  // ─── Local cache ──────────────────────────────────────────────────────────
+
   Future<void> _cacheOrders(List<OrderModel> orders) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final encoded = jsonEncode(orders.map((o) => o.toJson()).toList());
-      await prefs.setString(_cacheKey, encoded);
-    } catch (_) {}
+      final companions = orders.map(_toCompanion).toList();
+      await _orderDao.upsertAll(companions);
+    } catch (e) {
+      _logger.e('[OrderRepo] Error caching orders: $e');
+    }
   }
 
   Future<List<OrderModel>> _loadCachedOrders() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_cacheKey);
-      if (raw == null) return [];
-      final list = jsonDecode(raw) as List<dynamic>;
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map(OrderModel.fromJson)
-          .toList();
-    } catch (_) {
+      final rows = await _orderDao.getAll();
+      return rows.map(_fromRow).toList();
+    } catch (e) {
+      _logger.e('[OrderRepo] Error loading cached orders: $e');
       return [];
     }
   }
 
   Future<void> _removeFromCache(String id) async {
     try {
-      final orders = await _loadCachedOrders();
-      final updated = orders.where((o) => o.id != id).toList();
-      await _cacheOrders(updated);
+      await _orderDao.deleteOrder(id);
     } catch (_) {}
   }
 
   Future<void> clearCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_cacheKey);
+    await _orderDao.clearAll();
+  }
+
+  // ─── Mappings ─────────────────────────────────────────────────────────────
+
+  OrdersTableCompanion _toCompanion(OrderModel o) {
+    return OrdersTableCompanion.insert(
+      id: o.id,
+      restaurantId: Value(o.restaurantId),
+      restaurantName: Value(o.restaurantName),
+      itemsJson: jsonEncode(o.items.map((i) => i.toJson()).toList()),
+      total: o.total,
+      deliveryFee: Value(o.deliveryFee),
+      status: o.status,
+      paymentMethod: Value(o.paymentMethod),
+      deliveryAddressJson: Value(o.deliveryAddress != null 
+          ? jsonEncode(o.deliveryAddress!.toJson()) 
+          : null),
+      notes: Value(o.notes),
+      createdAt: Value(o.createdAt),
+      rating: Value(o.rating),
+    );
+  }
+
+  OrderModel _fromRow(OrdersTableData r) {
+    List<OrderItemModel> items = [];
+    try {
+      final List<dynamic> decoded = jsonDecode(r.itemsJson);
+      items = decoded.map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {}
+
+    AddressModel? addr;
+    if (r.deliveryAddressJson != null) {
+      try {
+        addr = AddressModel.fromJson(jsonDecode(r.deliveryAddressJson!));
+      } catch (_) {}
+    }
+
+    return OrderModel(
+      id: r.id,
+      restaurantId: r.restaurantId,
+      restaurantName: r.restaurantName,
+      items: items,
+      total: r.total,
+      deliveryFee: r.deliveryFee,
+      status: r.status,
+      paymentMethod: r.paymentMethod,
+      deliveryAddress: addr,
+      notes: r.notes,
+      createdAt: r.createdAt,
+      rating: r.rating,
+    );
   }
 
   // ─── Invoice ──────────────────────────────────────────────────────────────

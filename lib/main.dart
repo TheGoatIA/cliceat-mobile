@@ -17,6 +17,7 @@ import 'routes/app_router.dart';
 import 'core/di/injection.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/deep_link_service.dart';
+import 'core/services/sync_manager_service.dart';
 import 'core/widgets/connectivity_banner.dart';
 
 void main() {
@@ -68,9 +69,11 @@ Future<void> _bootstrap() async {
   getIt<NotificationService>().configureRouting(rootNavigatorKey);
   await getIt<NotificationService>().initialize();
 
-  // Initialize deep links — must run after the router is set up so the
-  // navigator key is wired before any incoming link is handled.
+  // Initialize deep links
   getIt<DeepLinkService>().initialize(rootNavigatorKey);
+
+  // Initialize Offline Sync Manager
+  getIt<SyncManagerService>().initialize();
 
   runApp(
     EasyLocalization(

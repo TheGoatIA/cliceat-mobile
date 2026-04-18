@@ -52,26 +52,4 @@ class CouponModel {
   }
 }
 
-/// Marketing banner from the API.
-class BannerModel {
-  final String id;
-  final String imageUrl;
-  final String? targetUrl;
-  final String? title;
 
-  const BannerModel({
-    required this.id,
-    required this.imageUrl,
-    this.targetUrl,
-    this.title,
-  });
-
-  factory BannerModel.fromJson(Map<String, dynamic> json) => BannerModel(
-        id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
-        imageUrl: json['imageUrl']?.toString() ??
-            json['image']?.toString() ??
-            '',
-        targetUrl: json['targetUrl']?.toString() ?? json['url']?.toString(),
-        title: json['title']?.toString(),
-      );
-}

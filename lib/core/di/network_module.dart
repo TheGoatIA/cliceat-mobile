@@ -14,6 +14,11 @@ import '../../features/delivery/dashboard/data/datasources/driver_service.dart';
 import '../network/services/user_service.dart';
 import '../network/services/coupon_service.dart';
 import '../network/services/tracking_service.dart';
+import '../network/services/referral_service.dart';
+import '../network/services/ai_service.dart';
+import '../network/services/review_service.dart';
+import '../network/services/platform_service.dart';
+import '../../features/chat/data/datasources/chat_service.dart';
 import '../di/injection.dart';
 
 @module
@@ -33,6 +38,11 @@ abstract class NetworkModule {
         UserService.create(),
         CouponService.create(),
         TrackingService.create(),
+        ReferralService.create(),
+        AiService.create(),
+        ReviewService.create(),
+        PlatformService.create(),
+        ChatService.create(),
       ],
       converter: const JsonConverter(),
       interceptors: [
@@ -70,4 +80,19 @@ abstract class NetworkModule {
 
   @lazySingleton
   TrackingService getTrackingService(ChopperClient client) => client.getService<TrackingService>();
+
+  @lazySingleton
+  ReferralService getReferralService(ChopperClient client) => client.getService<ReferralService>();
+
+  @lazySingleton
+  AiService getAiService(ChopperClient client) => client.getService<AiService>();
+
+  @lazySingleton
+  ReviewService getReviewService(ChopperClient client) => client.getService<ReviewService>();
+
+  @lazySingleton
+  PlatformService getPlatformService(ChopperClient client) => client.getService<PlatformService>();
+
+  @lazySingleton
+  ChatService getChatService(ChopperClient client) => client.getService<ChatService>();
 }

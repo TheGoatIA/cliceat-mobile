@@ -4,7 +4,15 @@
     "welcome": "Welcome to ClicEat",
     "subtitle": "The best delivery platform in Cameroon. Choose your profile to start.",
     "btn_client": "I want to order",
-    "btn_delivery": "I am a delivery agent"
+    "btn_delivery": "I am a delivery agent",
+    "slide1_title": "Meals delivered to you",
+    "slide1_subtitle": "Browse hundreds of restaurants and order your favorite dishes in just a few taps.",
+    "slide2_title": "Fast delivery",
+    "slide2_subtitle": "Our drivers bring your meals in under 45 minutes, right to your door.",
+    "slide3_title": "Pay securely",
+    "slide3_subtitle": "Orange Money, MTN MoMo, or bank card — choose the payment method that suits you.",
+    "skip": "Skip",
+    "next": "Next"
   },
   "auth": {
     "login_title": "Login",
@@ -62,7 +70,13 @@
     "terms_prefix": "By registering, you agree to our ",
     "terms_cgu": "Terms of Service",
     "terms_conjunction": " and our ",
-    "terms_privacy": "Privacy Policy"
+    "terms_privacy": "Privacy Policy",
+    "delivery_login_title": "Driver Login",
+    "delivery_login_subtitle": "Sign in with your phone number and driver password",
+    "phone_number": "Phone number",
+    "delivery_info": "Not a driver yet? Register at cliceat.cm/become-driver",
+    "register_subtitle": "Create your ClicEat account for free",
+    "login_subtitle": "Sign in to order food"
   },
   "client": {
     "home_title": "Discover",
@@ -168,7 +182,27 @@
     "error_cancel": "Unable to cancel order.",
     "error_rate": "Unable to submit review.",
     "reorder": "Reorder",
-    "reorder_success": "New order created successfully"
+    "reorder_success": "New order created successfully",
+    "rate_order_title": "Rate your order",
+    "delivered_title": "Order delivered!",
+    "how_was_experience": "How was your experience?",
+    "restaurant_rating_title": "The restaurant",
+    "restaurant_rating_subtitle": "Quality and speed",
+    "delivery_rating_title": "The driver",
+    "delivery_rating_subtitle": "Punctuality and care",
+    "rating_thanks_title": "Thank you for your review!",
+    "rating_thanks_subtitle": "Your feedback helps us improve our service.",
+    "rating_1": "Very bad",
+    "rating_2": "Bad",
+    "rating_3": "Okay",
+    "rating_4": "Good",
+    "rating_5": "Excellent!",
+    "rating_required_hint": "Please rate the restaurant and the driver",
+    "unknown_restaurant": "Unknown restaurant",
+    "downloading": "Downloading...",
+    "download_invoice": "Download invoice",
+    "invoice_downloaded": "Invoice downloaded",
+    "browse_restaurants": "Browse restaurants"
   },
   "payment": {
     "title": "Secure payment",
@@ -183,13 +217,14 @@
   },
   "tracking": {
     "title": "Order tracking",
-    "step_confirmed": "Order confirmed",
+    "step_confirmed": "Confirmed",
     "step_preparing": "Preparing",
     "step_on_the_way": "On the way",
     "step_delivered": "Delivered",
     "driver": "Driver",
     "eta": "Estimated arrival",
     "call_driver": "Call driver",
+    "call_unavailable": "Unable to make a call on this device",
     "live_tracking": "Live tracking",
     "eta_minutes": "In {} min"
   },
@@ -201,8 +236,15 @@
     "edit_profile": "Edit profile",
     "my_addresses": "My addresses",
     "no_addresses": "No saved addresses",
+    "add_address": "Add an address",
+    "address_added": "Address added successfully",
+    "address_label": "Label",
+    "address_label_hint": "Home, Office, etc.",
+    "address_street": "Address",
+    "address_street_hint": "Street, neighborhood, city...",
     "loyalty": "Loyalty points",
     "loyalty_desc": "Earn points with every order and unlock exclusive discounts.",
+    "points": "pts",
     "order_history": "Order history",
     "notifications": "Notifications",
     "language": "Language",
@@ -293,7 +335,25 @@
     "delivery_success_bonus": "Delivery successfully completed! +{} FCFA",
     "confirm_dropoff": "Confirm Delivery",
     "no_recent_deliveries": "No recent deliveries.",
-    "switch_client_mode": "Switch to Client mode"
+    "switch_client_mode": "Switch to Client mode",
+    "status_label": "Status",
+    "status_update_failed": "Unable to update status. Check your connection.",
+    "now_online": "You are now ONLINE ✅",
+    "now_offline": "You are now OFFLINE",
+    "go_online_hint": "Toggle the switch to receive missions",
+    "waiting_mission": "Waiting for a new mission…",
+    "deliveries_today": "Deliveries today",
+    "order_short_id": "Order #{}",
+    "delivered_to": "Delivered to {}",
+    "mission_expired": "Mission expired. Time's up.",
+    "new_mission": "NEW MISSION",
+    "reject": "Reject",
+    "unknown_restaurant": "Restaurant",
+    "unknown_address": "Unknown address",
+    "client_label": "Client: ",
+    "unknown_client": "Anonymous",
+    "unknown_delivery_address": "Unknown delivery address",
+    "estimated_gain": "Estimated earnings"
   },
   "address": {
     "select_title": "Choose an address",
@@ -341,6 +401,7 @@
     "see_all": "See all",
     "back": "Back",
     "no_internet": "No internet connection",
+    "offline_mode": "Offline consultation mode",
     "back_online": "Back online",
     "clear": "Clear",
     "try_other_query": "Try a different search term",
@@ -349,7 +410,8 @@
     "message": "Message",
     "report_issue": "Report",
     "report_issue_title": "Report an issue",
-    "report_sent": "Report sent. Support will contact you."
+    "report_sent": "Report sent. Support will contact you.",
+    "add": "Add"
   },
   "legal": {
     "terms_title": "Terms of Service",
@@ -380,5 +442,37 @@
     "privacy_s5_body": "In accordance with Cameroonian personal data law, you have the right to access, rectify, erase, and object to your data. Contact us at: privacy@cliceat.cm",
     "privacy_s6_title": "6. Security",
     "privacy_s6_body": "We implement technical and organizational security measures to protect your data against unauthorized access, including encryption of sensitive data and secure transmission (HTTPS/TLS)."
+  },
+  "chat": {
+    "title": "Messages",
+    "support": "Customer Support",
+    "driver": "Driver",
+    "restaurant": "Restaurant",
+    "type_message": "Type a message...",
+    "empty": "No messages yet",
+    "contact_support": "Contact Support"
+  },
+  "referral": {
+    "title": "Referrals",
+    "total_earned": "Total Earned",
+    "pending": "Pending",
+    "friends_invited": "Friends Invited",
+    "share_title": "Share your code",
+    "share_desc": "Invite friends and earn money when they order",
+    "copied": "Code copied to clipboard",
+    "apply_code_btn": "I have a referral code",
+    "apply_title": "Apply a code",
+    "code_hint": "Referral code",
+    "apply_success": "Code successfully applied!"
+  },
+  "ai": {
+    "assistant_title": "AI Assistant",
+    "ask": "Ask AI",
+    "ask_hint": "I'm looking for pizzas near me..."
+  },
+  "review": {
+    "my_reviews": "My Reviews",
+    "no_reviews_yet": "No reviews yet",
+    "restaurant_reply": "Restaurant reply"
   }
 }

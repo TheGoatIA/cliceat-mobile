@@ -12,6 +12,11 @@ abstract class AuthService extends ChopperService {
   @POST(path: '/login')
   Future<Response> login(@Body() Map<String, dynamic> body);
 
+  /// Login dédié livreur — body: { phone: string, password: string }
+  /// Endpoint backend: POST /auth/delivery/login
+  @POST(path: '/delivery/login')
+  Future<Response> loginDelivery(@Body() Map<String, dynamic> body);
+
   @POST(path: '/phone/send-otp')
   Future<Response> sendOtp(@Body() Map<String, dynamic> body);
 

@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:logger/logger.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/services/websocket_service.dart';
+import '../../../../../core/theme/app_theme.dart';
 import '../../data/repositories/driver_repository.dart';
 import '../../data/models/earnings_model.dart';
 import '../../data/models/mission_model.dart';
@@ -21,8 +24,10 @@ class HomeDeliveryPage extends StatefulWidget {
   State<HomeDeliveryPage> createState() => _HomeDeliveryPageState();
 }
 
-class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
-  bool isOnline = false;
+class _HomeDeliveryPageState extends State<HomeDeliveryPage>
+    with SingleTickerProviderStateMixin {
+  bool _isOnline = false;
+  bool _isTogglingStatus = false;
   final Logger _logger = Logger();
 
   EarningsModel? _earnings;
@@ -32,14 +37,26 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   late final MissionBloc _missionBloc;
   StreamSubscription<Map<String, dynamic>>? _wsSubscription;
 
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnimation;
+
   @override
   void initState() {
     super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
     _missionBloc = getIt<MissionBloc>()
       ..add(const MissionEvent.loadActiveMissions());
+
     _wsSubscription = getIt<WebSocketService>().missionEvents.listen((data) {
       _missionBloc.add(const MissionEvent.loadActiveMissions());
-      if (mounted) {
+      if (mounted && _isOnline) {
         try {
           final mission = MissionModel.fromJson(data);
           context.push('/delivery/incoming', extra: mission);
@@ -48,11 +65,13 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
         }
       }
     });
+
     _loadEarnings();
   }
 
   @override
   void dispose() {
+    _pulseController.dispose();
     _wsSubscription?.cancel();
     _missionBloc.close();
     _locationSubscription?.cancel();
@@ -75,95 +94,297 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     );
   }
 
+  /// Toggle le statut online/offline et le synchronise avec le backend.
+  Future<void> _toggleOnlineStatus(bool newValue) async {
+    if (_isTogglingStatus) return;
+    HapticFeedback.mediumImpact();
 
+    setState(() => _isTogglingStatus = true);
+
+    final result =
+        await getIt<DriverRepository>().updateOnlineStatus(newValue);
+
+    if (!mounted) return;
+    result.fold(
+      (err) {
+        _logger.e('Failed to update online status: ${err.message}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('delivery.status_update_failed'.tr()),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+        setState(() => _isTogglingStatus = false);
+      },
+      (_) {
+        setState(() {
+          _isOnline = newValue;
+          _isTogglingStatus = false;
+        });
+
+        // Démarrer/arrêter la géolocalisation selon le statut
+        if (_isOnline) {
+          _startLocationTracking();
+        } else {
+          _stopLocationTracking();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isOnline
+                  ? 'delivery.now_online'.tr()
+                  : 'delivery.now_offline'.tr(),
+            ),
+            backgroundColor:
+                _isOnline ? AppTheme.successColor : AppTheme.statusDefault,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
+    );
+  }
+
+  void _startLocationTracking() {
+    _locationSubscription?.cancel();
+    _locationSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 30,
+      ),
+    ).listen((pos) {
+      getIt<DriverRepository>().updateLocation(pos.latitude, pos.longitude);
+    });
+  }
+
+  void _stopLocationTracking() {
+    _locationSubscription?.cancel();
+    _locationSubscription = null;
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('delivery.dashboard_title'.tr()),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(theme, isDark),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 20),
+                  _buildOnlineToggle(theme),
+                  const SizedBox(height: 20),
+                  _buildStatusCard(theme),
+                  const SizedBox(height: 24),
+                  _buildTodayStats(theme),
+                  const SizedBox(height: 24),
+                  _buildRecentMissions(theme),
+                ],
+              ),
+            ),
           ),
         ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildOnlineToggle(theme),
-            const SizedBox(height: 24),
-            _buildStatusCard(theme),
-            const SizedBox(height: 24),
-            _buildTodayStats(theme),
-            const SizedBox(height: 24),
-            _buildRecentDeliveries(theme),
-          ],
-        ),
       ),
     );
   }
 
+  Widget _buildAppBar(ThemeData theme, bool isDark) {
+    return SliverAppBar(
+      pinned: true,
+      expandedHeight: 0,
+      backgroundColor: theme.colorScheme.surface,
+      surfaceTintColor: Colors.transparent,
+      title: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.delivery_dining,
+                color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            'delivery.dashboard_title'.tr(),
+            style: GoogleFonts.nunito(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        StreamBuilder<Object>(
+          stream: getIt<WebSocketService>().statusStream,
+          builder: (_, _) => Container(
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: getIt<WebSocketService>().isConnected
+                  ? AppTheme.successColor.withValues(alpha: 0.1)
+                  : AppTheme.statusDefault.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: getIt<WebSocketService>().isConnected
+                        ? AppTheme.successColor
+                        : AppTheme.statusDefault,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  getIt<WebSocketService>().isConnected ? 'WS' : 'Off',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: getIt<WebSocketService>().isConnected
+                        ? AppTheme.successColor
+                        : AppTheme.statusDefault,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined),
+          onPressed: () {},
+          tooltip: 'Notifications',
+        ),
+      ],
+    );
+  }
+
   Widget _buildOnlineToggle(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(16),
+        gradient: _isOnline
+            ? LinearGradient(
+                colors: [
+                  AppTheme.successColor.withValues(alpha: 0.15),
+                  AppTheme.successColor.withValues(alpha: 0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: _isOnline ? null : theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _isOnline
+              ? AppTheme.successColor.withValues(alpha: 0.4)
+              : theme.dividerColor.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: _isOnline
+                ? AppTheme.successColor.withValues(alpha: 0.15)
+                : Colors.black.withValues(alpha: 0.04),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Statut', style: theme.textTheme.bodySmall),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: isOnline ? Colors.green : Colors.grey,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isOnline ? 'delivery.online'.tr() : 'delivery.offline'.tr(),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: isOnline ? Colors.green : Colors.grey,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+          // Animated status indicator
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (_, child) => Transform.scale(
+              scale: _isOnline ? _pulseAnimation.value : 1.0,
+              child: Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: _isOnline
+                      ? AppTheme.successColor.withValues(alpha: 0.15)
+                      : theme.colorScheme.surfaceContainerHighest,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _isOnline ? Icons.wifi_tethering : Icons.wifi_tethering_off,
+                  color: _isOnline
+                      ? AppTheme.successColor
+                      : theme.colorScheme.onSurfaceVariant,
+                  size: 26,
+                ),
               ),
-            ],
+            ),
           ),
-          Switch(
-            value: isOnline,
-            activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.5),
-            activeThumbColor: theme.colorScheme.primary,
-            onChanged: (value) {
-              setState(() {
-                isOnline = value;
-              });
-            },
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'delivery.status_label'.tr(),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Text(
+                    key: ValueKey(_isOnline),
+                    _isOnline
+                        ? 'delivery.online'.tr()
+                        : 'delivery.offline'.tr(),
+                    style: GoogleFonts.nunito(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: _isOnline
+                          ? AppTheme.successColor
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
+          if (_isTogglingStatus)
+            const SizedBox(
+              width: 40,
+              height: 24,
+              child: Center(
+                child:
+                    CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            )
+          else
+            Transform.scale(
+              scale: 1.1,
+              child: Switch(
+                value: _isOnline,
+                activeTrackColor:
+                    AppTheme.successColor.withValues(alpha: 0.4),
+                activeThumbColor: AppTheme.successColor,
+                inactiveTrackColor:
+                    theme.colorScheme.surfaceContainerHighest,
+                onChanged: _toggleOnlineStatus,
+              ),
+            ),
         ],
       ),
     );
@@ -171,36 +392,53 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
 
   Widget _buildStatusCard(ThemeData theme) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
       height: 110,
       decoration: BoxDecoration(
-        color: isOnline
-            ? theme.colorScheme.primary.withValues(alpha: 0.1)
-            : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isOnline
-              ? theme.colorScheme.primary.withValues(alpha: 0.3)
-              : Colors.transparent,
-          width: 2,
-        ),
+        gradient: _isOnline
+            ? LinearGradient(
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withValues(alpha: 0.85),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: _isOnline ? null : theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: _isOnline
+            ? [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                )
+              ]
+            : null,
       ),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isOnline ? Icons.radar : Icons.power_settings_new,
-              size: 48,
-              color: isOnline ? theme.colorScheme.primary : Colors.grey,
+              _isOnline ? Icons.radar : Icons.power_settings_new,
+              size: 40,
+              color: _isOnline
+                  ? Colors.white
+                  : theme.colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 8),
             Text(
-              isOnline
+              _isOnline
                   ? 'delivery.waiting_mission'.tr()
-                  : 'Vous êtes hors ligne',
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: isOnline ? theme.colorScheme.primary : Colors.grey,
+                  : 'delivery.go_online_hint'.tr(),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: _isOnline
+                    ? Colors.white
+                    : theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -218,7 +456,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
             value: _earningsLoading
                 ? '...'
                 : '${(_earnings?.today ?? 0).toStringAsFixed(0)} FCFA',
-            icon: Icons.account_balance_wallet,
+            icon: Icons.account_balance_wallet_outlined,
             color: theme.colorScheme.secondary,
             isLoading: _earningsLoading,
           ),
@@ -226,11 +464,11 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
         const SizedBox(width: 12),
         Expanded(
           child: StatCard(
-            title: 'delivery.deliveries'.tr(),
+            title: 'delivery.deliveries_today'.tr(),
             value: _earningsLoading
                 ? '...'
                 : '${_earnings?.todayDeliveries ?? 0}',
-            icon: Icons.delivery_dining,
+            icon: Icons.delivery_dining_outlined,
             color: theme.colorScheme.primary,
             isLoading: _earningsLoading,
           ),
@@ -239,15 +477,19 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     );
   }
 
-
-
-
-  Widget _buildRecentDeliveries(ThemeData theme) {
+  Widget _buildRecentMissions(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Dernières livraisons', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 16),
+        Text(
+          'delivery.recent_deliveries'.tr(),
+          style: GoogleFonts.nunito(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 12),
         BlocBuilder<MissionBloc, MissionState>(
           bloc: _missionBloc,
           builder: (context, state) {
@@ -259,44 +501,21 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     .toList();
 
                 if (missions.isEmpty) {
-                  return Center(
-                    child: Text('delivery.no_recent_deliveries'.tr()),
-                  );
+                  return _buildEmptyMissions(theme);
                 }
 
-                return ListView.builder(
+                return ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: missions.length,
-                  itemBuilder: (context, index) {
-                    final mission = missions[index];
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.check_circle, color: Colors.green),
-                      ),
-                      title: Text('Commande #${mission.id.length > 5 ? mission.id.substring(mission.id.length - 5) : mission.id}'),
-                      subtitle: Text('Livré à ${mission.clientName ?? "Client"}'),
-                      trailing: Text(
-                        '+${mission.earnings.toStringAsFixed(0)} FCFA',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    );
-                  },
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) =>
+                      _buildMissionCard(missions[index], theme),
                 );
               },
               orElse: () => const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(24),
                   child: CircularProgressIndicator(),
                 ),
               ),
@@ -304,6 +523,100 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildEmptyMissions(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 48,
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'delivery.no_recent_deliveries'.tr(),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMissionCard(MissionModel mission, ThemeData theme) {
+    final shortId = mission.id.length > 6
+        ? mission.id.substring(mission.id.length - 6)
+        : mission.id;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppTheme.successColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.check_circle_outline,
+              color: AppTheme.successColor,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'delivery.order_short_id'.tr(args: [shortId]),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'delivery.delivered_to'.tr(
+                      args: [mission.clientName ?? 'Client']),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '+${mission.earnings.toStringAsFixed(0)} FCFA',
+            style: GoogleFonts.nunito(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.successColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

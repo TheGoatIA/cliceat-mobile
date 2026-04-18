@@ -4,7 +4,15 @@
     "welcome": "Bienvenue sur ClicEat",
     "subtitle": "La meilleure plateforme de livraison au Cameroun. Choisissez votre profil pour commencer.",
     "btn_client": "Je veux commander",
-    "btn_delivery": "Je suis livreur"
+    "btn_delivery": "Je suis livreur",
+    "slide1_title": "Des plats livrés chez vous",
+    "slide1_subtitle": "Parcourez des centaines de restaurants et commandez vos plats préférés en quelques clics.",
+    "slide2_title": "Livraison rapide",
+    "slide2_subtitle": "Nos livreurs vous apportent vos repas en moins de 45 minutes, directement à votre porte.",
+    "slide3_title": "Payez en toute sécurité",
+    "slide3_subtitle": "Orange Money, MTN MoMo ou carte bancaire — choisissez le moyen de paiement qui vous convient.",
+    "skip": "Ignorer",
+    "next": "Suivant"
   },
   "auth": {
     "login_title": "Connexion",
@@ -62,7 +70,13 @@
     "terms_prefix": "En vous inscrivant, vous acceptez nos ",
     "terms_cgu": "CGU",
     "terms_conjunction": " et notre ",
-    "terms_privacy": "Politique de confidentialité"
+    "terms_privacy": "Politique de confidentialité",
+    "delivery_login_title": "Espace Livreur",
+    "delivery_login_subtitle": "Connectez-vous avec votre numéro et mot de passe livreur",
+    "phone_number": "Numéro de téléphone",
+    "delivery_info": "Pas encore livreur ? Inscrivez-vous sur cliceat.cm/devenir-livreur",
+    "register_subtitle": "Créez votre compte ClicEat gratuitement",
+    "login_subtitle": "Connectez-vous pour commander"
   },
   "client": {
     "home_title": "Découvrir",
@@ -168,7 +182,27 @@
     "error_cancel": "Impossible d'annuler la commande.",
     "error_rate": "Impossible d'envoyer l'avis.",
     "reorder": "Re-commander",
-    "reorder_success": "Nouvelle commande créée avec succès"
+    "reorder_success": "Nouvelle commande créée avec succès",
+    "rate_order_title": "Noter la commande",
+    "delivered_title": "Commande livrée !",
+    "how_was_experience": "Comment était votre expérience ?",
+    "restaurant_rating_title": "Le restaurant",
+    "restaurant_rating_subtitle": "Qualité et rapidité",
+    "delivery_rating_title": "Le livreur",
+    "delivery_rating_subtitle": "Ponctualité et soin",
+    "rating_thanks_title": "Merci pour votre avis !",
+    "rating_thanks_subtitle": "Votre feedback nous aide à améliorer notre service.",
+    "rating_1": "Très mauvais",
+    "rating_2": "Mauvais",
+    "rating_3": "Correct",
+    "rating_4": "Bon",
+    "rating_5": "Excellent !",
+    "rating_required_hint": "Veuillez noter le restaurant et le livreur",
+    "unknown_restaurant": "Restaurant inconnu",
+    "downloading": "Téléchargement...",
+    "download_invoice": "Télécharger la facture",
+    "invoice_downloaded": "Facture téléchargée",
+    "browse_restaurants": "Explorer les restaurants"
   },
   "payment": {
     "title": "Paiement sécurisé",
@@ -183,13 +217,14 @@
   },
   "tracking": {
     "title": "Suivi de commande",
-    "step_confirmed": "Commande confirmée",
-    "step_preparing": "En préparation",
+    "step_confirmed": "Confirmée",
+    "step_preparing": "En prépa.",
     "step_on_the_way": "En route",
     "step_delivered": "Livrée",
     "driver": "Livreur",
     "eta": "Arrivée estimée",
     "call_driver": "Appeler le livreur",
+    "call_unavailable": "Impossible de passer un appel sur cet appareil",
     "live_tracking": "Suivi en direct",
     "eta_minutes": "Dans {} min"
   },
@@ -201,8 +236,15 @@
     "edit_profile": "Modifier le profil",
     "my_addresses": "Mes adresses",
     "no_addresses": "Aucune adresse enregistrée",
+    "add_address": "Ajouter une adresse",
+    "address_added": "Adresse ajoutée avec succès",
+    "address_label": "Étiquette",
+    "address_label_hint": "Maison, Bureau, etc.",
+    "address_street": "Adresse",
+    "address_street_hint": "Rue, quartier, ville...",
     "loyalty": "Points fidélité",
     "loyalty_desc": "Gagnez des points à chaque commande et débloquez des réductions exclusives.",
+    "points": "pts",
     "order_history": "Historique des commandes",
     "notifications": "Notifications",
     "language": "Langue",
@@ -295,7 +337,25 @@
     "delivery_success_bonus": "Livraison terminée avec succès ! +{} FCFA",
     "confirm_dropoff": "Confirmer la Livraison",
     "no_recent_deliveries": "Aucune livraison récente.",
-    "switch_client_mode": "Passer en mode Client"
+    "switch_client_mode": "Passer en mode Client",
+    "status_label": "Statut",
+    "status_update_failed": "Impossible de mettre à jour le statut. Vérifiez votre connexion.",
+    "now_online": "Vous êtes maintenant EN LIGNE ✅",
+    "now_offline": "Vous êtes maintenant HORS LIGNE",
+    "go_online_hint": "Activez le switch pour recevoir des missions",
+    "waiting_mission": "En attente d'une nouvelle mission…",
+    "deliveries_today": "Livraisons aujourd'hui",
+    "order_short_id": "Commande #{}" ,
+    "delivered_to": "Livré à {}",
+    "mission_expired": "Mission expirée. Temps dépassé.",
+    "new_mission": "NOUVELLE MISSION",
+    "reject": "Refuser",
+    "unknown_restaurant": "Restaurant",
+    "unknown_address": "Adresse inconnue",
+    "client_label": "Client : ",
+    "unknown_client": "Anonyme",
+    "unknown_delivery_address": "Adresse de livraison inconnue",
+    "estimated_gain": "Gain estimé"
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -343,6 +403,7 @@
     "see_all": "Voir tout",
     "back": "Retour",
     "no_internet": "Pas de connexion internet",
+    "offline_mode": "Mode consultation hors-ligne",
     "back_online": "Connexion rétablie",
     "clear": "Effacer",
     "try_other_query": "Essayez un autre terme de recherche",
@@ -351,7 +412,8 @@
     "message": "Message",
     "report_issue": "Signaler",
     "report_issue_title": "Signaler un problème",
-    "report_sent": "Signalement envoyé. Le support vous contactera."
+    "report_sent": "Signalement envoyé. Le support vous contactera.",
+    "add": "Ajouter"
   },
   "legal": {
     "terms_title": "Conditions Générales d'Utilisation",
@@ -382,5 +444,37 @@
     "privacy_s5_body": "Conformément à la loi camerounaise sur les données personnelles, vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition. Contactez-nous à : privacy@cliceat.cm",
     "privacy_s6_title": "6. Sécurité",
     "privacy_s6_body": "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, notamment le chiffrement des données sensibles et la transmission sécurisée (HTTPS/TLS)."
+  },
+  "chat": {
+    "title": "Messages",
+    "support": "Support Client",
+    "driver": "Livreur",
+    "restaurant": "Restaurant",
+    "type_message": "Tapez un message...",
+    "empty": "Aucun message pour le moment",
+    "contact_support": "Contacter le support"
+  },
+  "referral": {
+    "title": "Parrainage",
+    "total_earned": "Total Gagné",
+    "pending": "En attente",
+    "friends_invited": "Amis invités",
+    "share_title": "Partagez votre code",
+    "share_desc": "Invitez vos amis et gagnez de l'argent lorsqu'ils commandent",
+    "copied": "Code copié dans le presse-papier",
+    "apply_code_btn": "J'ai un code de parrainage",
+    "apply_title": "Appliquer un code",
+    "code_hint": "Code de parrainage",
+    "apply_success": "Code appliqué avec succès !"
+  },
+  "ai": {
+    "assistant_title": "Assistant IA",
+    "ask": "Demander à l'IA",
+    "ask_hint": "Je cherche des pizzas autour de moi..."
+  },
+  "review": {
+    "my_reviews": "Mes Avis",
+    "no_reviews_yet": "Aucun avis pour le moment",
+    "restaurant_reply": "Réponse du restaurant"
   }
 }

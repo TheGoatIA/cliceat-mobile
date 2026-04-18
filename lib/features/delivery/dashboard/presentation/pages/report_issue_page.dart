@@ -1,8 +1,9 @@
-// ignore_for_file: deprecated_member_use, use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:logger/logger.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import '../../../../../core/di/injection.dart';
 import '../../data/datasources/mission_service.dart';
@@ -16,6 +17,7 @@ class ReportIssuePage extends StatefulWidget {
 }
 
 class _ReportIssuePageState extends State<ReportIssuePage> {
+  final Logger _logger = getIt<Logger>();
   String? _selectedReason;
   final TextEditingController _detailsController = TextEditingController();
 
@@ -80,8 +82,10 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                   RadioListTile<String>(
                     title: Text(reason),
                     value: reason,
+                    // ignore: deprecated_member_use
                     groupValue: _selectedReason,
                     activeColor: Theme.of(context).colorScheme.error,
+                    // ignore: deprecated_member_use
                     onChanged: (value) {
                       setState(() => _selectedReason = value);
                     },
@@ -117,7 +121,7 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                         context.pop();
                       }
                     } catch (e) {
-                      debugPrint('Error reporting mission: $e');
+                      _logger.e('Error reporting mission: $e');
                       if(mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('common.network_error'.tr())),

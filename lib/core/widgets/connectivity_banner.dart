@@ -123,7 +123,7 @@ class _OfflineBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             isOffline
-                ? 'common.no_internet'.tr()
+                ? 'common.offline_mode'.tr()
                 : 'common.back_online'.tr(),
             style: const TextStyle(
               color: Colors.white,

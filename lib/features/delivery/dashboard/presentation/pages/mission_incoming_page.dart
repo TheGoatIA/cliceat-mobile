@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -213,8 +213,8 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
                  child: Column(
                    crossAxisAlignment: CrossAxisAlignment.start,
                    children: [
-                     Text(widget.mission.restaurantName ?? 'Restaurant', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
-                     Text(widget.mission.restaurantAddress ?? 'Adresse inconnue', style: const TextStyle(color: Colors.grey)),
+                     Text(widget.mission.restaurantName ?? 'delivery.unknown_restaurant'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
+                     Text(widget.mission.restaurantAddress ?? 'delivery.unknown_address'.tr(), style: const TextStyle(color: Colors.grey)),
                    ]
                  )
                )
@@ -234,7 +234,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
                    crossAxisAlignment: CrossAxisAlignment.start,
                    children: [
                      Text('Client: ${widget.mission.clientName ?? "Anonyme"}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
-                     Text(widget.mission.deliveryAddress?.address ?? 'Adresse de livraison inconnue', style: const TextStyle(color: Colors.grey)),
+                     Text(widget.mission.deliveryAddress?.address ?? 'delivery.unknown_delivery_address'.tr(), style: const TextStyle(color: Colors.grey)),
                    ]
                  )
                )
@@ -244,7 +244,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
            Row(
              mainAxisAlignment: MainAxisAlignment.spaceBetween,
              children: [
-               const Text('Gain estimé', style: TextStyle(fontSize: 16, color: Colors.black54)),
+               Text('delivery.estimated_gain'.tr(), style: const TextStyle(fontSize: 16, color: Colors.black54)),
                Text('${widget.mission.earnings.toStringAsFixed(0)} FCFA', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.green)),
              ]
            )

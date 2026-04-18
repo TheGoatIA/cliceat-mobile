@@ -40,6 +40,9 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
           MapWidget(
             key: const ValueKey("navigationMap"),
             onMapCreated: _onMapCreated,
+            styleUri: Theme.of(context).brightness == Brightness.dark
+                ? MapboxStyles.DARK
+                : MapboxStyles.MAPBOX_STREETS,
             cameraOptions: CameraOptions(
                center: Point(coordinates: Position(9.7679, 4.0511)), // Douala
                zoom: 17.0, // High zoom for turn by turn
