@@ -9,7 +9,7 @@ class OrderHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<OrderBloc>()..add(const OrderEvent.loadOrders()),
+      create: (context) => getIt<OrderBloc>()..add(const LoadOrders()),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Historique des commandes'),

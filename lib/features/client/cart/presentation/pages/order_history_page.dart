@@ -32,7 +32,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     if (current >= maxScroll - 200) {
       final bloc = context.read<OrderBloc>();
       if (bloc.hasMore) {
-        bloc.add(const OrderEvent.loadMoreOrders());
+        bloc.add(const LoadMoreOrders());
       }
     }
   }
@@ -47,7 +47,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) =>
-          getIt<OrderBloc>()..add(const OrderEvent.loadOrders()),
+          getIt<OrderBloc>()..add(const LoadOrders()),
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
@@ -165,7 +165,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             ElevatedButton.icon(
               onPressed: () => context
                   .read<OrderBloc>()
-                  .add(const OrderEvent.loadOrders()),
+                  .add(const LoadOrders()),
               icon: const Icon(Icons.refresh_rounded),
               label: Text('common.retry'.tr()),
             ),
@@ -531,6 +531,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       'picked_up' => ('order.status_picked_up'.tr(), AppTheme.statusPickedUp),
       'delivered' => ('order.status_delivered'.tr(), AppTheme.statusDelivered),
       'cancelled' => ('order.status_cancelled'.tr(), AppTheme.statusCancelled),
+      'anomaly' => ('order.status_anomaly'.tr(), AppTheme.statusAnomaly),
+      'en_route' => ('order.status_en_route'.tr(), AppTheme.statusEnRoute),
+      'pending_payment' => ('order.status_pending_payment'.tr(), AppTheme.statusPending),
       _ => (status, AppTheme.statusDefault),
     };
     return Container(

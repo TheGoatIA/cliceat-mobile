@@ -10,6 +10,7 @@ abstract class RestaurantService extends ChopperService {
   @GET()
   Future<Response> getRestaurants(
     @Query('city') String city,
+    @Query('radius') double? radius,
     @Query('lat') double? lat,
     @Query('lng') double? lng,
   );

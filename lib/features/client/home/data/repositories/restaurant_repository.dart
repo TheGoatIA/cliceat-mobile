@@ -30,7 +30,7 @@ class RestaurantRepository {
   }) async {
     try {
       final res =
-          await _service.getRestaurants(city, lat, lng);
+          await _service.getRestaurants(city, 20000.0, lat, lng);
       if (res.isSuccessful && res.body != null) {
         final raw = _extractList(res.body);
         final models = raw.map(RestaurantModel.fromJson).toList();

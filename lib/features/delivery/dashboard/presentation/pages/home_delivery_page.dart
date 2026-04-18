@@ -53,10 +53,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     );
 
     _missionBloc = getIt<MissionBloc>()
-      ..add(const MissionEvent.loadActiveMissions());
+      ..add(MissionEvent.loadActiveMissions());
 
     _wsSubscription = getIt<WebSocketService>().missionEvents.listen((data) {
-      _missionBloc.add(const MissionEvent.loadActiveMissions());
+      _missionBloc.add(MissionEvent.loadActiveMissions());
       if (mounted && _isOnline) {
         try {
           final mission = MissionModel.fromJson(data);

@@ -27,8 +27,8 @@ abstract class MissionService extends ChopperService {
   Future<Response<Map<String, dynamic>>> confirmPickup(
       @Path('id') String id);
 
-  /// POST /delivery/orders/{id}/delivered
-  @POST(path: '/orders/{id}/delivered')
+  /// POST /delivery/orders/{id}/confirm (replaces /delivered)
+  @POST(path: '/orders/{id}/confirm')
   Future<Response<Map<String, dynamic>>> confirmDelivery(
     @Path('id') String id,
     @Body() Map<String, dynamic> body,

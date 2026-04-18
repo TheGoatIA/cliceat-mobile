@@ -18,6 +18,7 @@ import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart
 import 'package:cliceat_app/features/client/cart/data/datasources/order_service.dart';
 import 'package:cliceat_app/features/client/cart/data/datasources/payment_service.dart';
 import 'package:cliceat_app/core/network/services/tracking_service.dart';
+import 'package:cliceat_app/core/data/base_repository.dart';
 
 /// Statuts de paiement valides renvoyés par NotchPay / backend ClicEat.
 /// Toute valeur absente de cet ensemble est rejetée comme non-succès.
@@ -25,7 +26,7 @@ const _kPaymentSuccessStatuses = {'completed', 'success', 'approved', 'paid'};
 
 /// Manages orders, reordering, and invoices.
 @lazySingleton
-class OrderRepository {
+class OrderRepository extends BaseRepository {
   final OrderService _orderService;
   final PaymentService _paymentService;
   final TrackingService _trackingService;
@@ -45,21 +46,19 @@ class OrderRepository {
 
   Future<Either<AppError, OrderModel>> createOrder(
       Map<String, dynamic> payload) async {
-    try {
-      final res = await _orderService.createOrder(payload);
-      if (res.isSuccessful && res.body != null) {
-        final body = res.body!;
-        final data =
-            body['data'] as Map<String, dynamic>? ?? body;
-        final order = OrderModel.fromJson(data);
-        return Right(order);
-      }
-      return Left(AppError.fromResponse(
-          res.body, 'order.error_create',
-          statusCode: res.statusCode));
-    } catch (_) {
-      return Left(AppError.network());
-    }
+    return safeCall<OrderModel>(
+      () async {
+        final res = await _orderService.createOrder(payload);
+        // Note: safeCall handles statusCode mapping and body null check.
+        // We just need to transform the body to OrderModel.
+        if (res.isSuccessful && res.body != null) {
+          final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+          return res.copyWith<OrderModel>(body: OrderModel.fromJson(data));
+        }
+        return res.copyWith<OrderModel>(body: null);
+      },
+      fallbackMessage: 'order.error_create',
+    );
   }
 
   // ─── Load list ────────────────────────────────────────────────────────────
@@ -68,48 +67,49 @@ class OrderRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    try {
-      final res = await _orderService.getOrders(page: page, limit: limit);
-      if (res.isSuccessful && res.body != null) {
-        final raw = res.body!['data'] as List<dynamic>? ?? [];
-        final orders = raw
-            .whereType<Map<String, dynamic>>()
-            .map(OrderModel.fromJson)
-            .toList();
+    final result = await safeCall<List<OrderModel>>(
+      () async {
+        final res = await _orderService.getOrders(page: page, limit: limit);
+        if (res.isSuccessful && res.body != null) {
+          final raw = res.body!['data'] as List<dynamic>? ?? [];
+          final orders = raw
+              .whereType<Map<String, dynamic>>()
+              .map(OrderModel.fromJson)
+              .toList();
+          return res.copyWith<List<OrderModel>>(body: orders);
+        }
+        return res.copyWith<List<OrderModel>>(body: null);
+      },
+      fallbackMessage: 'order.error_load',
+    );
+
+    return result.fold(
+      (error) async {
+        if (page == 1) {
+          final cached = await _loadCachedOrders();
+          if (cached.isNotEmpty) return Right(cached);
+        }
+        return Left(error);
+      },
+      (orders) async {
         if (page == 1) await _cacheOrders(orders);
         return Right(orders);
-      }
-      // Fallback to cache on server error (first page only)
-      if (page == 1) {
-        final cached = await _loadCachedOrders();
-        if (cached.isNotEmpty) return Right(cached);
-      }
-      return Left(AppError.fromResponse(
-          res.body, 'order.error_load',
-          statusCode: res.statusCode));
-    } catch (_) {
-      if (page == 1) {
-        final cached = await _loadCachedOrders();
-        if (cached.isNotEmpty) return Right(cached);
-      }
-      return Left(AppError.network());
-    }
+      },
+    );
   }
 
   Future<Either<AppError, OrderModel>> getOrderById(String id) async {
-    try {
-      final res = await _orderService.getOrderById(id);
-      if (res.isSuccessful && res.body != null) {
-        final data =
-            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
-        return Right(OrderModel.fromJson(data));
-      }
-      return Left(AppError.fromResponse(
-          res.body, 'order.error_load',
-          statusCode: res.statusCode));
-    } catch (_) {
-      return Left(AppError.network());
-    }
+    return safeCall<OrderModel>(
+      () async {
+        final res = await _orderService.getOrderById(id);
+        if (res.isSuccessful && res.body != null) {
+          final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+          return res.copyWith<OrderModel>(body: OrderModel.fromJson(data));
+        }
+        return res.copyWith<OrderModel>(body: null);
+      },
+      fallbackMessage: 'order.error_load',
+    );
   }
 
   // ─── Cancel ───────────────────────────────────────────────────────────────

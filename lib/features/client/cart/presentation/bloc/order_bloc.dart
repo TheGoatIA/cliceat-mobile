@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logger/logger.dart';
+import 'package:cliceat_app/core/services/websocket_service.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import '../../../../../core/services/analytics_service.dart';
 import 'package:cliceat_app/core/di/injection.dart';
@@ -13,7 +15,9 @@ part 'order_bloc.freezed.dart';
 @injectable
 class OrderBloc extends Bloc<OrderEvent, OrderState> {
   final OrderRepository _orderRepository;
+  final WebSocketService _wsService;
   final Logger _logger = Logger();
+  StreamSubscription? _wsSub;
 
   // ─── Pagination state ─────────────────────────────────────────────────────
 
@@ -22,14 +26,26 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   bool _hasMore = true;
   final List<Map<String, dynamic>> _accumulated = [];
 
-  OrderBloc(this._orderRepository) : super(const OrderState.initial()) {
-    on<_CreateOrder>(_onCreateOrder);
-    on<_LoadOrders>(_onLoadOrders);
-    on<_LoadMoreOrders>(_onLoadMoreOrders);
-    on<_CancelOrder>(_onCancelOrder);
-    on<_ReorderOrder>(_onReorderOrder);
-    on<_RateOrder>(_onRateOrder);
-    on<_DownloadInvoice>(_onDownloadInvoice);
+  OrderBloc(this._orderRepository, this._wsService) : super(const OrderState.initial()) {
+    on<CreateOrder>(_onCreateOrder);
+    on<LoadOrders>(_onLoadOrders);
+    on<LoadMoreOrders>(_onLoadMoreOrders);
+    on<CancelOrder>(_onCancelOrder);
+    on<ReorderOrder>(_onReorderOrder);
+    on<RateOrder>(_onRateOrder);
+    on<DownloadInvoice>(_onDownloadInvoice);
+    on<StatusUpdate>(_onStatusUpdate);
+
+    // Listen to real-time order status updates
+    _wsSub = _wsService.orderTrackingEvents.listen((data) {
+      add(OrderEvent.statusUpdate(data));
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _wsSub?.cancel();
+    return super.close();
   }
 
   // ─── Getters for the UI ───────────────────────────────────────────────────
@@ -39,7 +55,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
   Future<void> _onCreateOrder(
-      _CreateOrder event, Emitter<OrderState> emit) async {
+      CreateOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
     final result = await _orderRepository.createOrder(event.payload);
     result.fold(
@@ -60,7 +76,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onLoadOrders(
-      _LoadOrders event, Emitter<OrderState> emit) async {
+      LoadOrders event, Emitter<OrderState> emit) async {
     // Réinitialiser la pagination
     _currentPage = 1;
     _hasMore = true;
@@ -87,7 +103,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onLoadMoreOrders(
-      _LoadMoreOrders event, Emitter<OrderState> emit) async {
+      LoadMoreOrders event, Emitter<OrderState> emit) async {
     if (!_hasMore) return;
 
     // Émettre l'état de chargement de page supplémentaire
@@ -114,7 +130,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onCancelOrder(
-      _CancelOrder event, Emitter<OrderState> emit) async {
+      CancelOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
     final result = await _orderRepository.cancelOrder(event.orderId);
     result.fold(
@@ -130,7 +146,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onReorderOrder(
-      _ReorderOrder event, Emitter<OrderState> emit) async {
+      ReorderOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
     final result = await _orderRepository.reorder(event.orderId);
     result.fold(
@@ -143,7 +159,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onRateOrder(
-      _RateOrder event, Emitter<OrderState> emit) async {
+      RateOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
     final result = await _orderRepository.rateOrder(
         event.orderId, event.rating, event.comment);
@@ -157,7 +173,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onDownloadInvoice(
-      _DownloadInvoice event, Emitter<OrderState> emit) async {
+      DownloadInvoice event, Emitter<OrderState> emit) async {
     final result = await _orderRepository.downloadInvoice(event.orderId);
     result.fold(
       (err) {
@@ -168,6 +184,23 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     );
     // Restore the list state seamlessly
     if (_accumulated.isNotEmpty) {
+      emit(OrderState.ordersLoaded(List.unmodifiable(_accumulated)));
+    }
+  }
+
+  void _onStatusUpdate(StatusUpdate event, Emitter<OrderState> emit) {
+    // Here we can update the local list state if the order is in the list
+    final data = event.payload;
+    final id = data['orderId'] ?? data['_id'];
+    if (id == null) return;
+
+    final index = _accumulated.indexWhere((o) => o['_id'] == id || o['id'] == id);
+    if (index != -1) {
+      _logger.d('Updating order $id in list from WS');
+      _accumulated[index] = {
+        ..._accumulated[index],
+        ...data,
+      };
       emit(OrderState.ordersLoaded(List.unmodifiable(_accumulated)));
     }
   }

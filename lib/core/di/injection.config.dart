@@ -262,6 +262,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i573.AuthRepository>(
       () => _i573.AuthRepository(
         gh<_i1060.AuthService>(),
+        gh<_i895.UserService>(),
+        gh<_i941.NotificationService>(),
         gh<_i558.FlutterSecureStorage>(),
       ),
     );
@@ -316,7 +318,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i787.ReviewCubit(gh<_i656.ReviewRepository>()),
     );
     gh.factory<_i438.OrderBloc>(
-      () => _i438.OrderBloc(gh<_i1060.OrderRepository>()),
+      () => _i438.OrderBloc(
+        gh<_i1060.OrderRepository>(),
+        gh<_i555.WebSocketService>(),
+      ),
     );
     gh.lazySingleton<_i691.WalletRepository>(
       () => _i691.WalletRepository(

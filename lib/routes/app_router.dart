@@ -21,6 +21,9 @@ import '../../features/client/cart/presentation/pages/address_selection_page.dar
 import '../../features/client/cart/presentation/pages/order_history_page.dart';
 import '../../features/client/cart/presentation/pages/order_rating_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/delivery_main_tab.dart';
+import '../../features/delivery/dashboard/presentation/pages/active_navigation_page.dart';
+import '../../features/delivery/dashboard/presentation/pages/confirm_pickup_page.dart';
+import '../../features/delivery/dashboard/presentation/pages/dropoff_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/mission_incoming_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/payout_page.dart';
 import '../../features/delivery/dashboard/data/models/mission_model.dart';
@@ -284,6 +287,27 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'payouts',
           builder: (context, state) => const PayoutPage(),
+        ),
+        GoRoute(
+          path: 'active-navigation',
+          builder: (context, state) {
+            final mission = state.extra as MissionModel;
+            return ActiveNavigationPage(mission: mission);
+          },
+        ),
+        GoRoute(
+          path: 'confirm-pickup',
+          builder: (context, state) {
+            final mission = state.extra as MissionModel;
+            return ConfirmPickupPage(mission: mission);
+          },
+        ),
+        GoRoute(
+          path: 'dropoff',
+          builder: (context, state) {
+            final mission = state.extra as MissionModel;
+            return DropoffPage(mission: mission);
+          },
         ),
       ],
     ),

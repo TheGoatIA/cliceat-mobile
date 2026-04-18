@@ -4,6 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../network/interceptors/auth_interceptor.dart';
 import '../network/interceptors/refresh_interceptor.dart';
 import '../network/interceptors/connectivity_interceptor.dart';
+import '../network/interceptors/retry_interceptor.dart';
+import '../network/interceptors/timeout_interceptor.dart';
 import '../services/token_service.dart';
 import '../config/env_config.dart';
 import '../../features/auth/data/datasources/auth_service.dart';
@@ -25,6 +27,8 @@ import '../../features/client/dispute/data/datasources/dispute_service.dart';
 import '../../features/client/home/data/datasources/promotion_service.dart';
 import '../../features/delivery/dashboard/data/datasources/payout_service.dart';
 
+import '../network/pinned_client_provider.dart';
+
 @module
 abstract class NetworkModule {
   @lazySingleton
@@ -32,6 +36,7 @@ abstract class NetworkModule {
     // We pass a lazy getter for the AuthService into the RefreshInterceptor 
     return ChopperClient(
       baseUrl: Uri.parse(EnvConfig.apiBaseUrl),
+      client: PinnedHttpClientProvider.getClient(),
       services: [
         AuthService.create(),
         RestaurantService.create(),
@@ -54,10 +59,12 @@ abstract class NetworkModule {
       ],
       converter: const JsonConverter(),
       interceptors: [
-        HttpLoggingInterceptor(),
         ConnectivityInterceptor(),
+        const TimeoutInterceptor(),
+        RetryInterceptor(),
         AuthInterceptor(secureStorage),
         RefreshInterceptor(secureStorage, tokenService),
+        HttpLoggingInterceptor(),
       ],
     );
   }

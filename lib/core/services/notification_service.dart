@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
@@ -95,7 +96,11 @@ class NotificationService {
     try {
       final token = await _messaging.getToken();
       if (token != null) {
-        _logger.i('[Notif] Token FCM obtenu.');
+        if (kDebugMode) {
+          _logger.i('[Notif] Token FCM obtenu : $token');
+        } else {
+          _logger.i('[Notif] Token FCM obtenu.');
+        }
       }
     } catch (e) {
       _logger.e('[Notif] Impossible d\'obtenir le token FCM', error: e);

@@ -14,10 +14,11 @@ class TimeoutInterceptor implements Interceptor {
   @override
   Future<Response<BodyType>> intercept<BodyType>(
       Chain<BodyType> chain) async {
-    return Future.value(chain.proceed(chain.request)).timeout(
+    final future = chain.proceed(chain.request);
+    return (future as Future<Response<BodyType>>).timeout(
       receiveTimeout,
       onTimeout: () => throw TimeoutException(
-        'La requête a dépassé le délai de ${receiveTimeout.inSeconds}s '
+        'Request timed out after ${receiveTimeout.inSeconds}s '
         '(${chain.request.method} ${chain.request.url})',
         receiveTimeout,
       ),

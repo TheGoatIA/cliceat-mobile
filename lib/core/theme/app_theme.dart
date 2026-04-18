@@ -31,6 +31,8 @@ class AppTheme {
   static const Color statusPickedUp  = Color(0xFF6366F1); // indigo
   static const Color statusDelivered = successColor;      // green
   static const Color statusCancelled = errorColor;        // red
+  static const Color statusAnomaly   = Color(0xFFEA580C); // orange
+  static const Color statusEnRoute   = Color(0xFF0284C7); // sky blue
   static const Color statusDefault   = Color(0xFF6B7280); // gray
   static const Color statusOnline    = successColor;      // green (livreur en ligne)
   static const Color statusOffline   = Color(0xFF9CA3AF); // gray (livreur hors ligne)

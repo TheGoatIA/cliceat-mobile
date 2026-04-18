@@ -1,16 +1,55 @@
 part of 'order_bloc.dart';
 
-@freezed
-class OrderEvent with _$OrderEvent {
-  const factory OrderEvent.createOrder(Map<String, dynamic> payload) =
-      _CreateOrder;
-  const factory OrderEvent.loadOrders() = _LoadOrders;
-  const factory OrderEvent.loadMoreOrders() = _LoadMoreOrders;
-  const factory OrderEvent.cancelOrder(String orderId) = _CancelOrder;
-  const factory OrderEvent.reorderOrder(String orderId) = _ReorderOrder;
-  const factory OrderEvent.rateOrder(
-      {required String orderId,
-      required int rating,
-      String? comment}) = _RateOrder;
-  const factory OrderEvent.downloadInvoice(String orderId) = _DownloadInvoice;
+abstract class OrderEvent {
+  const OrderEvent();
+
+  static OrderEvent createOrder(Map<String, dynamic> payload) => CreateOrder(payload);
+  static OrderEvent loadOrders() => const LoadOrders();
+  static OrderEvent loadMoreOrders() => const LoadMoreOrders();
+  static OrderEvent cancelOrder(String orderId) => CancelOrder(orderId);
+  static OrderEvent reorderOrder(String orderId) => ReorderOrder(orderId);
+  static OrderEvent rateOrder({required String orderId, required int rating, String? comment}) => 
+      RateOrder(orderId: orderId, rating: rating, comment: comment);
+  static OrderEvent downloadInvoice(String orderId) => DownloadInvoice(orderId);
+  static OrderEvent statusUpdate(Map<String, dynamic> payload) => StatusUpdate(payload);
+}
+
+class CreateOrder extends OrderEvent {
+  final Map<String, dynamic> payload;
+  const CreateOrder(this.payload);
+}
+
+class LoadOrders extends OrderEvent {
+  const LoadOrders();
+}
+
+class LoadMoreOrders extends OrderEvent {
+  const LoadMoreOrders();
+}
+
+class CancelOrder extends OrderEvent {
+  final String orderId;
+  const CancelOrder(this.orderId);
+}
+
+class ReorderOrder extends OrderEvent {
+  final String orderId;
+  const ReorderOrder(this.orderId);
+}
+
+class RateOrder extends OrderEvent {
+  final String orderId;
+  final int rating;
+  final String? comment;
+  const RateOrder({required this.orderId, required this.rating, this.comment});
+}
+
+class DownloadInvoice extends OrderEvent {
+  final String orderId;
+  const DownloadInvoice(this.orderId);
+}
+
+class StatusUpdate extends OrderEvent {
+  final Map<String, dynamic> payload;
+  const StatusUpdate(this.payload);
 }

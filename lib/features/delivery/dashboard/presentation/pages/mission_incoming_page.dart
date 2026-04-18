@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -267,7 +267,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage> with TickerPr
               HapticFeedback.heavyImpact();
               getIt<MissionBloc>().add(MissionEvent.acceptMission(widget.mission.id));
               // Navigate to active navigation
-              context.go('/delivery');
+              context.pushReplacement('/delivery/active-navigation', extra: widget.mission);
             },
             background: Container(
                decoration: BoxDecoration(

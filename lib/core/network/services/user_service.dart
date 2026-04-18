@@ -15,7 +15,7 @@ abstract class UserService extends ChopperService {
   Future<Response<Map<String, dynamic>>> updateMe(
       @Body() Map<String, dynamic> body);
 
-  /// POST /users/me/device-token — register FCM token
+  /// POST /users/me/device-token — register FCM token with locale
   @POST(path: '/me/device-token')
   Future<Response<Map<String, dynamic>>> registerFcmToken(
       @Body() Map<String, dynamic> body);

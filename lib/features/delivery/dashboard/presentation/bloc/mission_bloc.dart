@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logger/logger.dart';
 import '../../../../../core/errors/app_error.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
@@ -10,7 +9,6 @@ import 'package:cliceat_app/core/di/injection.dart';
 
 part 'mission_event.dart';
 part 'mission_state.dart';
-part 'mission_bloc.freezed.dart';
 
 @injectable
 class MissionBloc extends Bloc<MissionEvent, MissionState> {
@@ -19,7 +17,7 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
 
   MissionBloc(this._driverRepository) : super(const MissionState.initial()) {
     on<_Started>((event, emit) {
-      add(const MissionEvent.loadActiveMissions());
+      add(MissionEvent.loadActiveMissions());
     });
 
     on<_LoadActiveMissions>(_onLoadActiveMissions);
@@ -58,7 +56,7 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
       (_) {
         getIt<AnalyticsService>().logMissionAccepted(event.missionId);
         emit(const MissionState.actionSuccess('mission.accepted'));
-        add(const MissionEvent.loadActiveMissions());
+        add(MissionEvent.loadActiveMissions());
       },
     );
   }
@@ -76,7 +74,7 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
       (_) => emit(
           const MissionState.actionSuccess('mission.rejected')),
     );
-    add(const MissionEvent.loadActiveMissions());
+    add(MissionEvent.loadActiveMissions());
   }
 
   Future<void> _onUpdateStatus(
@@ -110,7 +108,7 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
       (_) {
         emit(const MissionState.actionSuccess(
             'mission.status_updated'));
-        add(const MissionEvent.loadActiveMissions());
+        add(MissionEvent.loadActiveMissions());
       },
     );
   }

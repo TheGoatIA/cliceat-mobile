@@ -59,6 +59,9 @@ class WebSocketService {
       StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get chatEvents => _chatEventController.stream;
 
+  final _authErrorController = StreamController<String>.broadcast();
+  Stream<String> get authErrors => _authErrorController.stream;
+
   // ─── Reconnection state ───────────────────────────────────────────────────
 
   static const _maxRetries = 8;
@@ -168,14 +171,23 @@ class WebSocketService {
       _scheduleReconnect();
     });
 
-    _socket!.onError((error) {
-      _logger.e('[WS] Erreur: $error');
+    _socket!.onConnectError((error) {
+      _logger.e('[WS] Erreur de connexion: $error');
+      if (error?.toString().contains('revoked') ?? false) {
+        _logger.e('[WS] Token révoqué ! Déconnexion forcée.');
+        _authErrorController.add(error.toString());
+        return;
+      }
+      _stopHeartbeat();
       _scheduleReconnect();
     });
 
-    _socket!.onConnectError((error) {
-      _logger.e('[WS] Erreur de connexion: $error');
-      _stopHeartbeat();
+    _socket!.onError((error) {
+      _logger.e('[WS] Erreur: $error');
+      if (error?.toString().contains('revoked') ?? false) {
+        _authErrorController.add(error.toString());
+        return;
+      }
       _scheduleReconnect();
     });
 

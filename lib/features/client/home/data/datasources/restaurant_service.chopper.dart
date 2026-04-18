@@ -21,12 +21,14 @@ final class _$RestaurantService extends RestaurantService {
   @override
   Future<Response<dynamic>> getRestaurants(
     String city,
+    double? radius,
     double? lat,
     double? lng,
   ) {
     final Uri $url = Uri.parse('/restaurants');
     final Map<String, dynamic> $params = <String, dynamic>{
       'city': city,
+      'radius': radius,
       'lat': lat,
       'lng': lng,
     };

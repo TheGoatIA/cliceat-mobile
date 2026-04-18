@@ -1,17 +1,27 @@
+import 'dart:ui';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/auth/data/datasources/auth_service.dart';
+import 'package:cliceat_app/core/network/services/user_service.dart';
+import 'package:cliceat_app/core/services/notification_service.dart';
 
 /// Abstracts all authentication operations and token persistence.
 @lazySingleton
 class AuthRepository {
   final AuthService _authService;
+  final UserService _userService;
+  final NotificationService _notificationService;
   final FlutterSecureStorage _secureStorage;
 
-  AuthRepository(this._authService, this._secureStorage);
+  AuthRepository(
+    this._authService,
+    this._userService,
+    this._notificationService,
+    this._secureStorage,
+  );
 
   // ─── Token persistence helpers ────────────────────────────────────────────
 
@@ -48,7 +58,10 @@ class AuthRepository {
           await _authService.login({'email': email, 'password': password});
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseTokenAndUserId(res.body);
-        if (parsed != null) return Right(parsed);
+        if (parsed != null) {
+          _syncFcmToken();
+          return Right(parsed);
+        }
         return Left(AppError.fromResponse(
             res.body, 'auth.error_invalid_response'));
       }
@@ -103,7 +116,10 @@ class AuthRepository {
           await _authService.verifyOtp({'phone': phone, 'otp': otp});
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseTokenAndUserId(res.body);
-        if (parsed != null) return Right(parsed);
+        if (parsed != null) {
+          _syncFcmToken();
+          return Right(parsed);
+        }
         return Left(AppError.fromResponse(
             res.body, 'auth.error_invalid_response'));
       }
@@ -124,7 +140,10 @@ class AuthRepository {
           await _authService.loginWithFirebase({'idToken': idToken});
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseTokenAndUserId(res.body);
-        if (parsed != null) return Right(parsed);
+        if (parsed != null) {
+          _syncFcmToken();
+          return Right(parsed);
+        }
         return Left(AppError.fromResponse(
             res.body, 'auth.error_invalid_response'));
       }
@@ -228,6 +247,24 @@ class AuthRepository {
       return null;
     } catch (_) {
       return null;
+    }
+  }
+
+  Future<void> _syncFcmToken() async {
+    try {
+      final token = await _notificationService.getFcmToken();
+      if (token != null) {
+        // Simple mapping to 'fr' or 'en'
+        final systemLocale = PlatformDispatcher.instance.locale.languageCode;
+        final locale = systemLocale.startsWith('en') ? 'en' : 'fr';
+        
+        await _userService.registerFcmToken({
+          'token': token,
+          'locale': locale,
+        });
+      }
+    } catch (_) {
+      // Non-critical failure
     }
   }
 }

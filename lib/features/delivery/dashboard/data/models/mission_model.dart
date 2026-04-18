@@ -14,6 +14,7 @@ class MissionModel {
   final String? clientPhone;
   final DateTime? createdAt;
   final List<MissionItemModel> items;
+  final String? paymentMethod;
 
   const MissionModel({
     required this.id,
@@ -28,6 +29,7 @@ class MissionModel {
     this.clientPhone,
     this.createdAt,
     this.items = const [],
+    this.paymentMethod,
   });
 
   factory MissionModel.fromJson(Map<String, dynamic> json) {
@@ -70,6 +72,7 @@ class MissionModel {
           .whereType<Map<String, dynamic>>()
           .map(MissionItemModel.fromJson)
           .toList(),
+      paymentMethod: json['paymentMethod']?.toString(),
     );
   }
 
