@@ -7,7 +7,7 @@ import '../../data/repositories/user_repository.dart';
 part 'profile_state.dart';
 part 'profile_cubit.freezed.dart';
 
-@injectable
+@lazySingleton
 class ProfileCubit extends Cubit<ProfileState> {
   final UserRepository _userRepository;
 

@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage>
   final _regNameCtrl = TextEditingController();
   final _regEmailCtrl = TextEditingController();
   final _regPasswordCtrl = TextEditingController();
-  final _regCityCtrl = TextEditingController();
+  final _regCityCtrl = TextEditingController(text: 'Douala');
   bool _regPasswordVisible = false;
 
   bool get _isDelivery => widget.mode == 'delivery';
@@ -91,9 +91,7 @@ class _LoginPageState extends State<LoginPage>
         return;
       }
       if (context.mounted) {
-        context
-            .read<AuthBloc>()
-            .add(AuthEvent.loginWithGoogle(token: idToken));
+        context.read<AuthBloc>().add(AuthEvent.loginWithGoogle(token: idToken));
       }
     } catch (_) {
       if (context.mounted) {
@@ -119,9 +117,7 @@ class _LoginPageState extends State<LoginPage>
         return;
       }
       if (context.mounted) {
-        context
-            .read<AuthBloc>()
-            .add(AuthEvent.loginWithApple(token: idToken));
+        context.read<AuthBloc>().add(AuthEvent.loginWithApple(token: idToken));
       }
     } catch (_) {
       if (context.mounted) {
@@ -151,14 +147,17 @@ class _LoginPageState extends State<LoginPage>
           authenticated: (_, _, _) => _onAuthenticated(context),
           otpSent: (phone) => setState(() => _otpPhone = phone),
           emailVerificationRequired: (email) => context.go(
-              '/auth/verify-email?email=${Uri.encodeComponent(email)}'),
+            '/auth/verify-email?email=${Uri.encodeComponent(email)}',
+          ),
           error: (message) => _showError(context, message.tr()),
           orElse: () {},
         );
       },
       builder: (context, state) {
-        final isLoading =
-            state.maybeWhen(loading: () => true, orElse: () => false);
+        final isLoading = state.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
           body: Stack(
@@ -168,22 +167,22 @@ class _LoginPageState extends State<LoginPage>
                 top: 0,
                 left: 0,
                 right: 0,
-                height: 300,
+                height: 400,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: _isDelivery
                           ? [
                               const Color(0xFF1565C0),
-                              const Color(0xFF0D47A1).withValues(alpha: 0.7),
-                              Colors.transparent,
+                              const Color(0xFF1565C0),
+                              const Color(0xFF1565C0).withValues(alpha: 0),
                             ]
                           : [
                               theme.colorScheme.primary,
-                              theme.colorScheme.primary
-                                  .withValues(alpha: 0.7),
-                              Colors.transparent,
+                              theme.colorScheme.primary,
+                              theme.colorScheme.primary.withValues(alpha: 0),
                             ],
+                      stops: const [0.0, 0.5, 1.0],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
@@ -200,10 +199,14 @@ class _LoginPageState extends State<LoginPage>
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         child: IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white),
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white,
+                          ),
                           onPressed: () => context.go('/onboarding'),
                         ),
                       ),
@@ -215,22 +218,32 @@ class _LoginPageState extends State<LoginPage>
                           constraints: const BoxConstraints(maxWidth: 480),
                           child: SingleChildScrollView(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 8),
+                              horizontal: 24,
+                              vertical: 8,
+                            ),
                             child: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 250),
                               switchInCurve: Curves.easeOut,
                               switchOutCurve: Curves.easeIn,
                               child: _showRegister && !_isDelivery
                                   ? _buildRegisterForm(
-                                      context, theme, isLoading)
+                                      context,
+                                      theme,
+                                      isLoading,
+                                    )
                                   : _otpPhone != null
-                                      ? _buildOtpForm(
-                                          context, theme, isLoading)
-                                      : _isDelivery
-                                          ? _buildDeliveryLoginForm(
-                                              context, theme, isLoading)
-                                          : _buildClientLoginForm(
-                                              context, theme, isLoading),
+                                  ? _buildOtpForm(context, theme, isLoading)
+                                  : _isDelivery
+                                  ? _buildDeliveryLoginForm(
+                                      context,
+                                      theme,
+                                      isLoading,
+                                    )
+                                  : _buildClientLoginForm(
+                                      context,
+                                      theme,
+                                      isLoading,
+                                    ),
                             ),
                           ),
                         ),
@@ -249,7 +262,10 @@ class _LoginPageState extends State<LoginPage>
   // ─── Formulaire Client ────────────────────────────────────────────────────
 
   Widget _buildClientLoginForm(
-      BuildContext context, ThemeData theme, bool isLoading) {
+    BuildContext context,
+    ThemeData theme,
+    bool isLoading,
+  ) {
     return Column(
       key: const ValueKey('client_login'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -274,8 +290,9 @@ class _LoginPageState extends State<LoginPage>
               // Tabs Email / Téléphone
               Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.5),
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: TabBar(
@@ -297,7 +314,7 @@ class _LoginPageState extends State<LoginPage>
               const SizedBox(height: 20),
 
               SizedBox(
-                height: 170,
+                height: 200,
                 child: TabBarView(
                   controller: _tabController,
                   children: [
@@ -354,7 +371,10 @@ class _LoginPageState extends State<LoginPage>
   // ─── Formulaire Livreur ───────────────────────────────────────────────────
 
   Widget _buildDeliveryLoginForm(
-      BuildContext context, ThemeData theme, bool isLoading) {
+    BuildContext context,
+    ThemeData theme,
+    bool isLoading,
+  ) {
     return Column(
       key: const ValueKey('delivery_login'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -391,11 +411,15 @@ class _LoginPageState extends State<LoginPage>
                   labelText: 'auth.password'.tr(),
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
-                    icon: Icon(_deliveryPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined),
-                    onPressed: () => setState(() =>
-                        _deliveryPasswordVisible = !_deliveryPasswordVisible),
+                    icon: Icon(
+                      _deliveryPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
+                    onPressed: () => setState(
+                      () =>
+                          _deliveryPasswordVisible = !_deliveryPasswordVisible,
+                    ),
                   ),
                 ),
               ),
@@ -411,25 +435,29 @@ class _LoginPageState extends State<LoginPage>
                         final password = _deliveryPasswordCtrl.text;
                         if (phone.isEmpty || password.isEmpty) return;
                         context.read<AuthBloc>().add(
-                              AuthEvent.loginDelivery(
-                                phone: phone,
-                                password: password,
-                              ),
-                            );
+                          AuthEvent.loginDelivery(
+                            phone: phone,
+                            password: password,
+                          ),
+                        );
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1565C0),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: isLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
                     : Text('auth.login_btn'.tr()),
               ),
             ],
@@ -450,12 +478,16 @@ class _LoginPageState extends State<LoginPage>
             color: const Color(0xFF1565C0).withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-                color: const Color(0xFF1565C0).withValues(alpha: 0.2)),
+              color: const Color(0xFF1565C0).withValues(alpha: 0.2),
+            ),
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline,
-                  color: Color(0xFF1565C0), size: 20),
+              const Icon(
+                Icons.info_outline,
+                color: Color(0xFF1565C0),
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -476,8 +508,7 @@ class _LoginPageState extends State<LoginPage>
 
   // ─── OTP Form ─────────────────────────────────────────────────────────────
 
-  Widget _buildOtpForm(
-      BuildContext context, ThemeData theme, bool isLoading) {
+  Widget _buildOtpForm(BuildContext context, ThemeData theme, bool isLoading) {
     return Column(
       key: const ValueKey('otp'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -511,8 +542,9 @@ class _LoginPageState extends State<LoginPage>
                 decoration: InputDecoration(
                   hintText: '------',
                   hintStyle: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant
-                        .withValues(alpha: 0.3),
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.3,
+                    ),
                     fontSize: 32,
                     letterSpacing: 10,
                   ),
@@ -527,7 +559,9 @@ class _LoginPageState extends State<LoginPage>
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide(
-                        color: theme.colorScheme.primary, width: 2),
+                      color: theme.colorScheme.primary,
+                      width: 2,
+                    ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 20),
                 ),
@@ -538,21 +572,28 @@ class _LoginPageState extends State<LoginPage>
                     ? null
                     : () {
                         HapticFeedback.mediumImpact();
-                        context.read<AuthBloc>().add(AuthEvent.verifyOtp(
-                              phone: _otpPhone!,
-                              otp: _otpCtrl.text.trim(),
-                            ));
+                        context.read<AuthBloc>().add(
+                          AuthEvent.verifyOtp(
+                            phone: _otpPhone!,
+                            otp: _otpCtrl.text.trim(),
+                          ),
+                        );
                       },
                 style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12))),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 child: isLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
                     : Text('auth.verify_btn'.tr()),
               ),
               const SizedBox(height: 8),
@@ -570,7 +611,10 @@ class _LoginPageState extends State<LoginPage>
   // ─── Register Form ────────────────────────────────────────────────────────
 
   Widget _buildRegisterForm(
-      BuildContext context, ThemeData theme, bool isLoading) {
+    BuildContext context,
+    ThemeData theme,
+    bool isLoading,
+  ) {
     return Column(
       key: const ValueKey('register'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -610,19 +654,24 @@ class _LoginPageState extends State<LoginPage>
                   labelText: 'auth.password'.tr(),
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
-                    icon: Icon(_regPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined),
+                    icon: Icon(
+                      _regPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
                     onPressed: () => setState(
-                        () => _regPasswordVisible = !_regPasswordVisible),
+                      () => _regPasswordVisible = !_regPasswordVisible,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 12),
-              _buildTextField(
-                controller: _regCityCtrl,
+              _buildDropdownField(
+                value: _regCityCtrl.text,
                 label: 'auth.city'.tr(),
                 icon: Icons.location_city_outlined,
+                items: ['Douala', 'Yaoundé'],
+                onChanged: (val) => setState(() => _regCityCtrl.text = val!),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -630,23 +679,30 @@ class _LoginPageState extends State<LoginPage>
                     ? null
                     : () {
                         HapticFeedback.mediumImpact();
-                        context.read<AuthBloc>().add(AuthEvent.register(
-                              name: _regNameCtrl.text.trim(),
-                              email: _regEmailCtrl.text.trim(),
-                              password: _regPasswordCtrl.text,
-                              city: _regCityCtrl.text.trim(),
-                            ));
+                        context.read<AuthBloc>().add(
+                          AuthEvent.register(
+                            name: _regNameCtrl.text.trim(),
+                            email: _regEmailCtrl.text.trim(),
+                            password: _regPasswordCtrl.text,
+                            city: _regCityCtrl.text.trim(),
+                          ),
+                        );
                       },
                 style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12))),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 child: isLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
                     : Text('auth.register_btn'.tr()),
               ),
             ],
@@ -728,9 +784,11 @@ class _LoginPageState extends State<LoginPage>
             labelText: 'auth.password'.tr(),
             prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(
-              icon: Icon(_passwordVisible
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined),
+              icon: Icon(
+                _passwordVisible
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+              ),
               onPressed: () =>
                   setState(() => _passwordVisible = !_passwordVisible),
             ),
@@ -742,21 +800,28 @@ class _LoginPageState extends State<LoginPage>
               ? null
               : () {
                   HapticFeedback.mediumImpact();
-                  context.read<AuthBloc>().add(AuthEvent.loginWithEmail(
-                        email: _emailCtrl.text.trim(),
-                        password: _passwordCtrl.text,
-                      ));
+                  context.read<AuthBloc>().add(
+                    AuthEvent.loginWithEmail(
+                      email: _emailCtrl.text.trim(),
+                      password: _passwordCtrl.text,
+                    ),
+                  );
                 },
           style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12))),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
           child: isLoading
               ? const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white))
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
               : Text('auth.login_btn'.tr()),
         ),
       ],
@@ -782,20 +847,23 @@ class _LoginPageState extends State<LoginPage>
                   HapticFeedback.mediumImpact();
                   final phone = _phoneCtrl.text.trim();
                   if (phone.isEmpty) return;
-                  context
-                      .read<AuthBloc>()
-                      .add(AuthEvent.sendOtp(phone: phone));
+                  context.read<AuthBloc>().add(AuthEvent.sendOtp(phone: phone));
                 },
           style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12))),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
           child: isLoading
               ? const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white))
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
               : Text('auth.send_otp'.tr()),
         ),
       ],
@@ -876,10 +944,7 @@ class _LoginPageState extends State<LoginPage>
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-      ),
+      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
     );
   }
 
@@ -889,8 +954,8 @@ class _LoginPageState extends State<LoginPage>
       child: Row(
         children: [
           Expanded(
-              child:
-                  Divider(color: theme.dividerColor.withValues(alpha: 0.4))),
+            child: Divider(color: theme.dividerColor.withValues(alpha: 0.4)),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
@@ -902,8 +967,8 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
           Expanded(
-              child:
-                  Divider(color: theme.dividerColor.withValues(alpha: 0.4))),
+            child: Divider(color: theme.dividerColor.withValues(alpha: 0.4)),
+          ),
         ],
       ),
     );
@@ -915,10 +980,8 @@ class _LoginPageState extends State<LoginPage>
       onPressed: () => _handleGoogleSignIn(context),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 14),
-        side:
-            BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -927,6 +990,29 @@ class _LoginPageState extends State<LoginPage>
           const SizedBox(width: 8),
           Text('auth.continue_with_google'.tr()),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String value,
+    required String label,
+    required IconData icon,
+    required List<String> items,
+    required void Function(String?) onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      initialValue: items.contains(value) ? value : items.first,
+      onChanged: onChanged,
+      items: items.map((city) {
+        return DropdownMenuItem(
+          value: city,
+          child: Text(city),
+        );
+      }).toList(),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
       ),
     );
   }

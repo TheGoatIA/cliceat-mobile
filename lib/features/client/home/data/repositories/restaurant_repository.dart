@@ -29,8 +29,9 @@ class RestaurantRepository {
     double? lng,
   }) async {
     try {
+      final normalizedCity = city.toLowerCase().replaceAll('é', 'e');
       final res =
-          await _service.getRestaurants(city, 20000.0, lat, lng);
+          await _service.getRestaurants(normalizedCity, 20000.0, lat, lng);
       if (res.isSuccessful && res.body != null) {
         final raw = _extractList(res.body);
         final models = raw.map(RestaurantModel.fromJson).toList();

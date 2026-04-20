@@ -26,18 +26,16 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return BlocProvider(
-      create: (context) => getIt<ProfileCubit>()..loadProfile(),
-      child: BlocBuilder<ProfileCubit, ProfileState>(
-        builder: (context, state) {
-          return state.maybeWhen(
-            loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-            error: (msg) => Scaffold(body: Center(child: Text(msg))),
-            loaded: (user) => _buildProfileContent(context, user, theme),
-            orElse: () => const SizedBox.shrink(),
-          );
-        },
-      ),
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        return state.maybeWhen(
+          loading: () => const Scaffold(
+              body: Center(child: CircularProgressIndicator())),
+          error: (msg) => Scaffold(body: Center(child: Text(msg))),
+          loaded: (user) => _buildProfileContent(context, user, theme),
+          orElse: () => const SizedBox.shrink(),
+        );
+      },
     );
   }
 

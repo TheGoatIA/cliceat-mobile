@@ -20,7 +20,8 @@ import 'core/widgets/connectivity_banner.dart';
 import 'core/services/sync_manager_service.dart';
 import 'core/services/precache_service.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/client/cart/presentation/bloc/cart_cubit.dart';
+import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
+import 'package:cliceat_app/features/client/cart/presentation/bloc/cart_cubit.dart';
 import 'firebase_options.dart';
 import 'core/config/env_config.dart';
 import 'package:http_certificate_pinning/http_certificate_pinning.dart';
@@ -37,7 +38,9 @@ void mainCommon() {
 }
 
 Future<void> _bootstrap() async {
+  debugPrint('🚀 Starting bootstrap...');
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('✅ Flutter Binding Initialized');
 
   // Limiter le cache image (appareils bas de gamme)
   PaintingBinding.instance.imageCache
@@ -46,19 +49,21 @@ Future<void> _bootstrap() async {
 
   // Mapbox token (injecté via --dart-define=MAPBOX_ACCESS_TOKEN=...)
   final mapboxToken = FlavorConfig.mapboxToken;
-  assert(
-    mapboxToken.isNotEmpty,
-    '[${FlavorConfig.name}] MAPBOX_ACCESS_TOKEN manquant — la carte ne fonctionnera pas.',
-  );
+  debugPrint('📍 Mapbox Token length: ${mapboxToken.length}');
+  
   if (mapboxToken.isNotEmpty) {
     MapboxOptions.setAccessToken(mapboxToken);
   }
 
+  debugPrint('🌍 Initializing EasyLocalization...');
   await EasyLocalization.ensureInitialized();
+  debugPrint('✅ EasyLocalization Initialized');
 
+  debugPrint('🔥 Initializing Firebase...');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  debugPrint('✅ Firebase Initialized');
 
   if (!kDebugMode) {
     await FirebaseCrashlytics.instance
@@ -72,16 +77,24 @@ Future<void> _bootstrap() async {
     };
   }
 
+  debugPrint('💉 Configuring Dependencies...');
   await configureDependencies();
+  debugPrint('✅ Dependencies Configured');
 
   getIt<NotificationService>().configureRouting(rootNavigatorKey);
+  debugPrint('🔔 Initializing NotificationService...');
   await getIt<NotificationService>().initialize();
+  debugPrint('✅ NotificationService Initialized');
 
   getIt<DeepLinkService>().initialize(rootNavigatorKey);
 
   // Initialisation des services offline et cache
+  debugPrint('🔄 Initializing SyncManagerService...');
   getIt<SyncManagerService>().initialize();
+  debugPrint('🖼️ Starting Precaching...');
   getIt<PrecacheService>().startPrecaching();
+
+  debugPrint('🏁 Bootstrap finished. Running App...');
 
   // ─── Certificate Pinning (Sécurité) ───────────────────────────────────────
   // Validation du certificat SHA-256 aux lancements (Anti MITM)
@@ -109,7 +122,7 @@ Future<void> _bootstrap() async {
       supportedLocales: const [Locale('fr', 'FR'), Locale('en', 'US')],
       path: 'assets/translations',
       fallbackLocale: const Locale('fr', 'FR'),
-      child: const ConnectivityBanner(child: ClicEatApp()),
+      child: const ClicEatApp(),
     ),
   );
 }
@@ -131,6 +144,9 @@ class ClicEatApp extends StatelessWidget {
         BlocProvider(
           create: (_) => getIt<ThemeCubit>(),
         ),
+        BlocProvider(
+          create: (_) => getIt<ProfileCubit>()..loadProfile(),
+        ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, mode) {
@@ -143,15 +159,20 @@ class ClicEatApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: mode,
             routerConfig: appRouter,
-        // Bannière de flavor en overlay (dev/staging uniquement)
-        builder: FlavorConfig.isProd
-            ? null
-            : (context, child) => Banner(
+            builder: (context, child) {
+              Widget widget = child!;
+              // Bannière de flavor en overlay (dev/staging uniquement)
+              if (!FlavorConfig.isProd) {
+                widget = Banner(
                   message: FlavorConfig.name,
                   location: BannerLocation.topEnd,
                   color: FlavorConfig.isDev ? Colors.red : Colors.orange,
-                  child: child!,
-                ),
+                  child: widget,
+                );
+              }
+              // Bannière de connectivité (offline)
+              return ConnectivityBanner(child: widget);
+            },
           );
         },
       ),

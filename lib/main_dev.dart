@@ -7,8 +7,14 @@ import 'main_common.dart';
 void main() {
   FlavorConfig.initialize(
     flavor: Flavor.dev,
-    apiBaseUrl: 'https://dev-api.cliceat.cm/api/v1',
-    wsUrl: 'wss://dev-api.cliceat.cm',
+    apiBaseUrl: const String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'https://dev-api.cliceat.cm/api/v1',
+    ),
+    wsUrl: const String.fromEnvironment(
+      'WS_URL',
+      defaultValue: 'wss://dev-api.cliceat.cm',
+    ),
     mapboxToken: const String.fromEnvironment(
       'MAPBOX_ACCESS_TOKEN',
       defaultValue: '',

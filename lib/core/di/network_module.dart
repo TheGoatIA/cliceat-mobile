@@ -6,6 +6,7 @@ import '../network/interceptors/refresh_interceptor.dart';
 import '../network/interceptors/connectivity_interceptor.dart';
 import '../network/interceptors/retry_interceptor.dart';
 import '../network/interceptors/timeout_interceptor.dart';
+import '../network/interceptors/logging_interceptor.dart';
 import '../services/token_service.dart';
 import '../config/env_config.dart';
 import '../../features/auth/data/datasources/auth_service.dart';
@@ -65,7 +66,7 @@ abstract class NetworkModule {
         RetryInterceptor(),
         AuthInterceptor(secureStorage),
         RefreshInterceptor(secureStorage, tokenService),
-        HttpLoggingInterceptor(),
+        LoggingInterceptor(),
       ],
     );
   }

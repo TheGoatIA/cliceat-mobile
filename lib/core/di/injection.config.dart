@@ -35,6 +35,7 @@ import '../../features/client/cart/data/repositories/coupon_repository.dart'
     as _i863;
 import '../../features/client/cart/data/repositories/order_repository.dart'
     as _i1060;
+import '../../features/client/cart/presentation/bloc/cart_cubit.dart' as _i308;
 import '../../features/client/cart/presentation/bloc/order_bloc.dart' as _i438;
 import '../../features/client/dispute/data/datasources/dispute_service.dart'
     as _i214;
@@ -179,6 +180,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i555.WebSocketService>(
       () =>
           _i555.WebSocketService(gh<_i227.TokenService>(), gh<_i974.Logger>()),
+    );
+    gh.lazySingleton<_i308.CartCubit>(
+      () => _i308.CartCubit(
+        gh<_i475.AppDatabase>(),
+        gh<_i222.AnalyticsService>(),
+      ),
     );
     gh.lazySingleton<_i1060.AuthService>(
       () => networkModule.getAuthService(gh<_i31.ChopperClient>()),
@@ -340,7 +347,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i555.WebSocketService>(),
       ),
     );
-    gh.factory<_i747.ProfileCubit>(
+    gh.lazySingleton<_i747.ProfileCubit>(
       () => _i747.ProfileCubit(gh<_i482.UserRepository>()),
     );
     gh.factory<_i305.ChatCubit>(

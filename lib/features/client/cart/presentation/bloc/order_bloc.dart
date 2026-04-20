@@ -9,8 +9,26 @@ import '../../../../../core/services/analytics_service.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 
 part 'order_event.dart';
-part 'order_state.dart';
 part 'order_bloc.freezed.dart';
+
+@freezed
+class OrderState with _$OrderState {
+  const factory OrderState.initial() = _Initial;
+  const factory OrderState.loading() = _Loading;
+  const factory OrderState.created({
+    required String orderId,
+    String? paymentUrl,
+  }) = _Created;
+  const factory OrderState.ordersLoaded(
+      List<Map<String, dynamic>> orders) = _OrdersLoaded;
+  const factory OrderState.loadingMore(
+      List<Map<String, dynamic>> orders) = _LoadingMore;
+  const factory OrderState.cancelled() = _Cancelled;
+  const factory OrderState.rated() = _Rated;
+  const factory OrderState.reorderSuccess(String newOrderId) = _ReorderSuccess;
+  const factory OrderState.invoiceDownloaded(String filePath) = _InvoiceDownloaded;
+  const factory OrderState.error(String message) = _Error;
+}
 
 @injectable
 class OrderBloc extends Bloc<OrderEvent, OrderState> {

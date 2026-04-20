@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart' as drift;
 import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/data/local/database.dart';
@@ -66,6 +67,7 @@ class CartState {
       restaurantId != null && restaurantId != newRestaurantId;
 }
 
+@lazySingleton
 class CartCubit extends Cubit<CartState> {
   final AppDatabase _db;
   final AnalyticsService _analytics;

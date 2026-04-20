@@ -15,14 +15,6 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AiCubit>().initChat(context.locale.languageCode);
-    });
-  }
-
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
@@ -50,13 +42,17 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
           children: [
             const Icon(Icons.psychology, color: Colors.blueAccent),
             const SizedBox(width: 8),
-            Text('ai.assistant_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              'ai.assistant_title'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
       body: BlocConsumer<AiCubit, AiState>(
         listener: (context, state) {
-          if (state == const AiState.typing() || state.maybeWhen(idle: (_) => true, orElse: () => false)) {
+          if (state == const AiState.typing() ||
+              state.maybeWhen(idle: (_) => true, orElse: () => false)) {
             _scrollToBottom();
           }
         },
@@ -65,7 +61,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
             idle: (msgs) => msgs,
             orElse: () => [],
           );
-          
+
           final isTyping = state == const AiState.typing();
 
           return Column(
@@ -74,7 +70,10 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 child: ListView.builder(
                   controller: _scrollController,
                   reverse: true, // Messages appear from bottom up
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   itemCount: messages.length + (isTyping ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (isTyping && index == 0) {
@@ -90,16 +89,25 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                     final messageIndex = isTyping ? index - 1 : index;
                     // Because it's reversed, index 0 is the newest message which is at the end of the list.
                     final msg = messages[messages.length - 1 - messageIndex];
-                    
+
                     final isUser = msg.role == 'user';
-                    
+
                     return Align(
-                      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment: isUser
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
-                          color: isUser ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.surfaceContainerHighest,
+                          color: isUser
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.only(
                             topLeft: const Radius.circular(16),
                             topRight: const Radius.circular(16),
@@ -110,7 +118,9 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                         child: Text(
                           msg.content,
                           style: TextStyle(
-                            color: isUser ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                            color: isUser
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -144,7 +154,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
             color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, -2),
             blurRadius: 4,
-          )
+          ),
         ],
       ),
       child: SafeArea(

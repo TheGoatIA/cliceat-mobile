@@ -38,6 +38,12 @@ import '../../features/client/review/presentation/pages/my_reviews_page.dart';
 import '../../features/client/wallet/presentation/pages/wallet_page.dart';
 import '../../features/client/dispute/presentation/pages/create_dispute_page.dart';
 import '../../features/client/dispute/presentation/pages/dispute_history_page.dart';
+import '../../features/client/ai/presentation/cubit/ai_cubit.dart';
+import '../../features/chat/presentation/cubit/chat_cubit.dart';
+import '../../features/client/referral/presentation/cubit/referral_cubit.dart';
+import '../../features/client/review/presentation/cubit/review_cubit.dart';
+import '../../core/di/injection.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 // ─── Navigator key ────────────────────────────────────────────────────────────
 
@@ -170,11 +176,20 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(
           path: 'ai',
-          builder: (context, state) => const AiAssistantPage(),
+          builder: (context, state) {
+            final locale = context.locale.languageCode;
+            return BlocProvider(
+              create: (context) => getIt<AiCubit>()..initChat(locale),
+              child: const AiAssistantPage(),
+            );
+          },
         ),
         GoRoute(
           path: 'chat',
-          builder: (context, state) => const ChatListPage(),
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<ChatCubit>()..loadConversations(),
+            child: const ChatListPage(),
+          ),
         ),
         GoRoute(
           path: 'chat/:id',
@@ -185,11 +200,17 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: 'profile/referrals',
-          builder: (context, state) => const ReferralPage(),
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<ReferralCubit>()..loadStats(),
+            child: const ReferralPage(),
+          ),
         ),
         GoRoute(
           path: 'profile/reviews',
-          builder: (context, state) => const MyReviewsPage(),
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<ReviewCubit>()..loadMyReviews(),
+            child: const MyReviewsPage(),
+          ),
         ),
         GoRoute(
           path: 'wallet',

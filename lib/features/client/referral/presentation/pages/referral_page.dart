@@ -13,15 +13,6 @@ class ReferralPage extends StatefulWidget {
 }
 
 class _ReferralPageState extends State<ReferralPage> {
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ReferralCubit>().loadStats();
-    });
-  }
-
   void _showApplyCodeDialog() {
     final controller = TextEditingController();
     showDialog(
@@ -55,16 +46,26 @@ class _ReferralPageState extends State<ReferralPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('referral.title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          'referral.title'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: BlocConsumer<ReferralCubit, ReferralState>(
         listener: (context, state) {
           state.maybeWhen(
             error: (msg) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(msg), backgroundColor: Colors.red),
+              );
             },
             codeApplied: () {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('referral.apply_success'.tr()), backgroundColor: Colors.green));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('referral.apply_success'.tr()),
+                  backgroundColor: Colors.green,
+                ),
+              );
             },
             orElse: () {},
           );
@@ -77,7 +78,12 @@ class _ReferralPageState extends State<ReferralPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildStatCard(context, stats.totalEarned, stats.pendingBonus, stats.totalReferrals),
+                  _buildStatCard(
+                    context,
+                    stats.totalEarned,
+                    stats.pendingBonus,
+                    stats.totalReferrals,
+                  ),
                   const SizedBox(height: 32),
                   _buildCodeShareCard(context, stats.referralCode),
                   const SizedBox(height: 32),
@@ -85,7 +91,9 @@ class _ReferralPageState extends State<ReferralPage> {
                     onPressed: _showApplyCodeDialog,
                     icon: const Icon(Icons.card_giftcard),
                     label: Text('referral.apply_code_btn'.tr()),
-                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
                 ],
               ),
@@ -97,7 +105,12 @@ class _ReferralPageState extends State<ReferralPage> {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, double total, double pending, int count) {
+  Widget _buildStatCard(
+    BuildContext context,
+    double total,
+    double pending,
+    int count,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -106,32 +119,62 @@ class _ReferralPageState extends State<ReferralPage> {
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Theme.of(context).primaryColor.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5))
-        ]
+          BoxShadow(
+            color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Text('referral.total_earned'.tr(), style: const TextStyle(color: Colors.white70, fontSize: 16)),
+          Text(
+            'referral.total_earned'.tr(),
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
+          ),
           const SizedBox(height: 8),
-          Text('${total.toStringAsFixed(0)} FCFA', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+          Text(
+            '${total.toStringAsFixed(0)} FCFA',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildSmallStat('referral.pending'.tr(), '${pending.toStringAsFixed(0)} FCFA'),
-              _buildSmallStat('referral.friends_invited'.tr(), count.toString()),
+              _buildSmallStat(
+                'referral.pending'.tr(),
+                '${pending.toStringAsFixed(0)} FCFA',
+              ),
+              _buildSmallStat(
+                'referral.friends_invited'.tr(),
+                count.toString(),
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
   }
-  
+
   Widget _buildSmallStat(String label, String value) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
@@ -144,28 +187,47 @@ class _ReferralPageState extends State<ReferralPage> {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            Text('referral.share_title'.tr(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              'referral.share_title'.tr(),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-            Text('referral.share_desc'.tr(), textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+            Text(
+              'referral.share_desc'.tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  style: BorderStyle.solid,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(code, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                  Text(
+                    code,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.copy, color: Colors.blue),
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: code));
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('referral.copied'.tr())));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('referral.copied'.tr())),
+                      );
                     },
-                  )
+                  ),
                 ],
               ),
             ),

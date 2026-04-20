@@ -265,7 +265,8 @@
     "notif_promotions": "Promotions",
     "notif_promotions_desc": "Exclusive offers and promo codes",
     "notif_new_restaurants": "New restaurants",
-    "notif_new_restaurants_desc": "Discover new restaurants in your area"
+    "notif_new_restaurants_desc": "Discover new restaurants in your area",
+    "dark_mode": "Dark mode"
   },
   "delivery": {
     "dashboard_title": "Dashboard",
@@ -445,6 +446,12 @@
     "privacy_s5_body": "In accordance with Cameroonian personal data law, you have the right to access, rectify, erase, and object to your data. Contact us at: privacy@cliceat.cm",
     "privacy_s6_title": "6. Security",
     "privacy_s6_body": "We implement technical and organizational security measures to protect your data against unauthorized access, including encryption of sensitive data and secure transmission (HTTPS/TLS)."
+  },
+  "wallet": {
+    "title": "My Wallet"
+  },
+  "dispute": {
+    "history_title": "My Disputes"
   },
   "chat": {
     "title": "Messages",

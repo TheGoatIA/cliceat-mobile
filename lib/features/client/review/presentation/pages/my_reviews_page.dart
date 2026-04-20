@@ -14,18 +14,13 @@ class MyReviewsPage extends StatefulWidget {
 
 class _MyReviewsPageState extends State<MyReviewsPage> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ReviewCubit>().loadMyReviews();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('review.my_reviews'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          'review.my_reviews'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: BlocBuilder<ReviewCubit, ReviewState>(
         builder: (context, state) {
@@ -37,9 +32,16 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.rate_review_outlined, size: 64, color: Colors.grey.shade400),
+                      Icon(
+                        Icons.rate_review_outlined,
+                        size: 64,
+                        color: Colors.grey.shade400,
+                      ),
                       const SizedBox(height: 16),
-                      Text('review.no_reviews_yet'.tr(), style: TextStyle(color: Colors.grey.shade600)),
+                      Text(
+                        'review.no_reviews_yet'.tr(),
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
                     ],
                   ),
                 );
@@ -47,7 +49,8 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
               return ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: reviews.length,
-                separatorBuilder: (context, index) => const Divider(height: 32),
+                separatorBuilder: (context, index) =>
+                    const Divider(height: 32),
                 itemBuilder: (context, index) {
                   final review = reviews[index];
                   return Column(
@@ -59,13 +62,22 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
                           Expanded(
                             child: Text(
                               review.restaurantName ?? 'Restaurant',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Text(
-                            timeago.format(review.createdAt, locale: context.locale.languageCode),
-                            style: const TextStyle(color: Colors.grey, fontSize: 12),
+                            timeago.format(
+                              review.createdAt,
+                              locale: context.locale.languageCode,
+                            ),
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -73,17 +85,21 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
                       Row(
                         children: List.generate(5, (starIndex) {
                           return Icon(
-                            starIndex < review.restaurantRating 
-                                ? Icons.star 
+                            starIndex < review.restaurantRating
+                                ? Icons.star
                                 : Icons.star_border,
                             color: Colors.amber,
                             size: 20.0,
                           );
                         }),
                       ),
-                      if (review.comment != null && review.comment!.isNotEmpty) ...[
+                      if (review.comment != null &&
+                          review.comment!.isNotEmpty) ...[
                         const SizedBox(height: 12),
-                        Text(review.comment!, style: const TextStyle(color: Colors.black87)),
+                        Text(
+                          review.comment!,
+                          style: const TextStyle(color: Colors.black87),
+                        ),
                       ],
                       if (review.restaurantResponse != null) ...[
                         const SizedBox(height: 12),
@@ -91,24 +107,37 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade100,
-                            border: Border(left: BorderSide(color: Theme.of(context).primaryColor, width: 4)),
+                            border: Border(
+                              left: BorderSide(
+                                color: Theme.of(context).primaryColor,
+                                width: 4,
+                              ),
+                            ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('review.restaurant_reply'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                              Text(
+                                'review.restaurant_reply'.tr(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Text(review.restaurantResponse!),
                             ],
                           ),
                         ),
-                      ]
+                      ],
                     ],
                   );
                 },
               );
             },
-            error: (msg) => Center(child: Text(msg, style: const TextStyle(color: Colors.red))),
+            error: (msg) => Center(
+              child: Text(msg, style: const TextStyle(color: Colors.red)),
+            ),
             orElse: () => const Center(child: CircularProgressIndicator()),
           );
         },

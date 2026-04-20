@@ -70,14 +70,6 @@ class WebSocketService {
   int _retryCount = 0;
   Timer? _reconnectTimer;
 
-  // ─── Heartbeat state ──────────────────────────────────────────────────────
-
-  static const _heartbeatInterval = Duration(seconds: 25);
-  static const _pongTimeout = Duration(seconds: 5);
-
-  Timer? _heartbeatTimer;
-  Timer? _pongTimeoutTimer;
-  bool _waitingForPong = false;
 
   // ─── Public API ───────────────────────────────────────────────────────────
 
@@ -92,7 +84,7 @@ class WebSocketService {
   void disconnect() {
     _manualDisconnect = true;
     _stopReconnect();
-    _stopHeartbeat();
+
     _socket?.disconnect();
     _socket?.dispose();
     _socket = null;
@@ -134,13 +126,10 @@ class WebSocketService {
       _retryCount = 0;
       _stopReconnect();
       _statusController.add(WsStatus.connected);
-      _startHeartbeat();
     });
 
     _socket!.on('pong', (_) {
       _logger.d('[WS] Pong reçu.');
-      _waitingForPong = false;
-      _pongTimeoutTimer?.cancel();
     });
 
     _socket!.on('mission_dispatched', (data) {
@@ -166,7 +155,6 @@ class WebSocketService {
 
     _socket!.onDisconnect((_) {
       _logger.w('[WS] Déconnecté.');
-      _stopHeartbeat();
       _statusController.add(WsStatus.disconnected);
       _scheduleReconnect();
     });
@@ -178,7 +166,6 @@ class WebSocketService {
         _authErrorController.add(error.toString());
         return;
       }
-      _stopHeartbeat();
       _scheduleReconnect();
     });
 
@@ -220,41 +207,6 @@ class WebSocketService {
   void _stopReconnect() {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
-  }
-
-  // ─── Heartbeat ────────────────────────────────────────────────────────────
-
-  void _startHeartbeat() {
-    _stopHeartbeat();
-    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) {
-      if (!isConnected) return;
-
-      if (_waitingForPong) {
-        // Pas de pong reçu depuis le dernier ping → connexion zombie
-        _logger.w('[WS] Pas de pong reçu — reconnexion forcée.');
-        _socket?.disconnect();
-        return;
-      }
-
-      _logger.d('[WS] Ping envoyé.');
-      _waitingForPong = true;
-      _socket?.emit('ping');
-
-      _pongTimeoutTimer = Timer(_pongTimeout, () {
-        if (_waitingForPong) {
-          _logger.w('[WS] Timeout pong — connexion considérée perdue.');
-          _socket?.disconnect();
-        }
-      });
-    });
-  }
-
-  void _stopHeartbeat() {
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = null;
-    _pongTimeoutTimer?.cancel();
-    _pongTimeoutTimer = null;
-    _waitingForPong = false;
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
