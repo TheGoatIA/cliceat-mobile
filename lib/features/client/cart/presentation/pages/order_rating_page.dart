@@ -132,7 +132,7 @@ class _OrderRatingPageState extends State<OrderRatingPage>
           const SizedBox(height: 24),
           Text(
             'order.rating_thanks_title'.tr(),
-            style: GoogleFonts.nunito(
+            style: GoogleFonts.bricolageGrotesque(
               fontSize: 26,
               fontWeight: FontWeight.bold,
             ),
@@ -180,7 +180,7 @@ class _OrderRatingPageState extends State<OrderRatingPage>
               const SizedBox(height: 16),
               Text(
                 'order.delivered_title'.tr(),
-                style: GoogleFonts.nunito(
+                style: GoogleFonts.bricolageGrotesque(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),

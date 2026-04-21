@@ -41,7 +41,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildProfileContent(BuildContext context, UserModel user, ThemeData theme) {
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: AppTheme.bg,
       body: CustomScrollView(
         slivers: [
           _buildSliverHeader(theme, user),
@@ -111,7 +111,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 name.isNotEmpty
                                     ? name[0].toUpperCase()
                                     : 'U',
-                                style: GoogleFonts.nunito(
+                                style: GoogleFonts.bricolageGrotesque(
                                   fontSize: 34,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -146,7 +146,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 12),
                 Text(
                   name,
-                  style: GoogleFonts.nunito(
+                  style: GoogleFonts.bricolageGrotesque(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -508,7 +508,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             Text(
               'profile.edit_profile'.tr(),
-              style: GoogleFonts.nunito(
+              style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -599,7 +599,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         children: [
                           Text(
                             'profile.my_addresses'.tr(),
-                            style: GoogleFonts.nunito(
+                            style: GoogleFonts.bricolageGrotesque(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -812,7 +812,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             Text(
               'profile.add_address'.tr(),
-              style: GoogleFonts.nunito(
+              style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -940,7 +940,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Text(
                         '$points',
-                        style: GoogleFonts.nunito(
+                        style: GoogleFonts.bricolageGrotesque(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -959,7 +959,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 16),
                 Text(
                   'profile.loyalty'.tr(),
-                  style: GoogleFonts.nunito(
+                  style: GoogleFonts.bricolageGrotesque(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1005,7 +1005,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             Text(
               'profile.language'.tr(),
-              style: GoogleFonts.nunito(
+              style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -1077,7 +1077,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 16),
             Text(
               'profile.help'.tr(),
-              style: GoogleFonts.nunito(
+              style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -1198,7 +1198,7 @@ class _NotificationSettingsSheetState
           ),
           Text(
             'profile.notifications'.tr(),
-            style: GoogleFonts.nunito(
+            style: GoogleFonts.bricolageGrotesque(
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),

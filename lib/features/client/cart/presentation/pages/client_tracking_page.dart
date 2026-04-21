@@ -12,6 +12,7 @@ import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import '../../../../../core/services/websocket_service.dart';
+import '../../../../../core/theme/app_theme.dart';
 
 class ClientTrackingPage extends StatefulWidget {
   final String orderId;
@@ -528,15 +529,14 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                   child: Text(
                     labels[i],
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.nunito(
+                    style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: _currentStep >= i
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                          ? FontWeight.w700
+                          : FontWeight.w400,
                       color: _currentStep >= i
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.5),
+                          ? AppTheme.primaryRed
+                          : AppTheme.mutedLight,
                     ),
                   ),
                 ),

@@ -1,15 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
+import '../../core/theme/app_theme.dart';
 import 'app_network_image.dart';
 
-/// Reusable card that displays a [RestaurantModel].
-/// Used in home page, search results, and anywhere restaurants are listed.
 class RestaurantCard extends StatelessWidget {
   final RestaurantModel restaurant;
-
-  /// When [compact] is true the cover image is shorter and info is condensed.
   final bool compact;
 
   const RestaurantCard({
@@ -20,25 +18,42 @@ class RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final coverHeight = compact ? 110.0 : 160.0;
-
     return GestureDetector(
       onTap: () => context.push('/restaurant/${restaurant.id}'),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.lineSoft),
+          boxShadow: AppTheme.shadowSm,
+        ),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Cover Image ────────────────────────────────────────────────
+            // ── Cover ──────────────────────────────────────────────────────
             Stack(
               children: [
-                AppNetworkImage(
-                  url: restaurant.coverImage,
-                  height: coverHeight,
-                  width: double.infinity,
-                  fallbackAsset: 'assets/images/restaurant_placeholder.jpg',
+                AspectRatio(
+                  aspectRatio: compact ? 16 / 8 : 16 / 9,
+                  child: AppNetworkImage(
+                    url: restaurant.coverImage,
+                    width: double.infinity,
+                    fallbackAsset: 'assets/images/restaurant_placeholder.jpg',
+                  ),
+                ),
+                // Dark gradient bottom
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.5, 1.0],
+                        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.45)],
+                      ),
+                    ),
+                  ),
                 ),
                 if (!restaurant.isOpen)
                   Positioned.fill(
@@ -49,54 +64,70 @@ class RestaurantCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.75),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(100),
                           ),
                           child: Text(
                             'restaurant.closed'.tr(),
-                            style: const TextStyle(
+                            style: GoogleFonts.inter(
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
+                // Rating badge bottom-left
+                if (restaurant.rating != null)
+                  Positioned(
+                    bottom: 10,
+                    left: 10,
+                    child: _RatingBadge(rating: restaurant.rating!),
+                  ),
+                // Heart button top-right
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.favorite_border_rounded, size: 16, color: AppTheme.ink),
+                  ),
+                ),
               ],
             ),
 
             // ── Info ───────────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          restaurant.name,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (restaurant.rating != null) _RatingBadge(rating: restaurant.rating!),
-                    ],
-                  ),
-                  if ((restaurant.cuisineType ?? '').isNotEmpty || restaurant.cuisines.isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      restaurant.cuisineType ??
-                          restaurant.cuisines.take(2).join(' · '),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                  Text(
+                    restaurant.name,
+                    style: GoogleFonts.bricolageGrotesque(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.ink,
+                      letterSpacing: -0.3,
                     ),
-                  ],
-                  const SizedBox(height: 8),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    [
+                      if ((restaurant.cuisineType ?? '').isNotEmpty) restaurant.cuisineType!,
+                      if (restaurant.cuisines.isNotEmpty) restaurant.cuisines.take(2).join(' · '),
+                    ].where((s) => s.isNotEmpty).join(' · '),
+                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 10),
                   _MetaRow(restaurant: restaurant),
                 ],
               ),
@@ -114,23 +145,23 @@ class _RatingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondary,
+        color: AppTheme.ink,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star_rounded, size: 13, color: theme.colorScheme.onSecondary),
+          const Icon(Icons.star_rounded, size: 10, color: AppTheme.honey),
           const SizedBox(width: 3),
           Text(
             rating.toStringAsFixed(1),
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSecondary,
-              fontWeight: FontWeight.bold,
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
             ),
           ),
         ],
@@ -145,52 +176,43 @@ class _MetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final iconColor = theme.colorScheme.onSurfaceVariant;
+    final items = <Widget>[];
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 4,
-      children: [
-        _chip(
-          icon: Icons.delivery_dining,
-          label: restaurant.deliveryFee > 0
-              ? '${restaurant.deliveryFee.toStringAsFixed(0)} FCFA'
-              : 'restaurant.variable_fee'.tr(),
-          iconColor: iconColor,
-          theme: theme,
-        ),
-        if (restaurant.deliveryTimeMinutes != null)
-          _chip(
-            icon: Icons.timer_outlined,
-            label: '${restaurant.deliveryTimeMinutes} min',
-            iconColor: iconColor,
-            theme: theme,
+    void addItem(IconData icon, String label) {
+      if (items.isNotEmpty) {
+        items.add(Container(
+          width: 3,
+          height: 3,
+          margin: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            color: AppTheme.mutedLight,
+            borderRadius: BorderRadius.circular(2),
           ),
-        if ((restaurant.minOrder ?? 0) > 0)
-          _chip(
-            icon: Icons.shopping_bag_outlined,
-            label: 'min. ${restaurant.minOrder!.toStringAsFixed(0)} FCFA',
-            iconColor: iconColor,
-            theme: theme,
+        ));
+      }
+      items.add(Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppTheme.muted),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.inkSoft, fontWeight: FontWeight.w500),
           ),
-      ],
-    );
-  }
+        ],
+      ));
+    }
 
-  Widget _chip({
-    required IconData icon,
-    required String label,
-    required Color iconColor,
-    required ThemeData theme,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: iconColor),
-        const SizedBox(width: 3),
-        Text(label, style: theme.textTheme.bodySmall),
-      ],
+    if (restaurant.deliveryTimeMinutes != null) {
+      addItem(Icons.access_time_rounded, '${restaurant.deliveryTimeMinutes} min');
+    }
+    addItem(
+      Icons.delivery_dining_rounded,
+      restaurant.deliveryFee > 0
+          ? '${restaurant.deliveryFee.toStringAsFixed(0)} FCFA'
+          : 'restaurant.variable_fee'.tr(),
     );
+
+    return Row(children: items);
   }
 }

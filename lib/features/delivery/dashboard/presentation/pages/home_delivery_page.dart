@@ -215,7 +215,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
+              color: AppTheme.primaryRed,
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.delivery_dining,
@@ -224,10 +224,11 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
           const SizedBox(width: 10),
           Text(
             'delivery.dashboard_title'.tr(),
-            style: GoogleFonts.nunito(
-              fontWeight: FontWeight.bold,
+            style: GoogleFonts.bricolageGrotesque(
+              fontWeight: FontWeight.w700,
               fontSize: 18,
-              color: theme.colorScheme.onSurface,
+              color: AppTheme.ink,
+              letterSpacing: -0.3,
             ),
           ),
         ],
@@ -359,12 +360,13 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                     _isOnline
                         ? 'delivery.online'.tr()
                         : 'delivery.offline'.tr(),
-                    style: GoogleFonts.nunito(
+                    style: GoogleFonts.bricolageGrotesque(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: _isOnline
-                          ? AppTheme.successColor
-                          : theme.colorScheme.onSurfaceVariant,
+                          ? AppTheme.green
+                          : AppTheme.muted,
+                      letterSpacing: -0.4,
                     ),
                   ),
                 ),
@@ -491,10 +493,11 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
       children: [
         Text(
           'delivery.recent_deliveries'.tr(),
-          style: GoogleFonts.nunito(
+          style: GoogleFonts.bricolageGrotesque(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.ink,
+            letterSpacing: -0.3,
           ),
         ),
         const SizedBox(height: 12),
@@ -617,10 +620,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
           ),
           Text(
             '+${mission.earnings.toStringAsFixed(0)} FCFA',
-            style: GoogleFonts.nunito(
+            style: GoogleFonts.inter(
               fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.successColor,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.green,
             ),
           ),
         ],

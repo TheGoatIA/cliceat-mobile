@@ -49,14 +49,20 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       create: (_) =>
           getIt<OrderBloc>()..add(const LoadOrders()),
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: AppTheme.bg,
         appBar: AppBar(
           title: Text(
             'order.history'.tr(),
-            style: GoogleFonts.nunito(fontWeight: FontWeight.bold),
+            style: GoogleFonts.bricolageGrotesque(
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              color: AppTheme.ink,
+              letterSpacing: -0.3,
+            ),
           ),
+          backgroundColor: AppTheme.bg,
           elevation: 0,
-          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
         ),
         body: BlocListener<OrderBloc, OrderState>(
           listener: (context, state) {
@@ -208,7 +214,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               const SizedBox(height: 20),
               Text(
                 'order.no_orders'.tr(),
-                style: GoogleFonts.nunito(
+                style: GoogleFonts.bricolageGrotesque(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -428,7 +434,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 children: [
                   Text(
                     '$total FCFA',
-                    style: GoogleFonts.nunito(
+                    style: GoogleFonts.bricolageGrotesque(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
