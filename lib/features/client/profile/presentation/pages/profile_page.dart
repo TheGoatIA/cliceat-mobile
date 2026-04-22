@@ -65,18 +65,15 @@ class _ProfilePageState extends State<ProfilePage> {
     return SliverAppBar(
       expandedHeight: 230,
       pinned: true,
-      backgroundColor: theme.colorScheme.primary,
+      backgroundColor: AppTheme.primaryRed,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       leading: const SizedBox.shrink(),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withValues(alpha: 0.85),
-              ],
+              colors: [AppTheme.primaryRed, AppTheme.redDeep],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -134,10 +131,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ],
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.camera_alt_rounded,
                           size: 16,
-                          color: theme.colorScheme.primary,
+                          color: AppTheme.primaryRed,
                         ),
                       ),
                     ),
@@ -195,7 +192,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.person_outline_rounded,
             title: 'profile.edit_profile'.tr(),
-            color: theme.colorScheme.primary,
+            color: AppTheme.primaryRed,
             onTap: () => _showEditProfile(context, user),
           ),
           _buildDivider(theme),
@@ -209,29 +206,28 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.account_balance_wallet_outlined,
             title: 'wallet.title'.tr(),
-            color: Colors.teal,
+            color: AppTheme.green,
             onTap: () => context.push('/client/wallet'),
           ),
           _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.card_giftcard_outlined,
             title: 'profile.loyalty'.tr(),
-            color: theme.colorScheme.secondary,
+            color: AppTheme.honey,
             onTap: () => _showLoyalty(context),
             trailing: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.secondary
-                          .withValues(alpha: 0.1),
+                      color: AppTheme.honeySoft,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       'profile.points'.tr(),
-                      style: TextStyle(
+                      style: GoogleFonts.inter(
                         fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.secondary,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.honey,
                       ),
                     ),
                   ),
@@ -240,7 +236,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.group_add_outlined,
             title: 'referral.title'.tr(),
-            color: Colors.orange,
+            color: AppTheme.honey,
             onTap: () => context.push('/client/profile/referrals'),
           ),
         ], theme),
@@ -254,21 +250,21 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.receipt_long_outlined,
             title: 'profile.order_history'.tr(),
-            color: const Color(0xFF6200EA),
+            color: AppTheme.primaryRed,
             onTap: () => context.push('/client/orders'),
           ),
           _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.rate_review_outlined,
             title: 'review.my_reviews'.tr(),
-            color: Colors.amber.shade700,
+            color: AppTheme.honey,
             onTap: () => context.push('/client/profile/reviews'),
           ),
           _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.gavel_outlined,
             title: 'dispute.history_title'.tr(),
-            color: Colors.redAccent,
+            color: AppTheme.errorColor,
             onTap: () => context.push('/client/dispute/history'),
           ),
         ], theme),
@@ -282,14 +278,14 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.notifications_outlined,
             title: 'profile.notifications'.tr(),
-            color: const Color(0xFFFF6D00),
+            color: AppTheme.honey,
             onTap: () => _showNotificationSettings(context),
           ),
           _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.language_outlined,
             title: 'profile.language'.tr(),
-            color: const Color(0xFF0097A7),
+            color: AppTheme.green,
             onTap: () => _showLanguagePicker(context),
           ),
           _buildDivider(theme),
@@ -310,7 +306,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.help_outline_rounded,
             title: 'profile.help'.tr(),
-            color: const Color(0xFF388E3C),
+            color: AppTheme.green,
             onTap: () => _showHelp(context),
           ),
         ], theme),
@@ -326,9 +322,7 @@ class _ProfilePageState extends State<ProfilePage> {
         Center(
           child: Text(
             'ClicEat v1.0.0',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
+            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
           ),
         ),
       ],
@@ -340,10 +334,11 @@ class _ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Text(
         title.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
+        style: GoogleFonts.inter(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.primaryRed,
+          letterSpacing: 1.5,
         ),
       ),
     );
@@ -352,7 +347,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildMenuGroup(List<Widget> children, ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardTheme.color ?? theme.colorScheme.surface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -371,7 +366,7 @@ class _ProfilePageState extends State<ProfilePage> {
       height: 1,
       thickness: 0.5,
       indent: 56,
-      color: theme.dividerColor.withValues(alpha: 0.4),
+      color: AppTheme.lineSoft,
     );
   }
 
@@ -417,7 +412,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 trailing
               else
                 const Icon(Icons.chevron_right_rounded,
-                    size: 20, color: Colors.grey),
+                    size: 20, color: AppTheme.mutedLight),
             ],
           ),
         ),
@@ -451,7 +446,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         .add(const AuthEvent.logout());
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.error,
+                    backgroundColor: AppTheme.errorColor,
                     foregroundColor: Colors.white,
                   ),
                   child: Text('profile.logout'.tr()),
@@ -461,9 +456,8 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         },
         style: OutlinedButton.styleFrom(
-          foregroundColor: theme.colorScheme.error,
-          side: BorderSide(
-              color: theme.colorScheme.error.withValues(alpha: 0.4)),
+          foregroundColor: AppTheme.errorColor,
+          side: const BorderSide(color: AppTheme.errorColor),
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
@@ -501,7 +495,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: theme.dividerColor,
+                  color: AppTheme.lineSoft,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -588,7 +582,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           height: 4,
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: Theme.of(ctx).dividerColor,
+                            color: AppTheme.lineSoft,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -608,8 +602,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           IconButton(
                             icon: const Icon(
                                 Icons.add_circle_outline_rounded),
-                            color:
-                                Theme.of(ctx).colorScheme.primary,
+                            color: AppTheme.primaryRed,
                             onPressed: () {
                               Navigator.pop(ctx);
                               _showAddAddressForm(context);
@@ -640,16 +633,14 @@ class _ProfilePageState extends State<ProfilePage> {
                               Icon(
                                 Icons.location_off_outlined,
                                 size: 48,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant
-                                    .withValues(alpha: 0.4),
+                                color: AppTheme.muted.withValues(alpha: 0.5),
                               ),
                               const SizedBox(height: 12),
-                              Text('profile.no_addresses'.tr(),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium),
+                              Text(
+                                'profile.no_addresses'.tr(),
+                                style: GoogleFonts.inter(
+                                    fontSize: 14, color: AppTheme.muted),
+                              ),
                               const SizedBox(height: 12),
                               OutlinedButton.icon(
                                 onPressed: () {
@@ -682,8 +673,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               padding: const EdgeInsets.only(
                                   right: 20),
                               decoration: BoxDecoration(
-                                color:
-                                    Theme.of(context).colorScheme.error,
+                                color: AppTheme.errorColor,
                                 borderRadius:
                                     BorderRadius.circular(16),
                               ),
@@ -703,11 +693,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .cardTheme
-                                    .color,
+                                color: Colors.white,
                                 borderRadius:
                                     BorderRadius.circular(16),
+                                border: Border.all(color: AppTheme.lineSoft),
                               ),
                               child: Row(
                                 children: [
@@ -715,18 +704,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withValues(alpha: 0.1),
+                                      color: AppTheme.redSoft,
                                       borderRadius:
                                           BorderRadius.circular(12),
                                     ),
-                                    child: Icon(
+                                    child: const Icon(
                                       Icons.location_on_rounded,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
+                                      color: AppTheme.primaryRed,
                                       size: 20,
                                     ),
                                   ),
@@ -749,9 +733,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                           addr.address,
                                           style: TextStyle(
                                             fontSize: 13,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
+                                            color: AppTheme.muted,
                                           ),
                                           maxLines: 2,
                                           overflow:
@@ -805,7 +787,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: theme.dividerColor,
+                  color: AppTheme.lineSoft,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -860,8 +842,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(err.message.tr()),
-                              backgroundColor:
-                                  theme.colorScheme.error,
+                              backgroundColor: AppTheme.errorColor,
                             ),
                           );
                         }
@@ -918,7 +899,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: theme.dividerColor,
+                    color: AppTheme.lineSoft,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -927,11 +908,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.secondary,
-                        theme.colorScheme.secondary.withValues(alpha: 0.7),
-                      ],
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.honey, AppTheme.honeyLight],
                     ),
                     shape: BoxShape.circle,
                   ),
@@ -968,8 +946,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 Text(
                   'profile.loyalty_desc'.tr(),
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppTheme.muted,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -998,7 +977,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Theme.of(ctx).dividerColor,
+                  color: AppTheme.lineSoft,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1046,7 +1025,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               if (isSelected)
                 Icon(Icons.check_circle_rounded,
-                    color: theme.colorScheme.primary, size: 22),
+                    color: AppTheme.primaryRed, size: 22),
             ],
           ),
         ),
@@ -1067,12 +1046,12 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               width: 64,
               height: 64,
-              decoration: BoxDecoration(
-                color: const Color(0xFF388E3C).withValues(alpha: 0.1),
+              decoration: const BoxDecoration(
+                color: AppTheme.greenSoft,
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.help_outline_rounded,
-                  size: 32, color: Color(0xFF388E3C)),
+                  size: 32, color: AppTheme.green),
             ),
             const SizedBox(height: 16),
             Text(
@@ -1086,8 +1065,8 @@ class _ProfilePageState extends State<ProfilePage> {
             const Text('support@cliceat.cm',
                 style: TextStyle(fontSize: 16)),
             const SizedBox(height: 6),
-            const Text('WhatsApp: +237 6XX XXX XXX',
-                style: TextStyle(fontSize: 14, color: Colors.grey)),
+            Text('WhatsApp: +237 6XX XXX XXX',
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted)),
             const SizedBox(height: 16),
           ],
         ),
@@ -1119,10 +1098,10 @@ class _ProfilePageState extends State<ProfilePage> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
+          color: AppTheme.bgWarm,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 22),
+        child: Icon(icon, color: AppTheme.inkSoft, size: 22),
       ),
       title: Text(
         title,
@@ -1191,7 +1170,7 @@ class _NotificationSettingsSheetState
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: theme.dividerColor,
+                color: AppTheme.lineSoft,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1206,8 +1185,7 @@ class _NotificationSettingsSheetState
           const SizedBox(height: 4),
           Text(
             'profile.notifications_subtitle'.tr(),
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
           ),
           const SizedBox(height: 20),
           if (!_loaded)
@@ -1219,11 +1197,11 @@ class _NotificationSettingsSheetState
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  color: AppTheme.redSoft,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.receipt_long,
-                    color: theme.colorScheme.primary, size: 20),
+                child: const Icon(Icons.receipt_long,
+                    color: AppTheme.primaryRed, size: 20),
               ),
               title: Text('profile.notif_order_updates'.tr()),
               subtitle: Text('profile.notif_order_updates_desc'.tr()),
@@ -1240,11 +1218,11 @@ class _NotificationSettingsSheetState
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary.withValues(alpha: 0.1),
+                  color: AppTheme.honeySoft,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.local_offer,
-                    color: theme.colorScheme.secondary, size: 20),
+                child: const Icon(Icons.local_offer,
+                    color: AppTheme.honey, size: 20),
               ),
               title: Text('profile.notif_promotions'.tr()),
               subtitle: Text('profile.notif_promotions_desc'.tr()),
@@ -1261,11 +1239,11 @@ class _NotificationSettingsSheetState
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
+                  color: AppTheme.greenSoft,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.restaurant_menu,
-                    color: theme.colorScheme.tertiary, size: 20),
+                child: const Icon(Icons.restaurant_menu,
+                    color: AppTheme.green, size: 20),
               ),
               title: Text('profile.notif_new_restaurants'.tr()),
               subtitle: Text('profile.notif_new_restaurants_desc'.tr()),

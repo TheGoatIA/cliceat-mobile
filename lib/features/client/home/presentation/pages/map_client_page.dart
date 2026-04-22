@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:geolocator/geolocator.dart' hide Position;
 import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -245,7 +247,7 @@ class _MapClientPageState extends State<MapClientPage> {
     final canvas =
         Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
 
-    final paintOuter = Paint()..color = const Color(0xFFCC0000);
+    final paintOuter = Paint()..color = AppTheme.primaryRed;
     canvas.drawCircle(const Offset(24, 24), 20, paintOuter);
 
     final paintRing = Paint()
@@ -333,7 +335,7 @@ class _MapClientPageState extends State<MapClientPage> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
+                  color: AppTheme.primaryRed,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -373,7 +375,7 @@ class _MapClientPageState extends State<MapClientPage> {
     return Container(
       height: 180,
       decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
+        color: AppTheme.bg,
         borderRadius:
             const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
@@ -392,16 +394,20 @@ class _MapClientPageState extends State<MapClientPage> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.4),
+                color: AppTheme.lineSoft,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text('client.recommended'.tr(),
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            child: Text(
+              'client.recommended'.tr(),
+              style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: AppTheme.ink),
+            ),
           ),
           const SizedBox(height: 8),
           _loading
@@ -422,8 +428,9 @@ class _MapClientPageState extends State<MapClientPage> {
                           margin: const EdgeInsets.symmetric(
                               horizontal: 4),
                           decoration: BoxDecoration(
-                            color: theme.cardTheme.color,
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.lineSoft),
                           ),
                           child: Column(
                             crossAxisAlignment:
@@ -449,10 +456,10 @@ class _MapClientPageState extends State<MapClientPage> {
                                       CrossAxisAlignment.start,
                                   children: [
                                     Text(r.name,
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                                fontWeight:
-                                                    FontWeight.bold),
+                                        style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12,
+                                            color: AppTheme.ink),
                                         maxLines: 1,
                                         overflow:
                                             TextOverflow.ellipsis),
@@ -460,10 +467,9 @@ class _MapClientPageState extends State<MapClientPage> {
                                         .isNotEmpty)
                                       Text(
                                         r.cuisineType!,
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                                color: theme.colorScheme
-                                                    .onSurfaceVariant),
+                                        style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            color: AppTheme.muted),
                                         maxLines: 1,
                                         overflow:
                                             TextOverflow.ellipsis,

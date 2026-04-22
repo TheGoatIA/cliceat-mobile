@@ -231,11 +231,11 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
             child: CircleAvatar(
-              backgroundColor: theme.cardTheme.color,
+              backgroundColor: Colors.white,
               child: IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.arrow_back,
-                  color: theme.colorScheme.onSurface,
+                  color: AppTheme.ink,
                 ),
                 onPressed: () {
                   HapticFeedback.lightImpact();
@@ -260,8 +260,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                     height: 12,
                     decoration: BoxDecoration(
                       color: status == WsStatus.connected
-                          ? Colors.green
-                          : Colors.red,
+                          ? AppTheme.green
+                          : AppTheme.primaryRed,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
@@ -293,20 +293,23 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
 
   Widget _buildLoadingPanel(ThemeData theme) {
     return Container(
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.all(32),
-      child: const Center(child: CircularProgressIndicator()),
+      child: const Center(
+        child: CircularProgressIndicator(
+            color: AppTheme.primaryRed, strokeWidth: 2),
+      ),
     );
   }
 
   Widget _buildErrorPanel(ThemeData theme) {
     return Container(
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -314,12 +317,22 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
         children: [
           Text(
             _error ?? 'common.error'.tr(),
-            style: TextStyle(color: theme.colorScheme.error),
+            style: GoogleFonts.inter(color: AppTheme.primaryRed, fontSize: 14),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _loadTracking,
-            child: Text('common.retry'.tr()),
+          SizedBox(
+            height: 48,
+            child: ElevatedButton(
+              onPressed: _loadTracking,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryRed,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              child: Text('common.retry'.tr()),
+            ),
           ),
         ],
       ),
@@ -337,15 +350,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardTheme.color,
+        color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
+        boxShadow: AppTheme.shadowLg,
       ),
       child: SafeArea(
         child: Column(
@@ -358,7 +365,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
+                  color: AppTheme.lineSoft,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -373,13 +380,16 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                     children: [
                       Text(
                         'tracking.eta'.tr(),
-                        style: theme.textTheme.bodySmall,
+                        style: GoogleFonts.inter(
+                            fontSize: 12, color: AppTheme.muted),
                       ),
                       Text(
                         etaDisplay,
-                        style: theme.textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
+                        style: GoogleFonts.bricolageGrotesque(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 32,
+                          color: AppTheme.primaryRed,
+                          letterSpacing: -1,
                         ),
                       ),
                     ],
@@ -394,16 +404,17 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest,
+                          color: AppTheme.redSoft,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           'tracking.eta_minutes'.tr(
                             args: [etaMinutes.toString()],
                           ),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurfaceVariant,
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: AppTheme.primaryRed,
                           ),
                         ),
                       ),
@@ -424,9 +435,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                     backgroundImage: driverPhoto != null
                         ? NetworkImage(driverPhoto)
                         : null,
-                    backgroundColor: theme.colorScheme.primaryContainer,
+                    backgroundColor: AppTheme.redSoft,
                     child: driverPhoto == null
-                        ? Icon(Icons.person, color: theme.colorScheme.primary)
+                        ? const Icon(Icons.person, color: AppTheme.primaryRed)
                         : null,
                   ),
                   const SizedBox(width: 16),
@@ -436,8 +447,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                       children: [
                         Text(
                           driverName,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: AppTheme.ink,
                           ),
                         ),
                         if (_trackingData?.driverPhone != null)
@@ -445,13 +458,14 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                             children: [
                               const Icon(
                                 Icons.phone,
-                                size: 16,
-                                color: Colors.grey,
+                                size: 14,
+                                color: AppTheme.muted,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 _trackingData!.driverPhone!,
-                                style: theme.textTheme.bodySmall,
+                                style: GoogleFonts.inter(
+                                    fontSize: 12, color: AppTheme.muted),
                               ),
                             ],
                           ),
@@ -483,11 +497,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                       button: true,
                       child: CircleAvatar(
                         radius: 26,
-                        backgroundColor: theme.colorScheme.primary.withValues(
-                          alpha: 0.12,
-                        ),
-                        child: Icon(Icons.call_rounded,
-                            color: theme.colorScheme.primary, size: 24),
+                        backgroundColor: AppTheme.redSoft,
+                        child: const Icon(Icons.call_rounded,
+                            color: AppTheme.primaryRed, size: 24),
                       ),
                     ),
                   ),
@@ -565,14 +577,12 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       width: isActive ? 32 : 28,
       height: isActive ? 32 : 28,
       decoration: BoxDecoration(
-        color: isCompleted
-            ? theme.colorScheme.primary
-            : theme.colorScheme.surfaceContainerHighest,
+        color: isCompleted ? AppTheme.primaryRed : AppTheme.lineSoft,
         shape: BoxShape.circle,
         boxShadow: isActive
             ? [
                 BoxShadow(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                  color: AppTheme.primaryRed.withValues(alpha: 0.4),
                   blurRadius: 8,
                   spreadRadius: 2,
                 )
@@ -580,8 +590,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             : null,
         border: isActive
             ? Border.all(
-                color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                width: 4)
+                color: AppTheme.primaryRed.withValues(alpha: 0.3), width: 4)
             : null,
       ),
       child: isCompleted
@@ -597,9 +606,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
         duration: const Duration(milliseconds: 400),
         height: 4,
         decoration: BoxDecoration(
-          color: _currentStep > step
-              ? theme.colorScheme.primary
-              : theme.colorScheme.surfaceContainerHighest,
+          color: _currentStep > step ? AppTheme.primaryRed : AppTheme.lineSoft,
           borderRadius: BorderRadius.circular(2),
         ),
       ),

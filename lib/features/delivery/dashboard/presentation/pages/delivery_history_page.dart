@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
 
@@ -36,15 +38,28 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: Text('delivery.history_title'.tr()),
+        backgroundColor: AppTheme.bg,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          'delivery.history_title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+            letterSpacing: -0.3,
+          ),
+        ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                  color: AppTheme.primaryRed, strokeWidth: 2))
           : RefreshIndicator(
+              color: AppTheme.primaryRed,
               onRefresh: () async {
                 setState(() => _loading = true);
                 await _loadHistory();
@@ -54,17 +69,24 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.history,
-                            size: 80,
-                            color: theme.colorScheme.onSurfaceVariant
-                                .withValues(alpha: 0.4),
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: AppTheme.bgWarm,
+                              borderRadius: BorderRadius.circular(40),
+                            ),
+                            child: const Icon(Icons.history,
+                                size: 36, color: AppTheme.muted),
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'delivery.no_history'.tr(),
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                            style: GoogleFonts.bricolageGrotesque(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.ink,
+                              letterSpacing: -0.3,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -72,111 +94,115 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                       itemCount: _missions.length,
                       itemBuilder: (context, index) {
-                        return _buildMissionCard(
-                            context, theme, _missions[index]);
+                        return _buildMissionCard(_missions[index]);
                       },
                     ),
             ),
     );
   }
 
-  Widget _buildMissionCard(
-      BuildContext context, ThemeData theme, MissionModel mission) {
+  Widget _buildMissionCard(MissionModel mission) {
     final formattedDate = mission.createdAt != null
         ? '${mission.createdAt!.day.toString().padLeft(2, '0')}/'
             '${mission.createdAt!.month.toString().padLeft(2, '0')}/'
             '${mission.createdAt!.year}'
         : '';
 
-    final statusColor = _statusColor(theme, mission.status);
+    final statusColor = _statusColor(mission.status);
     final statusLabel = _statusLabel(mission.status);
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    mission.restaurantName ?? 'Restaurant',
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  mission.restaurantName ?? 'Restaurant',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: AppTheme.ink,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    statusLabel,
-                    style: TextStyle(
-                        color: statusColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold),
-                  ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                if (formattedDate.isNotEmpty) ...[
-                  Icon(Icons.calendar_today,
-                      size: 14,
-                      color: theme.colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 4),
-                  Text(formattedDate,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant)),
-                  const SizedBox(width: 16),
-                ],
-                Icon(Icons.delivery_dining,
-                    size: 14, color: theme.colorScheme.primary),
+                child: Text(
+                  statusLabel,
+                  style: GoogleFonts.inter(
+                      color: statusColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              if (formattedDate.isNotEmpty) ...[
+                const Icon(Icons.calendar_today,
+                    size: 14, color: AppTheme.mutedLight),
                 const SizedBox(width: 4),
                 Text(
-                  '${'delivery.your_earnings'.tr()}: '
-                  '${mission.earnings.toStringAsFixed(0)} FCFA',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  formattedDate,
+                  style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
                 ),
+                const SizedBox(width: 16),
               ],
-            ),
-          ],
-        ),
+              const Icon(Icons.delivery_dining,
+                  size: 14, color: AppTheme.primaryRed),
+              const SizedBox(width: 4),
+              Text(
+                '${'delivery.your_earnings'.tr()}: '
+                '${mission.earnings.toStringAsFixed(0)} FCFA',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppTheme.primaryRed,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Color _statusColor(ThemeData theme, String status) {
+  Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'delivered':
-        return Colors.green;
+        return AppTheme.green;
       case 'cancelled':
-        return theme.colorScheme.error;
+        return AppTheme.errorColor;
       case 'pending':
-        return Colors.orange;
+        return AppTheme.honey;
       case 'picked_up':
       case 'in_transit':
-        return theme.colorScheme.primary;
+        return AppTheme.primaryRed;
       default:
-        return theme.colorScheme.onSurfaceVariant;
+        return AppTheme.muted;
     }
   }
 

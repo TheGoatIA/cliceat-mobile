@@ -47,7 +47,6 @@ class _OrderRatingPageState extends State<OrderRatingPage>
     HapticFeedback.mediumImpact();
     setState(() => _isLoading = true);
 
-    // Fix: passage par OrderRepository (couche correcte, pas OrderService direct)
     final result = await getIt<OrderRepository>().rateOrder(
       widget.orderId,
       _restaurantRating,
@@ -64,7 +63,7 @@ class _OrderRatingPageState extends State<OrderRatingPage>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(err.message.tr()),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: AppTheme.errorColor,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12)),
@@ -83,28 +82,34 @@ class _OrderRatingPageState extends State<OrderRatingPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: Text('order.rate_order_title'.tr()),
+        backgroundColor: AppTheme.bg,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          'order.rate_order_title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+            letterSpacing: -0.3,
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
+          icon: const Icon(Icons.close_rounded, color: AppTheme.ink),
           onPressed: () => context.go('/client'),
         ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
-        child: _submitted
-            ? _buildSuccessView(theme)
-            : _buildRatingForm(theme),
+        child: _submitted ? _buildSuccessView() : _buildRatingForm(),
       ),
     );
   }
 
-  Widget _buildSuccessView(ThemeData theme) {
+  Widget _buildSuccessView() {
     return Center(
       key: const ValueKey('success'),
       child: Column(
@@ -134,16 +139,15 @@ class _OrderRatingPageState extends State<OrderRatingPage>
             'order.rating_thanks_title'.tr(),
             style: GoogleFonts.bricolageGrotesque(
               fontSize: 26,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.ink,
+              letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'order.rating_thanks_subtitle'.tr(),
-            style: TextStyle(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 15,
-            ),
+            style: GoogleFonts.inter(color: AppTheme.muted, fontSize: 15),
             textAlign: TextAlign.center,
           ),
         ],
@@ -151,7 +155,7 @@ class _OrderRatingPageState extends State<OrderRatingPage>
     );
   }
 
-  Widget _buildRatingForm(ThemeData theme) {
+  Widget _buildRatingForm() {
     final canSubmit = _restaurantRating > 0 && _deliveryRating > 0;
 
     return Center(
@@ -163,17 +167,16 @@ class _OrderRatingPageState extends State<OrderRatingPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Header illustration
               Container(
                 width: 80,
                 height: 80,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                decoration: const BoxDecoration(
+                  color: AppTheme.redSoft,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.check_circle_rounded,
-                  color: theme.colorScheme.primary,
+                  color: AppTheme.primaryRed,
                   size: 44,
                 ),
               ),
@@ -182,27 +185,22 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                 'order.delivered_title'.tr(),
                 style: GoogleFonts.bricolageGrotesque(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.ink,
+                  letterSpacing: -0.4,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 'order.how_was_experience'.tr(),
-                style: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 14,
-                ),
+                style: GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
                 textAlign: TextAlign.center,
               ),
-
               const SizedBox(height: 36),
-
-              // Restaurant rating
               _buildRatingCard(
-                context: context,
-                theme: theme,
                 icon: Icons.restaurant_rounded,
-                iconColor: theme.colorScheme.primary,
+                iconColor: AppTheme.primaryRed,
+                iconBg: AppTheme.redSoft,
                 title: 'order.restaurant_rating_title'.tr(),
                 subtitle: 'order.restaurant_rating_subtitle'.tr(),
                 currentRating: _restaurantRating,
@@ -211,15 +209,11 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                   setState(() => _restaurantRating = r);
                 },
               ),
-
               const SizedBox(height: 16),
-
-              // Delivery rating
               _buildRatingCard(
-                context: context,
-                theme: theme,
                 icon: Icons.delivery_dining_rounded,
-                iconColor: const Color(0xFF1565C0),
+                iconColor: AppTheme.primaryRed,
+                iconBg: AppTheme.redSoft,
                 title: 'order.delivery_rating_title'.tr(),
                 subtitle: 'order.delivery_rating_subtitle'.tr(),
                 currentRating: _deliveryRating,
@@ -228,55 +222,49 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                   setState(() => _deliveryRating = r);
                 },
               ),
-
               const SizedBox(height: 20),
-
-              // Commentaire
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.cardTheme.color,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+                  border: Border.all(color: AppTheme.lineSoft),
+                  boxShadow: AppTheme.shadowSm,
                 ),
                 child: TextField(
                   controller: _commentController,
                   maxLines: 3,
                   decoration: InputDecoration(
                     hintText: 'order.rate_comment_hint'.tr(),
+                    hintStyle: GoogleFonts.inter(
+                        color: AppTheme.mutedLight, fontSize: 14),
                     border: InputBorder.none,
                     focusedBorder: InputBorder.none,
                     enabledBorder: InputBorder.none,
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.only(bottom: 52),
+                    prefixIcon: const Padding(
+                      padding: EdgeInsets.only(bottom: 52),
                       child: Icon(
                         Icons.chat_bubble_outline_rounded,
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: AppTheme.muted,
                         size: 20,
                       ),
                     ),
                   ),
                 ),
               ),
-
               const SizedBox(height: 32),
-
-              // Submit button
               AnimatedOpacity(
                 opacity: canSubmit ? 1.0 : 0.5,
                 duration: const Duration(milliseconds: 200),
                 child: SizedBox(
                   width: double.infinity,
+                  height: 52,
                   child: ElevatedButton(
                     onPressed: canSubmit && !_isLoading ? _submitRating : null,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: AppTheme.primaryRed,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16)),
                     ),
@@ -289,28 +277,24 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                           )
                         : Text(
                             'order.submit_rating'.tr(),
-                            style: const TextStyle(
+                            style: GoogleFonts.inter(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                   ),
                 ),
               ),
-
               if (!canSubmit)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     'order.rating_required_hint'.tr(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                    style: GoogleFonts.inter(
+                        fontSize: 12, color: AppTheme.muted),
                     textAlign: TextAlign.center,
                   ),
                 ),
-
               const SizedBox(height: 24),
             ],
           ),
@@ -320,10 +304,9 @@ class _OrderRatingPageState extends State<OrderRatingPage>
   }
 
   Widget _buildRatingCard({
-    required BuildContext context,
-    required ThemeData theme,
     required IconData icon,
     required Color iconColor,
+    required Color iconBg,
     required String title,
     required String subtitle,
     required int currentRating,
@@ -332,15 +315,10 @@ class _OrderRatingPageState extends State<OrderRatingPage>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.cardTheme.color,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: Column(
         children: [
@@ -350,7 +328,7 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
+                  color: iconBg,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: iconColor, size: 22),
@@ -362,17 +340,16 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w600,
                         fontSize: 15,
+                        color: AppTheme.ink,
                       ),
                     ),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: GoogleFonts.inter(
+                          fontSize: 12, color: AppTheme.muted),
                     ),
                   ],
                 ),
@@ -393,7 +370,7 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                     child: Icon(
                       filled ? Icons.star_rounded : Icons.star_border_rounded,
                       key: ValueKey(filled),
-                      color: filled ? Colors.amber : theme.dividerColor,
+                      color: filled ? AppTheme.honey : AppTheme.lineSoft,
                       size: 40,
                     ),
                   ),
@@ -406,7 +383,7 @@ class _OrderRatingPageState extends State<OrderRatingPage>
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 _getRatingLabel(currentRating),
-                style: TextStyle(
+                style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: _getRatingColor(currentRating),
@@ -434,7 +411,7 @@ class _OrderRatingPageState extends State<OrderRatingPage>
       1 || 2 => AppTheme.errorColor,
       3 => AppTheme.statusPending,
       4 || 5 => AppTheme.successColor,
-      _ => Colors.grey,
+      _ => AppTheme.muted,
     };
   }
 }

@@ -173,10 +173,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: AppTheme.bg,
       body: CustomScrollView(
         slivers: [
           _buildAppBar(theme, isDark),
@@ -207,7 +206,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     return SliverAppBar(
       pinned: true,
       expandedHeight: 0,
-      backgroundColor: theme.colorScheme.surface,
+      backgroundColor: AppTheme.bg,
       surfaceTintColor: Colors.transparent,
       title: Row(
         children: [
@@ -297,12 +296,12 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 end: Alignment.bottomRight,
               )
             : null,
-        color: _isOnline ? null : theme.cardTheme.color,
+        color: _isOnline ? null : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: _isOnline
               ? AppTheme.successColor.withValues(alpha: 0.4)
-              : theme.dividerColor.withValues(alpha: 0.3),
+              : AppTheme.lineSoft,
           width: 1.5,
         ),
         boxShadow: [
@@ -328,14 +327,14 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 decoration: BoxDecoration(
                   color: _isOnline
                       ? AppTheme.successColor.withValues(alpha: 0.15)
-                      : theme.colorScheme.surfaceContainerHighest,
+                      : AppTheme.bgWarm,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   _isOnline ? Icons.wifi_tethering : Icons.wifi_tethering_off,
                   color: _isOnline
                       ? AppTheme.successColor
-                      : theme.colorScheme.onSurfaceVariant,
+                      : AppTheme.muted,
                   size: 26,
                 ),
               ),
@@ -348,8 +347,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               children: [
                 Text(
                   'delivery.status_label'.tr(),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.muted,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -390,8 +390,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 activeTrackColor:
                     AppTheme.successColor.withValues(alpha: 0.4),
                 activeThumbColor: AppTheme.successColor,
-                inactiveTrackColor:
-                    theme.colorScheme.surfaceContainerHighest,
+                inactiveTrackColor: AppTheme.bgWarm,
                 onChanged: _toggleOnlineStatus,
               ),
             ),
@@ -406,21 +405,18 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
       height: 110,
       decoration: BoxDecoration(
         gradient: _isOnline
-            ? LinearGradient(
-                colors: [
-                  theme.colorScheme.primary,
-                  theme.colorScheme.primary.withValues(alpha: 0.85),
-                ],
+            ? const LinearGradient(
+                colors: [AppTheme.primaryRed, AppTheme.redDeep],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               )
             : null,
-        color: _isOnline ? null : theme.cardTheme.color,
+        color: _isOnline ? null : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: _isOnline
             ? [
                 BoxShadow(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                  color: AppTheme.primaryRed.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 )
@@ -434,21 +430,17 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
             Icon(
               _isOnline ? Icons.radar : Icons.power_settings_new,
               size: 40,
-              color: _isOnline
-                  ? Colors.white
-                  : theme.colorScheme.onSurfaceVariant,
+              color: _isOnline ? Colors.white : AppTheme.muted,
             ),
             const SizedBox(height: 8),
             Text(
               _isOnline
                   ? 'delivery.waiting_mission'.tr()
                   : 'delivery.go_online_hint'.tr(),
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: _isOnline
-                    ? Colors.white
-                    : theme.colorScheme.onSurfaceVariant,
+                color: _isOnline ? Colors.white : AppTheme.muted,
               ),
             ),
           ],
@@ -467,7 +459,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 ? '...'
                 : '${(_earnings?.today ?? 0).toStringAsFixed(0)} FCFA',
             icon: Icons.account_balance_wallet_outlined,
-            color: theme.colorScheme.secondary,
+            color: AppTheme.honey,
             isLoading: _earningsLoading,
           ),
         ),
@@ -479,7 +471,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 ? '...'
                 : '${_earnings?.todayDeliveries ?? 0}',
             icon: Icons.delivery_dining_outlined,
-            color: theme.colorScheme.primary,
+            color: AppTheme.primaryRed,
             isLoading: _earningsLoading,
           ),
         ),
@@ -541,21 +533,24 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: theme.cardTheme.color,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: Column(
         children: [
           Icon(
             Icons.inbox_outlined,
             size: 48,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            color: AppTheme.muted.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 12),
           Text(
             'delivery.no_recent_deliveries'.tr(),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppTheme.muted,
             ),
             textAlign: TextAlign.center,
           ),
@@ -571,15 +566,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardTheme.color,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: Row(
         children: [
@@ -603,16 +593,19 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               children: [
                 Text(
                   'delivery.order_short_id'.tr(args: [shortId]),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: AppTheme.ink,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'delivery.delivered_to'.tr(
                       args: [mission.clientName ?? 'Client']),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.muted,
                   ),
                 ),
               ],

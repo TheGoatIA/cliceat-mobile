@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/models/earnings_model.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
 
@@ -37,14 +39,24 @@ class _EarningsPageState extends State<EarningsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: Text('delivery.earnings_title'.tr()),
+        backgroundColor: AppTheme.bg,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          'delivery.earnings_title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+            letterSpacing: -0.3,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: AppTheme.ink),
             onPressed: () {
               setState(() => _loading = true);
               _loadEarnings();
@@ -53,8 +65,11 @@ class _EarningsPageState extends State<EarningsPage> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                  color: AppTheme.primaryRed, strokeWidth: 2))
           : RefreshIndicator(
+              color: AppTheme.primaryRed,
               onRefresh: () async {
                 setState(() => _loading = true);
                 await _loadEarnings();
@@ -65,11 +80,11 @@ class _EarningsPageState extends State<EarningsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSummaryCards(theme),
+                    _buildSummaryCards(),
                     const SizedBox(height: 24),
-                    _buildBarChart(theme),
+                    _buildBarChart(),
                     const SizedBox(height: 24),
-                    _buildPeriodBreakdown(theme),
+                    _buildPeriodBreakdown(),
                   ],
                 ),
               ),
@@ -77,7 +92,7 @@ class _EarningsPageState extends State<EarningsPage> {
     );
   }
 
-  Widget _buildSummaryCards(ThemeData theme) {
+  Widget _buildSummaryCards() {
     final todayEarnings = _earnings?.today ?? 0.0;
     final weekEarnings = _earnings?.thisWeek ?? 0.0;
     final monthEarnings = _earnings?.thisMonth ?? 0.0;
@@ -88,52 +103,57 @@ class _EarningsPageState extends State<EarningsPage> {
       children: [
         Text(
           'delivery.earnings_summary'.tr(),
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+            letterSpacing: -0.3,
+          ),
         ),
         const SizedBox(height: 12),
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16)),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                colors: [
-                  theme.colorScheme.primary,
-                  theme.colorScheme.primary.withValues(alpha: 0.7)
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              colors: [AppTheme.primaryRed, AppTheme.redDeep],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryRed.withValues(alpha: 0.35),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'delivery.todays_earnings'.tr(),
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: Colors.white70),
+            ],
+          ),
+          child: Column(
+            children: [
+              Text(
+                'delivery.todays_earnings'.tr(),
+                style: GoogleFonts.inter(
+                    color: Colors.white.withValues(alpha: 0.8), fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${todayEarnings.toStringAsFixed(0)} FCFA',
+                style: GoogleFonts.bricolageGrotesque(
+                  color: Colors.white,
+                  fontSize: 40,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '${todayEarnings.toStringAsFixed(0)} FCFA',
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildStatChip(Icons.delivery_dining,
-                        '$totalDeliveries', 'delivery.deliveries'.tr()),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatChip(Icons.delivery_dining,
+                      '$totalDeliveries', 'delivery.deliveries'.tr()),
+                ],
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 12),
@@ -141,21 +161,21 @@ class _EarningsPageState extends State<EarningsPage> {
           children: [
             Expanded(
               child: _buildMetricCard(
-                theme,
-                'delivery.this_week'.tr(),
-                '${weekEarnings.toStringAsFixed(0)} FCFA',
-                Icons.calendar_view_week,
-                theme.colorScheme.secondary,
+                label: 'delivery.this_week'.tr(),
+                value: '${weekEarnings.toStringAsFixed(0)} FCFA',
+                icon: Icons.calendar_view_week,
+                iconBg: AppTheme.greenSoft,
+                iconColor: AppTheme.green,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildMetricCard(
-                theme,
-                'delivery.this_month'.tr(),
-                '${monthEarnings.toStringAsFixed(0)} FCFA',
-                Icons.calendar_month,
-                theme.colorScheme.tertiary,
+                label: 'delivery.this_month'.tr(),
+                value: '${monthEarnings.toStringAsFixed(0)} FCFA',
+                icon: Icons.calendar_month,
+                iconBg: AppTheme.honeySoft,
+                iconColor: AppTheme.honey,
               ),
             ),
           ],
@@ -164,50 +184,54 @@ class _EarningsPageState extends State<EarningsPage> {
     );
   }
 
-  /// Renders a bar chart of the breakdown data using CustomPainter.
-  Widget _buildBarChart(ThemeData theme) {
+  Widget _buildBarChart() {
     final breakdown = _earnings?.dailyBreakdown ?? [];
     if (breakdown.isEmpty) return const SizedBox.shrink();
 
     final amounts = breakdown.map((e) => e.amount).toList();
     final labels = breakdown.map((e) {
-          try {
-            return '${e.date.day}/${e.date.month}';
-          } catch (_) {
-            return '';
-          }
-        }).toList();
+      try {
+        return '${e.date.day}/${e.date.month}';
+      } catch (_) {
+        return '';
+      }
+    }).toList();
 
-    return Card(
-      elevation: 1,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'delivery.earnings_chart'.tr(),
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'delivery.earnings_chart'.tr(),
+            style: GoogleFonts.bricolageGrotesque(
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              color: AppTheme.ink,
+              letterSpacing: -0.2,
             ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 160,
-              child: CustomPaint(
-                painter: _EarningsBarChartPainter(
-                  amounts: amounts.map((a) => a as num).toList(),
-                  labels: labels,
-                  barColor: theme.colorScheme.primary,
-                  labelColor: theme.colorScheme.onSurfaceVariant,
-                  gridColor: theme.dividerColor,
-                ),
-                child: const SizedBox.expand(),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 160,
+            child: CustomPaint(
+              painter: _EarningsBarChartPainter(
+                amounts: amounts.map((a) => a as num).toList(),
+                labels: labels,
+                barColor: AppTheme.primaryRed,
+                labelColor: AppTheme.muted,
+                gridColor: AppTheme.lineSoft,
               ),
+              child: const SizedBox.expand(),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -215,46 +239,70 @@ class _EarningsPageState extends State<EarningsPage> {
   Widget _buildStatChip(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white70, size: 20),
+        Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 20),
         const SizedBox(height: 4),
-        Text(value,
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18)),
-        Text(label,
-            style:
-                const TextStyle(color: Colors.white70, fontSize: 11)),
+        Text(
+          value,
+          style: GoogleFonts.bricolageGrotesque(
+              color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+              color: Colors.white.withValues(alpha: 0.75), fontSize: 12),
+        ),
       ],
     );
   }
 
-  Widget _buildMetricCard(ThemeData theme, String label, String value,
-      IconData icon, Color color) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
-            Text(value,
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant)),
-          ],
-        ),
+  Widget _buildMetricCard({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color iconBg,
+    required Color iconColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: GoogleFonts.bricolageGrotesque(
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+              color: AppTheme.ink,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildPeriodBreakdown(ThemeData theme) {
+  Widget _buildPeriodBreakdown() {
     final breakdown = _earnings?.dailyBreakdown ?? [];
 
     return Column(
@@ -262,8 +310,12 @@ class _EarningsPageState extends State<EarningsPage> {
       children: [
         Text(
           'delivery.daily_breakdown'.tr(),
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+            letterSpacing: -0.3,
+          ),
         ),
         const SizedBox(height: 12),
         if (breakdown.isEmpty)
@@ -272,15 +324,13 @@ class _EarningsPageState extends State<EarningsPage> {
               padding: const EdgeInsets.all(32),
               child: Column(
                 children: [
-                  Icon(Icons.bar_chart,
-                      size: 64,
-                      color: theme.colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.4)),
+                  const Icon(Icons.bar_chart,
+                      size: 64, color: AppTheme.mutedLight),
                   const SizedBox(height: 16),
                   Text(
                     'delivery.no_earnings_data'.tr(),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant),
+                    style: GoogleFonts.inter(
+                        fontSize: 14, color: AppTheme.muted),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -291,31 +341,56 @@ class _EarningsPageState extends State<EarningsPage> {
           ...breakdown.map((item) {
             final dateLabel =
                 '${item.date.day}/${item.date.month}/${item.date.year}';
-            return Card(
-              elevation: 0,
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppTheme.lineSoft),
+                boxShadow: AppTheme.shadowSm,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppTheme.redSoft,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.today,
+                        color: AppTheme.primaryRed, size: 20),
                   ),
-                  child: Icon(Icons.today,
-                      color: theme.colorScheme.primary, size: 20),
-                ),
-                title: Text(dateLabel,
-                    style: const TextStyle(fontWeight: FontWeight.w500)),
-                subtitle: Text(
-                    '${item.deliveries} ${'delivery.deliveries'.tr()}'),
-                trailing: Text(
-                  '${item.amount.toStringAsFixed(0)} FCFA',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
-                    fontSize: 15,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          dateLabel,
+                          style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: AppTheme.ink),
+                        ),
+                        Text(
+                          '${item.deliveries} ${'delivery.deliveries'.tr()}',
+                          style: GoogleFonts.inter(
+                              fontSize: 12, color: AppTheme.muted),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  Text(
+                    '${item.amount.toStringAsFixed(0)} FCFA',
+                    style: GoogleFonts.bricolageGrotesque(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: AppTheme.primaryRed,
+                    ),
+                  ),
+                ],
               ),
             );
           }),
@@ -324,7 +399,6 @@ class _EarningsPageState extends State<EarningsPage> {
   }
 }
 
-/// CustomPainter that draws a simple bar chart.
 class _EarningsBarChartPainter extends CustomPainter {
   final List<num> amounts;
   final List<String> labels;
@@ -357,7 +431,6 @@ class _EarningsBarChartPainter extends CustomPainter {
     final gridPaint = Paint()
       ..color = gridColor
       ..strokeWidth = 0.5;
-    // 4 horizontal grid lines
     for (int i = 1; i <= 4; i++) {
       final y = topPadding + chartHeight * (1 - i / 4);
       canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
@@ -369,7 +442,6 @@ class _EarningsBarChartPainter extends CustomPainter {
       final x = i * (size.width / amounts.length) + halfGap;
       final top = topPadding + chartHeight - barH;
 
-      // Bar with rounded top
       final barPaint = Paint()
         ..color = barColor.withValues(alpha: 0.85)
         ..style = PaintingStyle.fill;
@@ -380,15 +452,12 @@ class _EarningsBarChartPainter extends CustomPainter {
       );
       canvas.drawRRect(rrect, barPaint);
 
-      // Label below bar
       if (i < labels.length) {
         final tp = TextPainter(
           text: TextSpan(
             text: labels[i],
             style: TextStyle(
-                color: labelColor,
-                fontSize: 9,
-                fontWeight: FontWeight.w500),
+                color: labelColor, fontSize: 9, fontWeight: FontWeight.w500),
           ),
           textDirection: TextDirection.ltr,
         )..layout(maxWidth: barWidth + gap);
@@ -399,6 +468,5 @@ class _EarningsBarChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_EarningsBarChartPainter old) =>
-      old.amounts != amounts;
+  bool shouldRepaint(_EarningsBarChartPainter old) => old.amounts != amounts;
 }

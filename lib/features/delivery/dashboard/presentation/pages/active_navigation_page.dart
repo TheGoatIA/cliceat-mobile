@@ -2,8 +2,10 @@ import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_mode
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:cliceat_app/core/theme/app_theme.dart';
 
 class ActiveNavigationPage extends StatefulWidget {
   final MissionModel mission;
@@ -31,38 +33,32 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isRestaurantPhase = widget.mission.status == 'accepted';
 
     return Scaffold(
       body: Stack(
         children: [
-          // The Map
           MapWidget(
             key: const ValueKey("navigationMap"),
             onMapCreated: _onMapCreated,
-            styleUri: theme.brightness == Brightness.dark
-                ? MapboxStyles.DARK
-                : MapboxStyles.MAPBOX_STREETS,
+            styleUri: MapboxStyles.MAPBOX_STREETS,
             cameraOptions: CameraOptions(
-               center: Point(coordinates: Position(9.7679, 4.0511)), // Douala
-               zoom: 17.0,
-               pitch: 60.0,
-               bearing: 45.0,
+              center: Point(coordinates: Position(9.7679, 4.0511)),
+              zoom: 17.0,
+              pitch: 60.0,
+              bearing: 45.0,
             ),
           ),
-          
-          _buildTopPanel(theme),
-          _buildBottomPanel(theme, isRestaurantPhase),
-          
+          _buildTopPanel(),
+          _buildBottomPanel(isRestaurantPhase),
           Positioned(
             right: 16,
             bottom: 180,
             child: FloatingActionButton(
-               heroTag: 'recenter_nav',
-               backgroundColor: theme.cardTheme.color,
-               onPressed: () {},
-               child: Icon(Icons.gps_fixed, color: theme.colorScheme.primary),
+              heroTag: 'recenter_nav',
+              backgroundColor: Colors.white,
+              onPressed: () {},
+              child: const Icon(Icons.gps_fixed, color: AppTheme.primaryRed),
             ),
           )
         ],
@@ -70,41 +66,58 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
     );
   }
 
-  Widget _buildTopPanel(ThemeData theme) {
+  Widget _buildTopPanel() {
     return Positioned(
-      top: 0, left: 0, right: 0,
+      top: 0,
+      left: 0,
+      right: 0,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 16,
-              bottom: 24, left: 16, right: 16,
+              bottom: 24,
+              left: 16,
+              right: 16,
             ),
             decoration: BoxDecoration(
-              color: theme.cardTheme.color,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-              boxShadow: [
-                 BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))
-              ],
+              color: Colors.white,
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(24)),
+              boxShadow: AppTheme.shadowMd,
             ),
             child: Row(
               children: [
                 Container(
-                  width: 60, height: 60,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16)
+                    color: AppTheme.redSoft,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(Icons.turn_right, size: 40, color: theme.colorScheme.primary),
+                  child: const Icon(Icons.turn_right,
+                      size: 36, color: AppTheme.primaryRed),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_distanceToTurn, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                      Text(_currentInstruction, style: theme.textTheme.titleMedium),
+                      Text(
+                        _distanceToTurn,
+                        style: GoogleFonts.bricolageGrotesque(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.ink,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      Text(
+                        _currentInstruction,
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: AppTheme.inkSoft),
+                      ),
                     ],
                   ),
                 ),
@@ -116,9 +129,11 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
     );
   }
 
-  Widget _buildBottomPanel(ThemeData theme, bool isRestaurantPhase) {
+  Widget _buildBottomPanel(bool isRestaurantPhase) {
     return Positioned(
-      bottom: 0, left: 0, right: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
@@ -126,60 +141,88 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: theme.cardTheme.color,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              boxShadow: [
-                 BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, -5))
-              ],
+              color: Colors.white,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: AppTheme.shadowLg,
             ),
             child: SafeArea(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
-                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                     children: [
-                       Column(
-                         crossAxisAlignment: CrossAxisAlignment.start,
-                         children: [
-                           Text('$_totalEta • $_totalDistance', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                           Text(isRestaurantPhase ? 'Destination: ${widget.mission.restaurantName}' : 'Destination: ${widget.mission.clientName}', 
-                             style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
-                         ],
-                       ),
-                       IconButton(
-                         icon: const Icon(Icons.close),
-                         style: IconButton.styleFrom(
-                           backgroundColor: theme.colorScheme.error.withValues(alpha: 0.1), 
-                           foregroundColor: theme.colorScheme.error
-                         ),
-                         onPressed: () {
-                           HapticFeedback.lightImpact();
-                           _confirmExitNavigation();
-                         },
-                       ),
-                     ],
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$_totalEta • $_totalDistance',
+                            style: GoogleFonts.bricolageGrotesque(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.ink,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          Text(
+                            isRestaurantPhase
+                                ? 'Destination: ${widget.mission.restaurantName}'
+                                : 'Destination: ${widget.mission.clientName}',
+                            style: GoogleFonts.inter(
+                                fontSize: 13, color: AppTheme.muted),
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _confirmExitNavigation();
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppTheme.redSoft,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.close,
+                              color: AppTheme.primaryRed, size: 20),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
+                    height: 52,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: isRestaurantPhase ? Colors.blue : Colors.green,
+                        backgroundColor: isRestaurantPhase
+                            ? AppTheme.primaryRed
+                            : AppTheme.green,
                         foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                       ),
                       onPressed: () {
-                         HapticFeedback.mediumImpact();
-                         if (isRestaurantPhase) {
-                           context.push('/delivery/confirm-pickup', extra: widget.mission);
-                         } else {
-                           context.push('/delivery/dropoff', extra: widget.mission);
-                         }
+                        HapticFeedback.mediumImpact();
+                        if (isRestaurantPhase) {
+                          context.push('/delivery/confirm-pickup',
+                              extra: widget.mission);
+                        } else {
+                          context.push('/delivery/dropoff',
+                              extra: widget.mission);
+                        }
                       },
                       child: Text(
-                        isRestaurantPhase ? 'delivery.arrived_at_restaurant'.tr() : 'delivery.arrived_at_client'.tr(), 
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        isRestaurantPhase
+                            ? 'delivery.arrived_at_restaurant'.tr()
+                            : 'delivery.arrived_at_client'.tr(),
+                        style: GoogleFonts.inter(
+                            fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
                     ),
                   )
                 ],
@@ -195,19 +238,34 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('delivery.quit_navigation'.tr()),
-        content: Text('delivery.quit_warning'.tr()),
+        title: Text(
+          'delivery.quit_navigation'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+              fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.ink),
+        ),
+        content: Text(
+          'delivery.quit_warning'.tr(),
+          style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+        ),
         actions: [
-          TextButton(onPressed: () => context.pop(), child: Text('common.cancel'.tr())),
           TextButton(
-             onPressed: () {
-               context.pop(); // close dialog
-               context.pop(); // Leave navigation
-             },
-             child: Text('delivery.quit'.tr(), style: const TextStyle(color: Colors.red)),
+            onPressed: () => context.pop(),
+            child: Text('common.cancel'.tr(),
+                style: GoogleFonts.inter(color: AppTheme.muted)),
+          ),
+          TextButton(
+            onPressed: () {
+              context.pop();
+              context.pop();
+            },
+            child: Text(
+              'delivery.quit'.tr(),
+              style: GoogleFonts.inter(
+                  color: AppTheme.primaryRed, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
-      )
+      ),
     );
   }
 }

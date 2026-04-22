@@ -83,8 +83,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(message.tr()),
-                    backgroundColor:
-                        Theme.of(context).colorScheme.error,
+                    backgroundColor: AppTheme.errorColor,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -138,7 +137,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       itemBuilder: (_, _) => Container(
         height: 120,
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          color: AppTheme.bgWarm,
           borderRadius: BorderRadius.circular(20),
         ),
       ),
@@ -155,17 +154,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             Icon(
               Icons.wifi_off_rounded,
               size: 64,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.4),
+              color: AppTheme.muted.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               message.tr(),
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.error),
+              style: GoogleFonts.inter(color: AppTheme.errorColor, fontSize: 14),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
@@ -174,6 +169,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   .add(const LoadOrders()),
               icon: const Icon(Icons.refresh_rounded),
               label: Text('common.retry'.tr()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryRed,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
             ),
           ],
         ),
@@ -197,18 +199,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest,
+                  color: AppTheme.bgWarm,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.receipt_long_outlined,
                   size: 48,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant
-                      .withValues(alpha: 0.4),
+                  color: AppTheme.muted.withValues(alpha: 0.5),
                 ),
               ),
               const SizedBox(height: 20),
@@ -222,10 +219,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               const SizedBox(height: 8),
               Text(
                 'order.no_orders_subtitle'.tr(),
-                style: TextStyle(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: AppTheme.muted,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -234,6 +230,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 onPressed: () => context.go('/client'),
                 icon: const Icon(Icons.restaurant_rounded),
                 label: Text('order.browse_restaurants'.tr()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryRed,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                ),
               ),
             ],
           ),
@@ -304,15 +307,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardTheme.color ?? theme.colorScheme.surface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -335,24 +333,21 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     height: 48,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: theme.colorScheme
-                          .surfaceContainerHighest,
+                      color: AppTheme.bgWarm,
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: restaurantLogo != null
                         ? Image.network(
                             restaurantLogo,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Icon(
+                            errorBuilder: (_, _, _) => const Icon(
                               Icons.restaurant_rounded,
-                              color: theme.colorScheme
-                                  .onSurfaceVariant,
+                              color: AppTheme.muted,
                             ),
                           )
-                        : Icon(
+                        : const Icon(
                             Icons.restaurant_rounded,
-                            color: theme.colorScheme
-                                .onSurfaceVariant,
+                            color: AppTheme.muted,
                             size: 24,
                           ),
                   ),
@@ -377,25 +372,22 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           children: [
                             Text(
                               '${'order.order_id'.tr()}$shortId',
-                              style: TextStyle(
+                              style: GoogleFonts.inter(
                                 fontSize: 12,
-                                color: theme.colorScheme
-                                    .onSurfaceVariant,
+                                color: AppTheme.muted,
                               ),
                             ),
                             if (createdAt.isNotEmpty) ...[
                               Text(
                                 ' · ',
-                                style: TextStyle(
-                                    color: theme.colorScheme
-                                        .onSurfaceVariant),
+                                style: GoogleFonts.inter(
+                                    color: AppTheme.muted),
                               ),
                               Text(
                                 createdAt,
-                                style: TextStyle(
+                                style: GoogleFonts.inter(
                                   fontSize: 12,
-                                  color: theme.colorScheme
-                                      .onSurfaceVariant,
+                                  color: AppTheme.muted,
                                 ),
                               ),
                             ],
@@ -413,10 +405,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 const SizedBox(height: 10),
                 Text(
                   itemsSummary,
-                  style: TextStyle(
+                  style: GoogleFonts.inter(
                     fontSize: 13,
-                    color:
-                        theme.colorScheme.onSurfaceVariant,
+                    color: AppTheme.muted,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -480,7 +471,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           onPressed: () => context.push(
                               '/client/rate/$orderId'),
                           tooltip: 'order.rate'.tr(),
-                          color: Colors.amber,
+                          color: AppTheme.honey,
                           constraints: const BoxConstraints(),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 4),
@@ -489,7 +480,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                         icon: const Icon(Icons.help_outline_rounded, size: 20),
                         onPressed: () => context.push('/client/dispute/create/$orderId'),
                         tooltip: 'order.report_problem'.tr(),
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: AppTheme.muted,
                         constraints: const BoxConstraints(),
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                       ),
@@ -512,7 +503,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           },
                           tooltip:
                               'order.download_invoice'.tr(),
-                          color: theme.colorScheme.primary,
+                          color: AppTheme.primaryRed,
                           constraints: const BoxConstraints(),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 4),

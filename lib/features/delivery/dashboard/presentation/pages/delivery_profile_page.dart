@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
@@ -42,14 +44,26 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: Text('profile.title'.tr()),
+        backgroundColor: AppTheme.bg,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          'profile.title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+            letterSpacing: -0.3,
+          ),
+        ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                  color: AppTheme.primaryRed, strokeWidth: 2))
           : SingleChildScrollView(
               child: Column(
                 children: [
@@ -71,22 +85,26 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primaryRed, AppTheme.redDeep],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
       child: Column(
         children: [
           CircleAvatar(
             radius: 48,
-            backgroundColor: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             backgroundImage: photo != null ? NetworkImage(photo) : null,
             child: photo == null
                 ? Text(
                     name.isNotEmpty ? name[0].toUpperCase() : 'L',
-                    style: TextStyle(
+                    style: GoogleFonts.bricolageGrotesque(
                       fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onPrimary,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
                     ),
                   )
                 : null,
@@ -94,23 +112,25 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
           const SizedBox(height: 16),
           Text(
             name,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: theme.colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
+            style: GoogleFonts.bricolageGrotesque(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               'delivery.driver_badge'.tr(),
-              style: TextStyle(
-                color: theme.colorScheme.onPrimary,
-                fontWeight: FontWeight.bold,
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
             ),
@@ -119,8 +139,9 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
             const SizedBox(height: 8),
             Text(
               email,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
+              style: GoogleFonts.inter(
+                color: Colors.white.withValues(alpha: 0.8),
+                fontSize: 14,
               ),
             ),
           ],
@@ -128,8 +149,9 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
             const SizedBox(height: 4),
             Text(
               phone,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onPrimary.withValues(alpha: 0.7),
+              style: GoogleFonts.inter(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 12,
               ),
             ),
           ],
@@ -144,7 +166,7 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           _buildSectionTitle('profile.account'.tr(), theme),
           _buildMenuItem(
             icon: Icons.person_outline,
@@ -188,13 +210,14 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
 
   Widget _buildSectionTitle(String title, ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.only(bottom: 10, left: 4),
       child: Text(
-        title,
-        style: theme.textTheme.titleSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
+        title.toUpperCase(),
+        style: GoogleFonts.inter(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.primaryRed,
+          letterSpacing: 1.5,
         ),
       ),
     );
@@ -205,13 +228,31 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
     required String title,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 4),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        trailing: const Icon(Icons.chevron_right, size: 20),
+        leading: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppTheme.bgWarm,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: AppTheme.inkSoft, size: 18),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.inter(
+              fontWeight: FontWeight.w500, fontSize: 14, color: AppTheme.ink),
+        ),
+        trailing: const Icon(Icons.chevron_right_rounded,
+            color: AppTheme.mutedLight),
         onTap: () {
           HapticFeedback.lightImpact();
           onTap();
@@ -223,18 +264,30 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
   Widget _buildLogoutButton(BuildContext context, ThemeData theme) {
     return SizedBox(
       width: double.infinity,
+      height: 52,
       child: OutlinedButton.icon(
         onPressed: () {
           HapticFeedback.mediumImpact();
           showDialog(
             context: context,
             builder: (_) => AlertDialog(
-              title: Text('profile.logout_confirm_title'.tr()),
-              content: Text('profile.logout_confirm_message'.tr()),
+              title: Text(
+                'profile.logout_confirm_title'.tr(),
+                style: GoogleFonts.bricolageGrotesque(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: AppTheme.ink),
+              ),
+              content: Text(
+                'profile.logout_confirm_message'.tr(),
+                style: GoogleFonts.inter(
+                    fontSize: 14, color: AppTheme.inkSoft),
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('common.cancel'.tr()),
+                  child: Text('common.cancel'.tr(),
+                      style: GoogleFonts.inter(color: AppTheme.muted)),
                 ),
                 TextButton(
                   onPressed: () {
@@ -243,7 +296,9 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
                   },
                   child: Text(
                     'profile.logout'.tr(),
-                    style: TextStyle(color: theme.colorScheme.error),
+                    style: GoogleFonts.inter(
+                        color: AppTheme.primaryRed,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -251,12 +306,14 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
           );
         },
         style: OutlinedButton.styleFrom(
-          foregroundColor: theme.colorScheme.error,
-          side: BorderSide(color: theme.colorScheme.error),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          foregroundColor: AppTheme.primaryRed,
+          side: const BorderSide(color: AppTheme.primaryRed, width: 1.5),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
+          textStyle:
+              GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
         ),
-        icon: const Icon(Icons.logout),
+        icon: const Icon(Icons.logout, size: 18),
         label: Text('profile.logout'.tr()),
       ),
     );
@@ -289,9 +346,10 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('delivery.my_vehicle'.tr(),
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  style: GoogleFonts.bricolageGrotesque(fontWeight: FontWeight.w700, fontSize: 20, color: AppTheme.ink)),
               const SizedBox(height: 16),
-              Text('delivery.vehicle_type'.tr(), style: theme.textTheme.labelLarge),
+              Text('delivery.vehicle_type'.tr(),
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.inkSoft)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -358,7 +416,7 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('profile.edit_profile'.tr(),
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                style: GoogleFonts.bricolageGrotesque(fontWeight: FontWeight.w700, fontSize: 20, color: AppTheme.ink)),
             const SizedBox(height: 16),
             TextField(
               controller: nameController,
@@ -451,20 +509,21 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.help_outline,
-                size: 48, color: Theme.of(context).colorScheme.primary),
+            const Icon(Icons.help_outline, size: 48, color: AppTheme.primaryRed),
             const SizedBox(height: 16),
-            Text('profile.help'.tr(),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'profile.help'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                  color: AppTheme.ink),
+            ),
             const SizedBox(height: 16),
-            const Text('support@cliceat.cm',
-                style: TextStyle(fontSize: 16)),
+            Text('support@cliceat.cm',
+                style: GoogleFonts.inter(fontSize: 16, color: AppTheme.ink, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            const Text('WhatsApp: +237 699 000 000',
-                style: TextStyle(fontSize: 14, color: Colors.grey)),
+            Text('WhatsApp: +237 699 000 000',
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted)),
           ],
         ),
       ),
