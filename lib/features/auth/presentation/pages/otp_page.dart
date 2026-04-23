@@ -27,7 +27,10 @@ class _OtpPageState extends State<OtpPage> {
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
       context.read<AuthBloc>().add(
-        AuthEvent.verifyOtp(phone: widget.phone, otp: _otpController.text.trim()),
+        AuthEvent.verifyOtp(
+          phone: widget.phone,
+          otp: _otpController.text.trim(),
+        ),
       );
     }
   }
@@ -37,14 +40,26 @@ class _OtpPageState extends State<OtpPage> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         state.maybeWhen(
-          authenticated: (token, userId, currentMode) => context.go('/onboarding'),
+          authenticated: (token, userId, currentMode) =>
+              context.go('/onboarding'),
+          error: (msg) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(msg.tr()),
+                backgroundColor: AppTheme.primaryRed,
+              ),
+            );
+          },
           orElse: () {},
         );
       },
       builder: (context, state) {
-        final isLoading = state.maybeWhen(loading: () => true, orElse: () => false);
+        final isLoading = state.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
         return Scaffold(
-          backgroundColor: AppTheme.bg,
+          backgroundColor: context.colors.bg,
           body: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,13 +69,18 @@ class _OtpPageState extends State<OtpPage> {
                   child: GestureDetector(
                     onTap: () => context.pop(),
                     child: Container(
-                      width: 40, height: 40,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: AppTheme.line),
+                        color: context.colors.surface,
+                        border: Border.all(color: context.colors.line),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppTheme.ink),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: context.colors.ink,
+                      ),
                     ),
                   ),
                 ),
@@ -71,26 +91,38 @@ class _OtpPageState extends State<OtpPage> {
                       child: Form(
                         key: _formKey,
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 24,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
                                 'Entre le code\nreçu par SMS',
                                 style: GoogleFonts.bricolageGrotesque(
-                                  fontSize: 30, fontWeight: FontWeight.w700,
-                                  color: AppTheme.ink, letterSpacing: -0.8, height: 1.1,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w700,
+                                  color: context.colors.ink,
+                                  letterSpacing: -0.8,
+                                  height: 1.1,
                                 ),
                               ),
                               const SizedBox(height: 12),
                               RichText(
                                 text: TextSpan(
-                                  style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: AppTheme.muted,
+                                  ),
                                   children: [
                                     const TextSpan(text: 'Envoyé au '),
                                     TextSpan(
                                       text: widget.phone,
-                                      style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.ink),
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w700,
+                                        color: context.colors.ink,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -102,38 +134,71 @@ class _OtpPageState extends State<OtpPage> {
                                 textAlign: TextAlign.center,
                                 maxLength: 6,
                                 style: GoogleFonts.inter(
-                                  fontSize: 28, fontWeight: FontWeight.w700,
-                                  letterSpacing: 10, color: AppTheme.ink,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 10,
+                                  color: context.colors.ink,
                                 ),
                                 decoration: InputDecoration(
                                   hintText: '· · · · · ·',
                                   hintStyle: GoogleFonts.inter(
-                                    fontSize: 28, color: AppTheme.mutedLight, letterSpacing: 8,
+                                    fontSize: 28,
+                                    color: context.colors.mutedLight,
+                                    letterSpacing: 8,
                                   ),
                                   counterText: '',
-                                  filled: true, fillColor: Colors.white,
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.line)),
-                                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.line)),
-                                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.ink, width: 2)),
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 20),
+                                  filled: true,
+                                  fillColor: context.colors.surface,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: context.colors.line,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: context.colors.line,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: context.colors.ink,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 20,
+                                  ),
                                 ),
                                 validator: (value) {
-                                  if (value == null || value.length < 4) return 'auth.otp_error'.tr();
+                                  if (value == null || value.length < 4) {
+                                    return 'auth.otp_error'.tr();
+                                  }
                                   return null;
                                 },
                               ),
                               const SizedBox(height: 16),
                               Center(
-                                child: Text.rich(TextSpan(
-                                  style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
-                                  children: [
-                                    const TextSpan(text: 'Renvoyer dans '),
-                                    TextSpan(
-                                      text: '0:42',
-                                      style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.primaryRed),
+                                child: Text.rich(
+                                  TextSpan(
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      color: AppTheme.muted,
                                     ),
-                                  ],
-                                )),
+                                    children: [
+                                      const TextSpan(text: 'Renvoyer dans '),
+                                      TextSpan(
+                                        text: '0:42',
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.w700,
+                                          color: AppTheme.primaryRed,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                               const SizedBox(height: 28),
                               SizedBox(
@@ -145,11 +210,26 @@ class _OtpPageState extends State<OtpPage> {
                                     backgroundColor: AppTheme.primaryRed,
                                     foregroundColor: Colors.white,
                                     elevation: 0,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
                                   ),
                                   child: isLoading
-                                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                      : Text('auth.verify_btn'.tr(), style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : Text(
+                                          'auth.verify_btn'.tr(),
+                                          style: GoogleFonts.inter(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
                                 ),
                               ),
                             ],

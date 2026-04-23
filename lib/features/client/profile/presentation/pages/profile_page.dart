@@ -298,7 +298,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 onChanged: (v) {
                   context.read<ThemeCubit>().setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
                 },
-                theme: theme,
               );
             },
           ),
@@ -471,7 +470,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _showEditProfile(BuildContext context, UserModel user) {
     final nameController = TextEditingController(text: user.name);
-    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -763,7 +761,6 @@ class _ProfilePageState extends State<ProfilePage> {
   void _showAddAddressForm(BuildContext context) {
     final addressCtrl = TextEditingController();
     final labelCtrl = TextEditingController();
-    final theme = Theme.of(context);
 
     showModalBottomSheet(
       context: context,
@@ -886,7 +883,6 @@ class _ProfilePageState extends State<ProfilePage> {
             .getLoyalty()
             .then((r) => r.fold((_) => null, (l) => l)),
         builder: (context, snapshot) {
-          final theme = Theme.of(context);
           final points = snapshot.data?.points ?? 0;
           return Padding(
             padding: const EdgeInsets.all(32),
@@ -1000,7 +996,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildLanguageTile(
       BuildContext ctx, String lang, String flag, Locale locale) {
-    final theme = Theme.of(ctx);
     final isSelected = ctx.locale == locale;
     return Material(
       color: Colors.transparent,
@@ -1089,7 +1084,6 @@ class _ProfilePageState extends State<ProfilePage> {
     required String title,
     required bool value,
     required Function(bool) onChanged,
-    required ThemeData theme,
   }) {
     return SwitchListTile(
       value: value,
@@ -1157,7 +1151,6 @@ class _NotificationSettingsSheetState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       child: Column(

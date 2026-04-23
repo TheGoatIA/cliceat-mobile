@@ -157,7 +157,7 @@ class ClicEatApp extends StatelessWidget {
             locale: context.locale,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            themeMode: mode,
+            themeMode: ThemeMode.light,
             routerConfig: appRouter,
             builder: (context, child) {
               Widget widget = child!;

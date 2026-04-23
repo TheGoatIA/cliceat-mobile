@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../core/config/app_constants.dart';
 import '../../../../../core/theme/app_theme.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/banner/data/models/banner_model.dart';
@@ -31,6 +30,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   String _searchQuery = '';
   String? _selectedCategory;
+  String _selectedCity = 'Douala';
+  String _selectedFilter = 'Top Douala';
 
   List<RestaurantModel> _allRestaurants = [];
   List<RestaurantModel> _displayedRestaurants = [];
@@ -52,12 +53,29 @@ class _HomeClientPageState extends State<HomeClientPage> {
   ];
 
   static const _emojiMap = {
-    'burger': '🍔', 'pizza': '🍕', 'poulet': '🍗', 'chicken': '🍗',
-    'salade': '🥗', 'salad': '🥗', 'ndolé': '🥬', 'ndole': '🥬',
-    'poisson': '🐟', 'fish': '🐟', 'sushi': '🍱', 'tacos': '🌮',
-    'sandwich': '🥙', 'pasta': '🍝', 'dessert': '🍰', 'jus': '🥤',
-    'rice': '🍚', 'riz': '🍚', 'viande': '🥩', 'meat': '🥩',
-    'eru': '🌿', 'beignet': '🍩', 'grillades': '🔥',
+    'burger': '🍔',
+    'pizza': '🍕',
+    'poulet': '🍗',
+    'chicken': '🍗',
+    'salade': '🥗',
+    'salad': '🥗',
+    'ndolé': '🥬',
+    'ndole': '🥬',
+    'poisson': '🐟',
+    'fish': '🐟',
+    'sushi': '🍱',
+    'tacos': '🌮',
+    'sandwich': '🥙',
+    'pasta': '🍝',
+    'dessert': '🍰',
+    'jus': '🥤',
+    'rice': '🍚',
+    'riz': '🍚',
+    'viande': '🥩',
+    'meat': '🥩',
+    'eru': '🌿',
+    'beignet': '🍩',
+    'grillades': '🔥',
   };
 
   @override
@@ -79,16 +97,29 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   Future<void> _loadRestaurants() async {
     setState(() => _loadingRestaurants = true);
-    final result = await getIt<RestaurantRepository>().getFeaturedRestaurants();
+    // On essaie d'abord les restaurants à la une
+    final featuredResult = await getIt<RestaurantRepository>()
+        .getFeaturedRestaurants();
+
+    List<RestaurantModel> restaurants = [];
+    featuredResult.fold((_) {}, (list) => restaurants = list);
+
+    // Si on n'a rien en "featured", on prend les restaurants de la ville
+    if (restaurants.isEmpty) {
+      final cityResult = await getIt<RestaurantRepository>().getRestaurants(
+        city: _selectedCity,
+      );
+      cityResult.fold((_) {}, (list) => restaurants = list);
+    }
+
     if (!mounted) return;
-    result.fold((_) => setState(() => _loadingRestaurants = false), (restaurants) {
-      final categories = _extractCategories(restaurants);
-      setState(() {
-        _allRestaurants = restaurants;
-        _displayedRestaurants = restaurants;
-        _loadingRestaurants = false;
-        if (categories.isNotEmpty) _categories = categories;
-      });
+
+    final categories = _extractCategories(restaurants);
+    setState(() {
+      _allRestaurants = restaurants;
+      _displayedRestaurants = restaurants;
+      _loadingRestaurants = false;
+      if (categories.isNotEmpty) _categories = categories;
     });
   }
 
@@ -132,7 +163,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
       final cuisine = r.cuisineType?.trim() ?? '';
       if (cuisine.isNotEmpty && seen.add(cuisine)) {
         final emoji = _emojiMap.entries
-            .firstWhere((e) => cuisine.toLowerCase().contains(e.key), orElse: () => const MapEntry('', '🍽️'))
+            .firstWhere(
+              (e) => cuisine.toLowerCase().contains(e.key),
+              orElse: () => const MapEntry('', '🍽️'),
+            )
             .value;
         result.add((emoji, cuisine));
         if (result.length >= 8) break;
@@ -154,15 +188,111 @@ class _HomeClientPageState extends State<HomeClientPage> {
   void _onCategoryTap(String category) {
     if (_selectedCategory == category) {
       _searchController.clear();
-      setState(() { _selectedCategory = null; _searchQuery = ''; _displayedRestaurants = _allRestaurants; });
+      setState(() {
+        _selectedCategory = null;
+        _searchQuery = '';
+        _displayedRestaurants = _allRestaurants;
+      });
     } else {
       _searchController.text = category;
-      setState(() { _selectedCategory = category; _searchQuery = category; });
+      setState(() {
+        _selectedCategory = category;
+        _searchQuery = category;
+      });
       _search(category);
     }
   }
 
   bool get _isSearching => _searchQuery.isNotEmpty;
+
+  void _onFilterTap(String filter) {
+    setState(() {
+      _selectedFilter = filter;
+      // Local filtering logic
+      if (filter.startsWith('Top') || filter == 'Premium') {
+        _displayedRestaurants = _allRestaurants
+            .where((r) => (r.rating ?? 0) >= 4.0)
+            .toList();
+      } else if (filter == 'Ouvert maintenant') {
+        _displayedRestaurants = _allRestaurants
+            .where((r) => r.isOpen == true)
+            .toList();
+      } else if (filter == '⭐ 4.5+') {
+        _displayedRestaurants = _allRestaurants
+            .where((r) => (r.rating ?? 0) >= 4.5)
+            .toList();
+      } else {
+        _displayedRestaurants = _allRestaurants;
+      }
+    });
+  }
+
+  void _showCityPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Choisir votre ville',
+              style: GoogleFonts.bricolageGrotesque(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.ink,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildCityTile('Douala', 'Capitale économique'),
+            _buildCityTile('Yaoundé', 'Capitale politique'),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCityTile(String city, String sub) {
+    final isSelected = _selectedCity == city;
+    return ListTile(
+      onTap: () {
+        setState(() {
+          _selectedCity = city;
+          if (_selectedFilter.startsWith('Top')) {
+            _selectedFilter = 'Top $city';
+          }
+        });
+        context.pop();
+        _loadData();
+      },
+      leading: Icon(
+        Icons.location_city_rounded,
+        color: isSelected ? AppTheme.primaryRed : AppTheme.muted,
+      ),
+      title: Text(
+        city,
+        style: GoogleFonts.inter(
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+        ),
+      ),
+      subtitle: Text(sub, style: GoogleFonts.inter(fontSize: 12)),
+      trailing: isSelected
+          ? const Icon(Icons.check_circle_rounded, color: AppTheme.primaryRed)
+          : null,
+    );
+  }
+
+  void _showSearchFilters() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Filtres de recherche bientôt disponibles')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +304,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
           color: AppTheme.primaryRed,
           onRefresh: () async {
             _searchController.clear();
-            setState(() { _searchQuery = ''; _selectedCategory = null; });
+            setState(() {
+              _searchQuery = '';
+              _selectedCategory = null;
+            });
             await _loadData();
           },
           child: CustomScrollView(
@@ -188,7 +321,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
               ],
               SliverToBoxAdapter(child: _buildCategories()),
               SliverToBoxAdapter(child: _buildRestaurantSection(context)),
-              if (!_isSearching) SliverToBoxAdapter(child: _buildReferralBanner()),
+              if (!_isSearching)
+                SliverToBoxAdapter(child: _buildReferralBanner()),
               const SliverToBoxAdapter(child: SizedBox(height: 32)),
             ],
           ),
@@ -211,29 +345,54 @@ class _HomeClientPageState extends State<HomeClientPage> {
                 children: [
                   Text(
                     'Livrer à',
-                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.muted, letterSpacing: 0.5),
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.muted,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                   const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_rounded, size: 16, color: AppTheme.primaryRed),
-                      const SizedBox(width: 4),
-                      Text(
-                        AppConstants.defaultCity,
-                        style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.ink),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppTheme.muted),
-                    ],
+                  GestureDetector(
+                    onTap: _showCityPicker,
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 16,
+                          color: AppTheme.primaryRed,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _selectedCity,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.ink,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 18,
+                          color: AppTheme.muted,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
             // Notification bell
             GestureDetector(
-              onTap: () {},
+              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Notifications bientôt disponibles'),
+                ),
+              ),
               child: Container(
-                width: 40, height: 40,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -241,11 +400,19 @@ class _HomeClientPageState extends State<HomeClientPage> {
                 ),
                 child: Stack(
                   children: [
-                    const Center(child: Icon(Icons.notifications_outlined, size: 20, color: AppTheme.ink)),
+                    const Center(
+                      child: Icon(
+                        Icons.notifications_outlined,
+                        size: 20,
+                        color: AppTheme.ink,
+                      ),
+                    ),
                     Positioned(
-                      top: 8, right: 9,
+                      top: 8,
+                      right: 9,
                       child: Container(
-                        width: 8, height: 8,
+                        width: 8,
+                        height: 8,
                         decoration: BoxDecoration(
                           color: AppTheme.primaryRed,
                           borderRadius: BorderRadius.circular(4),
@@ -262,13 +429,18 @@ class _HomeClientPageState extends State<HomeClientPage> {
             GestureDetector(
               onTap: () => context.push('/client/chat'),
               child: Container(
-                width: 40, height: 40,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: AppTheme.ink,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Center(
-                  child: Icon(Icons.chat_bubble_outline_rounded, size: 18, color: Colors.white),
+                  child: Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -305,11 +477,16 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   textInputAction: TextInputAction.search,
                   onSubmitted: (query) {
                     final q = query.trim();
-                    if (q.isNotEmpty) context.push('/search?q=${Uri.encodeComponent(q)}');
+                    if (q.isNotEmpty) {
+                      context.push('/search?q=${Uri.encodeComponent(q)}');
+                    }
                   },
                   decoration: InputDecoration(
                     hintText: 'Chercher un plat, un restaurant...',
-                    hintStyle: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+                    hintStyle: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: AppTheme.muted,
+                    ),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -321,7 +498,14 @@ class _HomeClientPageState extends State<HomeClientPage> {
               ),
               Container(width: 1, height: 20, color: AppTheme.line),
               const SizedBox(width: 10),
-              const Icon(Icons.tune_rounded, size: 18, color: AppTheme.ink),
+              GestureDetector(
+                onTap: _showSearchFilters,
+                child: const Icon(
+                  Icons.tune_rounded,
+                  size: 18,
+                  color: AppTheme.ink,
+                ),
+              ),
             ],
           ),
         ),
@@ -363,9 +547,11 @@ class _HomeClientPageState extends State<HomeClientPage> {
         children: [
           // Decorative circle
           Positioned(
-            right: -30, top: -30,
+            right: -30,
+            top: -30,
             child: Container(
-              width: 160, height: 160,
+              width: 160,
+              height: 160,
               decoration: BoxDecoration(
                 color: AppTheme.honey.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(80),
@@ -374,7 +560,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
           ),
           // Food emoji
           const Positioned(
-            right: 20, bottom: 12,
+            right: 20,
+            bottom: 12,
             child: Text('🍲', style: TextStyle(fontSize: 84)),
           ),
           Padding(
@@ -383,7 +570,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(100),
@@ -391,26 +581,50 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.local_fire_department_rounded, size: 11, color: Colors.white),
+                      const Icon(
+                        Icons.local_fire_department_rounded,
+                        size: 11,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 4),
-                      Text('Offre du jour', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.5)),
+                      Text(
+                        'Offre du jour',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'Livraison\ngratuite',
-                  style: GoogleFonts.bricolageGrotesque(fontSize: 26, fontWeight: FontWeight.w700, color: Colors.white, height: 1.1, letterSpacing: -0.5),
+                  style: GoogleFonts.bricolageGrotesque(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    height: 1.1,
+                    letterSpacing: -0.5,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 RichText(
                   text: TextSpan(
-                    style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withValues(alpha: 0.85)),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
                     children: [
                       const TextSpan(text: 'Code '),
                       TextSpan(
                         text: 'BIENVENUE',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.honeyLight),
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.honeyLight,
+                        ),
                       ),
                     ],
                   ),
@@ -424,7 +638,20 @@ class _HomeClientPageState extends State<HomeClientPage> {
   }
 
   Widget _buildPromotions(BuildContext context) {
-    return BlocBuilder<PromotionCubit, PromotionState>(
+    return BlocConsumer<PromotionCubit, PromotionState>(
+      listener: (context, state) {
+        state.maybeWhen(
+          error: (msg) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(msg.tr()),
+                backgroundColor: AppTheme.primaryRed,
+              ),
+            );
+          },
+          orElse: () {},
+        );
+      },
       builder: (context, state) {
         return state.maybeWhen(
           loaded: (promotions) {
@@ -436,7 +663,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   promotions: promotions,
                   onTap: (promo) {
                     final restaurantId = promo['restaurantId'] as String?;
-                    if (restaurantId != null) context.push('/client/restaurant/$restaurantId');
+                    if (restaurantId != null) {
+                      context.push('/client/restaurant/$restaurantId');
+                    }
                   },
                 ),
                 const SizedBox(height: 12),
@@ -472,7 +701,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   decoration: BoxDecoration(
                     color: isSelected ? AppTheme.ink : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: isSelected ? null : Border.all(color: AppTheme.lineSoft),
+                    border: isSelected
+                        ? null
+                        : Border.all(color: AppTheme.lineSoft),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -482,11 +713,13 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       Text(
                         label,
                         style: GoogleFonts.inter(
-                          fontSize: 11, fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
                           color: isSelected ? Colors.white : AppTheme.ink,
                         ),
                         textAlign: TextAlign.center,
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -507,7 +740,14 @@ class _HomeClientPageState extends State<HomeClientPage> {
         SectionHeader(
           title: _isSearching ? 'Résultats' : 'Près de toi',
           actionLabel: _isSearching ? null : 'Voir tout',
-          leading: _isSearching ? null : const Icon(Icons.local_fire_department_rounded, size: 20, color: AppTheme.primaryRed),
+          onAction: () => context.push('/search?city=$_selectedCity'),
+          leading: _isSearching
+              ? null
+              : const Icon(
+                  Icons.local_fire_department_rounded,
+                  size: 20,
+                  color: AppTheme.primaryRed,
+                ),
         ),
         _buildRestaurantList(),
         if (!_isSearching) _buildFilterStrip(),
@@ -516,28 +756,41 @@ class _HomeClientPageState extends State<HomeClientPage> {
   }
 
   Widget _buildFilterStrip() {
-    final filters = ['Top Douala', 'Ouvert maintenant', '⭐ 4.5+', 'Moins de 30min', 'Premium'];
+    final filters = [
+      'Top $_selectedCity',
+      'Ouvert maintenant',
+      '⭐ 4.5+',
+      'Moins de 30min',
+      'Premium',
+    ];
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 4),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.only(left: 20),
         child: Row(
-          children: filters.asMap().entries.map((e) {
-            final isFirst = e.key == 0;
-            return Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-              decoration: BoxDecoration(
-                color: isFirst ? AppTheme.ink : Colors.white,
-                borderRadius: BorderRadius.circular(100),
-                border: isFirst ? null : Border.all(color: AppTheme.line),
-              ),
-              child: Text(
-                e.value,
-                style: GoogleFonts.inter(
-                  fontSize: 13, fontWeight: FontWeight.w600,
-                  color: isFirst ? Colors.white : AppTheme.ink,
+          children: filters.map<Widget>((f) {
+            final isSelected = _selectedFilter == f;
+            return GestureDetector(
+              onTap: () => _onFilterTap(f),
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.ink : Colors.white,
+                  borderRadius: BorderRadius.circular(100),
+                  border: isSelected ? null : Border.all(color: AppTheme.line),
+                ),
+                child: Text(
+                  f,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : AppTheme.ink,
+                  ),
                 ),
               ),
             );
@@ -558,16 +811,45 @@ class _HomeClientPageState extends State<HomeClientPage> {
     }
     if (_displayedRestaurants.isEmpty) {
       return EmptyState(
-        title: _isSearching ? 'common.no_results'.tr() : 'restaurant.none_available'.tr(),
+        title: _isSearching
+            ? 'common.no_results'.tr()
+            : 'restaurant.none_available'.tr(),
         subtitle: _isSearching ? 'common.try_other_query'.tr() : null,
         icon: _isSearching ? Icons.search_off : Icons.restaurant_outlined,
         actionLabel: _isSearching ? 'common.clear'.tr() : null,
-        onAction: _isSearching ? () {
-          _searchController.clear();
-          setState(() { _searchQuery = ''; _selectedCategory = null; _displayedRestaurants = _allRestaurants; });
-        } : null,
+        onAction: _isSearching
+            ? () {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                  _selectedCategory = null;
+                  _displayedRestaurants = _allRestaurants;
+                });
+              }
+            : null,
       );
     }
+
+    if (!_isSearching) {
+      // Horizontal list of top 5
+      final top5 = _displayedRestaurants.take(5).toList();
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        child: Row(
+          children: top5
+              .map(
+                (r) => Container(
+                  width: 280,
+                  margin: const EdgeInsets.only(right: 16),
+                  child: RestaurantCard(restaurant: r, compact: true),
+                ),
+              )
+              .toList(),
+        ),
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isTablet = constraints.maxWidth >= 600;
@@ -578,10 +860,15 @@ class _HomeClientPageState extends State<HomeClientPage> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, crossAxisSpacing: 14, mainAxisExtent: 240,
+                crossAxisCount: 2,
+                crossAxisSpacing: 14,
+                mainAxisExtent: 240,
               ),
               itemCount: _displayedRestaurants.length,
-              itemBuilder: (_, i) => RestaurantCard(restaurant: _displayedRestaurants[i], compact: true),
+              itemBuilder: (_, i) => RestaurantCard(
+                restaurant: _displayedRestaurants[i],
+                compact: true,
+              ),
             ),
           );
         }
@@ -600,37 +887,57 @@ class _HomeClientPageState extends State<HomeClientPage> {
   }
 
   Widget _buildReferralBanner() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.honeySoft,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.honeyLight.withValues(alpha: 0.6)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 56, height: 56,
-            decoration: BoxDecoration(
-              color: AppTheme.honey,
-              borderRadius: BorderRadius.circular(16),
+    return GestureDetector(
+      onTap: () => context.push('/client/profile/referrals'),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: AppTheme.honeySoft,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.honeyLight.withValues(alpha: 0.6)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppTheme.honey,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Center(
+                child: Text('🎁', style: TextStyle(fontSize: 28)),
+              ),
             ),
-            child: const Center(child: Text('🎁', style: TextStyle(fontSize: 28))),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Parraine un ami', style: GoogleFonts.bricolageGrotesque(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.ink, letterSpacing: -0.2)),
-                const SizedBox(height: 2),
-                Text('Gagne 500 FCFA à chaque inscription', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.inkSoft)),
-              ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Parraine un ami',
+                    style: GoogleFonts.bricolageGrotesque(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.ink,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Gagne 500 FCFA à chaque inscription',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.inkSoft,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: AppTheme.inkSoft),
-        ],
+            const Icon(Icons.chevron_right_rounded, color: AppTheme.inkSoft),
+          ],
+        ),
       ),
     );
   }
@@ -639,7 +946,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
     return GestureDetector(
       onTap: () => context.push('/client/ai'),
       child: Container(
-        width: 56, height: 56,
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [AppTheme.primaryRed, AppTheme.redDeep],
@@ -648,19 +956,33 @@ class _HomeClientPageState extends State<HomeClientPage> {
           ),
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
-            const BoxShadow(color: Color(0x59C41E1A), blurRadius: 24, offset: Offset(0, 8)),
-            const BoxShadow(color: Color(0x4DC41E1A), blurRadius: 6, offset: Offset(0, 2)),
+            const BoxShadow(
+              color: Color(0x59C41E1A),
+              blurRadius: 24,
+              offset: Offset(0, 8),
+            ),
+            const BoxShadow(
+              color: Color(0x4DC41E1A),
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
           ],
         ),
         child: Stack(
           children: [
             const Center(
-              child: Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 24),
+              child: Icon(
+                Icons.auto_awesome_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
             Positioned(
-              top: 10, right: 10,
+              top: 10,
+              right: 10,
               child: Container(
-                width: 8, height: 8,
+                width: 8,
+                height: 8,
                 decoration: BoxDecoration(
                   color: AppTheme.honey,
                   borderRadius: BorderRadius.circular(4),

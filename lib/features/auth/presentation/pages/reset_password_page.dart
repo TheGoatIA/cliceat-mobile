@@ -148,8 +148,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                     : () {
                                         final password = _passwordCtrl.text;
                                         final confirm = _confirmCtrl.text;
-                                        if (password.isEmpty ||
-                                            confirm.isEmpty) return;
+                                        if (password.isEmpty || confirm.isEmpty) {
+                                          return;
+                                        }
                                         if (password != confirm) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(SnackBar(

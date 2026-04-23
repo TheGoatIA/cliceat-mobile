@@ -98,19 +98,23 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                ..._reasons.map((reason) => RadioListTile<String>(
+                RadioGroup<String>(
+                  groupValue: _selectedReason,
+                  onChanged: (value) {
+                    setState(() => _selectedReason = value);
+                  },
+                  child: Column(
+                    children: _reasons.map((reason) => RadioListTile<String>(
                       title: Text(
                         reason,
                         style: GoogleFonts.inter(
                             fontSize: 14, color: AppTheme.ink),
                       ),
                       value: reason,
-                      groupValue: _selectedReason,
                       activeColor: AppTheme.primaryRed,
-                      onChanged: (value) {
-                        setState(() => _selectedReason = value);
-                      },
-                    )),
+                    )).toList(),
+                  ),
+                ),
                 const SizedBox(height: 20),
                 Container(
                   decoration: BoxDecoration(

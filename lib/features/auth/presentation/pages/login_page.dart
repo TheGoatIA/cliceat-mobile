@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -19,15 +18,12 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  bool _showRegister = false;
-
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _passwordVisible = false;
 
-  final _phoneCtrl = TextEditingController();
   final _otpCtrl = TextEditingController();
   String? _otpPhone;
 
@@ -35,33 +31,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   final _deliveryPasswordCtrl = TextEditingController();
   bool _deliveryPasswordVisible = false;
 
-  final _regNameCtrl = TextEditingController();
-  final _regEmailCtrl = TextEditingController();
-  final _regPasswordCtrl = TextEditingController();
-  final _regCityCtrl = TextEditingController(text: 'Douala');
-  bool _regPasswordVisible = false;
-
   bool get _isDelivery => widget.mode == 'delivery';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
-    _phoneCtrl.dispose();
     _otpCtrl.dispose();
     _deliveryPhoneCtrl.dispose();
     _deliveryPasswordCtrl.dispose();
-    _regNameCtrl.dispose();
-    _regEmailCtrl.dispose();
-    _regPasswordCtrl.dispose();
-    _regCityCtrl.dispose();
     super.dispose();
   }
 
@@ -96,7 +79,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     try {
       HapticFeedback.mediumImpact();
       final credential = await SignInWithApple.getAppleIDCredential(
-        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
       );
       final idToken = credential.identityToken;
       if (idToken == null) {
@@ -112,12 +98,14 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   void _showError(BuildContext ctx, String message) {
-    ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-      content: Text(message),
-      backgroundColor: AppTheme.primaryRed,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ));
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppTheme.primaryRed,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
@@ -127,16 +115,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         state.maybeWhen(
           authenticated: (_, _, _) => _onAuthenticated(context),
           otpSent: (phone) => setState(() => _otpPhone = phone),
-          emailVerificationRequired: (email) =>
-              context.go('/auth/verify-email?email=${Uri.encodeComponent(email)}'),
+          emailVerificationRequired: (email) => context.go(
+            '/auth/verify-email?email=${Uri.encodeComponent(email)}',
+          ),
           error: (message) => _showError(context, message.tr()),
           orElse: () {},
         );
       },
       builder: (context, state) {
-        final isLoading = state.maybeWhen(loading: () => true, orElse: () => false);
+        final isLoading = state.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
         return Scaffold(
-          backgroundColor: AppTheme.bg,
+          backgroundColor: context.colors.bg,
           body: SafeArea(
             child: Column(
               children: [
@@ -154,18 +146,19 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 480),
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 250),
                           switchInCurve: Curves.easeOut,
                           switchOutCurve: Curves.easeIn,
-                          child: _showRegister && !_isDelivery
-                              ? _buildRegisterForm(context, isLoading)
-                              : _otpPhone != null
-                                  ? _buildOtpForm(context, isLoading)
-                                  : _isDelivery
-                                      ? _buildDeliveryForm(context, isLoading)
-                                      : _buildClientForm(context, isLoading),
+                          child: _otpPhone != null
+                              ? _buildOtpForm(context, isLoading)
+                              : _isDelivery
+                              ? _buildDeliveryForm(context, isLoading)
+                              : _buildClientForm(context, isLoading),
                         ),
                       ),
                     ),
@@ -190,53 +183,27 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         _CELogo(),
         const SizedBox(height: 28),
         Text(
-          'Quel est ton\nnuméro ?',
+          'auth.login_title'.tr(),
           style: GoogleFonts.bricolageGrotesque(
-            fontSize: 30, fontWeight: FontWeight.w700,
-            color: AppTheme.ink, letterSpacing: -0.8, height: 1.1,
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.ink,
+            letterSpacing: -0.8,
+            height: 1.1,
           ),
         ),
         const SizedBox(height: 10),
         Text(
           'auth.login_subtitle'.tr(),
-          style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted, height: 1.5),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: context.colors.muted,
+            height: 1.5,
+          ),
         ),
         const SizedBox(height: 32),
 
-        // Tab selector
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.bgWarm,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TabBar(
-            controller: _tabController,
-            indicator: BoxDecoration(
-              color: AppTheme.ink,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            indicatorSize: TabBarIndicatorSize.tab,
-            labelColor: Colors.white,
-            unselectedLabelColor: AppTheme.muted,
-            dividerColor: Colors.transparent,
-            labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
-            tabs: [
-              Tab(text: 'auth.email'.tr()),
-              Tab(text: 'Téléphone'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          height: 220,
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildEmailTab(context, isLoading),
-              _buildPhoneTab(context, isLoading),
-            ],
-          ),
-        ),
+        _buildEmailTab(context, isLoading),
 
         const SizedBox(height: 8),
         Row(
@@ -247,16 +214,24 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
               style: TextButton.styleFrom(padding: EdgeInsets.zero),
               child: Text(
                 'auth.forgot_password'.tr(),
-                style: GoogleFonts.inter(color: AppTheme.primaryRed, fontWeight: FontWeight.w600, fontSize: 13),
+                style: GoogleFonts.inter(
+                  color: AppTheme.primaryRed,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
             ),
             Text(' · ', style: GoogleFonts.inter(color: AppTheme.muted)),
             TextButton(
-              onPressed: () => setState(() => _showRegister = true),
+              onPressed: () => context.push('/auth/register?role=client'),
               style: TextButton.styleFrom(padding: EdgeInsets.zero),
               child: Text(
-                'Créer un compte',
-                style: GoogleFonts.inter(color: AppTheme.primaryRed, fontWeight: FontWeight.w600, fontSize: 13),
+                'auth.no_account'.tr(),
+                style: GoogleFonts.inter(
+                  color: AppTheme.primaryRed,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
             ),
           ],
@@ -283,13 +258,16 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       key: const ValueKey('delivery'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _CELogo(color: AppTheme.ink),
+        _CELogo(),
         const SizedBox(height: 28),
         Text(
           'auth.delivery_login_title'.tr(),
           style: GoogleFonts.bricolageGrotesque(
-            fontSize: 30, fontWeight: FontWeight.w700,
-            color: AppTheme.ink, letterSpacing: -0.8, height: 1.1,
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.ink,
+            letterSpacing: -0.8,
+            height: 1.1,
           ),
         ),
         const SizedBox(height: 10),
@@ -311,8 +289,14 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           icon: Icons.lock_outline,
           obscureText: !_deliveryPasswordVisible,
           suffixIcon: IconButton(
-            icon: Icon(_deliveryPasswordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-            onPressed: () => setState(() => _deliveryPasswordVisible = !_deliveryPasswordVisible),
+            icon: Icon(
+              _deliveryPasswordVisible
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+            ),
+            onPressed: () => setState(
+              () => _deliveryPasswordVisible = !_deliveryPasswordVisible,
+            ),
           ),
         ),
         const SizedBox(height: 24),
@@ -324,7 +308,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             final phone = _deliveryPhoneCtrl.text.trim();
             final password = _deliveryPasswordCtrl.text;
             if (phone.isEmpty || password.isEmpty) return;
-            context.read<AuthBloc>().add(AuthEvent.loginDelivery(phone: phone, password: password));
+            context.read<AuthBloc>().add(
+              AuthEvent.loginDelivery(phone: phone, password: password),
+            );
           },
         ),
         const SizedBox(height: 12),
@@ -332,28 +318,60 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           onPressed: () => context.push('/auth/forgot-password'),
           child: Text(
             'auth.forgot_password'.tr(),
-            style: GoogleFonts.inter(color: AppTheme.primaryRed, fontWeight: FontWeight.w600),
+            style: GoogleFonts.inter(
+              color: AppTheme.primaryRed,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.honeySoft,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.honey.withValues(alpha: 0.4)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline_rounded, color: AppTheme.orange, size: 18),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'auth.delivery_info'.tr(),
-                  style: GoogleFonts.inter(fontSize: 12, color: AppTheme.inkSoft),
+        GestureDetector(
+          onTap: () => context.push('/auth/register?role=delivery'),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.honeySoft,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.honey.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.person_add_outlined,
+                  color: AppTheme.orange,
+                  size: 20,
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'auth.become_driver_title'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: context.colors.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'auth.become_driver_subtitle'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: context.colors.inkSoft,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: AppTheme.muted,
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -372,8 +390,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         Text(
           'Entre le code\nreçu par SMS',
           style: GoogleFonts.bricolageGrotesque(
-            fontSize: 30, fontWeight: FontWeight.w700,
-            color: AppTheme.ink, letterSpacing: -0.8, height: 1.1,
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.ink,
+            letterSpacing: -0.8,
+            height: 1.1,
           ),
         ),
         const SizedBox(height: 10),
@@ -384,7 +405,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
               const TextSpan(text: 'Envoyé au '),
               TextSpan(
                 text: _otpPhone,
-                style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.ink),
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.ink,
+                ),
               ),
             ],
           ),
@@ -396,13 +420,17 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           textAlign: TextAlign.center,
           maxLength: 6,
           style: GoogleFonts.inter(
-            fontSize: 28, fontWeight: FontWeight.w700,
-            letterSpacing: 10, color: AppTheme.ink,
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 10,
+            color: AppTheme.ink,
           ),
           decoration: InputDecoration(
             hintText: '· · · · · ·',
             hintStyle: GoogleFonts.inter(
-              fontSize: 28, color: AppTheme.mutedLight, letterSpacing: 8,
+              fontSize: 28,
+              color: AppTheme.mutedLight,
+              letterSpacing: 8,
             ),
             counterText: '',
             filled: true,
@@ -424,16 +452,21 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         ),
         const SizedBox(height: 16),
         Center(
-          child: Text.rich(TextSpan(
-            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
-            children: [
-              const TextSpan(text: 'Renvoyer le code dans '),
-              TextSpan(
-                text: '0:42',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.primaryRed),
-              ),
-            ],
-          )),
+          child: Text.rich(
+            TextSpan(
+              style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
+              children: [
+                const TextSpan(text: 'Renvoyer le code dans '),
+                TextSpan(
+                  text: '0:42',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryRed,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         const SizedBox(height: 28),
         _redButton(
@@ -451,111 +484,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           onPressed: () => setState(() => _otpPhone = null),
           child: Text(
             'Retour',
-            style: GoogleFonts.inter(color: AppTheme.muted, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ── Register Form ─────────────────────────────────────────────────────────
-
-  Widget _buildRegisterForm(BuildContext context, bool isLoading) {
-    return Column(
-      key: const ValueKey('register'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _CELogo(),
-        const SizedBox(height: 28),
-        Text(
-          'Créer ton compte',
-          style: GoogleFonts.bricolageGrotesque(
-            fontSize: 30, fontWeight: FontWeight.w700,
-            color: AppTheme.ink, letterSpacing: -0.8,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'auth.register_subtitle'.tr(),
-          style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
-        ),
-        const SizedBox(height: 28),
-        _styledInput(controller: _regNameCtrl, label: 'auth.name'.tr(), icon: Icons.person_outline),
-        const SizedBox(height: 12),
-        _styledInput(controller: _regEmailCtrl, label: 'auth.email'.tr(), icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
-        const SizedBox(height: 12),
-        _styledInput(
-          controller: _regPasswordCtrl,
-          label: 'auth.password'.tr(),
-          icon: Icons.lock_outline,
-          obscureText: !_regPasswordVisible,
-          suffixIcon: IconButton(
-            icon: Icon(_regPasswordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-            onPressed: () => setState(() => _regPasswordVisible = !_regPasswordVisible),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: AppTheme.line),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: DropdownButtonFormField<String>(
-            initialValue: ['Douala', 'Yaoundé'].contains(_regCityCtrl.text) ? _regCityCtrl.text : 'Douala',
-            onChanged: (val) => setState(() => _regCityCtrl.text = val!),
-            items: ['Douala', 'Yaoundé'].map((city) => DropdownMenuItem(value: city, child: Text(city))).toList(),
-            decoration: InputDecoration(
-              labelText: 'auth.city'.tr(),
-              prefixIcon: const Icon(Icons.location_city_outlined),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
+            style: GoogleFonts.inter(
+              color: AppTheme.muted,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        const SizedBox(height: 24),
-        _redButton(
-          label: 'auth.register_btn'.tr(),
-          isLoading: isLoading,
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            context.read<AuthBloc>().add(AuthEvent.register(
-              name: _regNameCtrl.text.trim(),
-              email: _regEmailCtrl.text.trim(),
-              password: _regPasswordCtrl.text,
-              city: _regCityCtrl.text.trim(),
-            ));
-          },
-        ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text.rich(
-            TextSpan(
-              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.muted),
-              children: [
-                TextSpan(text: 'auth.terms_prefix'.tr()),
-                WidgetSpan(child: GestureDetector(
-                  onTap: () => launchUrl(Uri.parse('https://cliceat.cm/terms')),
-                  child: Text('auth.terms_cgu'.tr(), style: GoogleFonts.inter(fontSize: 11, color: AppTheme.primaryRed, decoration: TextDecoration.underline)),
-                )),
-                TextSpan(text: 'auth.terms_conjunction'.tr()),
-                WidgetSpan(child: GestureDetector(
-                  onTap: () => launchUrl(Uri.parse('https://cliceat.cm/privacy')),
-                  child: Text('auth.terms_privacy'.tr(), style: GoogleFonts.inter(fontSize: 11, color: AppTheme.primaryRed, decoration: TextDecoration.underline)),
-                )),
-                const TextSpan(text: '.'),
-              ],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        TextButton(
-          onPressed: () => setState(() => _showRegister = false),
-          child: Text('J\'ai déjà un compte', style: GoogleFonts.inter(color: AppTheme.primaryRed, fontWeight: FontWeight.w600)),
-        ),
-        const SizedBox(height: 16),
       ],
     );
   }
@@ -566,7 +500,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _styledInput(controller: _emailCtrl, label: 'auth.email'.tr(), icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+        _styledInput(
+          controller: _emailCtrl,
+          label: 'auth.email'.tr(),
+          icon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+        ),
         const SizedBox(height: 12),
         _styledInput(
           controller: _passwordCtrl,
@@ -574,8 +513,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           icon: Icons.lock_outline,
           obscureText: !_passwordVisible,
           suffixIcon: IconButton(
-            icon: Icon(_passwordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-            onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+            icon: Icon(
+              _passwordVisible
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+            ),
+            onPressed: () =>
+                setState(() => _passwordVisible = !_passwordVisible),
           ),
         ),
         const SizedBox(height: 14),
@@ -584,69 +528,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           isLoading: isLoading,
           onTap: () {
             HapticFeedback.mediumImpact();
-            context.read<AuthBloc>().add(AuthEvent.loginWithEmail(
-              email: _emailCtrl.text.trim(),
-              password: _passwordCtrl.text,
-            ));
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPhoneTab(BuildContext context, bool isLoading) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: AppTheme.line),
-                borderRadius: BorderRadius.circular(14),
+            context.read<AuthBloc>().add(
+              AuthEvent.loginWithEmail(
+                email: _emailCtrl.text.trim(),
+                password: _passwordCtrl.text,
               ),
-              child: Row(
-                children: [
-                  const Text('🇨🇲', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 6),
-                  Text('+237', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.ink)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppTheme.muted),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _phoneCtrl,
-                keyboardType: TextInputType.phone,
-                style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w600, color: AppTheme.ink, letterSpacing: 1),
-                decoration: InputDecoration(
-                  hintText: '6 xx xx xx xx',
-                  hintStyle: GoogleFonts.inter(fontSize: 15, color: AppTheme.mutedLight),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.line)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.line)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.primaryRed, width: 2)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        const Spacer(),
-        _redButton(
-          label: 'Recevoir le code',
-          isLoading: isLoading,
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            final phone = _phoneCtrl.text.trim();
-            if (phone.isEmpty) return;
-            context.read<AuthBloc>().add(AuthEvent.sendOtp(phone: phone));
+            );
           },
         ),
       ],
@@ -670,18 +557,33 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       style: GoogleFonts.inter(fontSize: 15, color: AppTheme.ink),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: GoogleFonts.inter(color: AppTheme.inkSoft, fontSize: 14),
+        hintStyle: GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
         prefixIcon: Icon(icon, color: AppTheme.muted, size: 20),
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.line)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.line)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.ink, width: 2)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppTheme.line),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppTheme.line),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppTheme.ink, width: 2),
+        ),
       ),
     );
   }
 
-  Widget _redButton({required String label, required bool isLoading, required VoidCallback onTap}) {
+  Widget _redButton({
+    required String label,
+    required bool isLoading,
+    required VoidCallback onTap,
+  }) {
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -691,11 +593,26 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           backgroundColor: AppTheme.primaryRed,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
         child: isLoading
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : Text(label, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }
@@ -708,7 +625,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           Expanded(child: Divider(color: AppTheme.lineSoft)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text('ou', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted)),
+            child: Text(
+              'ou',
+              style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
+            ),
           ),
           Expanded(child: Divider(color: AppTheme.lineSoft)),
         ],
@@ -732,7 +652,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           const SizedBox(width: 8),
           Text(
             'auth.continue_with_google'.tr(),
-            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.ink),
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.ink,
+            ),
           ),
         ],
       ),
@@ -756,34 +680,27 @@ class _BackButton extends StatelessWidget {
           border: Border.all(color: AppTheme.line),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppTheme.ink),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 18,
+          color: AppTheme.ink,
+        ),
       ),
     );
   }
 }
 
 class _CELogo extends StatelessWidget {
-  final Color? color;
-  const _CELogo({this.color});
+  const _CELogo();
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppTheme.primaryRed;
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        color: c,
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Center(
-        child: Text(
-          'CE',
-          style: GoogleFonts.bricolageGrotesque(
-            fontSize: 18, fontWeight: FontWeight.w800,
-            color: Colors.white, letterSpacing: -0.5,
-          ),
-        ),
+    return Center(
+      child: Image.asset(
+        'assets/images/logo.png',
+        width: 80,
+        height: 80,
+        fit: BoxFit.contain,
       ),
     );
   }

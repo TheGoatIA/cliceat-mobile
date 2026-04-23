@@ -31,6 +31,7 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocListener<MissionBloc, MissionState>(
       listener: (context, state) {
         state.maybeWhen(
@@ -110,7 +111,7 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
                           color: AppTheme.primaryRed, strokeWidth: 2),
                     )
                   else
-                    _buildSlider(Theme.of(context)),
+                    _buildSlider(theme),
                 ],
               ),
             ),

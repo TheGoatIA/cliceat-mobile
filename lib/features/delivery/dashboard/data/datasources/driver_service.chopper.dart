@@ -54,4 +54,28 @@ final class _$DriverService extends DriverService {
     );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
+
+  @override
+  Future<Response<Map<String, dynamic>>> registerDriver(
+    Map<String, dynamic> body,
+    String idCardPath,
+    String licensePath,
+    String photoPath,
+  ) {
+    final Uri $url = Uri.parse('/delivery/register');
+    final List<PartValue> $parts = <PartValue>[
+      PartValue<Map<String, dynamic>>('body', body),
+      PartValueFile<String>('idCard', idCardPath),
+      PartValueFile<String>('license', licensePath),
+      PartValueFile<String>('photo', photoPath),
+    ];
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      parts: $parts,
+      multipart: true,
+    );
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
 }

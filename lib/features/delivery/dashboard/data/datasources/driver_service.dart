@@ -21,4 +21,14 @@ abstract class DriverService extends ChopperService {
   @PATCH(path: '/me/location')
   Future<Response<Map<String, dynamic>>> updateLocation(
       @Body() Map<String, dynamic> locationData);
+
+  /// POST /delivery/register (Multipart)
+  @POST(path: '/register')
+  @Multipart()
+  Future<Response<Map<String, dynamic>>> registerDriver(
+    @Part() Map<String, dynamic> body,
+    @PartFile('idCard') String idCardPath,
+    @PartFile('license') String licensePath,
+    @PartFile('photo') String photoPath,
+  );
 }

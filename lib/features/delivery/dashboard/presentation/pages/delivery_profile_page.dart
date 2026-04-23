@@ -44,6 +44,7 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bg,
       appBar: AppBar(
@@ -322,7 +323,6 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
   void _showVehicleEdit(BuildContext context) {
     String selectedVehicleType = 'motorcycle';
     final plateCtrl = TextEditingController();
-    final theme = Theme.of(context);
 
     const vehicleTypes = [
       ('motorcycle', 'delivery.vehicle_motorcycle'),
@@ -401,7 +401,6 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
 
   void _showEditProfile(BuildContext context) {
     final nameController = TextEditingController(text: _user?.name ?? '');
-    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

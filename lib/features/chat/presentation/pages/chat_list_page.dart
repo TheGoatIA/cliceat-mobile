@@ -62,7 +62,7 @@ class _ChatListPageState extends State<ChatListPage> {
             error: (msg) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(msg),
+                  content: Text(msg.tr()),
                   backgroundColor: AppTheme.primaryRed,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(

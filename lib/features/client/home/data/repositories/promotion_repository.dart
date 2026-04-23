@@ -13,8 +13,11 @@ class PromotionRepository {
     try {
       final res = await _promotionService.getActivePromotions();
       if (res.isSuccessful && res.body != null) {
-        final data = res.body!['data'] as List<dynamic>? ?? [];
-        return Right(data.cast<Map<String, dynamic>>());
+        final bodyData = res.body!['data'];
+        final List<dynamic> listData = bodyData is List 
+            ? bodyData 
+            : (bodyData is Map ? (bodyData['promotions'] ?? []) : []);
+        return Right(listData.cast<Map<String, dynamic>>());
       }
       return Left(AppError.fromResponse(res.body, 'promotion.load_error'));
     } catch (_) {

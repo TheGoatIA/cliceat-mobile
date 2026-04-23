@@ -10,8 +10,13 @@ import '../../../../../core/theme/app_theme.dart';
 
 class SearchResultsPage extends StatefulWidget {
   final String initialQuery;
+  final String city;
 
-  const SearchResultsPage({super.key, required this.initialQuery});
+  const SearchResultsPage({
+    super.key,
+    required this.initialQuery,
+    this.city = 'Douala',
+  });
 
   @override
   State<SearchResultsPage> createState() => _SearchResultsPageState();
@@ -38,7 +43,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   Future<List<RestaurantModel>> _search(String query) async {
-    if (query.trim().isEmpty) return [];
+    if (query.trim().isEmpty) {
+      final result = await getIt<RestaurantRepository>().getRestaurants(city: widget.city);
+      return result.fold((_) => [], (list) => list);
+    }
     final result = await getIt<RestaurantRepository>().search(query.trim());
     return result.fold((_) => [], (list) => list);
   }
@@ -238,7 +246,7 @@ class _RestaurantSearchCard extends StatelessWidget {
                       width: 72,
                       height: 72,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholder(),
+                      errorBuilder: (_, _, _) => _placeholder(),
                     )
                   : _placeholder(),
             ),

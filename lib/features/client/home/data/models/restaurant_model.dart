@@ -68,14 +68,16 @@ class RestaurantModel {
           : (json['lng'] as num?)?.toDouble() ?? 0.0,
       logoUrl: json['logoUrl']?.toString() ?? json['logo']?.toString(),
       coverImage:
-          json['coverImage']?.toString() ?? json['cover']?.toString(),
-      rating: (json['rating'] as num?)?.toDouble(),
+          json['coverUrl']?.toString() ??
+          json['coverImage']?.toString() ??
+          json['cover']?.toString(),
+      rating: (json['rating'] ?? json['averageRating'] as num?)?.toDouble(),
       isOpen: json['isOpen'] as bool? ?? true,
-      deliveryFee:
-          (json['deliveryFee'] as num?)?.toDouble() ?? 0.0,
-      minOrder: (json['minOrder'] as num?)?.toDouble(),
+      deliveryFee: (json['deliveryFee'] as num?)?.toDouble() ?? 0.0,
+      minOrder: (json['minOrder'] ?? json['minimumOrder'] as num?)?.toDouble(),
       deliveryTimeMinutes:
-          (json['deliveryTimeMinutes'] as num?)?.toInt(),
+          (json['deliveryTimeMinutes'] ?? json['estimatedDeliveryTime'] as num?)
+              ?.toInt(),
       menus: rawMenus
           .whereType<Map<String, dynamic>>()
           .map(MenuItemModel.fromJson)
@@ -84,23 +86,22 @@ class RestaurantModel {
   }
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'name': name,
-        if (description != null) 'description': description,
-        if (cuisineType != null) 'cuisineType': cuisineType,
-        'cuisines': cuisines,
-        if (address != null) 'address': address,
-        if (city != null) 'city': city,
-        'lat': lat,
-        'lng': lng,
-        if (logoUrl != null) 'logoUrl': logoUrl,
-        if (coverImage != null) 'coverImage': coverImage,
-        if (rating != null) 'rating': rating,
-        'isOpen': isOpen,
-        'deliveryFee': deliveryFee,
-        if (minOrder != null) 'minOrder': minOrder,
-        if (deliveryTimeMinutes != null)
-          'deliveryTimeMinutes': deliveryTimeMinutes,
-        'menus': menus.map((m) => m.toJson()).toList(),
-      };
+    '_id': id,
+    'name': name,
+    if (description != null) 'description': description,
+    if (cuisineType != null) 'cuisineType': cuisineType,
+    'cuisines': cuisines,
+    if (address != null) 'address': address,
+    if (city != null) 'city': city,
+    'lat': lat,
+    'lng': lng,
+    if (logoUrl != null) 'logoUrl': logoUrl,
+    if (coverImage != null) 'coverImage': coverImage,
+    if (rating != null) 'rating': rating,
+    'isOpen': isOpen,
+    'deliveryFee': deliveryFee,
+    if (minOrder != null) 'minOrder': minOrder,
+    if (deliveryTimeMinutes != null) 'deliveryTimeMinutes': deliveryTimeMinutes,
+    'menus': menus.map((m) => m.toJson()).toList(),
+  };
 }

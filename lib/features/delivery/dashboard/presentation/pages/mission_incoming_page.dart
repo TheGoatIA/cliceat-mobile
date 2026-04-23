@@ -102,7 +102,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
         children: [
           AnimatedBuilder(
             animation: _pulseController,
-            builder: (_, __) => Transform.scale(
+            builder: (_, _) => Transform.scale(
               scale: _timeLeft <= 10
                   ? 0.95 + _pulseController.value * 0.1
                   : 1.0,

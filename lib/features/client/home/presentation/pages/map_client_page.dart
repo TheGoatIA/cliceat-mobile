@@ -49,18 +49,15 @@ class _MapClientPageState extends State<MapClientPage> {
       city: AppConstants.defaultCity,
     );
     if (!mounted) return;
-    result.fold(
-      (_) => setState(() => _loading = false),
-      (restaurants) {
-        setState(() {
-          _restaurants = restaurants;
-          _loading = false;
-        });
-        if (_mapboxMap != null) {
-          _addClusteredSource();
-        }
-      },
-    );
+    result.fold((_) => setState(() => _loading = false), (restaurants) {
+      setState(() {
+        _restaurants = restaurants;
+        _loading = false;
+      });
+      if (_mapboxMap != null) {
+        _addClusteredSource();
+      }
+    });
   }
 
   // ─── Map creation ─────────────────────────────────────────────────────────
@@ -69,6 +66,10 @@ class _MapClientPageState extends State<MapClientPage> {
     _mapboxMap = map;
     // Écouter les clics sur les features
     map.setOnMapTapListener(_onMapTap);
+    // Désactiver l'échelle et les attributions encombrantes si besoin
+    map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    map.compass.updateSettings(CompassSettings(enabled: false));
+
     if (_restaurants.isNotEmpty) {
       await _addClusteredSource();
     }
@@ -100,11 +101,7 @@ class _MapClientPageState extends State<MapClientPage> {
       await style.addStyleImage(
         _kMarkerImageId,
         1.0,
-        MbxImage(
-          width: 48,
-          height: 48,
-          data: markerBytes,
-        ),
+        MbxImage(width: 32, height: 32, data: markerBytes),
         false,
         [],
         [],
@@ -115,17 +112,16 @@ class _MapClientPageState extends State<MapClientPage> {
     // GeoJSON source avec clustering activé
     final features = _restaurants
         .where((r) => r.lat != 0.0 || r.lng != 0.0)
-        .map((r) => {
-              'type': 'Feature',
-              'geometry': {
-                'type': 'Point',
-                'coordinates': [r.lng, r.lat],
-              },
-              'properties': {
-                'id': r.id,
-                'name': r.name,
-              },
-            })
+        .map(
+          (r) => {
+            'type': 'Feature',
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [r.lng, r.lat],
+            },
+            'properties': {'id': r.id, 'name': r.name},
+          },
+        )
         .toList();
 
     final geojson = jsonEncode({
@@ -133,58 +129,69 @@ class _MapClientPageState extends State<MapClientPage> {
       'features': features,
     });
 
-    await style.addSource(GeoJsonSource(
-      id: _kSourceId,
-      data: geojson,
-      cluster: true,
-      clusterMaxZoom: 14,
-      clusterRadius: 50,
-    ));
+    await style.addSource(
+      GeoJsonSource(
+        id: _kSourceId,
+        data: geojson,
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50,
+      ),
+    );
 
     // ── Layer 1 : cercles de cluster ────────────────────────────────────────
-    await style.addLayer(CircleLayer(
-      id: _kClusterCircleLayerId,
-      sourceId: _kSourceId,
-      filter: ['has', 'point_count'],
-      circleColor: const int.fromEnvironment(
-        'circleColor',
-        defaultValue: 0xFFE53935, // rouge ClicEat
+    await style.addLayer(
+      CircleLayer(
+        id: _kClusterCircleLayerId,
+        sourceId: _kSourceId,
+        filter: ['has', 'point_count'],
+        circleColor: const int.fromEnvironment(
+          'circleColor',
+          defaultValue: 0xFFE53935, // rouge ClicEat
+        ),
+        circleRadius: 18.0,
+        circleOpacity: 0.95,
+        circleStrokeWidth: 1.5,
+        circleStrokeColor: 0xFFFFFFFF,
       ),
-      circleRadius: 22.0,
-      circleOpacity: 0.9,
-      circleStrokeWidth: 2.0,
-      circleStrokeColor: 0xFFFFFFFF,
-    ));
+    );
 
     // ── Layer 2 : nombre dans le cluster ────────────────────────────────────
-    await style.addLayer(SymbolLayer(
-      id: _kClusterCountLayerId,
-      sourceId: _kSourceId,
-      filter: ['has', 'point_count'],
-      textField: '{point_count_abbreviated}',
-      textSize: 14.0,
-      textColor: 0xFFFFFFFF,
-      textIgnorePlacement: true,
-      textAllowOverlap: true,
-    ));
+    await style.addLayer(
+      SymbolLayer(
+        id: _kClusterCountLayerId,
+        sourceId: _kSourceId,
+        filter: ['has', 'point_count'],
+        textField: '{point_count_abbreviated}',
+        textSize: 12.0,
+        textColor: 0xFFFFFFFF,
+        textIgnorePlacement: true,
+        textAllowOverlap: true,
+      ),
+    );
 
     // ── Layer 3 : marqueurs individuels ─────────────────────────────────────
-    await style.addLayer(SymbolLayer(
-      id: _kUnclusteredLayerId,
-      sourceId: _kSourceId,
-      filter: ['!', ['has', 'point_count']],
-      iconImage: _kMarkerImageId,
-      iconSize: 0.9,
-      iconAllowOverlap: true,
-      textFieldExpression: ['get', 'name'],
-      textSize: 10.0,
-      textOffset: [0.0, 2.5],
-      textAnchor: TextAnchor.TOP,
-      textColor: 0xFF222222,
-      textHaloColor: 0xFFFFFFFF,
-      textHaloWidth: 1.5,
-      textOptional: true,
-    ));
+    await style.addLayer(
+      SymbolLayer(
+        id: _kUnclusteredLayerId,
+        sourceId: _kSourceId,
+        filter: [
+          '!',
+          ['has', 'point_count'],
+        ],
+        iconImage: _kMarkerImageId,
+        iconSize: 0.9,
+        iconAllowOverlap: true,
+        textFieldExpression: ['get', 'name'],
+        textSize: 10.0,
+        textOffset: [0.0, 2.5],
+        textAnchor: TextAnchor.TOP,
+        textColor: 0xFF222222,
+        textHaloColor: 0xFFFFFFFF,
+        textHaloWidth: 1.5,
+        textOptional: true,
+      ),
+    );
   }
 
   // ─── Map click handler ────────────────────────────────────────────────────
@@ -194,22 +201,21 @@ class _MapClientPageState extends State<MapClientPage> {
 
     // Vérifier si l'utilisateur a tapé sur un cluster → zoomer
     final clusterFeatures = await _mapboxMap!.queryRenderedFeatures(
-      RenderedQueryGeometry.fromScreenCoordinate(
-        gestureContext.touchPosition,
-      ),
+      RenderedQueryGeometry.fromScreenCoordinate(gestureContext.touchPosition),
       RenderedQueryOptions(layerIds: [_kClusterCircleLayerId]),
     );
 
     if (clusterFeatures.isNotEmpty) {
-      final coords = clusterFeatures.first?.queriedFeature.feature['geometry']
-          as Map<String, dynamic>?;
-      final coordinates =
-          coords?['coordinates'] as List<dynamic>?;
+      final feature = clusterFeatures.first?.queriedFeature.feature;
+      final geometry = feature?['geometry'] as Map<String, dynamic>?;
+      final coordinates = geometry?['coordinates'] as List<dynamic>?;
+
       if (coordinates != null && coordinates.length >= 2) {
         final lng = (coordinates[0] as num).toDouble();
         final lat = (coordinates[1] as num).toDouble();
-        final currentZoom =
-            await _mapboxMap!.getCameraState().then((s) => s.zoom);
+        final currentZoom = await _mapboxMap!.getCameraState().then(
+          (s) => s.zoom,
+        );
         await _mapboxMap!.flyTo(
           CameraOptions(
             center: Point(coordinates: Position(lng, lat)),
@@ -223,16 +229,14 @@ class _MapClientPageState extends State<MapClientPage> {
 
     // Vérifier si l'utilisateur a tapé sur un marqueur individuel
     final markerFeatures = await _mapboxMap!.queryRenderedFeatures(
-      RenderedQueryGeometry.fromScreenCoordinate(
-        gestureContext.touchPosition,
-      ),
+      RenderedQueryGeometry.fromScreenCoordinate(gestureContext.touchPosition),
       RenderedQueryOptions(layerIds: [_kUnclusteredLayerId]),
     );
 
     if (markerFeatures.isNotEmpty && mounted) {
-      final props = markerFeatures.first?.queriedFeature.feature['properties']
-          as Map<String, dynamic>?;
-      final id = props?['id'] as String? ?? '';
+      final feature = markerFeatures.first?.queriedFeature.feature;
+      final props = feature?['properties'] as Map?;
+      final id = props?['id']?.toString() ?? '';
       if (id.isNotEmpty) {
         context.push('/restaurant/$id');
       }
@@ -242,48 +246,56 @@ class _MapClientPageState extends State<MapClientPage> {
   // ─── Marker icon builder ─────────────────────────────────────────────────
 
   Future<Uint8List> _buildMarkerIcon() async {
-    const size = 48.0;
+    const size = 32.0;
     final recorder = ui.PictureRecorder();
-    final canvas =
-        Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
+    final canvas = Canvas(recorder);
 
-    final paintOuter = Paint()..color = AppTheme.primaryRed;
-    canvas.drawCircle(const Offset(24, 24), 20, paintOuter);
+    // Shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+    canvas.drawCircle(
+      const Offset(size / 2, size / 2 + 1),
+      size / 2 - 2,
+      shadowPaint,
+    );
 
-    final paintRing = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    canvas.drawCircle(const Offset(24, 24), 20, paintRing);
+    // White background
+    final whitePaint = Paint()..color = Colors.white;
+    canvas.drawCircle(
+      const Offset(size / 2, size / 2),
+      size / 2 - 2,
+      whitePaint,
+    );
 
-    final paintInner = Paint()..color = Colors.white;
-    canvas.drawCircle(const Offset(24, 24), 7, paintInner);
+    // Red center
+    final redPaint = Paint()..color = AppTheme.primaryRed;
+    canvas.drawCircle(const Offset(size / 2, size / 2), size / 4, redPaint);
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(size.toInt(), size.toInt());
-    final data =
-        await img.toByteData(format: ui.ImageByteFormat.png);
-    return data!.buffer.asUint8List();
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
   }
 
-  // ─── UI ───────────────────────────────────────────────────────────────────
+  // ─── Location ─────────────────────────────────────────────────────────────
 
   Future<void> _centerOnUser() async {
     try {
-      final permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        await Geolocator.requestPermission();
-      }
       final pos = await Geolocator.getCurrentPosition();
-      await _mapboxMap?.flyTo(
+      _mapboxMap?.setCamera(
         CameraOptions(
-          center: Point(
-              coordinates: Position(pos.longitude, pos.latitude)),
-          zoom: 14.0,
+          center: Point(coordinates: Position(pos.longitude, pos.latitude)),
+          zoom: 14,
         ),
-        MapAnimationOptions(duration: 800),
       );
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('client.location_error'.tr())));
+      }
+    }
   }
 
   @override
@@ -297,8 +309,11 @@ class _MapClientPageState extends State<MapClientPage> {
             onMapCreated: _onMapCreated,
             cameraOptions: CameraOptions(
               center: Point(
-                  coordinates: Position(
-                      AppConstants.defaultLng, AppConstants.defaultLat)),
+                coordinates: Position(
+                  AppConstants.defaultLng,
+                  AppConstants.defaultLat,
+                ),
+              ),
               zoom: AppConstants.defaultZoom,
             ),
           ),
@@ -311,16 +326,16 @@ class _MapClientPageState extends State<MapClientPage> {
             child: Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: TextField(
                 readOnly: true,
-                onTap: () {},
+                onTap: () => context.push('/search'),
                 decoration: InputDecoration(
                   hintText: 'client.search_hint'.tr(),
                   prefixIcon: const Icon(Icons.search),
                   border: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
             ),
@@ -333,7 +348,9 @@ class _MapClientPageState extends State<MapClientPage> {
               left: 16,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryRed,
                   borderRadius: BorderRadius.circular(20),
@@ -341,9 +358,10 @@ class _MapClientPageState extends State<MapClientPage> {
                 child: Text(
                   '${_restaurants.length} ${'client.restaurants'.tr()}',
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ),
@@ -376,13 +394,13 @@ class _MapClientPageState extends State<MapClientPage> {
       height: 180,
       decoration: BoxDecoration(
         color: AppTheme.bg,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -4)),
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
         ],
       ),
       child: Column(
@@ -404,9 +422,10 @@ class _MapClientPageState extends State<MapClientPage> {
             child: Text(
               'client.recommended'.tr(),
               style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  color: AppTheme.ink),
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: AppTheme.ink,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -415,65 +434,130 @@ class _MapClientPageState extends State<MapClientPage> {
               : Expanded(
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     itemCount: _restaurants.length,
                     itemBuilder: (context, index) {
                       final r = _restaurants[index];
                       return GestureDetector(
-                        onTap: () =>
-                            context.push('/restaurant/${r.id}'),
+                        onTap: () => context.push('/restaurant/${r.id}'),
                         child: Container(
-                          width: 140,
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 4),
+                          width: 160,
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: AppTheme.lineSoft),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius:
-                                    const BorderRadius.vertical(
-                                        top: Radius.circular(12)),
-                                child: AppNetworkImage(
-                                  url: r.coverImage,
-                                  height: 70,
-                                  width: 140,
-                                  fit: BoxFit.cover,
-                                  fallbackAsset:
-                                      'assets/images/restaurant_placeholder.jpg',
-                                ),
+                              Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(16),
+                                    ),
+                                    child: AppNetworkImage(
+                                      url: r.coverImage,
+                                      height: 80,
+                                      width: 160,
+                                      fit: BoxFit.cover,
+                                      fallbackAsset:
+                                          'assets/images/restaurant_placeholder.jpg',
+                                    ),
+                                  ),
+                                  if (r.rating != null)
+                                    Positioned(
+                                      top: 6,
+                                      right: 6,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          boxShadow: AppTheme.shadowSm,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.star_rounded,
+                                              size: 10,
+                                              color: AppTheme.honey,
+                                            ),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              r.rating!.toStringAsFixed(1),
+                                              style: GoogleFonts.inter(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                               Padding(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(10),
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(r.name,
-                                        style: GoogleFonts.inter(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 12,
-                                            color: AppTheme.ink),
-                                        maxLines: 1,
-                                        overflow:
-                                            TextOverflow.ellipsis),
-                                    if ((r.cuisineType ?? '')
-                                        .isNotEmpty)
-                                      Text(
-                                        r.cuisineType!,
-                                        style: GoogleFonts.inter(
-                                            fontSize: 11,
-                                            color: AppTheme.muted),
-                                        maxLines: 1,
-                                        overflow:
-                                            TextOverflow.ellipsis,
+                                    Text(
+                                      r.name,
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        color: AppTheme.ink,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.access_time_rounded,
+                                          size: 12,
+                                          color: AppTheme.muted,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${r.deliveryTimeMinutes ?? 30} min',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            color: AppTheme.muted,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Icon(
+                                          Icons.delivery_dining_rounded,
+                                          size: 12,
+                                          color: AppTheme.muted,
+                                        ),
+                                        const SizedBox(width: 2),
+                                        Text(
+                                          '${r.deliveryFee.toInt()}F',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            color: AppTheme.muted,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),

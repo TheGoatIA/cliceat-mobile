@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/features/delivery/dashboard/presentation/bloc/payout_cubit.dart';

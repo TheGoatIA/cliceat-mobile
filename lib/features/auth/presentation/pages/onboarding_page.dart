@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -15,21 +16,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  static const _slides = [
+  static final _slides = [
     _Slide(
       emoji: '🍲',
-      title: 'Le goût du pays,\nlivré chez toi',
-      subtitle: 'Ndolé, Poulet DG, poisson braisé — tes plats préférés de Douala et Yaoundé, en quelques clics.',
+      title: 'onboarding.slide1_title'.tr(),
+      subtitle: 'onboarding.slide1_subtitle'.tr(),
     ),
     _Slide(
       emoji: '🛵',
-      title: 'Livraison rapide\ndans toute la ville',
-      subtitle: 'Suivi GPS en temps réel, chat avec ton livreur et estimations précises à la minute.',
+      title: 'onboarding.slide2_title'.tr(),
+      subtitle: 'onboarding.slide2_subtitle'.tr(),
     ),
     _Slide(
       emoji: '💰',
-      title: 'Paye comme\ntu veux',
-      subtitle: 'MTN MoMo, Orange Money, Wallet ClicEat ou espèces — tout est possible.',
+      title: 'onboarding.slide3_title'.tr(),
+      subtitle: 'onboarding.slide3_subtitle'.tr(),
     ),
   ];
 
@@ -61,7 +62,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       _pageController.jumpToPage(_slides.length - 1);
                     },
                     child: Text(
-                      'Passer',
+                      'onboarding.skip'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -110,7 +111,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
                   if (!isLast)
                     _WhiteButton(
-                      label: 'Suivant',
+                      label: 'onboarding.next'.tr(),
                       icon: Icons.arrow_forward_rounded,
                       onTap: () {
                         HapticFeedback.selectionClick();
@@ -122,7 +123,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     )
                   else ...[
                     _WhiteButton(
-                      label: 'Commencer en tant que client',
+                      label: 'onboarding.start_client'.tr(),
                       onTap: () {
                         HapticFeedback.mediumImpact();
                         context.push('/auth/login?mode=client');
@@ -147,7 +148,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                             const Icon(Icons.delivery_dining_outlined, color: Colors.white, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              'Mode Livreur',
+                              'onboarding.mode_delivery'.tr(),
                               style: GoogleFonts.inter(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -221,7 +222,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Livraison en 25 min',
+                          'onboarding.eta_label'.tr(),
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,

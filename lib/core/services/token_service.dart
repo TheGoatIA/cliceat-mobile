@@ -11,6 +11,8 @@ class TokenService {
   final FlutterSecureStorage _secureStorage;
   final Logger _logger;
   
+  final _sessionExpiredController = StreamController<void>.broadcast();
+  Stream<void> get onSessionExpired => _sessionExpiredController.stream;
   Completer<String?>? _pendingRefresh;
 
   TokenService(this._secureStorage, this._logger);
@@ -18,12 +20,12 @@ class TokenService {
   Future<String?> getToken() async {
     final token = await _secureStorage.read(key: 'jwt_token');
     if (token == null) return null;
-    
+
     if (isTokenExpired(token)) {
       _logger.i('[TokenService] Token expiré, tentative de rafraîchissement...');
       return refreshToken();
     }
-    
+
     return token;
   }
 
@@ -61,8 +63,8 @@ class TokenService {
     _pendingRefresh = Completer<String?>();
     try {
       final authService = getIt<AuthService>();
-      final res = await authService.refreshToken();
-      
+      final res = await authService.refreshToken().timeout(const Duration(seconds: 15));
+
       if (res.isSuccessful && res.body != null) {
         final body = res.body as Map<String, dynamic>?;
         final tokens = body?['tokens'] as Map<String, dynamic>?;
@@ -74,15 +76,22 @@ class TokenService {
           return newToken;
         }
       }
-      
+
+      _logger.w('[TokenService] Refresh non fructueux — signal de session expirée.');
+      _sessionExpiredController.add(null);
       _pendingRefresh!.complete(null);
       return null;
     } catch (e) {
       _logger.e('[TokenService] Échec du rafraîchissement: $e');
+      _sessionExpiredController.add(null);
       _pendingRefresh!.complete(null);
       return null;
     } finally {
       _pendingRefresh = null;
     }
+  }
+
+  void dispose() {
+    _sessionExpiredController.close();
   }
 }

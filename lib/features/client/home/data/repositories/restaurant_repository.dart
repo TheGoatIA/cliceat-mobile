@@ -138,6 +138,12 @@ class RestaurantRepository {
       if (data is List) {
         return data.whereType<Map<String, dynamic>>().toList();
       }
+      if (data is Map) {
+        final items = data['items'] ?? data['restaurants'];
+        if (items is List) {
+          return items.whereType<Map<String, dynamic>>().toList();
+        }
+      }
     }
     return [];
   }
@@ -164,9 +170,9 @@ class RestaurantRepository {
     return menus.map((m) => MenuItemsTableCompanion.insert(
       id: m.id,
       restaurantId: restaurantId,
-      name: m.name,
+      name: m.nameFr,
       price: m.price,
-      description: drift.Value(m.description),
+      description: drift.Value(m.descriptionFr),
       imageUrl: drift.Value(m.image),
       category: drift.Value(m.category),
       isAvailable: drift.Value(m.isAvailable),
@@ -204,8 +210,10 @@ class RestaurantRepository {
       }
       return MenuItemModel(
         id: m.id,
-        name: m.name,
-        description: m.description,
+        nameFr: m.name,
+        nameEn: m.name,
+        descriptionFr: m.description,
+        descriptionEn: m.description,
         price: m.price,
         image: m.imageUrl,
         category: m.category,

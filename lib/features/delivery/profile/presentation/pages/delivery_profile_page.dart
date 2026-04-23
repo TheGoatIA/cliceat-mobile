@@ -244,7 +244,7 @@ class DeliveryProfilePage extends StatelessWidget {
         ),
         value: value,
         onChanged: onChanged,
-        activeColor: AppTheme.primaryRed,
+        activeThumbColor: AppTheme.primaryRed,
       ),
     );
   }

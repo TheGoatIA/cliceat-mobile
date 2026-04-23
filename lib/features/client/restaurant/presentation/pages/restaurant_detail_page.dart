@@ -34,9 +34,13 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   }
 
   Future<void> _loadRestaurant() async {
-    setState(() { _loading = true; _error = null; });
-    final result =
-        await getIt<RestaurantRepository>().getDetails(widget.restaurantId);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    final result = await getIt<RestaurantRepository>().getDetails(
+      widget.restaurantId,
+    );
     if (!mounted) return;
     result.fold(
       (err) => setState(() {
@@ -48,13 +52,17 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
           _restaurant = restaurant;
           _loading = false;
         });
-        getIt<AnalyticsService>().logRestaurantViewed(restaurant.id, restaurant.name);
+        getIt<AnalyticsService>().logRestaurantViewed(
+          restaurant.id,
+          restaurant.name,
+        );
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             context.read<CartCubit>().setDeliveryFee(
-                restaurant.deliveryFee > 0
-                    ? restaurant.deliveryFee
-                    : AppConstants.defaultDeliveryFee);
+              restaurant.deliveryFee > 0
+                  ? restaurant.deliveryFee
+                  : AppConstants.defaultDeliveryFee,
+            );
           }
         });
       },
@@ -89,8 +97,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     color: AppTheme.redSoft,
                     borderRadius: BorderRadius.circular(36),
                   ),
-                  child: const Icon(Icons.error_outline_rounded,
-                      size: 36, color: AppTheme.primaryRed),
+                  child: const Icon(
+                    Icons.error_outline_rounded,
+                    size: 36,
+                    color: AppTheme.primaryRed,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Text(
@@ -109,15 +120,18 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   child: Text('common.retry'.tr()),
                 ),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => context.pop(),
-                  child: Text('common.back'.tr(),
-                      style: const TextStyle(color: AppTheme.muted)),
+                  child: Text(
+                    'common.back'.tr(),
+                    style: const TextStyle(color: AppTheme.muted),
+                  ),
                 ),
               ],
             ),
@@ -137,6 +151,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     final description = restaurant.description ?? '';
     final menus = restaurant.menus;
 
+    final lang = context.locale.languageCode;
     final menusByCategory = <String, List<MenuItemModel>>{};
     for (final item in menus) {
       final cat = (item.category ?? '').trim();
@@ -144,8 +159,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     }
     final categoryEntries = [
       ...menusByCategory.entries.where((e) => e.key.isNotEmpty),
-      if (menusByCategory.containsKey(''))
-        MapEntry('', menusByCategory['']!),
+      if (menusByCategory.containsKey('')) MapEntry('', menusByCategory['']!),
     ];
 
     return Scaffold(
@@ -167,8 +181,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     color: Colors.black.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.arrow_back_ios_new_rounded,
-                      size: 18, color: Colors.white),
+                  child: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -184,8 +201,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                       color: Colors.black.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.favorite_border_rounded,
-                        size: 18, color: Colors.white),
+                    child: const Icon(
+                      Icons.favorite_border_rounded,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -223,7 +243,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                         if (!restaurant.isOpen)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
                             decoration: BoxDecoration(
                               color: AppTheme.primaryRed,
                               borderRadius: BorderRadius.circular(8),
@@ -240,7 +262,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                         const Spacer(),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.ink,
                             borderRadius: BorderRadius.circular(100),
@@ -248,8 +272,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.star_rounded,
-                                  size: 13, color: AppTheme.honey),
+                              const Icon(
+                                Icons.star_rounded,
+                                size: 13,
+                                color: AppTheme.honey,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 rating,
@@ -292,7 +319,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     Text(
                       cuisine,
                       style: GoogleFonts.inter(
-                          fontSize: 14, color: AppTheme.muted),
+                        fontSize: 14,
+                        color: AppTheme.muted,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 14),
@@ -357,14 +386,19 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                           color: AppTheme.bgWarm,
                           borderRadius: BorderRadius.circular(32),
                         ),
-                        child: const Icon(Icons.restaurant_menu_rounded,
-                            size: 28, color: AppTheme.muted),
+                        child: const Icon(
+                          Icons.restaurant_menu_rounded,
+                          size: 28,
+                          color: AppTheme.muted,
+                        ),
                       ),
                       const SizedBox(height: 14),
                       Text(
                         'restaurant.no_items'.tr(),
                         style: GoogleFonts.inter(
-                            fontSize: 14, color: AppTheme.muted),
+                          fontSize: 14,
+                          color: AppTheme.muted,
+                        ),
                       ),
                     ],
                   ),
@@ -373,7 +407,12 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             )
           else
             _buildMenuSliver(
-                context, categoryEntries, widget.restaurantId, deliveryFee),
+              context,
+              categoryEntries,
+              widget.restaurantId,
+              deliveryFee,
+              lang,
+            ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
@@ -397,7 +436,8 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -452,6 +492,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     List<MapEntry<String, List<MenuItemModel>>> categoryEntries,
     String restaurantId,
     double deliveryFee,
+    String lang,
   ) {
     final rows = <Object>[];
     for (final entry in categoryEntries) {
@@ -462,123 +503,132 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final row = rows[index];
-            if (row is String) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(4, 20, 4, 10),
-                child: Text(
-                  row,
-                  style: GoogleFonts.bricolageGrotesque(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.ink,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              );
-            }
-            final item = row as MenuItemModel;
-            final hasVariations = item.variations.isNotEmpty;
-
-            return GestureDetector(
-              onTap: () =>
-                  _showItemDetailModal(context, item, restaurantId, deliveryFee),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.lineSoft),
-                  boxShadow: AppTheme.shadowSm,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: AppNetworkImage(
-                        url: item.image,
-                        width: 70,
-                        height: 70,
-                        fit: BoxFit.cover,
-                        fallbackAsset:
-                            'assets/images/restaurant_placeholder.jpg',
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.ink,
-                            ),
-                          ),
-                          if ((item.description ?? '').isNotEmpty) ...[
-                            const SizedBox(height: 3),
-                            Text(
-                              item.description!,
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: AppTheme.muted,
-                                height: 1.4,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                          const SizedBox(height: 6),
-                          Text(
-                            '${item.price.toStringAsFixed(0)} FCFA',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primaryRed,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        if (hasVariations) {
-                          _showItemDetailModal(
-                              context, item, restaurantId, deliveryFee);
-                        } else {
-                          _addToCartWithConfirmation(
-                            context: context,
-                            restaurantId: restaurantId,
-                            item: item,
-                            deliveryFee: deliveryFee,
-                          );
-                        }
-                      },
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryRed,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.add_rounded,
-                            size: 18, color: Colors.white),
-                      ),
-                    ),
-                  ],
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final row = rows[index];
+          if (row is String) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(4, 20, 4, 10),
+              child: Text(
+                row,
+                style: GoogleFonts.bricolageGrotesque(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.ink,
+                  letterSpacing: -0.3,
                 ),
               ),
             );
-          },
-          childCount: rows.length,
-        ),
+          }
+          final item = row as MenuItemModel;
+          final hasVariations = item.variations.isNotEmpty;
+
+          return GestureDetector(
+            onTap: () => _showItemDetailModal(
+              context,
+              item,
+              restaurantId,
+              deliveryFee,
+              lang,
+            ),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.lineSoft),
+                boxShadow: AppTheme.shadowSm,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: AppNetworkImage(
+                      url: item.image,
+                      width: 70,
+                      height: 70,
+                      fit: BoxFit.cover,
+                      fallbackAsset: 'assets/images/restaurant_placeholder.jpg',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.getName(lang),
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.ink,
+                          ),
+                        ),
+                        if (item.getDescription(lang)?.isNotEmpty ?? false) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            item.getDescription(lang)!,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.muted,
+                              height: 1.4,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        const SizedBox(height: 6),
+                        Text(
+                          '${item.price.toStringAsFixed(0)} FCFA',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primaryRed,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      if (hasVariations) {
+                        _showItemDetailModal(
+                          context,
+                          item,
+                          restaurantId,
+                          deliveryFee,
+                          lang,
+                        );
+                      } else {
+                        _addToCartWithConfirmation(
+                          context: context,
+                          restaurantId: restaurantId,
+                          item: item,
+                          deliveryFee: deliveryFee,
+                        );
+                      }
+                    },
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryRed,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.add_rounded,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }, childCount: rows.length),
       ),
     );
   }
@@ -588,19 +638,25 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('cart.clear_confirm_title'.tr(),
-            style: GoogleFonts.bricolageGrotesque(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.ink,
-            )),
-        content: Text('cart.clear_confirm_message'.tr(),
-            style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted)),
+        title: Text(
+          'cart.clear_confirm_title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.ink,
+          ),
+        ),
+        content: Text(
+          'cart.clear_confirm_message'.tr(),
+          style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('common.cancel'.tr(),
-                style: const TextStyle(color: AppTheme.muted)),
+            child: Text(
+              'common.cancel'.tr(),
+              style: const TextStyle(color: AppTheme.muted),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -609,7 +665,8 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: Text('common.yes'.tr()),
           ),
@@ -629,14 +686,17 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     double? priceOverride,
   }) async {
     final cartCubit = context.read<CartCubit>();
+    final lang = context.locale.languageCode;
+
     if (cartCubit.state.wouldClearCart(restaurantId)) {
       final confirmed = await _confirmClearCart(context);
       if (!confirmed) return;
       await cartCubit.clearCart();
     }
 
-    final displayName =
-        variation != null ? '${item.name} ($variation)' : item.name;
+    final displayName = variation != null
+        ? '${item.getName(lang)} ($variation)'
+        : item.getName(lang);
 
     await cartCubit.addItem(
       restaurantId: restaurantId,
@@ -654,8 +714,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
           content: Text('restaurant.added_to_cart'.tr()),
           backgroundColor: AppTheme.ink,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           duration: const Duration(seconds: 1),
           action: SnackBarAction(
             label: 'restaurant.view_cart'.tr(),
@@ -672,13 +733,15 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     MenuItemModel item,
     String restaurantId,
     double deliveryFee,
+    String lang,
   ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => DraggableScrollableSheet(
         initialChildSize: 0.6,
         maxChildSize: 0.9,
@@ -690,8 +753,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
                 child: AppNetworkImage(
                   url: item.image,
                   height: item.image != null ? 200 : 80,
@@ -706,7 +770,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.name,
+                      item.getName(lang),
                       style: GoogleFonts.bricolageGrotesque(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
@@ -723,10 +787,10 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                         color: AppTheme.primaryRed,
                       ),
                     ),
-                    if ((item.description ?? '').isNotEmpty) ...[
+                    if (item.getDescription(lang)?.isNotEmpty ?? false) ...[
                       const SizedBox(height: 12),
                       Text(
-                        item.description!,
+                        item.getDescription(lang)!,
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: AppTheme.muted,
@@ -745,53 +809,56 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      ...item.variations.map((v) => GestureDetector(
-                            onTap: () {
-                              Navigator.pop(ctx);
-                              _addToCartWithConfirmation(
-                                context: context,
-                                restaurantId: restaurantId,
-                                item: item,
-                                deliveryFee: deliveryFee,
-                                variation: v.name,
-                                priceOverride: item.price + v.price,
-                              );
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 14),
-                              decoration: BoxDecoration(
-                                color: AppTheme.bg,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppTheme.line),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    v.name,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppTheme.ink,
-                                    ),
-                                  ),
-                                  Text(
-                                    v.price > 0
-                                        ? '+${v.price.toStringAsFixed(0)} FCFA'
-                                        : '${(item.price + v.price).toStringAsFixed(0)} FCFA',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppTheme.primaryRed,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                      ...item.variations.map(
+                        (v) => GestureDetector(
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            _addToCartWithConfirmation(
+                              context: context,
+                              restaurantId: restaurantId,
+                              item: item,
+                              deliveryFee: deliveryFee,
+                              variation: v.name,
+                              priceOverride: item.price + v.price,
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
                             ),
-                          )),
+                            decoration: BoxDecoration(
+                              color: AppTheme.bg,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppTheme.line),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  v.name,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppTheme.ink,
+                                  ),
+                                ),
+                                Text(
+                                  v.price > 0
+                                      ? '+${v.price.toStringAsFixed(0)} FCFA'
+                                      : '${(item.price + v.price).toStringAsFixed(0)} FCFA',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.primaryRed,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 24),
                     if (item.variations.isEmpty)
@@ -808,8 +875,10 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                               deliveryFee: deliveryFee,
                             );
                           },
-                          icon: const Icon(Icons.add_shopping_cart_rounded,
-                              size: 18),
+                          icon: const Icon(
+                            Icons.add_shopping_cart_rounded,
+                            size: 18,
+                          ),
                           label: Text(
                             'restaurant.add_to_cart'.tr(),
                             style: GoogleFonts.inter(
@@ -822,7 +891,8 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                       ),

@@ -173,9 +173,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppTheme.bg,
+      backgroundColor: context.colors.bg,
       body: CustomScrollView(
         slivers: [
           _buildAppBar(theme, isDark),
@@ -206,7 +207,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     return SliverAppBar(
       pinned: true,
       expandedHeight: 0,
-      backgroundColor: AppTheme.bg,
+      backgroundColor: context.colors.bg,
       surfaceTintColor: Colors.transparent,
       title: Row(
         children: [
@@ -226,7 +227,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
             style: GoogleFonts.bricolageGrotesque(
               fontWeight: FontWeight.w700,
               fontSize: 18,
-              color: AppTheme.ink,
+              color: context.colors.ink,
               letterSpacing: -0.3,
             ),
           ),
@@ -296,12 +297,12 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 end: Alignment.bottomRight,
               )
             : null,
-        color: _isOnline ? null : Colors.white,
+        color: _isOnline ? null : context.colors.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: _isOnline
               ? AppTheme.successColor.withValues(alpha: 0.4)
-              : AppTheme.lineSoft,
+              : context.colors.lineSoft,
           width: 1.5,
         ),
         boxShadow: [
@@ -533,9 +534,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.lineSoft),
+        border: Border.all(color: context.colors.lineSoft),
         boxShadow: AppTheme.shadowSm,
       ),
       child: Column(
@@ -566,9 +567,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.lineSoft),
+        border: Border.all(color: context.colors.lineSoft),
         boxShadow: AppTheme.shadowSm,
       ),
       child: Row(
@@ -596,7 +597,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
-                    color: AppTheme.ink,
+                    color: context.colors.ink,
                   ),
                 ),
                 const SizedBox(height: 2),

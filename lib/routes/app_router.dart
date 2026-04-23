@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
@@ -45,9 +46,31 @@ import '../../features/client/review/presentation/cubit/review_cubit.dart';
 import '../../core/di/injection.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import 'dart:async';
+
 // ─── Navigator key ────────────────────────────────────────────────────────────
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
+
+// ─── Refresh Listenable ───────────────────────────────────────────────────────
+
+/// Helper class to convert a Stream into a Listenable for GoRouter.
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+          (dynamic _) => notifyListeners(),
+        );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
 
 // ─── Route names (constants to avoid typos) ───────────────────────────────────
 
@@ -55,6 +78,7 @@ abstract class AppRoutes {
   static const splash = '/';
   static const onboarding = '/onboarding';
   static const login = '/auth/login';
+  static const register = '/auth/register';
   static const forgotPassword = '/auth/forgot-password';
   static const resetPassword = '/auth/reset-password';
   static const verifyEmail = '/auth/verify-email';
@@ -73,6 +97,7 @@ const _kPublicRoutes = {
   AppRoutes.splash,
   AppRoutes.onboarding,
   AppRoutes.login,
+  AppRoutes.register,
   AppRoutes.forgotPassword,
   AppRoutes.resetPassword,
   AppRoutes.verifyEmail,
@@ -127,6 +152,7 @@ String? _guardRedirect(BuildContext context, GoRouterState state) {
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: AppRoutes.splash,
+  refreshListenable: GoRouterRefreshStream(getIt<AuthBloc>().stream),
   redirect: _guardRedirect,
   routes: [
     // Splash — gère le check d'auth et redirige
@@ -145,6 +171,13 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final mode = state.uri.queryParameters['mode'] ?? 'client';
         return LoginPage(mode: mode);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.register,
+      builder: (context, state) {
+        final role = state.uri.queryParameters['role'];
+        return RegisterPage(initialRole: role);
       },
     ),
 
@@ -275,7 +308,8 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.search,
       builder: (context, state) {
         final query = state.uri.queryParameters['q'] ?? '';
-        return SearchResultsPage(initialQuery: query);
+        final city = state.uri.queryParameters['city'] ?? 'Douala';
+        return SearchResultsPage(initialQuery: query, city: city);
       },
     ),
 
