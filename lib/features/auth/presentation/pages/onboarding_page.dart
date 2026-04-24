@@ -18,19 +18,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   static final _slides = [
     _Slide(
-      emoji: '🍲',
-      title: 'onboarding.slide1_title'.tr(),
-      subtitle: 'onboarding.slide1_subtitle'.tr(),
+      image: 'assets/images/onboarding_1.png',
+      title: 'Le meilleur de la cuisine locale',
+      subtitle: 'Découvrez les meilleurs restaurants de Douala et Yaoundé livrés directement chez vous.',
     ),
     _Slide(
-      emoji: '🛵',
-      title: 'onboarding.slide2_title'.tr(),
-      subtitle: 'onboarding.slide2_subtitle'.tr(),
+      image: 'assets/images/onboarding_2.png',
+      title: 'Livraison ultra-rapide',
+      subtitle: 'Nos livreurs partenaires sillonnent la ville pour vous garantir un repas chaud en moins de 30 minutes.',
     ),
     _Slide(
-      emoji: '💰',
-      title: 'onboarding.slide3_title'.tr(),
-      subtitle: 'onboarding.slide3_subtitle'.tr(),
+      image: 'assets/images/onboarding_3.png',
+      title: 'Gagnez du temps et de l\'argent',
+      subtitle: 'Profitez de nos offres exclusives et d\'un service de qualité sans quitter votre canapé.',
     ),
   ];
 
@@ -197,7 +197,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                 ),
                 Center(
-                  child: Text(slide.emoji, style: const TextStyle(fontSize: 100)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Image.asset(
+                      slide.image,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
                 // Status badge
                 Positioned(
@@ -264,10 +270,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
 }
 
 class _Slide {
-  final String emoji;
+  final String image;
   final String title;
   final String subtitle;
-  const _Slide({required this.emoji, required this.title, required this.subtitle});
+  const _Slide({required this.image, required this.title, required this.subtitle});
 }
 
 class _WhiteButton extends StatelessWidget {
