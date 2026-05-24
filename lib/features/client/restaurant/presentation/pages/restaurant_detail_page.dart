@@ -13,6 +13,8 @@ import '../../../../../shared/widgets/app_network_image.dart';
 import '../../../../../core/services/analytics_service.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../cart/presentation/bloc/cart_cubit.dart';
+import '../../../cart/data/repositories/order_repository.dart';
+import '../widgets/restaurant_reviews_list.dart';
 
 class RestaurantDetailPage extends StatefulWidget {
   final String restaurantId;
@@ -22,16 +24,25 @@ class RestaurantDetailPage extends StatefulWidget {
   State<RestaurantDetailPage> createState() => _RestaurantDetailPageState();
 }
 
-class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
+class _RestaurantDetailPageState extends State<RestaurantDetailPage>
+    with SingleTickerProviderStateMixin {
   RestaurantModel? _restaurant;
   bool _loading = true;
   String? _error;
+
+  // ─── Tab state ────────────────────────────────────────────────────────────
+  int _activeTab = 0; // 0 = Menu, 1 = Avis
+
+  // ─── Review‑write CTA ────────────────────────────────────────────────────
+  bool _checkingOrders = false;
 
   @override
   void initState() {
     super.initState();
     _loadRestaurant();
   }
+
+  // ─── Data loading ─────────────────────────────────────────────────────────
 
   Future<void> _loadRestaurant() async {
     setState(() {
@@ -69,36 +80,138 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     );
   }
 
+  // ─── Favorite toggle — refreshes rating from server ───────────────────────
+
   Future<void> _toggleFavorite() async {
     if (_restaurant == null) return;
     HapticFeedback.mediumImpact();
-    
+
     final newStatus = !_restaurant!.isFavorite;
-    
+
     // Optimistic update
     setState(() {
       _restaurant = _restaurant!.copyWith(isFavorite: newStatus);
     });
 
-    final result = await getIt<RestaurantRepository>().toggleFavorite(widget.restaurantId);
-    
+    final result = await getIt<RestaurantRepository>().toggleFavorite(
+      widget.restaurantId,
+    );
+
     result.fold(
       (err) {
-        // Rollback
+        // Rollback on error
         if (mounted) {
           setState(() {
             _restaurant = _restaurant!.copyWith(isFavorite: !newStatus);
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(err.message.tr())),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(err.message.tr())));
         }
       },
       (_) {
-        // Success
+        // Refresh full restaurant data to get the latest rating
+        _loadRestaurant();
       },
     );
   }
+
+  // ─── Review CTA — find a deliverable unrated order ────────────────────────
+
+  Future<void> _onWriteReviewTapped() async {
+    if (_checkingOrders) return;
+    setState(() => _checkingOrders = true);
+
+    final result = await getIt<OrderRepository>().getOrders(page: 1, limit: 50);
+
+    if (!mounted) return;
+    setState(() => _checkingOrders = false);
+
+    result.fold((err) => _showNoOrderDialog(), (orders) {
+      // Find a delivered, unrated order for this restaurant
+      final eligible = orders.where((o) {
+        final matchesRestaurant = o.restaurantId == widget.restaurantId;
+        final isDelivered = o.status == 'delivered';
+        final notRated = o.rating == null;
+        return matchesRestaurant && isDelivered && notRated;
+      }).toList();
+
+      if (eligible.isEmpty) {
+        _showNoOrderDialog();
+      } else {
+        // Use the most recent eligible order
+        final order = eligible.first;
+        context.push('/client/rate/${order.id}');
+      }
+    });
+  }
+
+  void _showNoOrderDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: const EdgeInsets.all(24),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppTheme.bgWarm,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.receipt_long_rounded,
+                size: 30,
+                color: AppTheme.muted,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'review.no_eligible_order_title'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.ink,
+                letterSpacing: -0.3,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'review.no_eligible_order_message'.tr(),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppTheme.muted,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(dialogCtx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryRed,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: Text('common.understood'.tr()),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Build ────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -197,6 +310,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
       backgroundColor: AppTheme.bg,
       body: CustomScrollView(
         slivers: [
+          // ── Hero app bar ────────────────────────────────────────────────
           SliverAppBar(
             expandedHeight: 260,
             pinned: true,
@@ -333,7 +447,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             ),
           ),
 
-          // Restaurant info header
+          // ── Restaurant info ─────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Container(
               color: Colors.white,
@@ -392,63 +506,57 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             ),
           ),
 
-          // Menu title
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-              child: Text(
-                'restaurant.menu'.tr(),
-                style: GoogleFonts.bricolageGrotesque(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.ink,
-                  letterSpacing: -0.4,
-                ),
-              ),
-            ),
-          ),
+          // ── Tab switcher ────────────────────────────────────────────────
+          SliverToBoxAdapter(child: _buildTabBar()),
 
-          if (menus.isEmpty)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: AppTheme.bgWarm,
-                          borderRadius: BorderRadius.circular(32),
+          // ── Tab content ─────────────────────────────────────────────────
+          if (_activeTab == 0) ...[
+            // Menu tab
+            if (menus.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: AppTheme.bgWarm,
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          child: const Icon(
+                            Icons.restaurant_menu_rounded,
+                            size: 28,
+                            color: AppTheme.muted,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.restaurant_menu_rounded,
-                          size: 28,
-                          color: AppTheme.muted,
+                        const SizedBox(height: 14),
+                        Text(
+                          'restaurant.no_items'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: AppTheme.muted,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        'restaurant.no_items'.tr(),
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: AppTheme.muted,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
+              )
+            else
+              _buildMenuSliver(
+                context,
+                categoryEntries,
+                widget.restaurantId,
+                deliveryFee,
+                lang,
               ),
-            )
-          else
-            _buildMenuSliver(
-              context,
-              categoryEntries,
-              widget.restaurantId,
-              deliveryFee,
-              lang,
-            ),
+          ] else ...[
+            // Reviews tab
+            _buildReviewsSliver(),
+          ],
 
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
@@ -522,6 +630,229 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
       ),
     );
   }
+
+  // ─── Tab bar widget ────────────────────────────────────────────────────────
+
+  Widget _buildTabBar() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+          Container(
+            height: 46,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppTheme.bgWarm,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Stack(
+              children: [
+                // Animated indicator pill
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOutCubic,
+                  left: _activeTab == 0
+                      ? 0
+                      : (MediaQuery.of(context).size.width - 32 - 8) / 2,
+                  top: 0,
+                  bottom: 0,
+                  width: (MediaQuery.of(context).size.width - 32 - 8) / 2,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Tab labels
+                Row(
+                  children: [
+                    _TabItem(
+                      label: 'restaurant.tab_menu'.tr(),
+                      icon: Icons.restaurant_menu_rounded,
+                      isActive: _activeTab == 0,
+                      onTap: () {
+                        if (_activeTab != 0) {
+                          HapticFeedback.selectionClick();
+                          setState(() => _activeTab = 0);
+                        }
+                      },
+                    ),
+                    _TabItem(
+                      label: 'restaurant.tab_reviews'.tr(),
+                      icon: Icons.star_rounded,
+                      isActive: _activeTab == 1,
+                      onTap: () {
+                        if (_activeTab != 1) {
+                          HapticFeedback.selectionClick();
+                          setState(() => _activeTab = 1);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Divider(height: 1, color: AppTheme.lineSoft),
+        ],
+      ),
+    );
+  }
+
+  // ─── Reviews sliver ────────────────────────────────────────────────────────
+
+  Widget _buildReviewsSliver() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+
+            // Rating summary row
+            if (_restaurant?.rating != null && _restaurant!.rating! > 0) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.lineSoft),
+                  boxShadow: AppTheme.shadowSm,
+                ),
+                child: Row(
+                  children: [
+                    // Big rating number
+                    Column(
+                      children: [
+                        Text(
+                          _restaurant!.rating!.toStringAsFixed(1),
+                          style: GoogleFonts.bricolageGrotesque(
+                            fontSize: 40,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.ink,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        Row(
+                          children: List.generate(5, (i) {
+                            final filled = i < _restaurant!.rating!.round();
+                            return Icon(
+                              filled
+                                  ? Icons.star_rounded
+                                  : Icons.star_border_rounded,
+                              size: 14,
+                              color: filled
+                                  ? AppTheme.honey
+                                  : AppTheme.lineSoft,
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'review.overall_rating'.tr(),
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.inkSoft,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'review.based_on_reviews'.tr(),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Write-review CTA button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _checkingOrders ? null : _onWriteReviewTapped,
+                icon: _checkingOrders
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppTheme.primaryRed,
+                        ),
+                      )
+                    : const Icon(Icons.rate_review_rounded, size: 18),
+                label: Text(
+                  _checkingOrders
+                      ? 'common.loading'.tr()
+                      : 'review.write_review'.tr(),
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primaryRed,
+                  side: const BorderSide(
+                    color: AppTheme.primaryRed,
+                    width: 1.5,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Reviews list title
+            Text(
+              'review.client_reviews'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.ink,
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Reviews list widget
+            RestaurantReviewsList(restaurantId: widget.restaurantId),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Menu sliver ────────────────────────────────────────────────────────────
 
   Widget _buildMenuSliver(
     BuildContext context,
@@ -942,6 +1273,59 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     );
   }
 }
+
+// ─── Tab item widget ──────────────────────────────────────────────────────────
+
+class _TabItem extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _TabItem({
+    required this.label,
+    required this.icon,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          height: double.infinity,
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: isActive ? AppTheme.primaryRed : AppTheme.muted,
+              ),
+              const SizedBox(width: 6),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: isActive ? AppTheme.ink : AppTheme.muted,
+                ),
+                child: Text(label),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Info chip widget ─────────────────────────────────────────────────────────
 
 class _InfoChip extends StatelessWidget {
   final IconData icon;

@@ -128,7 +128,9 @@
     "min_order": "Min. order",
     "delivery_fee": "Delivery",
     "choose_variation": "Choose an option",
-    "closed": "Closed"
+    "closed": "Closed",
+    "tab_menu": "Menu",
+    "tab_reviews": "Reviews"
   },
   "cart": {
     "title": "My Cart",
@@ -433,7 +435,8 @@
     "report_issue": "Report",
     "report_issue_title": "Report an issue",
     "report_sent": "Report sent. Support will contact you.",
-    "add": "Add"
+    "add": "Add",
+    "understood": "Got it"
   },
   "legal": {
     "terms_title": "Terms of Service",
@@ -506,7 +509,15 @@
   "review": {
     "my_reviews": "My Reviews",
     "no_reviews_yet": "No reviews yet",
-    "restaurant_reply": "Restaurant reply"
+    "restaurant_reply": "Restaurant reply",
+    "write_review": "Write a review",
+    "no_eligible_order_title": "No eligible order",
+    "no_eligible_order_message": "Only customers who have ordered from this restaurant can leave a review. Place your first order!",
+    "overall_rating": "Overall rating",
+    "based_on_reviews": "Based on verified reviews",
+    "client_reviews": "Customer reviews",
+    "error_load": "Unable to load reviews.",
+    "error_create": "Unable to submit review."
   },
   "notifications": {
     "title": "Notifications",

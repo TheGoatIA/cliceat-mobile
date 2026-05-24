@@ -95,7 +95,7 @@ class RestaurantReviewsList extends StatelessWidget {
               );
             },
             error: (msg) => Center(
-                child: Text(msg,
+                child: Text(msg.tr(),
                     style: GoogleFonts.inter(
                         color: AppTheme.errorColor, fontSize: 14))),
             orElse: () => const SizedBox.shrink(),

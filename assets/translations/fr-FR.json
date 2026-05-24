@@ -128,7 +128,9 @@
     "min_order": "Commande min.",
     "delivery_fee": "Livraison",
     "choose_variation": "Choisir une option",
-    "closed": "Fermé"
+    "closed": "Fermé",
+    "tab_menu": "Menu",
+    "tab_reviews": "Avis"
   },
   "cart": {
     "title": "Mon Panier",
@@ -435,7 +437,8 @@
     "report_issue": "Signaler",
     "report_issue_title": "Signaler un problème",
     "report_sent": "Signalement envoyé. Le support vous contactera.",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "understood": "J'ai compris"
   },
   "legal": {
     "terms_title": "Conditions Générales d'Utilisation",
@@ -508,7 +511,15 @@
   "review": {
     "my_reviews": "Mes Avis",
     "no_reviews_yet": "Aucun avis pour le moment",
-    "restaurant_reply": "Réponse du restaurant"
+    "restaurant_reply": "Réponse du restaurant",
+    "write_review": "Rédiger un avis",
+    "no_eligible_order_title": "Aucune commande éligible",
+    "no_eligible_order_message": "Seuls les clients ayant commandé dans ce restaurant peuvent laisser un avis. Passez votre première commande !",
+    "overall_rating": "Note globale",
+    "based_on_reviews": "Basé sur les avis vérifiés",
+    "client_reviews": "Avis des clients",
+    "error_load": "Impossible de charger les avis.",
+    "error_create": "Impossible de soumettre l'avis."
   },
   "notifications": {
     "title": "Notifications",

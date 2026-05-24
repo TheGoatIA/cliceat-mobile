@@ -19,8 +19,6 @@ import '../../../../../shared/widgets/app_network_image.dart';
 // ─── Source / Layer IDs ───────────────────────────────────────────────────────
 
 const _kSourceId = 'restaurant-source';
-const _kClusterCircleLayerId = 'cluster-circles';
-const _kClusterCountLayerId = 'cluster-count';
 const _kUnclusteredLayerId = 'unclustered-points';
 const _kMarkerImageId = 'restaurant-marker';
 
@@ -83,8 +81,15 @@ class _MapClientPageState extends State<MapClientPage> {
 
     // Supprimer les layers et la source existants si présents
     for (final id in [
-      _kClusterCircleLayerId,
-      _kClusterCountLayerId,
+      'cluster-halo-small',
+      'cluster-halo-medium',
+      'cluster-halo-large',
+      'cluster-small',
+      'cluster-medium',
+      'cluster-large',
+      'cluster-count-small',
+      'cluster-count-medium',
+      'cluster-count-large',
       _kUnclusteredLayerId,
     ]) {
       try {
@@ -95,13 +100,13 @@ class _MapClientPageState extends State<MapClientPage> {
       await style.removeStyleSource(_kSourceId);
     } catch (_) {}
 
-    // Ajouter l'icône de marqueur individuel
+    // Ajouter l'icône de marqueur individuel (généré en haute définition 48x48)
     final markerBytes = await _buildMarkerIcon();
     try {
       await style.addStyleImage(
         _kMarkerImageId,
         1.0,
-        MbxImage(width: 32, height: 32, data: markerBytes),
+        MbxImage(width: 48, height: 48, data: markerBytes),
         false,
         [],
         [],
@@ -139,29 +144,69 @@ class _MapClientPageState extends State<MapClientPage> {
       ),
     );
 
-    // ── Layer 1 : cercles de cluster ────────────────────────────────────────
+    // ── CONFIGURATION DES FILTRES DE CLUSTERS PAR TAILLE ─────────────────────────
+    final smallFilter = [
+      'all',
+      ['has', 'point_count'],
+      [
+        '<',
+        ['get', 'point_count'],
+        10,
+      ],
+    ];
+    final mediumFilter = [
+      'all',
+      ['has', 'point_count'],
+      [
+        '>=',
+        ['get', 'point_count'],
+        10,
+      ],
+      [
+        '<',
+        ['get', 'point_count'],
+        50,
+      ],
+    ];
+    final largeFilter = [
+      'all',
+      ['has', 'point_count'],
+      [
+        '>=',
+        ['get', 'point_count'],
+        50,
+      ],
+    ];
+
+    // ── 1. PETITS CLUSTERS (< 10) ──────────────────────────────────────────────
     await style.addLayer(
       CircleLayer(
-        id: _kClusterCircleLayerId,
+        id: 'cluster-halo-small',
         sourceId: _kSourceId,
-        filter: ['has', 'point_count'],
-        circleColor: const int.fromEnvironment(
-          'circleColor',
-          defaultValue: 0xFFE53935, // rouge ClicEat
-        ),
+        filter: smallFilter,
+        circleColor: 0xFFE53935, // Rouge ClicEat
+        circleRadius: 24.0,
+        circleOpacity: 0.3,
+        circleBlur: 0.6,
+      ),
+    );
+    await style.addLayer(
+      CircleLayer(
+        id: 'cluster-small',
+        sourceId: _kSourceId,
+        filter: smallFilter,
+        circleColor: 0xFFE53935,
         circleRadius: 18.0,
         circleOpacity: 0.95,
-        circleStrokeWidth: 1.5,
+        circleStrokeWidth: 2.0,
         circleStrokeColor: 0xFFFFFFFF,
       ),
     );
-
-    // ── Layer 2 : nombre dans le cluster ────────────────────────────────────
     await style.addLayer(
       SymbolLayer(
-        id: _kClusterCountLayerId,
+        id: 'cluster-count-small',
         sourceId: _kSourceId,
-        filter: ['has', 'point_count'],
+        filter: smallFilter,
         textField: '{point_count_abbreviated}',
         textSize: 12.0,
         textColor: 0xFFFFFFFF,
@@ -170,7 +215,81 @@ class _MapClientPageState extends State<MapClientPage> {
       ),
     );
 
-    // ── Layer 3 : marqueurs individuels ─────────────────────────────────────
+    // ── 2. CLUSTERS MOYENS (10 - 49) ──────────────────────────────────────────
+    await style.addLayer(
+      CircleLayer(
+        id: 'cluster-halo-medium',
+        sourceId: _kSourceId,
+        filter: mediumFilter,
+        circleColor: 0xFFD32F2F, // Rouge moyen
+        circleRadius: 28.0,
+        circleOpacity: 0.35,
+        circleBlur: 0.6,
+      ),
+    );
+    await style.addLayer(
+      CircleLayer(
+        id: 'cluster-medium',
+        sourceId: _kSourceId,
+        filter: mediumFilter,
+        circleColor: 0xFFD32F2F,
+        circleRadius: 22.0,
+        circleOpacity: 0.95,
+        circleStrokeWidth: 2.0,
+        circleStrokeColor: 0xFFFFFFFF,
+      ),
+    );
+    await style.addLayer(
+      SymbolLayer(
+        id: 'cluster-count-medium',
+        sourceId: _kSourceId,
+        filter: mediumFilter,
+        textField: '{point_count_abbreviated}',
+        textSize: 13.0,
+        textColor: 0xFFFFFFFF,
+        textIgnorePlacement: true,
+        textAllowOverlap: true,
+      ),
+    );
+
+    // ── 3. GRANDS CLUSTERS (>= 50) ─────────────────────────────────────────────
+    await style.addLayer(
+      CircleLayer(
+        id: 'cluster-halo-large',
+        sourceId: _kSourceId,
+        filter: largeFilter,
+        circleColor: 0xFFC62828, // Rouge sombre
+        circleRadius: 34.0,
+        circleOpacity: 0.4,
+        circleBlur: 0.6,
+      ),
+    );
+    await style.addLayer(
+      CircleLayer(
+        id: 'cluster-large',
+        sourceId: _kSourceId,
+        filter: largeFilter,
+        circleColor: 0xFFC62828,
+        circleRadius: 28.0,
+        circleOpacity: 0.95,
+        circleStrokeWidth: 2.0,
+        circleStrokeColor: 0xFFFFFFFF,
+      ),
+    );
+    await style.addLayer(
+      SymbolLayer(
+        id: 'cluster-count-large',
+        sourceId: _kSourceId,
+        filter: largeFilter,
+        textField: '{point_count_abbreviated}',
+        textSize: 15.0,
+        textColor: 0xFFFFFFFF,
+        textIgnorePlacement: true,
+        textAllowOverlap: true,
+      ),
+    );
+
+    // ── 4. MARQUEURS INDIVIDUELS ──────────────────────────────────────────────
     await style.addLayer(
       SymbolLayer(
         id: _kUnclusteredLayerId,
@@ -199,10 +318,12 @@ class _MapClientPageState extends State<MapClientPage> {
   Future<void> _onMapTap(MapContentGestureContext gestureContext) async {
     if (_mapboxMap == null) return;
 
-    // Vérifier si l'utilisateur a tapé sur un cluster → zoomer
+    // Vérifier si l'utilisateur a tapé sur un cluster (petits, moyens ou grands) → zoomer
     final clusterFeatures = await _mapboxMap!.queryRenderedFeatures(
       RenderedQueryGeometry.fromScreenCoordinate(gestureContext.touchPosition),
-      RenderedQueryOptions(layerIds: [_kClusterCircleLayerId]),
+      RenderedQueryOptions(
+        layerIds: ['cluster-small', 'cluster-medium', 'cluster-large'],
+      ),
     );
 
     if (clusterFeatures.isNotEmpty) {
@@ -246,31 +367,58 @@ class _MapClientPageState extends State<MapClientPage> {
   // ─── Marker icon builder ─────────────────────────────────────────────────
 
   Future<Uint8List> _buildMarkerIcon() async {
-    const size = 32.0;
+    const size = 48.0;
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
+    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
 
     // Shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.2)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+      ..color = Colors.black.withValues(alpha: 0.25)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawCircle(
-      const Offset(size / 2, size / 2 + 1),
-      size / 2 - 2,
+      const Offset(size / 2, size / 2 + 2),
+      size / 2 - 4,
       shadowPaint,
     );
 
-    // White background
-    final whitePaint = Paint()..color = Colors.white;
+    // Red outer circle
+    final redPaint = Paint()..color = AppTheme.primaryRed;
+    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2 - 3, redPaint);
+
+    // White ring/border
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
     canvas.drawCircle(
       const Offset(size / 2, size / 2),
-      size / 2 - 2,
-      whitePaint,
+      size / 2 - 3,
+      borderPaint,
     );
 
-    // Red center
-    final redPaint = Paint()..color = AppTheme.primaryRed;
-    canvas.drawCircle(const Offset(size / 2, size / 2), size / 4, redPaint);
+    // Inner White circle
+    final innerWhitePaint = Paint()..color = Colors.white;
+    canvas.drawCircle(
+      const Offset(size / 2, size / 2),
+      size / 2 - 9,
+      innerWhitePaint,
+    );
+
+    // Draw fork & spoon icon in the center (utilisant le TextDirection de dart:ui pour éviter les conflits Mapbox)
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
+    textPainter.text = TextSpan(
+      text: String.fromCharCode(Icons.restaurant_rounded.codePoint),
+      style: TextStyle(
+        fontSize: 18,
+        fontFamily: Icons.restaurant_rounded.fontFamily,
+        color: AppTheme.primaryRed,
+      ),
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset((size - textPainter.width) / 2, (size - textPainter.height) / 2),
+    );
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(size.toInt(), size.toInt());
@@ -278,7 +426,7 @@ class _MapClientPageState extends State<MapClientPage> {
     return byteData!.buffer.asUint8List();
   }
 
-  // ─── Location ─────────────────────────────────────────────────────────────
+  // ─── Location & Zoom Controls ─────────────────────────────────────────────
 
   Future<void> _centerOnUser() async {
     try {
@@ -298,6 +446,32 @@ class _MapClientPageState extends State<MapClientPage> {
     }
   }
 
+  Future<void> _zoomIn() async {
+    if (_mapboxMap == null) return;
+    try {
+      final currentZoom = await _mapboxMap!.getCameraState().then(
+        (s) => s.zoom,
+      );
+      await _mapboxMap!.flyTo(
+        CameraOptions(zoom: (currentZoom + 1.0).clamp(0.0, 22.0)),
+        MapAnimationOptions(duration: 400),
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _zoomOut() async {
+    if (_mapboxMap == null) return;
+    try {
+      final currentZoom = await _mapboxMap!.getCameraState().then(
+        (s) => s.zoom,
+      );
+      await _mapboxMap!.flyTo(
+        CameraOptions(zoom: (currentZoom - 1.0).clamp(0.0, 22.0)),
+        MapAnimationOptions(duration: 400),
+      );
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -307,6 +481,9 @@ class _MapClientPageState extends State<MapClientPage> {
           MapWidget(
             key: const ValueKey('clientMapWidget'),
             onMapCreated: _onMapCreated,
+            styleUri: theme.brightness == Brightness.dark
+                ? MapboxStyles.DARK
+                : MapboxStyles.LIGHT,
             cameraOptions: CameraOptions(
               center: Point(
                 coordinates: Position(
@@ -366,14 +543,40 @@ class _MapClientPageState extends State<MapClientPage> {
               ),
             ),
 
-          // Bouton localisation
+          // Boutons de navigation et zoom
           Positioned(
-            bottom: 200,
+            bottom: 230,
             right: 16,
-            child: FloatingActionButton.small(
-              heroTag: 'locateMe',
-              onPressed: _centerOnUser,
-              child: const Icon(Icons.my_location),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Bouton Zoom In (+)
+                FloatingActionButton.small(
+                  heroTag: 'zoomIn',
+                  onPressed: _zoomIn,
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppTheme.ink,
+                  child: const Icon(Icons.add_rounded, size: 20),
+                ),
+                const SizedBox(height: 8),
+                // Bouton Zoom Out (-)
+                FloatingActionButton.small(
+                  heroTag: 'zoomOut',
+                  onPressed: _zoomOut,
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppTheme.ink,
+                  child: const Icon(Icons.remove_rounded, size: 20),
+                ),
+                const SizedBox(height: 8),
+                // Bouton Localisation
+                FloatingActionButton.small(
+                  heroTag: 'locateMe',
+                  onPressed: _centerOnUser,
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppTheme.primaryRed,
+                  child: const Icon(Icons.my_location_rounded, size: 18),
+                ),
+              ],
             ),
           ),
 
@@ -391,7 +594,7 @@ class _MapClientPageState extends State<MapClientPage> {
 
   Widget _buildRestaurantBottomSheet(ThemeData theme) {
     return Container(
-      height: 180,
+      height: 210,
       decoration: BoxDecoration(
         color: AppTheme.bg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),

@@ -24,7 +24,7 @@ final class _$ReviewService extends ReviewService {
     int page = 1,
     int limit = 20,
   }) {
-    final Uri $url = Uri.parse('/restaurants/${restaurantId}/reviews');
+    final Uri $url = Uri.parse('/reviews/restaurants/${restaurantId}/reviews');
     final Map<String, dynamic> $params = <String, dynamic>{
       'page': page,
       'limit': limit,
