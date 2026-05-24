@@ -74,6 +74,23 @@ class DisputeHistoryPage extends StatelessWidget {
                     final d = disputes[index];
                     final status = d['status'] as String? ?? 'pending';
                     final date = DateTime.tryParse(d['createdAt'] ?? '') ?? DateTime.now();
+                    final rawReason = d['reason']?.toString() ?? 'other';
+                    final reasonKey = switch (rawReason) {
+                      'missing_item' => 'dispute.reason_missing_item',
+                      'delivery_delay' => 'dispute.reason_late_delivery',
+                      'bad_quality' => 'dispute.reason_quality_issue',
+                      _ => 'dispute.reason_other',
+                    };
+
+                    final orderObj = d['orderId'];
+                    String orderDisplayId = '';
+                    if (orderObj is Map) {
+                      orderDisplayId = orderObj['orderNumber']?.toString() ?? 
+                                       orderObj['_id']?.toString().substring(0, 8) ?? '';
+                    } else if (orderObj != null) {
+                      final str = orderObj.toString();
+                      orderDisplayId = str.length > 8 ? str.substring(0, 8) : str;
+                    }
 
                     return Container(
                       padding: const EdgeInsets.all(16),
@@ -90,9 +107,7 @@ class DisputeHistoryPage extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'dispute.order_id_short'.tr(args: [
-                                  d['orderId']?.toString().substring(0, 8) ?? ''
-                                ]),
+                                'dispute.order_id_short'.tr(args: [orderDisplayId]),
                                 style: GoogleFonts.inter(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
@@ -104,7 +119,7 @@ class DisputeHistoryPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            d['reason']?.toString().tr() ?? '',
+                            reasonKey.tr(),
                             style: GoogleFonts.inter(
                               color: AppTheme.primaryRed,
                               fontWeight: FontWeight.w600,
@@ -135,7 +150,7 @@ class DisputeHistoryPage extends StatelessWidget {
                 );
               },
               error: (msg) => Center(
-                child: Text(msg,
+                child: Text(msg.tr(),
                     style: GoogleFonts.inter(
                         color: AppTheme.primaryRed, fontSize: 14)),
               ),

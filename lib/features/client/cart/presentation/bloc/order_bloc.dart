@@ -150,7 +150,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   Future<void> _onCancelOrder(
       CancelOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
-    final result = await _orderRepository.cancelOrder(event.orderId);
+    final result = await _orderRepository.cancelOrder(event.orderId, event.reason);
     result.fold(
       (err) {
         _logger.e('Error cancelling order: ${err.message}');

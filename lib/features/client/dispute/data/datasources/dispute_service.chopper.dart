@@ -19,18 +19,19 @@ final class _$DisputeService extends DisputeService {
   final Type definitionType = DisputeService;
 
   @override
+  @override
   Future<Response<Map<String, dynamic>>> createDispute({
     required String orderId,
     required String reason,
     required String description,
-    List<MultipartFile>? images,
+    List<MultipartFile>? evidence,
   }) {
     final Uri $url = Uri.parse('/disputes');
     final List<PartValue> $parts = <PartValue>[
       PartValue<String>('orderId', orderId),
       PartValue<String>('reason', reason),
       PartValue<String>('description', description),
-      PartValueFile<List<MultipartFile>?>('images', images),
+      PartValueFile<List<MultipartFile>?>('evidence', evidence),
     ];
     final Request $request = Request(
       'POST',

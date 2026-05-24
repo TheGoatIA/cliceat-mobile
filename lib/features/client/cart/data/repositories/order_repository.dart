@@ -17,6 +17,7 @@ import 'package:cliceat_app/features/client/cart/data/models/order_model.dart';
 import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart';
 import 'package:cliceat_app/features/client/cart/data/datasources/order_service.dart';
 import 'package:cliceat_app/features/client/cart/data/datasources/payment_service.dart';
+import 'package:cliceat_app/features/client/wallet/data/datasources/wallet_service.dart';
 import 'package:cliceat_app/core/network/services/tracking_service.dart';
 import 'package:cliceat_app/core/data/base_repository.dart';
 
@@ -29,6 +30,7 @@ const _kPaymentSuccessStatuses = {'completed', 'success', 'approved', 'paid'};
 class OrderRepository extends BaseRepository {
   final OrderService _orderService;
   final PaymentService _paymentService;
+  final WalletService _walletService;
   final TrackingService _trackingService;
   final OrderDao _orderDao;
   final Logger _logger;
@@ -36,6 +38,7 @@ class OrderRepository extends BaseRepository {
   OrderRepository(
     this._orderService,
     this._paymentService,
+    this._walletService,
     this._trackingService,
     this._orderDao,
     this._logger,
@@ -46,17 +49,95 @@ class OrderRepository extends BaseRepository {
   Future<Either<AppError, OrderModel>> createOrder(
     Map<String, dynamic> payload,
   ) async {
-    return safeCall<OrderModel>(() async {
+    try {
       final res = await _orderService.createOrder(payload);
-      // Note: safeCall handles statusCode mapping and body null check.
-      // We just need to transform the body to OrderModel.
-      if (res.isSuccessful && res.body != null) {
-        final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
-        final orderData = data['order'] as Map<String, dynamic>? ?? data;
-        return res.copyWith<OrderModel>(body: OrderModel.fromJson(orderData));
+      if (!res.isSuccessful) {
+        return Left(AppError.fromResponse(
+          res.body,
+          'order.error_create',
+          statusCode: res.statusCode,
+        ));
       }
-      return res.copyWith<OrderModel>(body: null);
-    }, fallbackMessage: 'order.error_create');
+
+      if (res.body == null) {
+        return Left(const AppError(
+          message: 'common.error_empty_response',
+          type: AppErrorType.server,
+        ));
+      }
+
+      final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+      final orderData = data['order'] as Map<String, dynamic>? ?? data;
+      var order = OrderModel.fromJson(orderData);
+
+      final method = payload['paymentMethod'] as String?;
+      if (method != null && method != 'cash') {
+        if (method == 'wallet') {
+          final payRes = await _walletService.payOrder({'orderId': order.id});
+          if (!payRes.isSuccessful) {
+            return Left(AppError.fromResponse(
+              payRes.body,
+              'payment.failed',
+              statusCode: payRes.statusCode,
+            ));
+          }
+          order = OrderModel(
+            id: order.id,
+            restaurantId: order.restaurantId,
+            restaurantName: order.restaurantName,
+            restaurantLogo: order.restaurantLogo,
+            items: order.items,
+            total: order.total,
+            deliveryFee: order.deliveryFee,
+            status: 'pending',
+            paymentUrl: null,
+            paymentMethod: order.paymentMethod,
+            deliveryAddress: order.deliveryAddress,
+            notes: order.notes,
+            createdAt: order.createdAt,
+            rating: order.rating,
+            invoiceUrl: order.invoiceUrl,
+          );
+        } else if (method == 'orange_money' || method == 'mtn_momo' || method == 'wave') {
+          final initRes = await _paymentService.initializePayment({
+            'orderId': order.id,
+            'method': method,
+            'returnUrl': 'cliceat://payment/success',
+            'cancelUrl': 'cliceat://payment/cancel',
+          });
+          if (!initRes.isSuccessful) {
+            return Left(AppError.fromResponse(
+              initRes.body,
+              'payment.failed',
+              statusCode: initRes.statusCode,
+            ));
+          }
+          final initData = initRes.body!['data'] as Map<String, dynamic>? ?? initRes.body!;
+          final paymentUrl = initData['paymentUrl'] as String?;
+          order = OrderModel(
+            id: order.id,
+            restaurantId: order.restaurantId,
+            restaurantName: order.restaurantName,
+            restaurantLogo: order.restaurantLogo,
+            items: order.items,
+            total: order.total,
+            deliveryFee: order.deliveryFee,
+            status: order.status,
+            paymentUrl: paymentUrl,
+            paymentMethod: order.paymentMethod,
+            deliveryAddress: order.deliveryAddress,
+            notes: order.notes,
+            createdAt: order.createdAt,
+            rating: order.rating,
+            invoiceUrl: order.invoiceUrl,
+          );
+        }
+      }
+
+      return Right(order);
+    } catch (e) {
+      return Left(AppError.network(e.toString()));
+    }
   }
 
   // ─── Load list ────────────────────────────────────────────────────────────
@@ -71,7 +152,9 @@ class OrderRepository extends BaseRepository {
         final data = res.body!['data'];
         List<dynamic> raw = [];
         if (data is Map<String, dynamic>) {
-          raw = data['orders'] as List<dynamic>? ?? [];
+          raw = (data['items'] as List<dynamic>?) ??
+              (data['orders'] as List<dynamic>?) ??
+              [];
         } else if (data is List) {
           raw = data;
         }
@@ -113,9 +196,11 @@ class OrderRepository extends BaseRepository {
 
   // ─── Cancel ───────────────────────────────────────────────────────────────
 
-  Future<Either<AppError, void>> cancelOrder(String id) async {
+  Future<Either<AppError, void>> cancelOrder(String id, [String? reason]) async {
     try {
-      final res = await _orderService.cancelOrder(id);
+      final res = await _orderService.cancelOrder(id, {
+        'reason': reason ?? 'Annulation par le client',
+      });
       if (res.isSuccessful) {
         await _removeFromCache(id);
         return const Right(null);
@@ -385,6 +470,7 @@ class OrderRepository extends BaseRepository {
       id: r.id,
       restaurantId: r.restaurantId,
       restaurantName: r.restaurantName,
+      restaurantLogo: null,
       items: items,
       total: r.total,
       deliveryFee: r.deliveryFee,

@@ -12,6 +12,7 @@ import 'package:cliceat_app/features/client/home/data/repositories/restaurant_re
 import '../../../../../shared/widgets/app_network_image.dart';
 import '../../../../../core/services/analytics_service.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/data/local/daos/favorites_dao.dart';
 import '../../../cart/presentation/bloc/cart_cubit.dart';
 import '../../../cart/data/repositories/order_repository.dart';
 import '../widgets/restaurant_reviews_list.dart';
@@ -33,7 +34,10 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
   // ─── Tab state ────────────────────────────────────────────────────────────
   int _activeTab = 0; // 0 = Menu, 1 = Avis
 
-  // ─── Review‑write CTA ────────────────────────────────────────────────────
+  // ─── Menu layout ───────────────────────────────────────────────────────
+  bool _isGridView = false; // false = list, true = grid
+
+  // ─── Review-write CTA ────────────────────────────────────────────────
   bool _checkingOrders = false;
 
   @override
@@ -58,9 +62,19 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
         _error = err.message;
         _loading = false;
       }),
-      (restaurant) {
+      (restaurant) async {
+        // Check Drift DB for local favorite status — source-of-truth
+        bool isFav;
+        try {
+          isFav = await getIt<FavoritesDao>().isFavorite(widget.restaurantId);
+        } catch (e, s) {
+          debugPrint('Drift isFavorite error: $e\n$s');
+          // Drift not ready yet — fall back to server value
+          isFav = restaurant.isFavorite;
+        }
+        if (!mounted) return;
         setState(() {
-          _restaurant = restaurant;
+          _restaurant = restaurant.copyWith(isFavorite: isFav);
           _loading = false;
         });
         getIt<AnalyticsService>().logRestaurantViewed(
@@ -80,7 +94,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
     );
   }
 
-  // ─── Favorite toggle — refreshes rating from server ───────────────────────
+  // ─── Favorite toggle ──────────────────────────────────────────────────────
 
   Future<void> _toggleFavorite() async {
     if (_restaurant == null) return;
@@ -88,30 +102,54 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
 
     final newStatus = !_restaurant!.isFavorite;
 
-    // Optimistic update
+    // 1. Optimistic update — instantaneous, no page reload
     setState(() {
       _restaurant = _restaurant!.copyWith(isFavorite: newStatus);
     });
 
+    // 2. Persist in Drift DB immediately
+    try {
+      if (newStatus) {
+        await getIt<FavoritesDao>().addFavorite(widget.restaurantId);
+      } else {
+        await getIt<FavoritesDao>().removeFavorite(widget.restaurantId);
+      }
+    } catch (e, s) {
+      debugPrint('Drift toggleFavorite error: $e\n$s');
+      // Drift write failed — still proceed with API call
+    }
+
+    // 3. Call API in background — rollback only on error
     final result = await getIt<RestaurantRepository>().toggleFavorite(
       widget.restaurantId,
     );
 
     result.fold(
-      (err) {
-        // Rollback on error
+      (err) async {
+        // API failed → rollback UI and Drift DB
         if (mounted) {
           setState(() {
             _restaurant = _restaurant!.copyWith(isFavorite: !newStatus);
           });
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(err.message.tr())));
+        }
+        try {
+          if (newStatus) {
+            await getIt<FavoritesDao>().removeFavorite(widget.restaurantId);
+          } else {
+            await getIt<FavoritesDao>().addFavorite(widget.restaurantId);
+          }
+        } catch (e, s) {
+          debugPrint('Drift toggleFavorite rollback error: $e\n$s');
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(err.message.tr())),
+          );
         }
       },
       (_) {
-        // Refresh full restaurant data to get the latest rating
-        _loadRestaurant();
+        // Success — Drift + optimistic update already in place
       },
     );
   }
@@ -509,6 +547,62 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
           // ── Tab switcher ────────────────────────────────────────────────
           SliverToBoxAdapter(child: _buildTabBar()),
 
+          // ── Menu layout toggle (only shown on menu tab) ──────────────────
+          if (_activeTab == 0 && menus.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'restaurant.tab_menu'.tr(),
+                        style: GoogleFonts.bricolageGrotesque(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.ink,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                    // Toggle button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.bgWarm,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.lineSoft),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _LayoutToggleBtn(
+                            icon: Icons.view_list_rounded,
+                            isActive: !_isGridView,
+                            onTap: () {
+                              if (_isGridView) {
+                                HapticFeedback.selectionClick();
+                                setState(() => _isGridView = false);
+                              }
+                            },
+                          ),
+                          _LayoutToggleBtn(
+                            icon: Icons.grid_view_rounded,
+                            isActive: _isGridView,
+                            onTap: () {
+                              if (!_isGridView) {
+                                HapticFeedback.selectionClick();
+                                setState(() => _isGridView = true);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // ── Tab content ─────────────────────────────────────────────────
           if (_activeTab == 0) ...[
             // Menu tab
@@ -852,9 +946,26 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
     );
   }
 
-  // ─── Menu sliver ────────────────────────────────────────────────────────────
+  // ─── Menu sliver ─────────────────────────────────────────────────────────────
 
   Widget _buildMenuSliver(
+    BuildContext context,
+    List<MapEntry<String, List<MenuItemModel>>> categoryEntries,
+    String restaurantId,
+    double deliveryFee,
+    String lang,
+  ) {
+    if (_isGridView) {
+      return _buildMenuGrid(
+        context, categoryEntries, restaurantId, deliveryFee, lang);
+    }
+    return _buildMenuList(
+      context, categoryEntries, restaurantId, deliveryFee, lang);
+  }
+
+  // ── List mode ──────────────────────────────────────────────────────────────
+
+  Widget _buildMenuList(
     BuildContext context,
     List<MapEntry<String, List<MenuItemModel>>> categoryEntries,
     String restaurantId,
@@ -891,12 +1002,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
 
           return GestureDetector(
             onTap: () => _showItemDetailModal(
-              context,
-              item,
-              restaurantId,
-              deliveryFee,
-              lang,
-            ),
+              context, item, restaurantId, deliveryFee, lang),
             child: Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(12),
@@ -916,7 +1022,8 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                       width: 70,
                       height: 70,
                       fit: BoxFit.cover,
-                      fallbackAsset: 'assets/images/restaurant_placeholder.jpg',
+                      fallbackAsset:
+                          'assets/images/restaurant_placeholder.jpg',
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -962,12 +1069,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                       HapticFeedback.lightImpact();
                       if (hasVariations) {
                         _showItemDetailModal(
-                          context,
-                          item,
-                          restaurantId,
-                          deliveryFee,
-                          lang,
-                        );
+                            context, item, restaurantId, deliveryFee, lang);
                       } else {
                         _addToCartWithConfirmation(
                           context: context,
@@ -996,6 +1098,199 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
             ),
           );
         }, childCount: rows.length),
+      ),
+    );
+  }
+
+  // ── Grid mode ──────────────────────────────────────────────────────────────
+
+  Widget _buildMenuGrid(
+    BuildContext context,
+    List<MapEntry<String, List<MenuItemModel>>> categoryEntries,
+    String restaurantId,
+    double deliveryFee,
+    String lang,
+  ) {
+    // Flatten to mixed rows: String = category header, MenuItemModel = item
+    final rows = <Object>[];
+    for (final entry in categoryEntries) {
+      if (entry.key.isNotEmpty) rows.add(entry.key);
+      rows.addAll(entry.value);
+    }
+
+    // Build slivers: headers as full-width SliverToBoxAdapter, items as
+    // SliverGrid blocks per category
+    final slivers = <Widget>[];
+    var currentItems = <MenuItemModel>[];
+
+    void flushItems(String categoryName) {
+      if (currentItems.isEmpty) return;
+      final items = List<MenuItemModel>.from(currentItems);
+      currentItems = [];
+      slivers.add(
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.72,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, i) => _buildGridMenuCard(
+                context, items[i], restaurantId, deliveryFee, lang),
+              childCount: items.length,
+            ),
+          ),
+        ),
+      );
+    }
+
+    for (final row in rows) {
+      if (row is String) {
+        flushItems(row);
+        slivers.add(
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+              child: Text(
+                row,
+                style: GoogleFonts.bricolageGrotesque(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.ink,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+          ),
+        );
+      } else {
+        currentItems.add(row as MenuItemModel);
+      }
+    }
+    flushItems('');
+
+    return SliverMainAxisGroup(slivers: slivers);
+  }
+
+  /// Single card for grid mode.
+  Widget _buildGridMenuCard(
+    BuildContext context,
+    MenuItemModel item,
+    String restaurantId,
+    double deliveryFee,
+    String lang,
+  ) {
+    final hasVariations = item.variations.isNotEmpty;
+    return GestureDetector(
+      onTap: () =>
+          _showItemDetailModal(context, item, restaurantId, deliveryFee, lang),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.lineSoft),
+          boxShadow: AppTheme.shadowSm,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              child: AppNetworkImage(
+                url: item.image,
+                width: double.infinity,
+                height: 110,
+                fit: BoxFit.cover,
+                fallbackAsset: 'assets/images/restaurant_placeholder.jpg',
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.getName(lang),
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.ink,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (item.getDescription(lang)?.isNotEmpty ?? false) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        item.getDescription(lang)!,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: AppTheme.muted,
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${item.price.toStringAsFixed(0)} FCFA',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryRed,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            if (hasVariations) {
+                              _showItemDetailModal(context, item,
+                                  restaurantId, deliveryFee, lang);
+                            } else {
+                              _addToCartWithConfirmation(
+                                context: context,
+                                restaurantId: restaurantId,
+                                item: item,
+                                deliveryFee: deliveryFee,
+                              );
+                            }
+                          },
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryRed,
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            child: const Icon(
+                              Icons.add_rounded,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1356,6 +1651,42 @@ class _InfoChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Layout toggle button widget ──────────────────────────────────────────────
+
+class _LayoutToggleBtn extends StatelessWidget {
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _LayoutToggleBtn({
+    required this.icon,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: isActive ? AppTheme.primaryRed : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: isActive ? Colors.white : AppTheme.muted,
+        ),
       ),
     );
   }

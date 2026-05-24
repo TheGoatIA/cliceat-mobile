@@ -233,13 +233,14 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             child: CircleAvatar(
               backgroundColor: Colors.white,
               child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: AppTheme.ink,
-                ),
+                icon: const Icon(Icons.arrow_back, color: AppTheme.ink),
                 onPressed: () {
                   HapticFeedback.lightImpact();
-                  context.pop();
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/client');
+                  }
                 },
               ),
             ),
@@ -300,7 +301,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       padding: const EdgeInsets.all(32),
       child: const Center(
         child: CircularProgressIndicator(
-            color: AppTheme.primaryRed, strokeWidth: 2),
+          color: AppTheme.primaryRed,
+          strokeWidth: 2,
+        ),
       ),
     );
   }
@@ -329,7 +332,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               child: Text('common.retry'.tr()),
             ),
@@ -381,7 +385,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                       Text(
                         'tracking.eta'.tr(),
                         style: GoogleFonts.inter(
-                            fontSize: 12, color: AppTheme.muted),
+                          fontSize: 12,
+                          color: AppTheme.muted,
+                        ),
                       ),
                       Text(
                         etaDisplay,
@@ -465,7 +471,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                               Text(
                                 _trackingData!.driverPhone!,
                                 style: GoogleFonts.inter(
-                                    fontSize: 12, color: AppTheme.muted),
+                                  fontSize: 12,
+                                  color: AppTheme.muted,
+                                ),
                               ),
                             ],
                           ),
@@ -487,8 +495,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                       } else if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                              content:
-                                  Text('tracking.call_unavailable'.tr())),
+                            content: Text('tracking.call_unavailable'.tr()),
+                          ),
                         );
                       }
                     },
@@ -498,8 +506,11 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                       child: CircleAvatar(
                         radius: 26,
                         backgroundColor: AppTheme.redSoft,
-                        child: const Icon(Icons.call_rounded,
-                            color: AppTheme.primaryRed, size: 24),
+                        child: const Icon(
+                          Icons.call_rounded,
+                          color: AppTheme.primaryRed,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),
@@ -573,29 +584,31 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       label: 'Étape $stepLabel',
       value: isCompleted ? 'Terminée' : (isActive ? 'En cours' : 'À venir'),
       child: AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      width: isActive ? 32 : 28,
-      height: isActive ? 32 : 28,
-      decoration: BoxDecoration(
-        color: isCompleted ? AppTheme.primaryRed : AppTheme.lineSoft,
-        shape: BoxShape.circle,
-        boxShadow: isActive
-            ? [
-                BoxShadow(
-                  color: AppTheme.primaryRed.withValues(alpha: 0.4),
-                  blurRadius: 8,
-                  spreadRadius: 2,
+        duration: const Duration(milliseconds: 300),
+        width: isActive ? 32 : 28,
+        height: isActive ? 32 : 28,
+        decoration: BoxDecoration(
+          color: isCompleted ? AppTheme.primaryRed : AppTheme.lineSoft,
+          shape: BoxShape.circle,
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppTheme.primaryRed.withValues(alpha: 0.4),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
+          border: isActive
+              ? Border.all(
+                  color: AppTheme.primaryRed.withValues(alpha: 0.3),
+                  width: 4,
                 )
-              ]
+              : null,
+        ),
+        child: isCompleted
+            ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
             : null,
-        border: isActive
-            ? Border.all(
-                color: AppTheme.primaryRed.withValues(alpha: 0.3), width: 4)
-            : null,
-      ),
-      child: isCompleted
-          ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
-          : null,
       ),
     );
   }

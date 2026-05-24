@@ -1,8 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
+import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/core/data/local/daos/favorites_dao.dart';
+import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import '../../core/theme/app_theme.dart';
 import 'app_network_image.dart';
 
@@ -89,14 +93,68 @@ class RestaurantCard extends StatelessWidget {
                 Positioned(
                   top: 10,
                   right: 10,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Icons.favorite_border_rounded, size: 16, color: AppTheme.ink),
+                  child: StreamBuilder<Set<String>>(
+                    stream: getIt<FavoritesDao>().watchFavoriteIds(),
+                    builder: (context, snapshot) {
+                      final favorites = snapshot.data ?? {};
+                      final isFav = favorites.contains(restaurant.id);
+                      return GestureDetector(
+                        onTap: () async {
+                          HapticFeedback.mediumImpact();
+                          try {
+                            if (!isFav) {
+                              await getIt<FavoritesDao>().addFavorite(restaurant.id);
+                            } else {
+                              await getIt<FavoritesDao>().removeFavorite(restaurant.id);
+                            }
+                          } catch (_) {}
+                          
+                          final result = await getIt<RestaurantRepository>().toggleFavorite(restaurant.id);
+                          result.fold(
+                            (err) async {
+                              // Rollback
+                              try {
+                                if (!isFav) {
+                                  await getIt<FavoritesDao>().removeFavorite(restaurant.id);
+                                } else {
+                                  await getIt<FavoritesDao>().addFavorite(restaurant.id);
+                                }
+                              } catch (_) {}
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(err.message.tr())),
+                                );
+                              }
+                            },
+                            (_) {},
+                          );
+                        },
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isFav ? AppTheme.primaryRed.withValues(alpha: 0.2) : AppTheme.lineSoft,
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                            size: 16,
+                            color: isFav ? AppTheme.primaryRed : AppTheme.ink,
+                          ),
+                        ),
+                      );
+                    }
                   ),
                 ),
               ],

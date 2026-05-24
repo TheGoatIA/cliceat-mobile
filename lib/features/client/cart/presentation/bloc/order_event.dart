@@ -6,7 +6,7 @@ abstract class OrderEvent {
   static OrderEvent createOrder(Map<String, dynamic> payload) => CreateOrder(payload);
   static OrderEvent loadOrders() => const LoadOrders();
   static OrderEvent loadMoreOrders() => const LoadMoreOrders();
-  static OrderEvent cancelOrder(String orderId) => CancelOrder(orderId);
+  static OrderEvent cancelOrder(String orderId, [String? reason]) => CancelOrder(orderId, reason);
   static OrderEvent reorderOrder(String orderId) => ReorderOrder(orderId);
   static OrderEvent rateOrder({required String orderId, required int rating, String? comment}) => 
       RateOrder(orderId: orderId, rating: rating, comment: comment);
@@ -29,7 +29,8 @@ class LoadMoreOrders extends OrderEvent {
 
 class CancelOrder extends OrderEvent {
   final String orderId;
-  const CancelOrder(this.orderId);
+  final String? reason;
+  const CancelOrder(this.orderId, [this.reason]);
 }
 
 class ReorderOrder extends OrderEvent {

@@ -316,11 +316,36 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
     // Apply quick strip filter
     if (_selectedFilter.startsWith('Top') || _selectedFilter == 'Premium') {
-      filteredList = filteredList.where((r) => (r.rating ?? 0) >= 4.0).toList();
+      final filteredByRating = filteredList.where((r) => (r.rating ?? 0.0) >= 4.0).toList();
+      if (filteredByRating.isNotEmpty) {
+        filteredList = filteredByRating;
+      } else {
+        // Fallback: If no restaurant has >= 4.0 rating (e.g. empty or newly created DB),
+        // we sort them by rating descending so the user sees the best available,
+        // and put open restaurants first.
+        filteredList.sort((a, b) {
+          final ra = a.rating ?? 0.0;
+          final rb = b.rating ?? 0.0;
+          if (ra != rb) return rb.compareTo(ra);
+          if (a.isOpen != b.isOpen) return a.isOpen ? -1 : 1;
+          return a.name.compareTo(b.name);
+        });
+      }
     } else if (_selectedFilter == 'Ouvert maintenant') {
       filteredList = filteredList.where((r) => r.isOpen == true).toList();
     } else if (_selectedFilter == '⭐ 4.5+') {
-      filteredList = filteredList.where((r) => (r.rating ?? 0) >= 4.5).toList();
+      final filteredByRating = filteredList.where((r) => (r.rating ?? 0.0) >= 4.5).toList();
+      if (filteredByRating.isNotEmpty) {
+        filteredList = filteredByRating;
+      } else {
+        filteredList.sort((a, b) {
+          final ra = a.rating ?? 0.0;
+          final rb = b.rating ?? 0.0;
+          if (ra != rb) return rb.compareTo(ra);
+          if (a.isOpen != b.isOpen) return a.isOpen ? -1 : 1;
+          return a.name.compareTo(b.name);
+        });
+      }
     }
 
     // Apply modal filters

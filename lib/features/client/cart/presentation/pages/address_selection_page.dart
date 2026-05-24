@@ -194,11 +194,30 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                   final address = addressCtrl.text.trim();
                   if (address.isEmpty) return;
                   Navigator.pop(ctx);
+                  
+                  double lat = 4.05;
+                  double lng = 9.70;
+                  try {
+                    final permission = await Geolocator.checkPermission();
+                    if (permission == LocationPermission.always ||
+                        permission == LocationPermission.whileInUse) {
+                      final pos = await Geolocator.getCurrentPosition(
+                        locationSettings:
+                            const LocationSettings(accuracy: LocationAccuracy.low),
+                      ).timeout(const Duration(seconds: 2));
+                      lat = pos.latitude;
+                      lng = pos.longitude;
+                    }
+                  } catch (_) {}
+
                   try {
                     await getIt<UserRepository>().addAddress({
                       'address': address,
-                      if (labelCtrl.text.trim().isNotEmpty)
-                        'label': labelCtrl.text.trim(),
+                      'label': labelCtrl.text.trim().isNotEmpty
+                          ? labelCtrl.text.trim()
+                          : 'Adresse',
+                      'lat': lat,
+                      'lng': lng,
                     });
                     await _loadAddresses();
                   } catch (_) {}

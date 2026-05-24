@@ -45,6 +45,7 @@ class OrderModel {
   final String id;
   final String? restaurantId;
   final String? restaurantName;
+  final String? restaurantLogo;
   final List<OrderItemModel> items;
   final double total;
   final double? deliveryFee;
@@ -61,6 +62,7 @@ class OrderModel {
     required this.id,
     this.restaurantId,
     this.restaurantName,
+    this.restaurantLogo,
     this.items = const [],
     required this.total,
     this.deliveryFee,
@@ -88,7 +90,12 @@ class OrderModel {
       restaurantId: restaurant?['_id']?.toString() ??
           restaurant?['id']?.toString() ??
           json['restaurantId']?.toString(),
-      restaurantName: restaurant?['name']?.toString(),
+      restaurantName: restaurant?['name']?.toString() ??
+          json['restaurantName']?.toString(),
+      restaurantLogo: restaurant?['logo']?.toString() ??
+          restaurant?['logoUrl']?.toString() ??
+          json['restaurantLogo']?.toString() ??
+          json['restaurantLogoUrl']?.toString(),
       items: rawItems
           .whereType<Map<String, dynamic>>()
           .map(OrderItemModel.fromJson)
@@ -102,7 +109,7 @@ class OrderModel {
       paymentMethod: json['paymentMethod']?.toString(),
       deliveryAddress:
           addrRaw != null ? AddressModel.fromJson(addrRaw) : null,
-      notes: json['notes']?.toString(),
+      notes: json['notes']?.toString() ?? json['deliveryNotes']?.toString(),
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
@@ -115,6 +122,7 @@ class OrderModel {
         '_id': id,
         if (restaurantId != null) 'restaurantId': restaurantId,
         if (restaurantName != null) 'restaurantName': restaurantName,
+        if (restaurantLogo != null) 'restaurantLogo': restaurantLogo,
         'items': items.map((i) => i.toJson()).toList(),
         'total': total,
         if (deliveryFee != null) 'deliveryFee': deliveryFee,
@@ -122,6 +130,7 @@ class OrderModel {
         if (paymentUrl != null) 'paymentUrl': paymentUrl,
         if (paymentMethod != null) 'paymentMethod': paymentMethod,
         if (notes != null) 'notes': notes,
+        if (notes != null) 'deliveryNotes': notes,
         if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
         if (rating != null) 'rating': rating,
         if (invoiceUrl != null) 'invoiceUrl': invoiceUrl,

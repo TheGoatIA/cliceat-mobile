@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import 'package:cliceat_app/core/di/injection.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/date_formatter.dart';
 import '../bloc/order_bloc.dart';
+import '../../../home/presentation/pages/client_main_tab.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
@@ -18,10 +20,12 @@ class OrderHistoryPage extends StatefulWidget {
 
 class _OrderHistoryPageState extends State<OrderHistoryPage> {
   final _scrollController = ScrollController();
+  late final OrderBloc _orderBloc;
 
   @override
   void initState() {
     super.initState();
+    _orderBloc = getIt<OrderBloc>()..add(const LoadOrders());
     _scrollController.addListener(_onScroll);
   }
 
@@ -30,9 +34,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     final maxScroll = _scrollController.position.maxScrollExtent;
     final current = _scrollController.offset;
     if (current >= maxScroll - 200) {
-      final bloc = context.read<OrderBloc>();
-      if (bloc.hasMore) {
-        bloc.add(const LoadMoreOrders());
+      if (_orderBloc.hasMore) {
+        _orderBloc.add(const LoadMoreOrders());
       }
     }
   }
@@ -40,14 +43,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _orderBloc.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          getIt<OrderBloc>()..add(const LoadOrders()),
+    return BlocProvider.value(
+      value: _orderBloc,
       child: Scaffold(
         backgroundColor: AppTheme.bg,
         appBar: AppBar(
@@ -60,6 +63,15 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               letterSpacing: -0.3,
             ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded, color: AppTheme.ink),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                _orderBloc.add(const LoadOrders());
+              },
+            ),
+          ],
           backgroundColor: AppTheme.bg,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -67,6 +79,19 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         body: BlocListener<OrderBloc, OrderState>(
           listener: (context, state) {
             state.maybeWhen(
+              cancelled: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('order.cancel_success'.tr()),
+                    backgroundColor: AppTheme.successColor,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+                _orderBloc.add(const LoadOrders());
+              },
               reorderSuccess: (newOrderId) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -74,7 +99,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     backgroundColor: AppTheme.successColor,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
                 context.push('/client/tracking/$newOrderId');
@@ -86,7 +112,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     backgroundColor: AppTheme.errorColor,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
               },
@@ -98,12 +125,12 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 2),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
                 // ignore: deprecated_member_use
-                Share.shareXFiles(
-                    [XFile(path)], text: 'Facture ClicEat');
+                Share.shareXFiles([XFile(path)], text: 'Facture ClicEat');
               },
               orElse: () {},
             );
@@ -112,14 +139,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             builder: (context, state) {
               return state.maybeWhen(
                 loading: () => _buildSkeleton(),
-                error: (message) =>
-                    _buildError(context, message),
+                error: (message) => _buildError(context, message),
                 ordersLoaded: (orders) =>
-                    _buildOrderList(context, orders,
-                        isLoadingMore: false),
+                    _buildOrderList(context, orders, isLoadingMore: false),
                 loadingMore: (orders) =>
-                    _buildOrderList(context, orders,
-                        isLoadingMore: true),
+                    _buildOrderList(context, orders, isLoadingMore: true),
                 orElse: () => _buildSkeleton(),
               );
             },
@@ -160,13 +184,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             Text(
               message.tr(),
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(color: AppTheme.errorColor, fontSize: 14),
+              style: GoogleFonts.inter(
+                color: AppTheme.errorColor,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () => context
-                  .read<OrderBloc>()
-                  .add(const LoadOrders()),
+              onPressed: () => _orderBloc.add(const LoadOrders()),
               icon: const Icon(Icons.refresh_rounded),
               label: Text('common.retry'.tr()),
               style: ElevatedButton.styleFrom(
@@ -174,7 +199,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
           ],
@@ -219,15 +245,20 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               const SizedBox(height: 8),
               Text(
                 'order.no_orders_subtitle'.tr(),
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppTheme.muted,
-                ),
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: () => context.go('/client'),
+                onPressed: () {
+                  final mainTab = context
+                      .findAncestorStateOfType<ClientMainTabState>();
+                  if (mainTab != null) {
+                    mainTab.setIndex(0);
+                  } else {
+                    context.go('/client');
+                  }
+                },
                 icon: const Icon(Icons.restaurant_rounded),
                 label: Text('order.browse_restaurants'.tr()),
                 style: ElevatedButton.styleFrom(
@@ -235,7 +266,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
             ],
@@ -245,65 +277,76 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     }
 
     final itemCount = orders.length + (isLoadingMore ? 1 : 0);
-    return ListView.separated(
-      controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: itemCount,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        if (index == orders.length) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-        return _buildOrderCard(context, orders[index]);
+    return RefreshIndicator(
+      onRefresh: () async {
+        _orderBloc.add(const LoadOrders());
+        await Future.delayed(const Duration(milliseconds: 500));
       },
+      color: AppTheme.primaryRed,
+      child: ListView.separated(
+        controller: _scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        itemCount: itemCount,
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          if (index == orders.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return _buildOrderCard(context, orders[index]);
+        },
+      ),
     );
   }
 
-  Widget _buildOrderCard(
-      BuildContext context, Map<String, dynamic> order) {
+  Widget _buildOrderCard(BuildContext context, Map<String, dynamic> order) {
     final theme = Theme.of(context);
-    final orderId = order['_id']?.toString() ??
-        order['id']?.toString() ??
-        '';
+    final orderId = order['_id']?.toString() ?? order['id']?.toString() ?? '';
     final shortId = orderId.length > 8
         ? orderId.substring(orderId.length - 8)
         : orderId;
     final status = order['status'] as String? ?? 'pending';
-    final total = order['totalAmount']?.toString() ??
-        order['total']?.toString() ??
-        '--';
-    final restaurant =
-        order['restaurant'] as Map<String, dynamic>?;
+    final rawTotal = order['totalAmount'] ?? order['total'];
+    final String total;
+    if (rawTotal is num) {
+      total = rawTotal.toStringAsFixed(0);
+    } else if (rawTotal != null) {
+      final parsed = double.tryParse(rawTotal.toString());
+      total = parsed != null ? parsed.toStringAsFixed(0) : rawTotal.toString();
+    } else {
+      total = '--';
+    }
+
+    final restaurant = order['restaurant'] as Map<String, dynamic>?;
     final restaurantName =
-        restaurant?['name'] as String? ?? '';
+        restaurant?['name'] as String? ??
+        order['restaurantName'] as String? ??
+        '';
     final restaurantLogo =
         restaurant?['logo'] as String? ??
-            restaurant?['logoUrl'] as String?;
+        restaurant?['logoUrl'] as String? ??
+        order['restaurantLogo'] as String?;
     final invoiceUrl = order['invoiceUrl']?.toString();
     final isDelivered = status == 'delivered';
     final isCancelled = status == 'cancelled';
     final locale = context.locale.languageCode;
-    final createdAt =
-        formatDate(order['createdAt'], locale: locale);
+    final createdAt = formatDate(order['createdAt'], locale: locale);
 
     // Items summary
     final items = order['items'] as List<dynamic>? ?? [];
     final itemsSummary = items.isEmpty
         ? ''
         : items
-            .take(3)
-            .map((i) {
-              final name =
-                  (i as Map<String, dynamic>)['name']
-                      ?.toString() ??
-                  '';
-              final qty = i['quantity']?.toString() ?? '1';
-              return '$qty× $name';
-            })
-            .join(', ');
+              .take(3)
+              .map((i) {
+                final name =
+                    (i as Map<String, dynamic>)['name']?.toString() ?? '';
+                final qty = i['quantity']?.toString() ?? '1';
+                return '$qty× $name';
+              })
+              .join(', ');
 
     return Container(
       decoration: BoxDecoration(
@@ -354,8 +397,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           restaurantName.isNotEmpty
@@ -368,7 +410,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Row(
+                        Wrap(
+                          spacing: 4,
+                          runSpacing: 2,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
                               '${'order.order_id'.tr()}$shortId',
@@ -380,8 +425,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             if (createdAt.isNotEmpty) ...[
                               Text(
                                 ' · ',
-                                style: GoogleFonts.inter(
-                                    color: AppTheme.muted),
+                                style: GoogleFonts.inter(color: AppTheme.muted),
                               ),
                               Text(
                                 createdAt,
@@ -405,10 +449,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 const SizedBox(height: 10),
                 Text(
                   itemsSummary,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: AppTheme.muted,
-                  ),
+                  style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -420,8 +461,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
               // Footer: montant + actions
               Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     '$total FCFA',
@@ -430,85 +470,109 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!isCancelled && !isDelivered)
-                        TextButton.icon(
-                          onPressed: () => context.push(
-                              '/client/tracking/$orderId'),
-                          icon: const Icon(
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: [
+                        if (status == 'pending' || status == 'pending_payment')
+                          TextButton.icon(
+                            onPressed: () =>
+                                _showCancelDialog(context, orderId),
+                            icon: const Icon(
+                              Icons.cancel_outlined,
+                              size: 16,
+                              color: AppTheme.primaryRed,
+                            ),
+                            label: Text(
+                              'order.cancel'.tr(),
+                              style: const TextStyle(
+                                  color: AppTheme.primaryRed,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                            ),
+                          ),
+                        if (!isCancelled && !isDelivered)
+                          TextButton.icon(
+                            onPressed: () =>
+                                context.push('/client/tracking/$orderId'),
+                            icon: const Icon(
                               Icons.location_on_rounded,
-                              size: 16),
-                          label: Text('order.track_order'.tr()),
-                          style: TextButton.styleFrom(
-                            padding:
-                                const EdgeInsets.symmetric(
-                                    horizontal: 8),
+                              size: 16,
+                            ),
+                            label: Text('order.track_order'.tr()),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                            ),
                           ),
-                        ),
-                      if (isDelivered || isCancelled)
-                        TextButton.icon(
-                          onPressed: () => context
-                              .read<OrderBloc>()
-                              .add(OrderEvent.reorderOrder(
-                                  orderId)),
-                          icon: const Icon(
-                              Icons.replay_rounded,
-                              size: 16),
-                          label: Text('order.reorder'.tr()),
-                          style: TextButton.styleFrom(
-                            padding:
-                                const EdgeInsets.symmetric(
-                                    horizontal: 8),
+                        if (isDelivered || isCancelled)
+                          TextButton.icon(
+                            onPressed: () => _orderBloc.add(
+                              OrderEvent.reorderOrder(orderId),
+                            ),
+                            icon: const Icon(Icons.replay_rounded, size: 16),
+                            label: Text('order.reorder'.tr()),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                            ),
                           ),
-                        ),
-                      if (isDelivered)
-                        IconButton(
-                          icon: const Icon(
+                        if (isDelivered)
+                          IconButton(
+                            icon: const Icon(
                               Icons.star_outline_rounded,
-                              size: 20),
-                          onPressed: () => context.push(
-                              '/client/rate/$orderId'),
-                          tooltip: 'order.rate'.tr(),
-                          color: AppTheme.honey,
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 4),
-                        ),
-                      IconButton(
-                        icon: const Icon(Icons.help_outline_rounded, size: 20),
-                        onPressed: () => context.push('/client/dispute/create/$orderId'),
-                        tooltip: 'order.report_problem'.tr(),
-                        color: AppTheme.muted,
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                      ),
-                      if (isDelivered || invoiceUrl != null)
+                              size: 20,
+                            ),
+                            onPressed: () =>
+                                context.push('/client/rate/$orderId'),
+                            tooltip: 'order.rate'.tr(),
+                            color: AppTheme.honey,
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
                         IconButton(
                           icon: const Icon(
-                              Icons.download_rounded,
-                              size: 20),
-                          onPressed: () {
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(
-                              content: Text(
-                                  'order.downloading'.tr()),
-                              duration:
-                                  const Duration(seconds: 1),
-                            ));
-                            context.read<OrderBloc>().add(
-                                OrderEvent.downloadInvoice(
-                                    orderId));
-                          },
-                          tooltip:
-                              'order.download_invoice'.tr(),
-                          color: AppTheme.primaryRed,
+                            Icons.help_outline_rounded,
+                            size: 20,
+                          ),
+                          onPressed: () =>
+                              context.push('/client/dispute/create/$orderId'),
+                          tooltip: 'order.report_problem'.tr(),
+                          color: AppTheme.muted,
                           constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                         ),
-                    ],
+                        if (isDelivered || invoiceUrl != null)
+                          IconButton(
+                            icon: const Icon(Icons.download_rounded, size: 20),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('order.downloading'.tr()),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                              _orderBloc.add(
+                                OrderEvent.downloadInvoice(orderId),
+                              );
+                            },
+                            tooltip: 'order.download_invoice'.tr(),
+                            color: AppTheme.primaryRed,
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -517,6 +581,107 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _showCancelDialog(BuildContext context, String orderId) async {
+    final reasonController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text(
+          'order.cancel_dialog_title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 17,
+            color: AppTheme.ink,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'order.cancel_dialog_message'.tr(),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppTheme.inkSoft,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              decoration: InputDecoration(
+                hintText: 'order.cancel_reason_hint'.tr(),
+                hintStyle: GoogleFonts.inter(
+                  color: AppTheme.muted,
+                  fontSize: 13,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppTheme.lineSoft),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppTheme.lineSoft),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: AppTheme.primaryRed, width: 1.5),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                filled: true,
+                fillColor: AppTheme.bgWarm,
+              ),
+              style: GoogleFonts.inter(fontSize: 13),
+              maxLines: 2,
+              textInputAction: TextInputAction.done,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'common.cancel'.tr(),
+              style: GoogleFonts.inter(color: AppTheme.muted),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryRed,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+            child: Text(
+              'order.cancel_confirm'.tr(),
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final reason = reasonController.text.trim();
+      _orderBloc.add(
+        CancelOrder(orderId, reason.isEmpty ? null : reason),
+      );
+    }
+    reasonController.dispose();
   }
 
   Widget _buildStatusChip(String status, ThemeData theme) {
@@ -530,7 +695,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       'cancelled' => ('order.status_cancelled'.tr(), AppTheme.statusCancelled),
       'anomaly' => ('order.status_anomaly'.tr(), AppTheme.statusAnomaly),
       'en_route' => ('order.status_en_route'.tr(), AppTheme.statusEnRoute),
-      'pending_payment' => ('order.status_pending_payment'.tr(), AppTheme.statusPending),
+      'pending_payment' => (
+        'order.status_pending_payment'.tr(),
+        AppTheme.statusPending,
+      ),
       _ => (status, AppTheme.statusDefault),
     };
     return Container(

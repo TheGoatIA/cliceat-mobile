@@ -89,7 +89,7 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
               error: (msg) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(msg),
+                    content: Text(msg.tr()),
                     backgroundColor: AppTheme.primaryRed,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -296,9 +296,19 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
       );
       return;
     }
+
+    // Map frontend reasons to exact Mongoose backend enum values
+    final backendReason = switch (_reason) {
+      'wrong_item' => 'missing_item',
+      'missing_item' => 'missing_item',
+      'late_delivery' => 'delivery_delay',
+      'quality_issue' => 'bad_quality',
+      _ => 'other',
+    };
+
     context.read<DisputeCubit>().submitDispute(
           orderId: widget.orderId,
-          reason: _reason,
+          reason: backendReason,
           description: _descriptionController.text.trim(),
           images: _images,
         );

@@ -13,7 +13,7 @@ abstract class DisputeService extends ChopperService {
     @Part('orderId') required String orderId,
     @Part('reason') required String reason,
     @Part('description') required String description,
-    @PartFile('images') List<MultipartFile>? images,
+    @PartFile('evidence') List<MultipartFile>? evidence,
   });
 
   @GET(path: '/me')

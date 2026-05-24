@@ -225,7 +225,13 @@
     "downloading": "Downloading...",
     "download_invoice": "Download invoice",
     "invoice_downloaded": "Invoice downloaded",
-    "browse_restaurants": "Browse restaurants"
+    "browse_restaurants": "Browse restaurants",
+    "cancel_dialog_title": "Cancel order?",
+    "cancel_dialog_message": "Are you sure you want to cancel this order? This action cannot be undone.",
+    "cancel_reason_hint": "Reason for cancellation (optional)",
+    "cancel_confirm": "Yes, cancel",
+    "cancel_success": "Order successfully cancelled",
+    "report_problem": "Report a problem"
   },
   "payment": {
     "title": "Secure payment",
@@ -388,7 +394,8 @@
     "use_current_location": "Use current location",
     "current_location": "Current location",
     "location_denied": "Location permission denied",
-    "location_error": "Unable to get current location"
+    "location_error": "Unable to get current location",
+    "add_first": "Add your first address to get started."
   },
   "mission": {
     "error_load": "Unable to retrieve missions.",
@@ -469,10 +476,43 @@
     "privacy_s6_body": "We implement technical and organizational security measures to protect your data against unauthorized access, including encryption of sensitive data and secure transmission (HTTPS/TLS)."
   },
   "wallet": {
-    "title": "My Wallet"
+    "title": "My Wallet",
+    "history_title": "Transaction History",
+    "current_balance": "Available Balance",
+    "safe_payment": "100% Secure Payment",
+    "recharge": "Recharge",
+    "scan": "Scan QR",
+    "no_transactions": "No transactions yet",
+    "amount": "Amount to recharge",
+    "method": "Payment Method",
+    "confirm": "Confirm Recharge",
+    "recharge_error": "Unable to initiate recharge.",
+    "history_error": "Unable to load transaction history."
   },
   "dispute": {
-    "history_title": "My Disputes"
+    "history_title": "My Disputes",
+    "create_title": "Report a Problem",
+    "reason_wrong_item": "Wrong item received",
+    "reason_missing_item": "Missing item",
+    "reason_late_delivery": "Late delivery",
+    "reason_quality_issue": "Quality issue",
+    "reason_other": "Other issue",
+    "max_images": "You can upload up to 3 images.",
+    "submit_success": "Your dispute has been successfully submitted.",
+    "reason_label": "Reason for dispute",
+    "description_label": "Problem description",
+    "description_hint": "Describe in detail what is wrong with your order...",
+    "evidence_label": "Evidence (Photos)",
+    "evidence_hint": "Add photos to help us understand the problem",
+    "submit": "Submit dispute",
+    "description_required": "Please provide a description of the problem.",
+    "create_error": "Unable to submit dispute.",
+    "history_error": "Unable to load dispute history.",
+    "no_history": "No disputes submitted yet.",
+    "order_id_short": "Order #{}",
+    "status_pending": "Pending",
+    "status_resolved": "Resolved",
+    "status_rejected": "Rejected"
   },
   "chat": {
     "title": "Messages",

@@ -92,6 +92,7 @@ import '../../features/delivery/dashboard/presentation/bloc/payout_cubit.dart'
 import '../config/presentation/bloc/config_bloc.dart' as _i787;
 import '../data/local/daos/cart_dao.dart' as _i322;
 import '../data/local/daos/chat_dao.dart' as _i468;
+import '../data/local/daos/favorites_dao.dart' as _i968;
 import '../data/local/daos/menu_dao.dart' as _i594;
 import '../data/local/daos/order_dao.dart' as _i427;
 import '../data/local/daos/pending_actions_dao.dart' as _i902;
@@ -137,6 +138,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i669.LocationService>(() => _i669.LocationService());
     gh.lazySingleton<_i322.CartDao>(
       () => _i322.CartDao(gh<_i475.AppDatabase>()),
+    );
+    gh.lazySingleton<_i968.FavoritesDao>(
+      () => _i968.FavoritesDao(gh<_i475.AppDatabase>()),
     );
     gh.lazySingleton<_i471.RestaurantDao>(
       () => _i471.RestaurantDao(gh<_i475.AppDatabase>()),
@@ -299,6 +303,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1060.OrderRepository(
         gh<_i271.OrderService>(),
         gh<_i816.PaymentService>(),
+        gh<_i667.WalletService>(),
         gh<_i930.TrackingService>(),
         gh<_i427.OrderDao>(),
         gh<_i974.Logger>(),

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/shared/models/address_model.dart';
 import 'package:cliceat_app/features/client/profile/data/models/loyalty_model.dart';
@@ -846,11 +847,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
                     Navigator.pop(ctx);
 
+                    double lat = 4.05;
+                    double lng = 9.70;
+                    try {
+                      final permission = await Geolocator.checkPermission();
+                      if (permission == LocationPermission.always ||
+                          permission == LocationPermission.whileInUse) {
+                        final pos = await Geolocator.getCurrentPosition(
+                          locationSettings:
+                              const LocationSettings(accuracy: LocationAccuracy.low),
+                        ).timeout(const Duration(seconds: 2));
+                        lat = pos.latitude;
+                        lng = pos.longitude;
+                      }
+                    } catch (_) {}
+
                     final result =
                         await getIt<UserRepository>().addAddress({
                       'address': address,
-                      if (labelCtrl.text.trim().isNotEmpty)
-                        'label': labelCtrl.text.trim(),
+                      'label': labelCtrl.text.trim().isNotEmpty
+                          ? labelCtrl.text.trim()
+                          : 'Adresse',
+                      'lat': lat,
+                      'lng': lng,
                     });
 
                     result.fold(

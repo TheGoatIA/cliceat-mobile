@@ -55,9 +55,13 @@ final class _$OrderService extends OrderService {
   }
 
   @override
-  Future<Response<Map<String, dynamic>>> cancelOrder(String id) {
+  Future<Response<Map<String, dynamic>>> cancelOrder(
+    String id,
+    Map<String, dynamic> body,
+  ) {
     final Uri $url = Uri.parse('/orders/${id}/cancel');
-    final Request $request = Request('POST', $url, client.baseUrl);
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 

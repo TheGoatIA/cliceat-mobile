@@ -13,7 +13,6 @@ import '../../../../../core/theme/app_theme.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/cart_cubit.dart';
 import '../../../../../core/services/analytics_service.dart';
-import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
 import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
 
@@ -266,7 +265,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       },
       'items': items,
       if (_appliedCoupon != null) 'couponCode': _appliedCoupon!.code,
-      if (notes.isNotEmpty) 'notes': notes,
+      if (notes.isNotEmpty) 'deliveryNotes': notes,
     };
 
     context.read<OrderBloc>().add(OrderEvent.createOrder(payload));
@@ -408,83 +407,86 @@ class _CheckoutPageState extends State<CheckoutPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppTheme.line),
-                  ),
-                  child: Row(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Icon(Icons.local_offer_outlined,
-                            size: 18, color: AppTheme.muted),
+          Container(
+            height: 56,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.lineSoft),
+              boxShadow: AppTheme.shadowSm,
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.local_offer_outlined,
+                  size: 20,
+                  color: AppTheme.primaryRed,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _couponController,
+                    textCapitalization: TextCapitalization.characters,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: AppTheme.ink,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'checkout.enter_coupon'.tr(),
+                      hintStyle: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppTheme.mutedLight,
+                        letterSpacing: 0,
                       ),
-                      Expanded(
-                        child: TextField(
-                          controller: _couponController,
-                          textCapitalization: TextCapitalization.characters,
-                          style: GoogleFonts.inter(
-                              fontSize: 14,
-                              color: AppTheme.ink,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 1),
-                          decoration: InputDecoration(
-                            hintText: 'checkout.enter_coupon'.tr(),
-                            hintStyle: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: AppTheme.mutedLight,
-                                letterSpacing: 0),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
-                    ],
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              GestureDetector(
-                onTap: _couponLoading
-                    ? null
-                    : () {
-                        HapticFeedback.selectionClick();
-                        _validateCoupon(context);
-                      },
-                child: Container(
-                  height: 48,
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  decoration: BoxDecoration(
-                    color: AppTheme.ink,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Center(
-                    child: _couponLoading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : Text(
-                            'checkout.apply'.tr(),
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _couponLoading
+                      ? null
+                      : () {
+                          HapticFeedback.selectionClick();
+                          _validateCoupon(context);
+                        },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: _couponLoading ? AppTheme.muted : AppTheme.ink,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: _couponLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              'checkout.apply'.tr(),
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           if (_couponMessage != null) ...[
             const SizedBox(height: 8),
@@ -505,38 +507,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildPaymentMethods(BuildContext context) {
-    final configState = context.watch<ConfigBloc>().state;
-    final enabledMethods = configState.maybeWhen(
-      loaded: (c) => c.payment?.enabledMethods ?? ['orange_money', 'mtn_momo', 'cash'],
-      orElse: () => ['orange_money', 'mtn_momo', 'cash'],
-    );
-    final walletEnabled = configState.maybeWhen(
-      loaded: (c) => c.payment?.walletEnabled ?? true,
-      orElse: () => true,
-    );
-
     return _buildSection(
       title: 'checkout.payment_method'.tr(),
       child: Column(
         children: [
-          if (enabledMethods.contains('orange_money')) ...[
-            _buildPaymentOption(context, 'orange_money', 'checkout.orange_money'.tr(), '🟠'),
-            const SizedBox(height: 8),
-          ],
-          if (enabledMethods.contains('mtn_momo')) ...[
-            _buildPaymentOption(context, 'mtn_momo', 'checkout.mtn_momo'.tr(), '🟡'),
-            const SizedBox(height: 8),
-          ],
-          if (enabledMethods.contains('wave')) ...[
-            _buildPaymentOption(context, 'wave', 'Wave', '🌊'),
-            const SizedBox(height: 8),
-          ],
-          if (walletEnabled && FeatureFlags.isEnabled(configState.maybeWhen(loaded: (c) => c.features, orElse: () => []), FeatureFlags.wallet)) ...[
-            _buildPaymentOption(context, 'wallet', 'wallet.title'.tr(), '💳'),
-            const SizedBox(height: 8),
-          ],
-          if (enabledMethods.contains('cash'))
-            _buildPaymentOption(context, 'cash', 'checkout.cash_on_delivery'.tr(), '💵'),
+          _buildPaymentOption(context, 'orange_money', 'checkout.orange_money'.tr(), '🟠'),
+          const SizedBox(height: 8),
+          _buildPaymentOption(context, 'mtn_momo', 'checkout.mtn_momo'.tr(), '🟡'),
+          const SizedBox(height: 8),
+          _buildPaymentOption(context, 'wallet', 'wallet.title'.tr(), '💳'),
+          const SizedBox(height: 8),
+          _buildPaymentOption(context, 'cash', 'checkout.cash_on_delivery'.tr(), '💵'),
         ],
       ),
     );

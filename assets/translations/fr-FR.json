@@ -225,7 +225,13 @@
     "downloading": "Téléchargement...",
     "download_invoice": "Télécharger la facture",
     "invoice_downloaded": "Facture téléchargée",
-    "browse_restaurants": "Explorer les restaurants"
+    "browse_restaurants": "Explorer les restaurants",
+    "cancel_dialog_title": "Annuler la commande ?",
+    "cancel_dialog_message": "Souhaitez-vous vraiment annuler cette commande ? Cette action est irréversible.",
+    "cancel_reason_hint": "Motif d'annulation (optionnel)",
+    "cancel_confirm": "Oui, annuler",
+    "cancel_success": "Commande annulée avec succès",
+    "report_problem": "Signaler un problème"
   },
   "payment": {
     "title": "Paiement sécurisé",
@@ -390,7 +396,8 @@
     "use_current_location": "Utiliser ma position actuelle",
     "current_location": "Position actuelle",
     "location_denied": "Permission de localisation refusée",
-    "location_error": "Impossible d'obtenir la position actuelle"
+    "location_error": "Impossible d'obtenir la position actuelle",
+    "add_first": "Ajoutez votre première adresse pour commencer."
   },
   "mission": {
     "error_load": "Impossible de récupérer les missions.",
@@ -471,10 +478,43 @@
     "privacy_s6_body": "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, notamment le chiffrement des données sensibles et la transmission sécurisée (HTTPS/TLS)."
   },
   "wallet": {
-    "title": "Mon Portefeuille"
+    "title": "Mon Portefeuille",
+    "history_title": "Historique des transactions",
+    "current_balance": "Solde disponible",
+    "safe_payment": "Paiement 100% sécurisé",
+    "recharge": "Recharger",
+    "scan": "Scanner QR",
+    "no_transactions": "Aucune transaction pour le moment",
+    "amount": "Montant à recharger",
+    "method": "Méthode de paiement",
+    "confirm": "Confirmer le rechargement",
+    "recharge_error": "Impossible d'initier le rechargement.",
+    "history_error": "Impossible de charger l'historique des transactions."
   },
   "dispute": {
-    "history_title": "Mes Litiges"
+    "history_title": "Mes Litiges",
+    "create_title": "Signaler un problème",
+    "reason_wrong_item": "Mauvais article reçu",
+    "reason_missing_item": "Article manquant",
+    "reason_late_delivery": "Livraison en retard",
+    "reason_quality_issue": "Problème de qualité",
+    "reason_other": "Autre problème",
+    "max_images": "Vous pouvez uploader jusqu'à 3 images.",
+    "submit_success": "Votre litige a été soumis avec succès.",
+    "reason_label": "Motif du litige",
+    "description_label": "Description du problème",
+    "description_hint": "Décrivez en détail ce qui ne va pas avec votre commande...",
+    "evidence_label": "Preuves (Photos)",
+    "evidence_hint": "Ajoutez des photos pour nous aider à comprendre le problème",
+    "submit": "Soumettre le litige",
+    "description_required": "Veuillez fournir une description du problème.",
+    "create_error": "Impossible de soumettre le litige.",
+    "history_error": "Impossible de charger l'historique des litiges.",
+    "no_history": "Aucun litige soumis pour le moment.",
+    "order_id_short": "Commande #{}",
+    "status_pending": "En cours",
+    "status_resolved": "Résolu",
+    "status_rejected": "Rejeté"
   },
   "chat": {
     "title": "Messages",

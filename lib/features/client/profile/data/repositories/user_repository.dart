@@ -68,7 +68,13 @@ class UserRepository {
     try {
       final res = await _service.getAddresses();
       if (res.isSuccessful && res.body != null) {
-        final raw = res.body!['data'] as List<dynamic>? ?? [];
+        final data = res.body!['data'];
+        List<dynamic> raw = [];
+        if (data is List) {
+          raw = data;
+        } else if (data is Map<String, dynamic>) {
+          raw = data['addresses'] as List<dynamic>? ?? [];
+        }
         final addresses = raw
             .whereType<Map<String, dynamic>>()
             .map(AddressModel.fromJson)
@@ -94,8 +100,19 @@ class UserRepository {
       final res = await _service.addAddress(data);
       if (res.isSuccessful && res.body != null) {
         final body = res.body!;
-        final addr = AddressModel.fromJson(
-            body['data'] as Map<String, dynamic>? ?? body);
+        final dataField = body['data'];
+        AddressModel? addr;
+        if (dataField is Map<String, dynamic>) {
+          if (dataField.containsKey('addresses')) {
+            final list = dataField['addresses'] as List<dynamic>;
+            if (list.isNotEmpty) {
+              addr = AddressModel.fromJson(list.last as Map<String, dynamic>);
+            }
+          } else {
+            addr = AddressModel.fromJson(dataField);
+          }
+        }
+        addr ??= AddressModel.fromJson(body);
         return Right(addr);
       }
       return Left(AppError.fromResponse(
