@@ -480,7 +480,12 @@
     "restaurant": "Restaurant",
     "type_message": "Tapez un message...",
     "empty": "Aucun message pour le moment",
-    "contact_support": "Contacter le support"
+    "contact_support": "Contacter le support",
+    "error_create": "Impossible de créer la conversation.",
+    "error_load": "Impossible de charger les conversations.",
+    "error_load_messages": "Impossible de charger les messages.",
+    "error_send": "Impossible d'envoyer le message.",
+    "error_update": "Impossible de mettre à jour la conversation."
   },
   "referral": {
     "title": "Parrainage",
@@ -504,5 +509,10 @@
     "my_reviews": "Mes Avis",
     "no_reviews_yet": "Aucun avis pour le moment",
     "restaurant_reply": "Réponse du restaurant"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty_title": "Aucune notification",
+    "empty_subtitle": "Vous retrouverez ici vos alertes de commandes et offres spéciales."
   }
 }

@@ -7,6 +7,7 @@ import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/auth/data/datasources/auth_service.dart';
 import 'package:cliceat_app/core/network/services/user_service.dart';
 import 'package:cliceat_app/core/services/notification_service.dart';
+import 'package:cliceat_app/core/services/device_service.dart';
 
 /// Abstracts all authentication operations and token persistence.
 @lazySingleton
@@ -14,12 +15,14 @@ class AuthRepository {
   final AuthService _authService;
   final UserService _userService;
   final NotificationService _notificationService;
+  final DeviceService _deviceService;
   final FlutterSecureStorage _secureStorage;
 
   AuthRepository(
     this._authService,
     this._userService,
     this._notificationService,
+    this._deviceService,
     this._secureStorage,
   );
 
@@ -54,8 +57,9 @@ class AuthRepository {
   Future<Either<AppError, (String, String)>> loginWithEmail(
       String email, String password) async {
     try {
+      final deviceInfo = await _deviceService.getDeviceInfo();
       final res =
-          await _authService.login({'email': email, 'password': password});
+          await _authService.login({'email': email, 'password': password, ...deviceInfo});
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseTokenAndUserId(res.body);
         if (parsed != null) {
@@ -80,11 +84,13 @@ class AuthRepository {
     required String city,
   }) async {
     try {
+      final deviceInfo = await _deviceService.getDeviceInfo();
       final res = await _authService.register({
         'name': name,
         'email': email,
         'password': password,
         'city': city,
+        ...deviceInfo,
       });
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(
@@ -112,8 +118,9 @@ class AuthRepository {
   Future<Either<AppError, (String, String)>> verifyOtp(
       String phone, String otp) async {
     try {
+      final deviceInfo = await _deviceService.getDeviceInfo();
       final res =
-          await _authService.verifyOtp({'phone': phone, 'otp': otp});
+          await _authService.verifyOtp({'phone': phone, 'otp': otp, ...deviceInfo});
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseTokenAndUserId(res.body);
         if (parsed != null) {
@@ -136,8 +143,9 @@ class AuthRepository {
   Future<Either<AppError, (String, String)>> loginWithFirebase(
       String idToken) async {
     try {
+      final deviceInfo = await _deviceService.getDeviceInfo();
       final res =
-          await _authService.loginWithFirebase({'idToken': idToken});
+          await _authService.loginWithFirebase({'idToken': idToken, ...deviceInfo});
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseTokenAndUserId(res.body);
         if (parsed != null) {

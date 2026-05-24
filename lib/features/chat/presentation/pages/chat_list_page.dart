@@ -33,31 +33,18 @@ class _ChatListPageState extends State<ChatListPage> {
             letterSpacing: -0.3,
           ),
         ),
-        actions: [
-          GestureDetector(
-            onTap: () => context.read<ChatCubit>().createSupportConversation(),
-            child: Container(
-              margin: const EdgeInsets.only(right: 16),
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppTheme.redSoft,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.support_agent,
-                  color: AppTheme.primaryRed, size: 18),
-            ),
-          ),
-        ],
       ),
       body: BlocConsumer<ChatCubit, ChatState>(
         listener: (context, state) {
           state.maybeWhen(
-            messagesLoaded: (conversation, _) {
-              context.push(
+            messagesLoaded: (conversation, _) async {
+              await context.push(
                 '/client/chat/${conversation.id}',
                 extra: conversation,
               );
+              if (context.mounted) {
+                context.read<ChatCubit>().loadConversations();
+              }
             },
             error: (msg) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -66,7 +53,8 @@ class _ChatListPageState extends State<ChatListPage> {
                   backgroundColor: AppTheme.primaryRed,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             },
@@ -77,7 +65,9 @@ class _ChatListPageState extends State<ChatListPage> {
           return state.maybeWhen(
             loading: () => const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2),
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
             ),
             conversationsLoaded: (conversations, unreadCount) {
               if (conversations.isEmpty) {
@@ -92,8 +82,11 @@ class _ChatListPageState extends State<ChatListPage> {
                           color: AppTheme.bgWarm,
                           borderRadius: BorderRadius.circular(40),
                         ),
-                        child: const Icon(Icons.chat_bubble_outline,
-                            size: 36, color: AppTheme.muted),
+                        child: const Icon(
+                          Icons.chat_bubble_outline,
+                          size: 36,
+                          color: AppTheme.muted,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -119,7 +112,8 @@ class _ChatListPageState extends State<ChatListPage> {
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14)),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
                         ),
                       ),
@@ -160,17 +154,25 @@ class _ChatListPageState extends State<ChatListPage> {
                   }
 
                   return GestureDetector(
-                    onTap: () =>
-                        context.push('/client/chat/${conv.id}', extra: conv),
+                    onTap: () async {
+                      await context.push(
+                        '/client/chat/${conv.id}',
+                        extra: conv,
+                      );
+                      if (context.mounted) {
+                        context.read<ChatCubit>().loadConversations();
+                      }
+                    },
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                            color: isUnread
-                                ? AppTheme.primaryRed.withValues(alpha: 0.3)
-                                : AppTheme.lineSoft),
+                          color: isUnread
+                              ? AppTheme.primaryRed.withValues(alpha: 0.3)
+                              : AppTheme.lineSoft,
+                        ),
                         boxShadow: AppTheme.shadowSm,
                       ),
                       child: Row(
@@ -265,7 +267,9 @@ class _ChatListPageState extends State<ChatListPage> {
             },
             orElse: () => const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2),
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
             ),
           );
         },

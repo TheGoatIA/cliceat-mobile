@@ -44,6 +44,10 @@ import '../../features/chat/presentation/cubit/chat_cubit.dart';
 import '../../features/client/referral/presentation/cubit/referral_cubit.dart';
 import '../../features/client/review/presentation/cubit/review_cubit.dart';
 import '../../core/di/injection.dart';
+import '../../features/client/notification/presentation/pages/notifications_page.dart';
+import '../../features/client/notification/presentation/cubit/notification_cubit.dart';
+import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
+import 'package:cliceat_app/core/widgets/maintenance_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'dart:async';
@@ -57,10 +61,9 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 /// Helper class to convert a Stream into a Listenable for GoRouter.
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListeners();
-    _subscription = stream.asBroadcastStream().listen(
-          (dynamic _) => notifyListeners(),
-        );
+    _subscription = stream.listen(
+      (dynamic _) => notifyListeners(),
+    );
   }
 
   late final StreamSubscription<dynamic> _subscription;
@@ -87,8 +90,12 @@ abstract class AppRoutes {
   static const restaurant = '/restaurant/:id';
   static const checkout = '/checkout';
   static const delivery = '/delivery';
+  static const orderSuccess = '/client/order-success/:orderId';
+  static const tracking = '/client/tracking/:orderId';
+  static const payment = '/client/payment';
   static const terms = '/legal/terms';
   static const privacy = '/legal/privacy';
+  static const maintenance = '/maintenance';
 }
 
 // ─── Public routes (accessible without authentication) ────────────────────────
@@ -103,6 +110,7 @@ const _kPublicRoutes = {
   AppRoutes.verifyEmail,
   AppRoutes.terms,
   AppRoutes.privacy,
+  AppRoutes.maintenance,
 };
 
 // ─── Role-based redirect logic ────────────────────────────────────────────────
@@ -111,7 +119,21 @@ const _kPublicRoutes = {
 /// ou `null` si la navigation est permise.
 String? _guardRedirect(BuildContext context, GoRouterState state) {
   final authState = context.read<AuthBloc>().state;
+  final configState = context.read<ConfigBloc>().state;
   final location = state.matchedLocation;
+
+  // 1. Check Maintenance Mode
+  final isMaintenance = configState.maybeWhen(
+    loaded: (c) => c.maintenanceMode,
+    orElse: () => false,
+  );
+
+  if (isMaintenance && location != AppRoutes.maintenance) {
+    return AppRoutes.maintenance;
+  }
+  if (!isMaintenance && location == AppRoutes.maintenance) {
+    return AppRoutes.splash;
+  }
 
   // Ignorer les routes publiques
   if (_kPublicRoutes.any((r) => location.startsWith(r) && r != AppRoutes.splash)) {
@@ -218,6 +240,13 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
+          path: 'notifications',
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<NotificationCubit>(),
+            child: const NotificationsPage(),
+          ),
+        ),
+        GoRoute(
           path: 'chat',
           builder: (context, state) => BlocProvider(
             create: (context) => getIt<ChatCubit>()..loadConversations(),
@@ -228,7 +257,10 @@ final GoRouter appRouter = GoRouter(
           path: 'chat/:id',
           builder: (context, state) {
             final conv = state.extra as ConversationModel;
-            return ChatDetailPage(conversation: conv);
+            return BlocProvider(
+              create: (context) => getIt<ChatCubit>(),
+              child: ChatDetailPage(conversation: conv),
+            );
           },
         ),
         GoRoute(
@@ -278,29 +310,36 @@ final GoRouter appRouter = GoRouter(
             orderId: state.pathParameters['orderId']!,
           ),
         ),
-        GoRoute(
-          path: 'tracking/:orderId',
-          builder: (context, state) => ClientTrackingPage(
-            orderId: state.pathParameters['orderId']!,
-          ),
-        ),
-        GoRoute(
-          path: 'order-success/:orderId',
-          builder: (context, state) => OrderSuccessPage(
-            orderId: state.pathParameters['orderId']!,
-          ),
-        ),
-        GoRoute(
-          path: 'payment',
-          builder: (context, state) {
-            final extra = state.extra as Map<String, String>? ?? {};
-            return PaymentWebviewPage(
-              paymentUrl: extra['paymentUrl'] ?? '',
-              orderId: extra['orderId'] ?? '',
-            );
-          },
-        ),
       ],
+    ),
+
+    // ── Order & Payment routes (Top-level for easy access) ──────────────────
+    GoRoute(
+      path: AppRoutes.tracking,
+      builder: (context, state) => ClientTrackingPage(
+        orderId: state.pathParameters['orderId']!,
+      ),
+    ),
+    GoRoute(
+      path: '/client/order-success/:orderId',
+      builder: (context, state) => OrderSuccessPage(
+        orderId: state.pathParameters['orderId'] ?? '',
+      ),
+    ),
+    // Fallback for missing orderId
+    GoRoute(
+      path: '/client/order-success',
+      builder: (context, state) => const OrderSuccessPage(orderId: ''),
+    ),
+    GoRoute(
+      path: AppRoutes.payment,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, String>? ?? {};
+        return PaymentWebviewPage(
+          paymentUrl: extra['paymentUrl'] ?? '',
+          orderId: extra['orderId'] ?? '',
+        );
+      },
     ),
 
     // Résultats de recherche (accessible depuis le shell client)
@@ -375,6 +414,18 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.privacy,
       builder: (context, state) => const PrivacyPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.maintenance,
+      builder: (context, state) {
+        final config = context.read<ConfigBloc>().state.maybeWhen(
+              loaded: (c) => c,
+              orElse: () => null,
+            );
+        final locale = context.locale.languageCode;
+        final msg = locale == 'en' ? config?.maintenanceMessageEn : config?.maintenanceMessageFr;
+        return MaintenancePage(message: msg);
+      },
     ),
   ],
 );

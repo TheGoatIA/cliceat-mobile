@@ -16,6 +16,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:cliceat.cm</string>
+		<string>applinks:api.cliceat.cm</string>
 	</array>
 </dict>
 </plist>

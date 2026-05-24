@@ -42,4 +42,23 @@ abstract class UserService extends ChopperService {
   /// GET /users/me/loyalty
   @GET(path: '/me/loyalty')
   Future<Response<Map<String, dynamic>>> getLoyalty();
+
+  /// GET /users/me/notifications
+  @GET(path: '/me/notifications')
+  Future<Response<Map<String, dynamic>>> getNotifications(
+    @Query('page') int page,
+    @Query('limit') int limit,
+  );
+
+  /// PATCH /users/me/notifications/{id}/read
+  @PATCH(path: '/me/notifications/{id}/read')
+  Future<Response<Map<String, dynamic>>> markNotificationRead(
+    @Path('id') String id,
+  );
+
+  /// DELETE /users/me/notifications/{id}
+  @DELETE(path: '/me/notifications/{id}')
+  Future<Response<Map<String, dynamic>>> deleteNotification(
+    @Path('id') String id,
+  );
 }

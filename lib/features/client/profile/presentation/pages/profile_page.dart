@@ -12,6 +12,8 @@ import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/core/theme/presentation/bloc/theme_cubit.dart';
+import 'package:cliceat_app/core/config/feature_flags.dart';
+import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 
@@ -203,21 +205,33 @@ class _ProfilePageState extends State<ProfilePage> {
             onTap: () => _showAddresses(context),
           ),
           _buildDivider(theme),
-          _buildMenuItem(
-            icon: Icons.account_balance_wallet_outlined,
-            title: 'wallet.title'.tr(),
-            color: AppTheme.green,
-            onTap: () => context.push('/client/wallet'),
+          FeatureGate(
+            featureKey: FeatureFlags.wallet,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildMenuItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: 'wallet.title'.tr(),
+                  color: AppTheme.green,
+                  onTap: () => context.push('/client/wallet'),
+                ),
+                _buildDivider(theme),
+              ],
+            ),
           ),
-          _buildDivider(theme),
-          _buildMenuItem(
-            icon: Icons.card_giftcard_outlined,
-            title: 'profile.loyalty'.tr(),
-            color: AppTheme.honey,
-            onTap: () => _showLoyalty(context),
-            trailing: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+          FeatureGate(
+            featureKey: FeatureFlags.loyalty,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildMenuItem(
+                  icon: Icons.card_giftcard_outlined,
+                  title: 'profile.loyalty'.tr(),
+                  color: AppTheme.honey,
+                  onTap: () => _showLoyalty(context),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppTheme.honeySoft,
                       borderRadius: BorderRadius.circular(10),
@@ -231,13 +245,19 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                   ),
+                ),
+                _buildDivider(theme),
+              ],
+            ),
           ),
-          _buildDivider(theme),
-          _buildMenuItem(
-            icon: Icons.group_add_outlined,
-            title: 'referral.title'.tr(),
-            color: AppTheme.honey,
-            onTap: () => context.push('/client/profile/referrals'),
+          FeatureGate(
+            featureKey: FeatureFlags.referral,
+            child: _buildMenuItem(
+              icon: Icons.group_add_outlined,
+              title: 'referral.title'.tr(),
+              color: AppTheme.honey,
+              onTap: () => context.push('/client/profile/referrals'),
+            ),
           ),
         ], theme),
 

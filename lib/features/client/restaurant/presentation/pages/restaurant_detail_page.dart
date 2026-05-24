@@ -69,6 +69,37 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     );
   }
 
+  Future<void> _toggleFavorite() async {
+    if (_restaurant == null) return;
+    HapticFeedback.mediumImpact();
+    
+    final newStatus = !_restaurant!.isFavorite;
+    
+    // Optimistic update
+    setState(() {
+      _restaurant = _restaurant!.copyWith(isFavorite: newStatus);
+    });
+
+    final result = await getIt<RestaurantRepository>().toggleFavorite(widget.restaurantId);
+    
+    result.fold(
+      (err) {
+        // Rollback
+        if (mounted) {
+          setState(() {
+            _restaurant = _restaurant!.copyWith(isFavorite: !newStatus);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(err.message.tr())),
+          );
+        }
+      },
+      (_) {
+        // Success
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -193,18 +224,23 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
               Padding(
                 padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: _toggleFavorite,
                   child: Container(
-                    width: 36,
-                    height: 36,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.favorite_border_rounded,
-                      size: 18,
                       color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.lineSoft),
+                    ),
+                    child: Icon(
+                      _restaurant?.isFavorite == true
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      size: 20,
+                      color: _restaurant?.isFavorite == true
+                          ? AppTheme.primaryRed
+                          : AppTheme.ink,
                     ),
                   ),
                 ),

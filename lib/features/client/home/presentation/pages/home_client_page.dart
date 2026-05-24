@@ -14,6 +14,8 @@ import '../../../../../shared/widgets/banner_carousel.dart';
 import '../../../../../shared/widgets/empty_state.dart';
 import '../../../../../shared/widgets/restaurant_card.dart';
 import '../../../../../shared/widgets/section_header.dart';
+import 'package:cliceat_app/core/config/feature_flags.dart';
+import 'package:cliceat_app/core/widgets/feature_gate_sliver.dart';
 import '../bloc/promotion_cubit.dart';
 import '../../../../../shared/widgets/promotion_banner.dart';
 
@@ -31,7 +33,11 @@ class _HomeClientPageState extends State<HomeClientPage> {
   String _searchQuery = '';
   String? _selectedCategory;
   String _selectedCity = 'Douala';
-  String _selectedFilter = 'Top Douala';
+  String _selectedFilter = '';
+  String _sortBy = 'default';
+  bool _isOpenOnly = false;
+  bool _freeDelivery = false;
+  String? _selectedCuisineType;
 
   List<RestaurantModel> _allRestaurants = [];
   List<RestaurantModel> _displayedRestaurants = [];
@@ -59,6 +65,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
     'chicken': '🍗',
     'salade': '🥗',
     'salad': '🥗',
+    'healthy': '🥗',
     'ndolé': '🥬',
     'ndole': '🥬',
     'poisson': '🐟',
@@ -66,9 +73,15 @@ class _HomeClientPageState extends State<HomeClientPage> {
     'sushi': '🍱',
     'tacos': '🌮',
     'sandwich': '🥙',
+    'shawarma': '🌯',
+    'chawarma': '🌯',
     'pasta': '🍝',
+    'pate': '🍝',
     'dessert': '🍰',
+    'gateau': '🍰',
     'jus': '🥤',
+    'boisson': '🥤',
+    'drink': '🥤',
     'rice': '🍚',
     'riz': '🍚',
     'viande': '🥩',
@@ -76,7 +89,57 @@ class _HomeClientPageState extends State<HomeClientPage> {
     'eru': '🌿',
     'beignet': '🍩',
     'grillades': '🔥',
+    'bbq': '🔥',
+    'camerounais': '🇨🇲',
+    'cameroon': '🇨🇲',
+    'african': '🌍',
+    'afrique': '🌍',
+    'traditional': '🍲',
+    'traditionnel': '🍲',
+    'chinese': '🥢',
+    'chinois': '🥢',
+    'japanese': '🍱',
+    'japonais': '🍱',
+    'italian': '🍝',
+    'italien': '🍝',
+    'french': '🥐',
+    'francais': '🥐',
+    'seafood': '🍤',
+    'fruits de mer': '🍤',
+    'soup': '🥣',
+    'soupe': '🥣',
+    'coffee': '☕',
+    'cafe': '☕',
+    'bobolo': '🥖',
+    'miondo': '🥖',
   };
+
+  static const _fallbackFoodEmojis = [
+    '🍽️',
+    '🍲',
+    '🥘',
+    '🥙',
+    '🍳',
+    '🥖',
+    '🍘',
+    '🍙',
+    '🍛',
+    '🍱',
+    '🥣',
+    '🥗',
+  ];
+
+  static String _getEmojiForCuisine(String cuisine) {
+    final cleaned = cuisine.toLowerCase().trim();
+    for (final entry in _emojiMap.entries) {
+      if (cleaned.contains(entry.key)) {
+        return entry.value;
+      }
+    }
+    // Fallback déterministe et varié basé sur le hash du nom de la cuisine
+    final index = cleaned.hashCode.abs() % _fallbackFoodEmojis.length;
+    return _fallbackFoodEmojis[index];
+  }
 
   @override
   void initState() {
@@ -97,19 +160,19 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   Future<void> _loadRestaurants() async {
     setState(() => _loadingRestaurants = true);
-    // On essaie d'abord les restaurants à la une
-    final featuredResult = await getIt<RestaurantRepository>()
-        .getFeaturedRestaurants();
+    // On charge tous les restaurants de la ville sélectionnée pour avoir une liste complète et des catégories réelles
+    final cityResult = await getIt<RestaurantRepository>().getRestaurants(
+      city: _selectedCity,
+    );
 
     List<RestaurantModel> restaurants = [];
-    featuredResult.fold((_) {}, (list) => restaurants = list);
+    cityResult.fold((_) {}, (list) => restaurants = list);
 
-    // Si on n'a rien en "featured", on prend les restaurants de la ville
+    // En cas d'échec ou d'absence de restaurants dans cette ville, fallback de secours sur les "featured"
     if (restaurants.isEmpty) {
-      final cityResult = await getIt<RestaurantRepository>().getRestaurants(
-        city: _selectedCity,
-      );
-      cityResult.fold((_) {}, (list) => restaurants = list);
+      final featuredResult = await getIt<RestaurantRepository>()
+          .getFeaturedRestaurants();
+      featuredResult.fold((_) {}, (list) => restaurants = list);
     }
 
     if (!mounted) return;
@@ -117,10 +180,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
     final categories = _extractCategories(restaurants);
     setState(() {
       _allRestaurants = restaurants;
-      _displayedRestaurants = restaurants;
       _loadingRestaurants = false;
       if (categories.isNotEmpty) _categories = categories;
     });
+    _applyFilters();
   }
 
   Future<void> _loadBanners() async {
@@ -139,38 +202,48 @@ class _HomeClientPageState extends State<HomeClientPage> {
   Future<void> _search(String query) async {
     if (query.trim().isEmpty) {
       setState(() {
-        _displayedRestaurants = _allRestaurants;
+        _searchQuery = '';
         _selectedCategory = null;
       });
+      await _loadRestaurants();
       return;
     }
     setState(() => _loadingRestaurants = true);
     final result = await getIt<RestaurantRepository>().search(query.trim());
     if (!mounted) return;
-    result.fold(
-      (_) => setState(() => _loadingRestaurants = false),
-      (restaurants) => setState(() {
-        _displayedRestaurants = restaurants;
+    result.fold((_) => setState(() => _loadingRestaurants = false), (
+      restaurants,
+    ) {
+      setState(() {
+        _allRestaurants = restaurants;
         _loadingRestaurants = false;
-      }),
-    );
+      });
+      _applyFilters();
+    });
   }
 
   List<(String, String)> _extractCategories(List<RestaurantModel> restaurants) {
     final seen = <String>{};
     final result = <(String, String)>[];
     for (final r in restaurants) {
-      final cuisine = r.cuisineType?.trim() ?? '';
-      if (cuisine.isNotEmpty && seen.add(cuisine)) {
-        final emoji = _emojiMap.entries
-            .firstWhere(
-              (e) => cuisine.toLowerCase().contains(e.key),
-              orElse: () => const MapEntry('', '🍽️'),
-            )
-            .value;
-        result.add((emoji, cuisine));
-        if (result.length >= 8) break;
+      // Extraire toutes les catégories de cuisine déclarées par le restaurant
+      final candidates = [
+        if (r.cuisineType != null) r.cuisineType!.trim(),
+        ...r.cuisines.map((c) => c.trim()),
+      ];
+
+      for (final c in candidates) {
+        if (c.isNotEmpty && seen.add(c.toLowerCase())) {
+          // Rendre le nom élégant avec la première lettre en majuscule
+          final displayName = c[0].toUpperCase() + c.substring(1).toLowerCase();
+          final emoji = _getEmojiForCuisine(c);
+          result.add((emoji, displayName));
+
+          // Limiter à 12 catégories pour une barre de défilement ergonomique
+          if (result.length >= 12) break;
+        }
       }
+      if (result.length >= 12) break;
     }
     return result;
   }
@@ -205,25 +278,87 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   bool get _isSearching => _searchQuery.isNotEmpty;
 
+  bool get _isFilterActive =>
+      _sortBy != 'default' ||
+      _isOpenOnly ||
+      _freeDelivery ||
+      _selectedCuisineType != null;
+
   void _onFilterTap(String filter) {
     setState(() {
-      _selectedFilter = filter;
-      // Local filtering logic
-      if (filter.startsWith('Top') || filter == 'Premium') {
-        _displayedRestaurants = _allRestaurants
-            .where((r) => (r.rating ?? 0) >= 4.0)
-            .toList();
-      } else if (filter == 'Ouvert maintenant') {
-        _displayedRestaurants = _allRestaurants
-            .where((r) => r.isOpen == true)
-            .toList();
-      } else if (filter == '⭐ 4.5+') {
-        _displayedRestaurants = _allRestaurants
-            .where((r) => (r.rating ?? 0) >= 4.5)
-            .toList();
+      if (filter == 'Tous les restaurants') {
+        _selectedFilter = ''; // Reset/show all
+      } else if (_selectedFilter == filter) {
+        _selectedFilter = ''; // Deselect if tapped again
       } else {
-        _displayedRestaurants = _allRestaurants;
+        _selectedFilter = filter;
       }
+    });
+    _applyFilters();
+  }
+
+  List<RestaurantModel> _getFilteredRestaurantsList() {
+    List<RestaurantModel> filteredList = List.from(_allRestaurants);
+
+    // Apply search query locally if active
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      filteredList = filteredList
+          .where(
+            (r) =>
+                r.name.toLowerCase().contains(q) ||
+                (r.description?.toLowerCase().contains(q) ?? false) ||
+                (r.cuisineType?.toLowerCase().contains(q) ?? false) ||
+                r.cuisines.any((c) => c.toLowerCase().contains(q)),
+          )
+          .toList();
+    }
+
+    // Apply quick strip filter
+    if (_selectedFilter.startsWith('Top') || _selectedFilter == 'Premium') {
+      filteredList = filteredList.where((r) => (r.rating ?? 0) >= 4.0).toList();
+    } else if (_selectedFilter == 'Ouvert maintenant') {
+      filteredList = filteredList.where((r) => r.isOpen == true).toList();
+    } else if (_selectedFilter == '⭐ 4.5+') {
+      filteredList = filteredList.where((r) => (r.rating ?? 0) >= 4.5).toList();
+    }
+
+    // Apply modal filters
+    if (_isOpenOnly) {
+      filteredList = filteredList.where((r) => r.isOpen == true).toList();
+    }
+    if (_freeDelivery) {
+      filteredList = filteredList.where((r) => r.deliveryFee == 0).toList();
+    }
+    if (_selectedCuisineType != null) {
+      filteredList = filteredList
+          .where(
+            (r) =>
+                r.cuisineType == _selectedCuisineType ||
+                r.cuisines.contains(_selectedCuisineType),
+          )
+          .toList();
+    }
+
+    // Apply sorting
+    if (_sortBy == 'rating') {
+      filteredList.sort((a, b) => (b.rating ?? 0.0).compareTo(a.rating ?? 0.0));
+    } else if (_sortBy == 'deliveryTime') {
+      filteredList.sort(
+        (a, b) => (a.deliveryTimeMinutes ?? 999).compareTo(
+          b.deliveryTimeMinutes ?? 999,
+        ),
+      );
+    } else if (_sortBy == 'deliveryFee') {
+      filteredList.sort((a, b) => a.deliveryFee.compareTo(b.deliveryFee));
+    }
+
+    return filteredList;
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _displayedRestaurants = _getFilteredRestaurantsList();
     });
   }
 
@@ -288,9 +423,298 @@ class _HomeClientPageState extends State<HomeClientPage> {
     );
   }
 
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required ValueChanged<bool> onSelected,
+  }) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: onSelected,
+      selectedColor: AppTheme.redSoft,
+      backgroundColor: AppTheme.bgWarm,
+      labelStyle: GoogleFonts.inter(
+        fontSize: 13,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+        color: isSelected ? AppTheme.primaryRed : AppTheme.inkSoft,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(
+          color: isSelected
+              ? AppTheme.primaryRed.withValues(alpha: 0.5)
+              : AppTheme.lineSoft,
+        ),
+      ),
+      showCheckmark: false,
+    );
+  }
+
   void _showSearchFilters() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Filtres de recherche bientôt disponibles')),
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        // Extract cuisines dynamically
+        final cuisines = _allRestaurants
+            .expand(
+              (r) => [if (r.cuisineType != null) r.cuisineType!, ...r.cuisines],
+            )
+            .where((c) => c.trim().isNotEmpty)
+            .toSet()
+            .toList();
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            // Helper to calculate filtered count in real time
+            int getFilteredCount() {
+              return _getFilteredRestaurantsList().length;
+            }
+
+            final count = getFilteredCount();
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Filtres de recherche',
+                          style: GoogleFonts.bricolageGrotesque(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 20,
+                            color: AppTheme.ink,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setModalState(() {
+                              _sortBy = 'default';
+                              _isOpenOnly = false;
+                              _freeDelivery = false;
+                              _selectedCuisineType = null;
+                            });
+                          },
+                          child: Text(
+                            'Réinitialiser',
+                            style: GoogleFonts.inter(
+                              color: AppTheme.primaryRed,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(height: 1, color: AppTheme.lineSoft),
+                    const SizedBox(height: 20),
+
+                    // Sort section
+                    Text(
+                      'Trier par',
+                      style: GoogleFonts.bricolageGrotesque(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: AppTheme.ink,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildFilterChip(
+                          label: 'Par défaut',
+                          isSelected: _sortBy == 'default',
+                          onSelected: (selected) {
+                            setModalState(() => _sortBy = 'default');
+                          },
+                        ),
+                        _buildFilterChip(
+                          label: 'Meilleure note ⭐',
+                          isSelected: _sortBy == 'rating',
+                          onSelected: (selected) {
+                            setModalState(() => _sortBy = 'rating');
+                          },
+                        ),
+                        _buildFilterChip(
+                          label: 'Plus rapide ⚡',
+                          isSelected: _sortBy == 'deliveryTime',
+                          onSelected: (selected) {
+                            setModalState(() => _sortBy = 'deliveryTime');
+                          },
+                        ),
+                        _buildFilterChip(
+                          label: 'Moins cher 💸',
+                          isSelected: _sortBy == 'deliveryFee',
+                          onSelected: (selected) {
+                            setModalState(() => _sortBy = 'deliveryFee');
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Features Section
+                    Text(
+                      'Options',
+                      style: GoogleFonts.bricolageGrotesque(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: AppTheme.ink,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      value: _isOpenOnly,
+                      onChanged: (val) {
+                        setModalState(() => _isOpenOnly = val);
+                      },
+                      title: Text(
+                        'Ouvert maintenant',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: AppTheme.ink,
+                        ),
+                      ),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      activeThumbColor: AppTheme.primaryRed,
+                    ),
+                    SwitchListTile(
+                      value: _freeDelivery,
+                      onChanged: (val) {
+                        setModalState(() => _freeDelivery = val);
+                      },
+                      title: Text(
+                        'Livraison gratuite',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: AppTheme.ink,
+                        ),
+                      ),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      activeThumbColor: AppTheme.primaryRed,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Cuisine section
+                    if (cuisines.isNotEmpty) ...[
+                      Text(
+                        'Type de cuisine',
+                        style: GoogleFonts.bricolageGrotesque(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: AppTheme.ink,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 38,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: cuisines.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final cuisine = cuisines[index];
+                            final isSelected = _selectedCuisineType == cuisine;
+                            return ChoiceChip(
+                              label: Text(cuisine),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setModalState(() {
+                                  _selectedCuisineType = selected
+                                      ? cuisine
+                                      : null;
+                                });
+                              },
+                              selectedColor: AppTheme.redSoft,
+                              backgroundColor: AppTheme.bgWarm,
+                              labelStyle: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? AppTheme.primaryRed
+                                    : AppTheme.inkSoft,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppTheme.primaryRed.withValues(
+                                          alpha: 0.5,
+                                        )
+                                      : AppTheme.lineSoft,
+                                ),
+                              ),
+                              showCheckmark: false,
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+
+                    // Apply Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _applyFilters();
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryRed,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          count > 0
+                              ? 'Voir les $count restaurants'
+                              : 'Aucun résultat',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -322,7 +746,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
               SliverToBoxAdapter(child: _buildCategories()),
               SliverToBoxAdapter(child: _buildRestaurantSection(context)),
               if (!_isSearching)
-                SliverToBoxAdapter(child: _buildReferralBanner()),
+                FeatureGateSliver(
+                  featureKey: FeatureFlags.referral,
+                  child: SliverToBoxAdapter(child: _buildReferralBanner()),
+                ),
               const SliverToBoxAdapter(child: SizedBox(height: 32)),
             ],
           ),
@@ -385,11 +812,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
             ),
             // Notification bell
             GestureDetector(
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Notifications bientôt disponibles'),
-                ),
-              ),
+              onTap: () => context.push('/client/notifications'),
               child: Container(
                 width: 40,
                 height: 40,
@@ -500,10 +923,20 @@ class _HomeClientPageState extends State<HomeClientPage> {
               const SizedBox(width: 10),
               GestureDetector(
                 onTap: _showSearchFilters,
-                child: const Icon(
-                  Icons.tune_rounded,
-                  size: 18,
-                  color: AppTheme.ink,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: _isFilterActive
+                        ? AppTheme.redSoft
+                        : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.tune_rounded,
+                    size: 18,
+                    color: _isFilterActive ? AppTheme.primaryRed : AppTheme.ink,
+                  ),
                 ),
               ),
             ],
@@ -757,6 +1190,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   Widget _buildFilterStrip() {
     final filters = [
+      'Tous les restaurants',
       'Top $_selectedCity',
       'Ouvert maintenant',
       '⭐ 4.5+',
@@ -770,7 +1204,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
         padding: const EdgeInsets.only(left: 20),
         child: Row(
           children: filters.map<Widget>((f) {
-            final isSelected = _selectedFilter == f;
+            final isSelected =
+                (f == 'Tous les restaurants' && _selectedFilter.isEmpty) ||
+                _selectedFilter == f;
             return GestureDetector(
               onTap: () => _onFilterTap(f),
               child: Container(

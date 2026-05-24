@@ -19,6 +19,13 @@ final class _$DriverService extends DriverService {
   final Type definitionType = DriverService;
 
   @override
+  Future<Response<Map<String, dynamic>>> getProfile() {
+    final Uri $url = Uri.parse('/delivery/me');
+    final Request $request = Request('GET', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
   Future<Response<Map<String, dynamic>>> getMyEarnings() {
     final Uri $url = Uri.parse('/delivery/me/earnings');
     final Request $request = Request('GET', $url, client.baseUrl);

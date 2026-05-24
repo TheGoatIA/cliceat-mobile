@@ -7,6 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/features/client/wallet/presentation/bloc/wallet_cubit.dart';
+import 'package:cliceat_app/core/config/feature_flags.dart';
+import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 
 class WalletPage extends StatelessWidget {
@@ -32,34 +34,56 @@ class WalletPage extends StatelessWidget {
             ),
           ),
         ),
-        body: RefreshIndicator(
-          color: AppTheme.primaryRed,
-          onRefresh: () async {
-            context.read<WalletCubit>().loadHistory();
-            context.read<ProfileCubit>().loadProfile();
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildBalanceCard(context),
-                const SizedBox(height: 24),
-                _buildQuickActions(context),
-                const SizedBox(height: 28),
-                Text(
-                  'wallet.history_title'.tr(),
-                  style: GoogleFonts.bricolageGrotesque(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: AppTheme.ink,
-                    letterSpacing: -0.3,
+        body: FeatureGate(
+          featureKey: FeatureFlags.wallet,
+          fallback: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.lock_outline_rounded, size: 64, color: AppTheme.muted),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Feature disabled by administrator',
+                    style: GoogleFonts.bricolageGrotesque(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                _buildTransactionHistory(context),
-              ],
+                ],
+              ),
+            ),
+          ),
+          child: RefreshIndicator(
+            color: AppTheme.primaryRed,
+            onRefresh: () async {
+              context.read<WalletCubit>().loadHistory();
+              context.read<ProfileCubit>().loadProfile();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildBalanceCard(context),
+                  const SizedBox(height: 24),
+                  _buildQuickActions(context),
+                  const SizedBox(height: 28),
+                  Text(
+                    'wallet.history_title'.tr(),
+                    style: GoogleFonts.bricolageGrotesque(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                      color: AppTheme.ink,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTransactionHistory(context),
+                ],
+              ),
             ),
           ),
         ),
@@ -105,8 +129,10 @@ class WalletPage extends StatelessWidget {
                       fontSize: 14,
                     ),
                   ),
-                  const Icon(Icons.account_balance_wallet,
-                      color: Colors.white70),
+                  const Icon(
+                    Icons.account_balance_wallet,
+                    color: Colors.white70,
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -121,16 +147,17 @@ class WalletPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'wallet.safe_payment'.tr(),
-                  style: GoogleFonts.inter(
-                      color: Colors.white, fontSize: 12),
+                  style: GoogleFonts.inter(color: Colors.white, fontSize: 12),
                 ),
               ),
             ],
@@ -168,7 +195,8 @@ class WalletPage extends StatelessWidget {
                   backgroundColor: AppTheme.ink,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             },
@@ -211,9 +239,10 @@ class WalletPage extends StatelessWidget {
             Text(
               label,
               style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  color: AppTheme.ink),
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: AppTheme.ink,
+              ),
             ),
           ],
         ),
@@ -227,7 +256,9 @@ class WalletPage extends StatelessWidget {
         return state.maybeWhen(
           loading: () => const Center(
             child: CircularProgressIndicator(
-                color: AppTheme.primaryRed, strokeWidth: 2),
+              color: AppTheme.primaryRed,
+              strokeWidth: 2,
+            ),
           ),
           loaded: (history) {
             if (history.isEmpty) {
@@ -236,8 +267,10 @@ class WalletPage extends StatelessWidget {
                   padding: const EdgeInsets.all(40),
                   child: Text(
                     'wallet.no_transactions'.tr(),
-                    style:
-                        GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: AppTheme.muted,
+                    ),
                   ),
                 ),
               );
@@ -275,9 +308,7 @@ class WalletPage extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          isCredit
-                              ? Icons.arrow_downward
-                              : Icons.arrow_upward,
+                          isCredit ? Icons.arrow_downward : Icons.arrow_upward,
                           color: isCredit
                               ? AppTheme.green
                               : AppTheme.primaryRed,
@@ -293,14 +324,17 @@ class WalletPage extends StatelessWidget {
                               tx['description'] ??
                                   (isCredit ? 'Recharge' : 'Paiement commande'),
                               style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                  color: AppTheme.ink),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: AppTheme.ink,
+                              ),
                             ),
                             Text(
                               DateFormat('dd MMM, HH:mm').format(date),
                               style: GoogleFonts.inter(
-                                  fontSize: 12, color: AppTheme.muted),
+                                fontSize: 12,
+                                color: AppTheme.muted,
+                              ),
                             ),
                           ],
                         ),
@@ -322,9 +356,13 @@ class WalletPage extends StatelessWidget {
             );
           },
           error: (msg) => Center(
-            child: Text(msg,
-                style: GoogleFonts.inter(
-                    color: AppTheme.primaryRed, fontSize: 14)),
+            child: Text(
+              msg,
+              style: GoogleFonts.inter(
+                color: AppTheme.primaryRed,
+                fontSize: 14,
+              ),
+            ),
           ),
           orElse: () => const SizedBox.shrink(),
         );
@@ -343,9 +381,10 @@ class WalletPage extends StatelessWidget {
           title: Text(
             'wallet.recharge'.tr(),
             style: GoogleFonts.bricolageGrotesque(
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-                color: AppTheme.ink),
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              color: AppTheme.ink,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -362,13 +401,13 @@ class WalletPage extends StatelessWidget {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: method,
-                decoration:
-                    InputDecoration(labelText: 'wallet.method'.tr()),
+                decoration: InputDecoration(labelText: 'wallet.method'.tr()),
                 items: const [
                   DropdownMenuItem(
-                      value: 'orange_money', child: Text('Orange Money')),
-                  DropdownMenuItem(
-                      value: 'mtn_momo', child: Text('MTN MoMo')),
+                    value: 'orange_money',
+                    child: Text('Orange Money'),
+                  ),
+                  DropdownMenuItem(value: 'mtn_momo', child: Text('MTN MoMo')),
                 ],
                 onChanged: (v) => setDialogState(() => method = v!),
               ),
@@ -377,13 +416,14 @@ class WalletPage extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('common.cancel'.tr(),
-                  style: GoogleFonts.inter(color: AppTheme.muted)),
+              child: Text(
+                'common.cancel'.tr(),
+                style: GoogleFonts.inter(color: AppTheme.muted),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
-                final amount =
-                    double.tryParse(amountController.text) ?? 1000;
+                final amount = double.tryParse(amountController.text) ?? 1000;
                 Navigator.pop(ctx);
                 _initiateRecharge(context, amount, method);
               },
@@ -392,7 +432,8 @@ class WalletPage extends StatelessWidget {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: Text('wallet.confirm'.tr()),
             ),
@@ -403,7 +444,10 @@ class WalletPage extends StatelessWidget {
   }
 
   Future<void> _initiateRecharge(
-      BuildContext context, double amount, String method) async {
+    BuildContext context,
+    double amount,
+    String method,
+  ) async {
     final walletCubit = context.read<WalletCubit>();
     await walletCubit.recharge(amount, method);
 
@@ -411,11 +455,13 @@ class WalletPage extends StatelessWidget {
       final state = walletCubit.state;
       state.maybeWhen(
         rechargeInitiated: (url) {
-          context.push('/client/payment', extra: {
-            'paymentUrl': url,
-            'orderId':
-                'recharge_${DateTime.now().millisecondsSinceEpoch}',
-          });
+          context.push(
+            '/client/payment',
+            extra: {
+              'paymentUrl': url,
+              'orderId': 'recharge_${DateTime.now().millisecondsSinceEpoch}',
+            },
+          );
         },
         error: (msg) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -424,7 +470,8 @@ class WalletPage extends StatelessWidget {
               backgroundColor: AppTheme.primaryRed,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
         },

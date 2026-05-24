@@ -714,4 +714,23 @@ L'app n'a pas de mécanisme de force-update visible. Si tu dois forcer une mise 
 
 ---
 
-> **En cas de problème après publication** : Ne pas mettre à jour à chaud sans tester. Passer par une release "patch" avec le correctif, incrementer le versionCode, et passer par le cycle normal de review (App Store) ou déploiement progressif (Play Store).
+## 16. Production Troubleshooting — Social Auth & Deep Links
+
+### 16.1 Google Sign-In failures in Production
+If Google Sign-In works in debug but fails in production (usually after installing from the Play Store):
+1. **App Signing by Google Play**: If you have enabled "Google Play App Signing", Google replaces your upload certificate with their own.
+2. Go to **Google Play Console** → **Setup** → **App Integrity**.
+3. Copy the **SHA-1** and **SHA-256** certificate fingerprints from the **"App signing key certificate"** section.
+4. Add these fingerprints to your **Firebase Console** (Project Settings → Android app) and to the **Google Cloud Console** (Credentials section).
+5. Download the updated `google-services.json` if needed, but adding the fingerprints to Firebase is usually enough as it updates the server-side validation.
+
+### 16.2 Deep Link "404" or Unrecognized
+If clicking a reset password link opens the browser instead of the app:
+1. Ensure the link domain is `api.cliceat.cm` or `cliceat.cm`.
+2. Check `assetlinks.json` (Android) or `apple-app-site-association` (iOS) on the server.
+3. Verify that the path `api/auth/reset-password` is handled in `DeepLinkService`.
+4. Run `adb shell am start -W -a android.intent.action.VIEW -d "https://api.cliceat.cm/api/auth/reset-password?token=test" cm.cliceat.app` to test.
+
+---
+
+> **En cas de problème après publication** : Ne pas mettre à jour à chaud sans tester. Passer par une release "patch" avec le correctif, incrementer le versionCode, et passer par le cycle normal de review (App Store) ou déploiement progressif (Play Store).

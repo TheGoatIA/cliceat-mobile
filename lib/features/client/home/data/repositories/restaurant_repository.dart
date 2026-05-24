@@ -91,7 +91,12 @@ class RestaurantRepository {
         final data = res.body is Map && res.body['data'] != null
             ? res.body['data'] as Map<String, dynamic>
             : res.body as Map<String, dynamic>;
-        final model = RestaurantModel.fromJson(data);
+        
+        final restaurantJson = data.containsKey('restaurant')
+            ? data['restaurant'] as Map<String, dynamic>
+            : data;
+
+        final model = RestaurantModel.fromJson(restaurantJson);
         
         // Save to cache
         await _dao.upsert(_toCompanion(model));

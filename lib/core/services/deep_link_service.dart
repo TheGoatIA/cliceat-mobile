@@ -52,8 +52,13 @@ class DeepLinkService {
     if (context == null) return;
 
     final router = GoRouter.of(context);
-    final path = uri.path.replaceFirst(RegExp(r'^/+'), '');
     final query = uri.queryParameters;
+    var path = uri.path.replaceFirst(RegExp(r'^/+'), '');
+
+    // Handle backend-prefixed paths (e.g., from api.cliceat.cm/api/auth/...)
+    if (path.startsWith('api/auth/')) {
+      path = path.substring('api/auth/'.length);
+    }
 
     // cliceat://reset-password?token=XXX  or  /reset-password?token=XXX
     if (path == 'reset-password') {

@@ -10,14 +10,8 @@
         "--flavor",
         "dev",
         "--no-enable-impeller",
-        "--dart-define",
-        "APP_ENV=dev",
-        "--dart-define",
-        "API_BASE_URL=http://192.168.1.182:5000/api/v1",
-        "--dart-define",
-        "MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoiZ2F1dHk5NiIsImEiOiJjbGdjNHZocGUwNGQyM3Bta2VxcXZqOXZoIn0.jNJcbOCBG4hA6L7EutFM-g",
-        "--dart-define",
-        "WS_URL=ws://192.168.1.182:5000"
+        "--dart-define-from-file",
+        ".env"
       ]
     },
     {

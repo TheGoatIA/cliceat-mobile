@@ -7,8 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:logger/logger.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/di/injection.dart';
 
 class LoginPage extends StatefulWidget {
   final String mode;
@@ -61,16 +63,21 @@ class _LoginPageState extends State<LoginPage>
     try {
       HapticFeedback.mediumImpact();
       final account = await GoogleSignIn.instance.authenticate();
+      
       final auth = account.authentication;
       final idToken = auth.idToken;
+      
       if (idToken == null) {
+        getIt<Logger>().e("Google Sign In failed: idToken is null");
         if (context.mounted) _showError(context, 'auth.error_google'.tr());
         return;
       }
+      
       if (context.mounted) {
         context.read<AuthBloc>().add(AuthEvent.loginWithGoogle(token: idToken));
       }
-    } catch (_) {
+    } catch (e, stack) {
+      getIt<Logger>().e("Google Sign In Error", error: e, stackTrace: stack);
       if (context.mounted) _showError(context, 'auth.error_google'.tr());
     }
   }
@@ -86,13 +93,15 @@ class _LoginPageState extends State<LoginPage>
       );
       final idToken = credential.identityToken;
       if (idToken == null) {
+        getIt<Logger>().e("Apple Sign In failed: identityToken is null");
         if (context.mounted) _showError(context, 'auth.error_apple'.tr());
         return;
       }
       if (context.mounted) {
         context.read<AuthBloc>().add(AuthEvent.loginWithApple(token: idToken));
       }
-    } catch (_) {
+    } catch (e, stack) {
+      getIt<Logger>().e("Apple Sign In Error", error: e, stackTrace: stack);
       if (context.mounted) _showError(context, 'auth.error_apple'.tr());
     }
   }

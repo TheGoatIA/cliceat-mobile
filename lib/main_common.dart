@@ -20,6 +20,7 @@ import 'core/widgets/connectivity_banner.dart';
 import 'core/services/sync_manager_service.dart';
 import 'core/services/precache_service.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import 'package:cliceat_app/features/client/cart/presentation/bloc/cart_cubit.dart';
 import 'firebase_options.dart';
@@ -94,6 +95,10 @@ Future<void> _bootstrap() async {
   debugPrint('🖼️ Starting Precaching...');
   getIt<PrecacheService>().startPrecaching();
 
+  debugPrint('⚙️ Fetching Platform Config...');
+  await getIt<ConfigBloc>().stream.firstWhere((state) => state.maybeWhen(loaded: (_) => true, error: (_) => true, orElse: () => false)).timeout(const Duration(seconds: 5), onTimeout: () => const ConfigState.error('timeout'));
+  // Note: We don't block everything if config fails, but it's better to have it.
+  
   debugPrint('🏁 Bootstrap finished. Running App...');
 
   // ─── Certificate Pinning (Sécurité) ───────────────────────────────────────
@@ -139,6 +144,9 @@ class ClicEatApp extends StatelessWidget {
               getIt<AuthBloc>()..add(const AuthEvent.appStarted()),
         ),
         BlocProvider(
+          create: (_) => getIt<ConfigBloc>()..add(const ConfigEvent.fetchConfig()),
+        ),
+        BlocProvider(
           create: (_) => getIt<CartCubit>(),
         ),
         BlocProvider(
@@ -159,6 +167,7 @@ class ClicEatApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: ThemeMode.light,
             routerConfig: appRouter,
+            debugShowCheckedModeBanner: false,
             builder: (context, child) {
               Widget widget = child!;
               // Bannière de flavor en overlay (dev/staging uniquement)

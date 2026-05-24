@@ -91,4 +91,34 @@ final class _$UserService extends UserService {
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
+
+  @override
+  Future<Response<Map<String, dynamic>>> getNotifications(int page, int limit) {
+    final Uri $url = Uri.parse('/users/me/notifications');
+    final Map<String, dynamic> $params = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+    };
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+    );
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> markNotificationRead(String id) {
+    final Uri $url = Uri.parse('/users/me/notifications/${id}/read');
+    final Request $request = Request('PATCH', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> deleteNotification(String id) {
+    final Uri $url = Uri.parse('/users/me/notifications/${id}');
+    final Request $request = Request('DELETE', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
 }

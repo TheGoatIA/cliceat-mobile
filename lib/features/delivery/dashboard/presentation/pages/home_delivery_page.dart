@@ -68,6 +68,23 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     });
 
     _loadEarnings();
+    _loadInitialStatus();
+  }
+
+  Future<void> _loadInitialStatus() async {
+    final result = await getIt<DriverRepository>().getProfile();
+    if (!mounted) return;
+    result.fold(
+      (err) => _logger.e('Failed to load initial status: ${err.message}'),
+      (profile) {
+        setState(() {
+          _isOnline = profile['isOnline'] as bool? ?? false;
+        });
+        if (_isOnline) {
+          _startLocationTracking();
+        }
+      },
+    );
   }
 
   @override

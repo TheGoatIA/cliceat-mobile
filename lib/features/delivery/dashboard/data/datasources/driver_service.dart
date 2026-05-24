@@ -8,6 +8,10 @@ abstract class DriverService extends ChopperService {
   static DriverService create([ChopperClient? client]) =>
       _$DriverService(client);
 
+  /// GET /delivery/me
+  @GET(path: '/me')
+  Future<Response<Map<String, dynamic>>> getProfile();
+
   /// GET /delivery/me/earnings
   @GET(path: '/me/earnings')
   Future<Response<Map<String, dynamic>>> getMyEarnings();

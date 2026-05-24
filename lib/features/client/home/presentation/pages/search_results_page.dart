@@ -78,7 +78,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                       height: 40,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border.all(color: AppTheme.line),
+                        border: Border.all(color: AppTheme.lineSoft),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -95,7 +95,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppTheme.line),
+                        border: Border.all(color: AppTheme.lineSoft),
                         boxShadow: AppTheme.shadowSm,
                       ),
                       child: Row(
@@ -122,6 +122,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                                   color: AppTheme.mutedLight,
                                 ),
                                 border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
                                 isDense: true,
                                 contentPadding: EdgeInsets.zero,
                               ),

@@ -13,6 +13,9 @@ import '../../../../../core/theme/app_theme.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/cart_cubit.dart';
 import '../../../../../core/services/analytics_service.dart';
+import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
+import 'package:cliceat_app/core/config/feature_flags.dart';
+import 'package:cliceat_app/core/widgets/feature_gate.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -137,8 +140,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           const SizedBox(height: 16),
                           _buildOrderSummary(context),
                           const SizedBox(height: 16),
-                          _buildCouponSection(context),
-                          const SizedBox(height: 16),
+                          FeatureGate(
+                            featureKey: FeatureFlags.coupons,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildCouponSection(context),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                          ),
                           _buildPaymentMethods(context),
                           const SizedBox(height: 16),
                           _buildNotesSection(context),
@@ -494,18 +505,38 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildPaymentMethods(BuildContext context) {
+    final configState = context.watch<ConfigBloc>().state;
+    final enabledMethods = configState.maybeWhen(
+      loaded: (c) => c.payment?.enabledMethods ?? ['orange_money', 'mtn_momo', 'cash'],
+      orElse: () => ['orange_money', 'mtn_momo', 'cash'],
+    );
+    final walletEnabled = configState.maybeWhen(
+      loaded: (c) => c.payment?.walletEnabled ?? true,
+      orElse: () => true,
+    );
+
     return _buildSection(
       title: 'checkout.payment_method'.tr(),
       child: Column(
         children: [
-          _buildPaymentOption(
-              context, 'orange_money', 'checkout.orange_money'.tr(), '🟠'),
-          const SizedBox(height: 8),
-          _buildPaymentOption(
-              context, 'mtn_momo', 'checkout.mtn_momo'.tr(), '🟡'),
-          const SizedBox(height: 8),
-          _buildPaymentOption(
-              context, 'cash', 'checkout.cash_on_delivery'.tr(), '💵'),
+          if (enabledMethods.contains('orange_money')) ...[
+            _buildPaymentOption(context, 'orange_money', 'checkout.orange_money'.tr(), '🟠'),
+            const SizedBox(height: 8),
+          ],
+          if (enabledMethods.contains('mtn_momo')) ...[
+            _buildPaymentOption(context, 'mtn_momo', 'checkout.mtn_momo'.tr(), '🟡'),
+            const SizedBox(height: 8),
+          ],
+          if (enabledMethods.contains('wave')) ...[
+            _buildPaymentOption(context, 'wave', 'Wave', '🌊'),
+            const SizedBox(height: 8),
+          ],
+          if (walletEnabled && FeatureFlags.isEnabled(configState.maybeWhen(loaded: (c) => c.features, orElse: () => []), FeatureFlags.wallet)) ...[
+            _buildPaymentOption(context, 'wallet', 'wallet.title'.tr(), '💳'),
+            const SizedBox(height: 8),
+          ],
+          if (enabledMethods.contains('cash'))
+            _buildPaymentOption(context, 'cash', 'checkout.cash_on_delivery'.tr(), '💵'),
         ],
       ),
     );

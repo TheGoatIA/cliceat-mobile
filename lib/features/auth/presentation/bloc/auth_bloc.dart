@@ -435,23 +435,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLogout(_Logout event, Emitter<AuthState> emit) async {
-    emit(const AuthState.loading());
     _stopSessionTimer();
-    await _cancelSubscriptions();
-    // Revoke FCM token before clearing credentials
-    await _revokeFcmToken();
+    // Emit immediately to trigger UI redirection
+    emit(const AuthState.unauthenticated());
+
+    // Perform cleanup in background without blocking
     try {
-      try {
-        await _authService.logout();
-      } catch (_) {}
+      _cancelSubscriptions();
       getIt<WebSocketService>().disconnect();
       getIt<AnalyticsService>().logLogout();
       getIt<AnalyticsService>().clearUser();
+      
+      // Attempt background logout and FCM revocation
+      unawaited(_authService.logout().timeout(const Duration(seconds: 2)).catchError((_) => null as dynamic));
+      unawaited(_revokeFcmToken().timeout(const Duration(seconds: 3)).catchError((_) => null));
+      
       await _clearCredentials();
-      emit(const AuthState.unauthenticated());
     } catch (e) {
-      _logger.e('[Auth] Erreur déconnexion: $e');
-      emit(const AuthState.unauthenticated());
+      _logger.e('[Auth] Error during background logout: $e');
     }
   }
 
@@ -522,7 +523,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final tokens = map['tokens'] as Map<String, dynamic>?;
       final token = tokens?['accessToken'] as String?;
       final data = map['data'] as Map<String, dynamic>?;
-      final user = data?['user'] as Map<String, dynamic>?;
+      final user = data?['user'] as Map<String, dynamic>? ?? 
+                   data?['driver'] as Map<String, dynamic>?;
+                   
       final userId =
           user?['_id']?.toString() ?? user?['id']?.toString();
       if (token != null && userId != null) return (token, userId);

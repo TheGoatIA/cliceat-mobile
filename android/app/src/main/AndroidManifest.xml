@@ -69,12 +69,13 @@
                 <data android:scheme="cliceat"/>
             </intent-filter>
 
-            <!-- HTTPS App Links: https://cliceat.cm -->
+            <!-- HTTPS App Links: https://cliceat.cm and https://api.cliceat.cm -->
             <intent-filter android:autoVerify="true" android:label="ClicEat App Link">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="cliceat.cm"/>
+                <data android:scheme="https" android:host="api.cliceat.cm"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
