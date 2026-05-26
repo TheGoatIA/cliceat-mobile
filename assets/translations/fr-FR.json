@@ -130,7 +130,21 @@
     "choose_variation": "Choisir une option",
     "closed": "Fermé",
     "tab_menu": "Menu",
-    "tab_reviews": "Avis"
+    "tab_reviews": "Avis",
+    "tab_infos": "Infos",
+    "opening_hours": "Horaires d'ouverture",
+    "contact_info": "Contact",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "open": "Ouvert",
+    "today": "Aujourd'hui",
+    "mon": "Lundi",
+    "tue": "Mardi",
+    "wed": "Mercredi",
+    "thu": "Jeudi",
+    "fri": "Vendredi",
+    "sat": "Samedi",
+    "sun": "Dimanche"
   },
   "cart": {
     "title": "Mon Panier",
@@ -231,7 +245,19 @@
     "cancel_reason_hint": "Motif d'annulation (optionnel)",
     "cancel_confirm": "Oui, annuler",
     "cancel_success": "Commande annulée avec succès",
-    "report_problem": "Signaler un problème"
+    "report_problem": "Signaler un problème",
+    "details": "Détails",
+    "status_explanation_title": "Guide des statuts",
+    "status_explanation_subtitle": "Voici la signification de chaque étape de votre commande :",
+    "explain_pending_payment": "La commande attend la validation de votre paiement.",
+    "explain_pending": "Payée ! En attente d'acceptation par le restaurant.",
+    "explain_confirmed": "Le restaurant a accepté votre commande.",
+    "explain_preparing": "Vos délicieux plats sont en cours de cuisine.",
+    "explain_ready": "Plats prêts, en attente de récupération par le livreur.",
+    "explain_en_route": "Le livreur est en route avec votre repas. Suivez-le en direct !",
+    "explain_delivered": "Votre commande a été livrée. Bon appétit !",
+    "explain_cancelled": "Commande annulée. Si elle était payée, le remboursement est automatique.",
+    "explain_anomaly": "Un incident opérationnel est survenu. Notre service support intervient immédiatement !"
   },
   "payment": {
     "title": "Paiement sécurisé",

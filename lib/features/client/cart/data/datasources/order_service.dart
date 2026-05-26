@@ -12,6 +12,11 @@ abstract class OrderService extends ChopperService {
   Future<Response<Map<String, dynamic>>> createOrder(
       @Body() Map<String, dynamic> body);
 
+  /// POST /orders/estimate — estimate an order dynamically
+  @POST(path: '/estimate')
+  Future<Response<Map<String, dynamic>>> estimateOrder(
+      @Body() Map<String, dynamic> body);
+
   /// GET /orders — list client orders (paginated)
   @GET()
   Future<Response<Map<String, dynamic>>> getOrders({

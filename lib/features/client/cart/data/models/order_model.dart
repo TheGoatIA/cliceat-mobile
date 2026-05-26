@@ -77,7 +77,8 @@ class OrderModel {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    final restaurant = json['restaurant'] as Map<String, dynamic>?;
+    final rawRestaurant = json['restaurant'] ?? json['restaurantId'];
+    final restaurant = rawRestaurant is Map<String, dynamic> ? rawRestaurant : null;
     final rawItems = json['items'] as List<dynamic>? ?? [];
     final addrRaw = json['deliveryAddress'] as Map<String, dynamic>?;
 
@@ -129,6 +130,7 @@ class OrderModel {
         'status': status,
         if (paymentUrl != null) 'paymentUrl': paymentUrl,
         if (paymentMethod != null) 'paymentMethod': paymentMethod,
+        if (deliveryAddress != null) 'deliveryAddress': deliveryAddress!.toJson(),
         if (notes != null) 'notes': notes,
         if (notes != null) 'deliveryNotes': notes,
         if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),

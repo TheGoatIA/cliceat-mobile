@@ -112,7 +112,9 @@ class CartPage extends StatelessWidget {
                             },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppTheme.redSoft,
                                 borderRadius: BorderRadius.circular(10),
@@ -171,7 +173,11 @@ class CartPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(
-              child: Icon(Icons.fastfood_rounded, color: AppTheme.muted, size: 24),
+              child: Icon(
+                Icons.fastfood_rounded,
+                color: AppTheme.muted,
+                size: 24,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -211,9 +217,10 @@ class CartPage extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.selectionClick();
-                    context
-                        .read<CartCubit>()
-                        .updateQuantity(item.id, item.quantity - 1);
+                    context.read<CartCubit>().updateQuantity(
+                      item.id,
+                      item.quantity - 1,
+                    );
                   },
                   child: Container(
                     width: 32,
@@ -251,9 +258,10 @@ class CartPage extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.selectionClick();
-                    context
-                        .read<CartCubit>()
-                        .updateQuantity(item.id, item.quantity + 1);
+                    context.read<CartCubit>().updateQuantity(
+                      item.id,
+                      item.quantity + 1,
+                    );
                   },
                   child: Container(
                     width: 32,
@@ -262,11 +270,34 @@ class CartPage extends StatelessWidget {
                       color: AppTheme.primaryRed,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.add_rounded,
-                        size: 16, color: Colors.white),
+                    child: const Icon(
+                      Icons.add_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              context.read<CartCubit>().removeItem(item.id);
+            },
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppTheme.redSoft,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.delete_outline_rounded,
+                size: 18,
+                color: AppTheme.primaryRed,
+              ),
             ),
           ),
         ],
@@ -298,8 +329,7 @@ class CartPage extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              child: Container(
-                  height: 1, color: AppTheme.lineSoft),
+              child: Container(height: 1, color: AppTheme.lineSoft),
             ),
             _SummaryRow(
               label: 'cart.total'.tr(),
@@ -317,7 +347,8 @@ class CartPage extends StatelessWidget {
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: Text(
                   '${'cart.checkout_btn'.tr()} · ${total.toStringAsFixed(0)} FCFA',

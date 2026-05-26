@@ -15,6 +15,7 @@ import '../bloc/cart_cubit.dart';
 import '../../../../../core/services/analytics_service.dart';
 import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -34,6 +35,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
   bool _couponLoading = false;
 
   Map<String, dynamic>? _selectedAddress;
+  double? _estimatedDeliveryFee;
+  double? _estimatedTotal;
+  bool _estimating = false;
 
   @override
   void initState() {
@@ -41,6 +45,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
     ScreenProtector.preventScreenshotOn();
     final subtotal = context.read<CartCubit>().state.subtotal;
     getIt<AnalyticsService>().logBeginCheckout(subtotal);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchOrderEstimation();
+    });
   }
 
   @override
@@ -80,6 +87,55 @@ class _CheckoutPageState extends State<CheckoutPage> {
             args: [code, discount.toStringAsFixed(0)],
           );
           _couponLoading = false;
+        });
+        _fetchOrderEstimation();
+      },
+    );
+  }
+
+  Future<void> _fetchOrderEstimation() async {
+    final cartState = context.read<CartCubit>().state;
+    final restaurantId = cartState.restaurantId ?? '';
+    if (restaurantId.isEmpty || cartState.items.isEmpty) return;
+
+    setState(() {
+      _estimating = true;
+    });
+
+    final items = cartState.items
+        .map((item) => {
+              'menuItemId': item.itemId,
+              'quantity': item.quantity,
+            })
+        .toList();
+
+    final payload = {
+      'restaurantId': restaurantId,
+      'paymentMethod': _selectedPaymentMethod,
+      'deliveryAddress': {
+        'address': _selectedAddress?['address'] ?? AppConstants.defaultCity,
+        'lat': (_selectedAddress?['lat'] as num?)?.toDouble() ?? AppConstants.defaultLat,
+        'lng': (_selectedAddress?['lng'] as num?)?.toDouble() ?? AppConstants.defaultLng,
+      },
+      'items': items,
+      if (_appliedCoupon != null) 'couponCode': _appliedCoupon!.code,
+    };
+
+    final result = await getIt<OrderRepository>().estimateOrder(payload);
+    if (!mounted) return;
+
+    result.fold(
+      (err) {
+        setState(() {
+          _estimating = false;
+        });
+      },
+      (data) {
+        setState(() {
+          _estimatedDeliveryFee = (data['deliveryFee'] as num?)?.toDouble() ?? 2000.0;
+          _estimatedTotal = (data['total'] as num?)?.toDouble();
+          _couponDiscount = (data['discount'] as num?)?.toDouble() ?? 0.0;
+          _estimating = false;
         });
       },
     );
@@ -157,14 +213,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             listener: (context, state) {
                               state.maybeWhen(
                                 created: (orderId, paymentUrl) {
-                                  context.read<CartCubit>().clearCart();
                                   if (paymentUrl != null &&
                                       paymentUrl.isNotEmpty) {
+                                    // S'il y a un paiement en ligne à effectuer, on ne vide pas encore le panier.
+                                    // Il sera vidé par le DeepLinkService lors du retour avec paiement validé.
                                     context.push('/client/payment', extra: {
                                       'paymentUrl': paymentUrl,
                                       'orderId': orderId,
                                     });
                                   } else {
+                                    // Pour le paiement à la livraison (Cash on Delivery) ou portefeuille, on vide de suite.
+                                    context.read<CartCubit>().clearCart();
                                     context.go('/client/order-success/$orderId');
                                   }
                                 },
@@ -332,6 +391,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         '/client/address-selection');
                 if (addr != null && mounted) {
                   setState(() => _selectedAddress = addr);
+                  _fetchOrderEstimation();
                 }
               },
               child: Text(
@@ -352,9 +412,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget _buildOrderSummary(BuildContext context) {
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, cartState) {
-        final deliveryFee = cartState.deliveryFee;
-        final total = (cartState.subtotal + deliveryFee - _couponDiscount)
-            .clamp(0.0, double.infinity);
+        final deliveryFee = _estimatedDeliveryFee ?? cartState.deliveryFee;
+        final total = _estimatedTotal ??
+            (cartState.subtotal + deliveryFee - _couponDiscount)
+                .clamp(0.0, double.infinity);
         return _buildSection(
           title: 'checkout.summary'.tr(),
           child: Container(
@@ -365,35 +426,43 @@ class _CheckoutPageState extends State<CheckoutPage> {
               border: Border.all(color: AppTheme.lineSoft),
               boxShadow: AppTheme.shadowSm,
             ),
-            child: Column(
-              children: [
-                _SummaryRow(
-                  label: 'cart.sub_total'.tr(),
-                  value: '${cartState.subtotal.toStringAsFixed(0)} FCFA',
-                ),
-                const SizedBox(height: 8),
-                _SummaryRow(
-                  label: 'cart.delivery_fee'.tr(),
-                  value: '${deliveryFee.toStringAsFixed(0)} FCFA',
-                ),
-                if (_couponDiscount > 0) ...[
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 150),
+              opacity: _estimating ? 0.6 : 1.0,
+              child: Column(
+                children: [
+                  _SummaryRow(
+                    label: 'cart.sub_total'.tr(),
+                    value: '${cartState.subtotal.toStringAsFixed(0)} FCFA',
+                  ),
                   const SizedBox(height: 8),
                   _SummaryRow(
-                    label: 'checkout.coupon_discount'.tr(),
-                    value: '-${_couponDiscount.toStringAsFixed(0)} FCFA',
-                    valueColor: AppTheme.green,
+                    label: 'cart.delivery_fee'.tr(),
+                    value: _estimating
+                        ? '...'
+                        : '${deliveryFee.toStringAsFixed(0)} FCFA',
+                  ),
+                  if (_couponDiscount > 0) ...[
+                    const SizedBox(height: 8),
+                    _SummaryRow(
+                      label: 'checkout.coupon_discount'.tr(),
+                      value: '-${_couponDiscount.toStringAsFixed(0)} FCFA',
+                      valueColor: AppTheme.green,
+                    ),
+                  ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Container(height: 1, color: AppTheme.lineSoft),
+                  ),
+                  _SummaryRow(
+                    label: 'cart.total'.tr(),
+                    value: _estimating
+                        ? '...'
+                        : '${total.toStringAsFixed(0)} FCFA',
+                    bold: true,
                   ),
                 ],
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Container(height: 1, color: AppTheme.lineSoft),
-                ),
-                _SummaryRow(
-                  label: 'cart.total'.tr(),
-                  value: '${total.toStringAsFixed(0)} FCFA',
-                  bold: true,
-                ),
-              ],
+              ),
             ),
           ),
         );
@@ -534,6 +603,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       onTap: () {
         HapticFeedback.lightImpact();
         setState(() => _selectedPaymentMethod = value);
+        _fetchOrderEstimation();
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

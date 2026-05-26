@@ -29,6 +29,16 @@ final class _$OrderService extends OrderService {
   }
 
   @override
+  Future<Response<Map<String, dynamic>>> estimateOrder(
+    Map<String, dynamic> body,
+  ) {
+    final Uri $url = Uri.parse('/orders/estimate');
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
   Future<Response<Map<String, dynamic>>> getOrders({
     int page = 1,
     int limit = 20,

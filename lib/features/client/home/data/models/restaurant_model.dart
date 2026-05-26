@@ -1,5 +1,35 @@
 import 'menu_item_model.dart';
 
+class OpeningHoursModel {
+  final int dayOfWeek;
+  final String openTime;
+  final String closeTime;
+  final bool isClosed;
+
+  const OpeningHoursModel({
+    required this.dayOfWeek,
+    required this.openTime,
+    required this.closeTime,
+    required this.isClosed,
+  });
+
+  factory OpeningHoursModel.fromJson(Map<String, dynamic> json) {
+    return OpeningHoursModel(
+      dayOfWeek: (json['dayOfWeek'] as num?)?.toInt() ?? 0,
+      openTime: json['openTime']?.toString() ?? '',
+      closeTime: json['closeTime']?.toString() ?? '',
+      isClosed: json['isClosed'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'dayOfWeek': dayOfWeek,
+    'openTime': openTime,
+    'closeTime': closeTime,
+    'isClosed': isClosed,
+  };
+}
+
 /// Full restaurant model (includes menus when fetched from detail endpoint).
 class RestaurantModel {
   final String id;
@@ -20,6 +50,8 @@ class RestaurantModel {
   final int? deliveryTimeMinutes;
   final bool isFavorite;
   final List<MenuItemModel> menus;
+  final List<OpeningHoursModel> openingHours;
+  final String? phone;
 
   const RestaurantModel({
     required this.id,
@@ -40,6 +72,8 @@ class RestaurantModel {
     this.deliveryTimeMinutes,
     this.isFavorite = false,
     this.menus = const [],
+    this.openingHours = const [],
+    this.phone,
   });
 
   factory RestaurantModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +87,12 @@ class RestaurantModel {
     }
 
     final rawMenus = json['menus'] as List<dynamic>? ?? [];
+
+    final rawHours = json['openingHours'] as List<dynamic>? ?? [];
+    final parsedHours = rawHours
+        .whereType<Map<String, dynamic>>()
+        .map(OpeningHoursModel.fromJson)
+        .toList();
 
     return RestaurantModel(
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
@@ -85,6 +125,8 @@ class RestaurantModel {
           .whereType<Map<String, dynamic>>()
           .map(MenuItemModel.fromJson)
           .toList(),
+      openingHours: parsedHours,
+      phone: json['phone']?.toString(),
     );
   }
 
@@ -107,6 +149,8 @@ class RestaurantModel {
     if (minOrder != null) 'minOrder': minOrder,
     if (deliveryTimeMinutes != null) 'deliveryTimeMinutes': deliveryTimeMinutes,
     'menus': menus.map((m) => m.toJson()).toList(),
+    'openingHours': openingHours.map((h) => h.toJson()).toList(),
+    if (phone != null) 'phone': phone,
   };
 
   RestaurantModel copyWith({
@@ -128,6 +172,8 @@ class RestaurantModel {
     int? deliveryTimeMinutes,
     bool? isFavorite,
     List<MenuItemModel>? menus,
+    List<OpeningHoursModel>? openingHours,
+    String? phone,
   }) {
     return RestaurantModel(
       id: id ?? this.id,
@@ -148,6 +194,8 @@ class RestaurantModel {
       deliveryTimeMinutes: deliveryTimeMinutes ?? this.deliveryTimeMinutes,
       isFavorite: isFavorite ?? this.isFavorite,
       menus: menus ?? this.menus,
+      openingHours: openingHours ?? this.openingHours,
+      phone: phone ?? this.phone,
     );
   }
 }

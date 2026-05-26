@@ -32,7 +32,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
   String? _error;
 
   // ─── Tab state ────────────────────────────────────────────────────────────
-  int _activeTab = 0; // 0 = Menu, 1 = Avis
+  int _activeTab = 0; // 0 = Menu, 1 = Infos, 2 = Avis
 
   // ─── Menu layout ───────────────────────────────────────────────────────
   bool _isGridView = false; // false = list, true = grid
@@ -83,11 +83,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
         );
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            context.read<CartCubit>().setDeliveryFee(
-              restaurant.deliveryFee > 0
-                  ? restaurant.deliveryFee
-                  : AppConstants.defaultDeliveryFee,
-            );
+            context.read<CartCubit>().setDeliveryFee(AppConstants.defaultDeliveryFee);
           }
         });
       },
@@ -327,9 +323,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
     final cuisine = restaurant.cuisineType ?? '';
     final rating = restaurant.rating?.toStringAsFixed(1) ?? 'N/A';
     final minTime = restaurant.deliveryTimeMinutes?.toString() ?? '30';
-    final deliveryFee = restaurant.deliveryFee > 0
-        ? restaurant.deliveryFee
-        : AppConstants.defaultDeliveryFee;
+    final deliveryFee = AppConstants.defaultDeliveryFee;
     final description = restaurant.description ?? '';
     final menus = restaurant.menus;
 
@@ -647,6 +641,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                 deliveryFee,
                 lang,
               ),
+          ] else if (_activeTab == 1) ...[
+            // Infos tab
+            _buildInfosSliver(),
           ] else ...[
             // Reviews tab
             _buildReviewsSliver(),
@@ -748,12 +745,10 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeInOutCubic,
-                  left: _activeTab == 0
-                      ? 0
-                      : (MediaQuery.of(context).size.width - 32 - 8) / 2,
+                  left: _activeTab * (MediaQuery.of(context).size.width - 32 - 8) / 3,
                   top: 0,
                   bottom: 0,
-                  width: (MediaQuery.of(context).size.width - 32 - 8) / 2,
+                  width: (MediaQuery.of(context).size.width - 32 - 8) / 3,
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -783,13 +778,24 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                       },
                     ),
                     _TabItem(
-                      label: 'restaurant.tab_reviews'.tr(),
-                      icon: Icons.star_rounded,
+                      label: 'restaurant.tab_infos'.tr(),
+                      icon: Icons.info_outline_rounded,
                       isActive: _activeTab == 1,
                       onTap: () {
                         if (_activeTab != 1) {
                           HapticFeedback.selectionClick();
                           setState(() => _activeTab = 1);
+                        }
+                      },
+                    ),
+                    _TabItem(
+                      label: 'restaurant.tab_reviews'.tr(),
+                      icon: Icons.star_rounded,
+                      isActive: _activeTab == 2,
+                      onTap: () {
+                        if (_activeTab != 2) {
+                          HapticFeedback.selectionClick();
+                          setState(() => _activeTab = 2);
                         }
                       },
                     ),
@@ -801,6 +807,349 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
           const SizedBox(height: 4),
           const Divider(height: 1, color: AppTheme.lineSoft),
         ],
+      ),
+    );
+  }
+
+  // ─── Infos sliver ──────────────────────────────────────────────────────────
+
+  bool _checkCurrentlyOpen(List<OpeningHoursModel> hours) {
+    if (_restaurant == null || !_restaurant!.isOpen) return false;
+    final now = DateTime.now();
+    final currentDay = now.weekday % 7;
+    final todayHours = hours.firstWhere(
+      (h) => h.dayOfWeek == currentDay,
+      orElse: () => const OpeningHoursModel(dayOfWeek: 0, openTime: '', closeTime: '', isClosed: true),
+    );
+
+    if (todayHours.isClosed || todayHours.openTime.isEmpty || todayHours.closeTime.isEmpty) {
+      return false;
+    }
+
+    try {
+      final openParts = todayHours.openTime.split(':');
+      final closeParts = todayHours.closeTime.split(':');
+      final openMin = int.parse(openParts[0]) * 60 + int.parse(openParts[1]);
+      final closeMin = int.parse(closeParts[0]) * 60 + int.parse(closeParts[1]);
+      final currentMin = now.hour * 60 + now.minute;
+      
+      return currentMin >= openMin && currentMin <= closeMin;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  String _getLocalizedDayName(int day) {
+    switch (day) {
+      case 0: return 'restaurant.sun'.tr();
+      case 1: return 'restaurant.mon'.tr();
+      case 2: return 'restaurant.tue'.tr();
+      case 3: return 'restaurant.wed'.tr();
+      case 4: return 'restaurant.thu'.tr();
+      case 5: return 'restaurant.fri'.tr();
+      case 6: return 'restaurant.sat'.tr();
+      default: return '';
+    }
+  }
+
+  Widget _buildInfosSliver() {
+    final restaurant = _restaurant!;
+    final hours = restaurant.openingHours;
+    final isOpen = _checkCurrentlyOpen(hours);
+    final phone = restaurant.phone ?? '';
+    final address = restaurant.address ?? '';
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            
+            // Open status glassmorphic card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.lineSoft),
+                boxShadow: AppTheme.shadowSm,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: isOpen ? AppTheme.green.withValues(alpha: 0.1) : AppTheme.primaryRed.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      isOpen ? Icons.check_circle_outline_rounded : Icons.cancel_outlined,
+                      color: isOpen ? AppTheme.green : AppTheme.primaryRed,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isOpen ? 'restaurant.open'.tr() : 'restaurant.closed'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: isOpen ? AppTheme.green : AppTheme.primaryRed,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'restaurant.opening_hours'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: AppTheme.muted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Address & Phone Section
+            if (address.isNotEmpty || phone.isNotEmpty) ...[
+              Text(
+                'restaurant.contact_info'.tr(),
+                style: GoogleFonts.bricolageGrotesque(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.ink,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              if (address.isNotEmpty) ...[
+                GestureDetector(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: address));
+                    HapticFeedback.lightImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${'restaurant.address'.tr()} copié !'),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.lineSoft),
+                      boxShadow: AppTheme.shadowSm,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.location_on_rounded, color: AppTheme.primaryRed, size: 20),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'restaurant.address'.tr(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.muted,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                address,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTheme.ink,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.copy_rounded, color: AppTheme.muted, size: 16),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              if (phone.isNotEmpty) ...[
+                GestureDetector(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: phone));
+                    HapticFeedback.lightImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${'restaurant.phone'.tr()} copié !'),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.lineSoft),
+                      boxShadow: AppTheme.shadowSm,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.phone_rounded, color: AppTheme.green, size: 20),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'restaurant.phone'.tr(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.muted,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                phone,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTheme.ink,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.copy_rounded, color: AppTheme.muted, size: 16),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ],
+
+            // Opening Hours Section
+            Text(
+              'restaurant.opening_hours'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.ink,
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            if (hours.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.lineSoft),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'restaurant.no_items'.tr(),
+                  style: GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
+                ),
+              )
+            else
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.lineSoft),
+                  boxShadow: AppTheme.shadowSm,
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: 7,
+                  separatorBuilder: (context, index) => const Divider(height: 16, color: AppTheme.lineSoft),
+                  itemBuilder: (context, index) {
+                    // Mongoose starts with 0 = Sunday, 1 = Monday...
+                    // In our list, let's display Monday through Sunday logically (index 0 = Monday (1), index 5 = Saturday (6), index 6 = Sunday (0))
+                    final displayDayOfWeek = (index + 1) % 7;
+                    final dayHours = hours.firstWhere(
+                      (h) => h.dayOfWeek == displayDayOfWeek,
+                      orElse: () => OpeningHoursModel(dayOfWeek: displayDayOfWeek, openTime: '', closeTime: '', isClosed: true),
+                    );
+
+                    final isToday = DateTime.now().weekday % 7 == displayDayOfWeek;
+                    final dayName = _getLocalizedDayName(displayDayOfWeek);
+                    final hoursText = dayHours.isClosed || dayHours.openTime.isEmpty
+                        ? 'restaurant.closed'.tr()
+                        : '${dayHours.openTime} - ${dayHours.closeTime}';
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            if (isToday) ...[
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: AppTheme.primaryRed,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            Text(
+                              isToday ? '$dayName (${'restaurant.today'.tr()})' : dayName,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                                color: isToday ? AppTheme.ink : AppTheme.inkSoft,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          hoursText,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                            color: dayHours.isClosed || dayHours.openTime.isEmpty
+                                ? AppTheme.primaryRed
+                                : (isToday ? AppTheme.green : AppTheme.inkSoft),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }

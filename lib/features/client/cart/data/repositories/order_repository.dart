@@ -44,6 +44,38 @@ class OrderRepository extends BaseRepository {
     this._logger,
   );
 
+  // ─── Estimate ─────────────────────────────────────────────────────────────
+
+  Future<Either<AppError, Map<String, dynamic>>> estimateOrder(
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final res = await _orderService.estimateOrder(payload);
+      if (!res.isSuccessful) {
+        return Left(AppError.fromResponse(
+          res.body,
+          'order.estimate_failed',
+          statusCode: res.statusCode,
+        ));
+      }
+
+      if (res.body == null) {
+        return Left(const AppError(
+          message: 'common.error_empty_response',
+          type: AppErrorType.server,
+        ));
+      }
+
+      final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+      return Right(data);
+    } catch (e) {
+      return Left(AppError(
+        message: e.toString(),
+        type: AppErrorType.unknown,
+      ));
+    }
+  }
+
   // ─── Create ───────────────────────────────────────────────────────────────
 
   Future<Either<AppError, OrderModel>> createOrder(

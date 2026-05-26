@@ -1,19 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../bloc/cart_cubit.dart';
 
-class OrderSuccessPage extends StatelessWidget {
+class OrderSuccessPage extends StatefulWidget {
   final String orderId;
 
   const OrderSuccessPage({super.key, required this.orderId});
 
   @override
+  State<OrderSuccessPage> createState() => _OrderSuccessPageState();
+}
+
+class _OrderSuccessPageState extends State<OrderSuccessPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Clear the cart when order success page is reached
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<CartCubit>().clearCart();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final shortId = orderId.length > 12
-        ? orderId.substring(orderId.length - 12)
-        : orderId;
+    final shortId = widget.orderId.length > 12
+        ? widget.orderId.substring(widget.orderId.length - 12)
+        : widget.orderId;
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
@@ -138,7 +156,7 @@ class OrderSuccessPage extends StatelessWidget {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton.icon(
-                    onPressed: () => context.go('/client/tracking/$orderId'),
+                    onPressed: () => context.go('/client/tracking/${widget.orderId}'),
                     icon: const Icon(Icons.location_on_rounded, size: 18),
                     label: Text(
                       'order.track_order'.tr(),

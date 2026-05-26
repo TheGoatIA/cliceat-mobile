@@ -130,7 +130,21 @@
     "choose_variation": "Choose an option",
     "closed": "Closed",
     "tab_menu": "Menu",
-    "tab_reviews": "Reviews"
+    "tab_reviews": "Reviews",
+    "tab_infos": "Info",
+    "opening_hours": "Opening Hours",
+    "contact_info": "Contact",
+    "phone": "Phone",
+    "address": "Address",
+    "open": "Open",
+    "today": "Today",
+    "mon": "Monday",
+    "tue": "Tuesday",
+    "wed": "Wednesday",
+    "thu": "Thursday",
+    "fri": "Friday",
+    "sat": "Saturday",
+    "sun": "Sunday"
   },
   "cart": {
     "title": "My Cart",
@@ -231,7 +245,19 @@
     "cancel_reason_hint": "Reason for cancellation (optional)",
     "cancel_confirm": "Yes, cancel",
     "cancel_success": "Order successfully cancelled",
-    "report_problem": "Report a problem"
+    "report_problem": "Report a problem",
+    "details": "Details",
+    "status_explanation_title": "Status Guide",
+    "status_explanation_subtitle": "Here is what each stage of your order means:",
+    "explain_pending_payment": "The order awaits your payment validation.",
+    "explain_pending": "Paid! Awaiting acceptance by the restaurant.",
+    "explain_confirmed": "The restaurant has accepted your order.",
+    "explain_preparing": "Your delicious dishes are being cooked.",
+    "explain_ready": "Dishes ready, waiting to be picked up by the rider.",
+    "explain_en_route": "The rider is on the way with your meal. Track them live!",
+    "explain_delivered": "Your order has been delivered. Enjoy your meal!",
+    "explain_cancelled": "Order cancelled. If paid, refund is automatic.",
+    "explain_anomaly": "An operational incident occurred. Our support team is intervening immediately!"
   },
   "payment": {
     "title": "Secure payment",

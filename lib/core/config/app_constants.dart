@@ -10,7 +10,7 @@ class AppConstants {
   static const double defaultZoom = 12.0;
 
   // ── Delivery fee (FCFA) — used as fallback before server value ────────────
-  static const double defaultDeliveryFee = 1000.0;
+  static const double defaultDeliveryFee = 2000.0;
 
   // ── Location update interval for delivery drivers ─────────────────────────
   static const Duration locationUpdateInterval = Duration(seconds: 5);
