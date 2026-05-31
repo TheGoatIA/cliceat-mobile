@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:injectable/injectable.dart';
+import 'package:http/http.dart' show MultipartFile;
+// ignore: depend_on_referenced_packages
+import 'package:http_parser/http_parser.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/shared/models/address_model.dart';
@@ -27,7 +31,8 @@ class UserRepository {
         final body = res.body!;
         final data =
             body['data'] as Map<String, dynamic>? ?? body;
-        final user = UserModel.fromJson(data);
+        final userData = data['user'] as Map<String, dynamic>? ?? data;
+        final user = UserModel.fromJson(userData);
         await _cacheProfile(user);
         return Right(user);
       }
@@ -49,8 +54,40 @@ class UserRepository {
       final res = await _service.updateMe(data);
       if (res.isSuccessful && res.body != null) {
         final body = res.body!;
-        final updated =
-            UserModel.fromJson(body['data'] as Map<String, dynamic>? ?? body);
+        final data = body['data'] as Map<String, dynamic>? ?? body;
+        final userData = data['user'] as Map<String, dynamic>? ?? data;
+        final updated = UserModel.fromJson(userData);
+        await _cacheProfile(updated);
+        return Right(updated);
+      }
+      return Left(AppError.fromResponse(
+          res.body, 'common.error',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, UserModel>> updateProfilePhoto(File file) async {
+    try {
+      final ext = file.path.split('.').last.toLowerCase();
+      final contentType = switch (ext) {
+        'png' => MediaType('image', 'png'),
+        'webp' => MediaType('image', 'webp'),
+        'gif' => MediaType('image', 'gif'),
+        _ => MediaType('image', 'jpeg'),
+      };
+      final multipartFile = await MultipartFile.fromPath(
+        'photo',
+        file.path,
+        contentType: contentType,
+      );
+      final res = await _service.updateProfilePhoto(multipartFile);
+      if (res.isSuccessful && res.body != null) {
+        final body = res.body!;
+        final data = body['data'] as Map<String, dynamic>? ?? body;
+        final userData = data['user'] as Map<String, dynamic>? ?? data;
+        final updated = UserModel.fromJson(userData);
         await _cacheProfile(updated);
         return Right(updated);
       }
@@ -114,6 +151,34 @@ class UserRepository {
         }
         addr ??= AddressModel.fromJson(body);
         return Right(addr);
+      }
+      return Left(AppError.fromResponse(
+          res.body, 'common.error',
+          statusCode: res.statusCode));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, List<AddressModel>>> updateAddress(
+      String id, Map<String, dynamic> data) async {
+    try {
+      final res = await _service.updateAddress(id, data);
+      if (res.isSuccessful && res.body != null) {
+        final body = res.body!;
+        final dataField = body['data'];
+        List<dynamic> raw = [];
+        if (dataField is List) {
+          raw = dataField;
+        } else if (dataField is Map<String, dynamic>) {
+          raw = dataField['addresses'] as List<dynamic>? ?? [];
+        }
+        final addresses = raw
+            .whereType<Map<String, dynamic>>()
+            .map(AddressModel.fromJson)
+            .toList();
+        await _cacheAddresses(addresses);
+        return Right(addresses);
       }
       return Left(AppError.fromResponse(
           res.body, 'common.error',

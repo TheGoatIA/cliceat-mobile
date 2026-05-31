@@ -308,14 +308,17 @@ class OrderRepository extends BaseRepository {
 
   Future<Either<AppError, void>> rateOrder(
     String id,
-    int rating,
+    int restaurantRating,
+    int deliveryRating,
     String? comment,
   ) async {
     try {
-      final res = await _orderService.rateOrder(id, {
-        'rating': rating,
-        'comment': comment,
-      });
+      final body = <String, dynamic>{
+        'restaurantRating': restaurantRating,
+        'deliveryRating': deliveryRating,
+        if (comment != null && comment.isNotEmpty) 'comment': comment,
+      };
+      final res = await _orderService.rateOrder(id, body);
       if (res.isSuccessful) return const Right(null);
       return Left(
         AppError.fromResponse(

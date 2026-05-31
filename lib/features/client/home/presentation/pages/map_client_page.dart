@@ -67,6 +67,8 @@ class _MapClientPageState extends State<MapClientPage> {
     // Désactiver l'échelle et les attributions encombrantes si besoin
     map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
     map.compass.updateSettings(CompassSettings(enabled: false));
+    map.attribution.updateSettings(AttributionSettings(enabled: false));
+    map.logo.updateSettings(LogoSettings(enabled: false));
 
     if (_restaurants.isNotEmpty) {
       await _addClusteredSource();
@@ -481,9 +483,7 @@ class _MapClientPageState extends State<MapClientPage> {
           MapWidget(
             key: const ValueKey('clientMapWidget'),
             onMapCreated: _onMapCreated,
-            styleUri: theme.brightness == Brightness.dark
-                ? MapboxStyles.DARK
-                : MapboxStyles.LIGHT,
+            styleUri: MapboxStyles.MAPBOX_STREETS,
             cameraOptions: CameraOptions(
               center: Point(
                 coordinates: Position(

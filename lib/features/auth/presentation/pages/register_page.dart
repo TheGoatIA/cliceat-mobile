@@ -21,6 +21,7 @@ class _RegisterPageState extends State<RegisterPage> {
   int _currentStep = 0;
   String _selectedCity = 'Douala';
   String _vehicleType = 'motorcycle';
+  bool _passwordVisible = false;
 
   @override
   void initState() {
@@ -74,6 +75,16 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               );
               context.go('/auth/verify-email?email=${Uri.encodeComponent(email)}');
+            },
+            driverRegistrationSuccess: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Inscription réussie ! Votre compte livreur est en attente de validation par un administrateur.'),
+                  backgroundColor: AppTheme.green,
+                  duration: Duration(seconds: 4),
+                ),
+              );
+              context.go('/login');
             },
             authenticated: (_, _, _) {
               context.go('/client');
@@ -193,7 +204,17 @@ class _RegisterPageState extends State<RegisterPage> {
                               _buildInput('auth.phone_number'.tr(), Icons.phone_outlined, controller: _phoneCtrl),
                               const SizedBox(height: 12),
                               _buildInput('auth.password'.tr(), Icons.lock_outline_rounded,
-                                  obscure: true, controller: _passwordCtrl),
+                                  obscure: !_passwordVisible, controller: _passwordCtrl,
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _passwordVisible
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: AppTheme.muted,
+                                      size: 20,
+                                    ),
+                                    onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+                                  )),
                               const SizedBox(height: 12),
                               _buildCityDropdown(),
                               if (_selectedRole == 'delivery') ...[
@@ -242,6 +263,19 @@ class _RegisterPageState extends State<RegisterPage> {
                                       : _currentStep == 2;
                                   if (isLast) {
                                     HapticFeedback.heavyImpact();
+
+                                    final password = _passwordCtrl.text;
+                                    final passRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$');
+                                    if (!passRegex.hasMatch(password)) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: const Text('Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.'),
+                                          backgroundColor: AppTheme.primaryRed,
+                                        ),
+                                      );
+                                      return;
+                                    }
+
                                     if (_selectedRole == 'client') {
                                       context.read<AuthBloc>().add(AuthEvent.register(
                                         name: _nameCtrl.text.trim(),
@@ -392,7 +426,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _buildInput(String label, IconData icon,
-      {bool obscure = false, TextEditingController? controller}) {
+      {bool obscure = false, TextEditingController? controller, Widget? suffixIcon}) {
     return TextField(
       controller: controller,
       obscureText: obscure,
@@ -402,6 +436,7 @@ class _RegisterPageState extends State<RegisterPage> {
         labelStyle: GoogleFonts.inter(color: AppTheme.inkSoft, fontSize: 14),
         hintStyle: GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
         prefixIcon: Icon(icon, color: AppTheme.muted, size: 20),
+        suffixIcon: suffixIcon,
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.line)),

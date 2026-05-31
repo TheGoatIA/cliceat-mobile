@@ -64,14 +64,26 @@ final class _$DriverService extends DriverService {
 
   @override
   Future<Response<Map<String, dynamic>>> registerDriver(
-    Map<String, dynamic> body,
+    String name,
+    String email,
+    String phone,
+    String password,
+    String city,
+    String vehicleType,
+    String vehiclePlate,
     String idCardPath,
     String licensePath,
     String photoPath,
   ) {
     final Uri $url = Uri.parse('/delivery/register');
     final List<PartValue> $parts = <PartValue>[
-      PartValue<Map<String, dynamic>>('body', body),
+      PartValue<String>('name', name),
+      PartValue<String>('email', email),
+      PartValue<String>('phone', phone),
+      PartValue<String>('password', password),
+      PartValue<String>('city', city),
+      PartValue<String>('vehicleType', vehicleType),
+      PartValue<String>('vehiclePlate', vehiclePlate),
       PartValueFile<String>('idCard', idCardPath),
       PartValueFile<String>('license', licensePath),
       PartValueFile<String>('photo', photoPath),

@@ -11,15 +11,19 @@ class WalletRepository {
 
   WalletRepository(this._walletService, this._paymentService);
 
-  Future<Either<AppError, String>> recharge(double amount, String method) async {
+  Future<Either<AppError, Map<String, String>>> recharge(double amount, String method) async {
     try {
       final res = await _walletService.recharge({
         'amount': amount,
         'method': method,
       });
       if (res.isSuccessful && res.body != null) {
-        final paymentUrl = res.body!['paymentUrl'] as String?;
-        if (paymentUrl != null) return Right(paymentUrl);
+        final dataObj = res.body!['data'] as Map<String, dynamic>?;
+        final paymentUrl = dataObj?['paymentUrl'] as String?;
+        final reference = dataObj?['reference'] as String?;
+        if (paymentUrl != null && reference != null) {
+          return Right({'url': paymentUrl, 'reference': reference});
+        }
       }
       return Left(AppError.fromResponse(res.body, 'wallet.recharge_error'));
     } catch (_) {
@@ -31,8 +35,9 @@ class WalletRepository {
     try {
       final res = await _paymentService.getMyPayments();
       if (res.isSuccessful && res.body != null) {
-        final data = res.body!['data'] as List<dynamic>? ?? [];
-        return Right(data.cast<Map<String, dynamic>>());
+        final dataObj = res.body!['data'] as Map<String, dynamic>?;
+        final items = dataObj?['items'] as List<dynamic>? ?? [];
+        return Right(items.cast<Map<String, dynamic>>());
       }
       return Left(AppError.fromResponse(res.body, 'wallet.history_error'));
     } catch (_) {

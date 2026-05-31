@@ -105,7 +105,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.sendOtp({
-        'phone': event.phone,
+        'phone': _formatPhone(event.phone),
         'countryCode': '237',
       });
       if (res.isSuccessful) {
@@ -124,7 +124,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.verifyOtp({
-        'phone': event.phone,
+        'phone': _formatPhone(event.phone),
         'otp': event.otp,
       });
       if (res.isSuccessful && res.body != null) {
@@ -186,7 +186,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.loginDelivery({
-        'phone': event.phone,
+        'phone': _formatPhone(event.phone),
         'password': event.password,
       });
       if (res.isSuccessful && res.body != null) {
@@ -315,28 +315,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
-
   Future<void> _onRegisterDriver(
       _RegisterDriver event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
     try {
       final res = await _driverService.registerDriver(
-        {
-          'name': event.name,
-          'email': event.email,
-          'phone': event.phone,
-          'password': event.password,
-          'city': event.city.toLowerCase(),
-          'vehicleType': event.vehicleType,
-          'vehiclePlate': event.vehiclePlate,
-        },
+        event.name,
+        event.email,
+        _formatPhone(event.phone),
+        event.password,
+        event.city.toLowerCase(),
+        event.vehicleType,
+        event.vehiclePlate,
         event.idCardPath,
         event.licensePath,
         event.photoPath,
       );
 
       if (res.isSuccessful) {
-        emit(const AuthState.unauthenticated()); 
+        emit(const AuthState.driverRegistrationSuccess()); 
       } else {
         final msg = _extractError(res.body, 'auth.error_register');
         emit(AuthState.error(message: msg));
@@ -516,6 +513,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
+  /// Formatte le numéro de téléphone pour toujours inclure le préfixe +237 (Cameroun)
+  /// si aucun préfixe international n'est fourni.
+  String _formatPhone(String phone) {
+    var p = phone.replaceAll(RegExp(r'\s+'), '');
+    if (p.startsWith('+')) return p;
+    if (p.startsWith('237')) return '+$p';
+    if (p.startsWith('00237')) return '+${p.substring(2)}';
+    return '+237$p';
+  }
+
   /// Parse la réponse d'auth : retourne (accessToken, userId) ou null.
   (String, String)? _parseAuthResponse(dynamic body) {
     try {
@@ -537,8 +544,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   String _extractError(dynamic body, String fallback) {
     try {
-      return (body as Map<String, dynamic>)['message']?.toString() ??
-          fallback;
+      final map = body as Map<String, dynamic>;
+      if (map['details'] != null && map['details'] is List && (map['details'] as List).isNotEmpty) {
+        final firstDetail = (map['details'] as List).first;
+        if (firstDetail is Map<String, dynamic> && firstDetail['message'] != null) {
+          return firstDetail['message'].toString();
+        }
+      }
+      return map['message']?.toString() ?? fallback;
     } catch (_) {
       return fallback;
     }

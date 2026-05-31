@@ -41,6 +41,10 @@ class _MapDeliveryPageState extends State<MapDeliveryPage> {
         pulsingMaxRadius: 50.0,
       )
     );
+    mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
+    mapboxMap.attribution.updateSettings(AttributionSettings(enabled: false));
+    mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
   }
 
   @override
@@ -52,6 +56,7 @@ class _MapDeliveryPageState extends State<MapDeliveryPage> {
     return Scaffold(
       body: MapWidget(
         key: const ValueKey("mapDeliveryWidget"),
+        styleUri: MapboxStyles.MAPBOX_STREETS,
         cameraOptions: CameraOptions(
           center: currentPosition != null 
               ? Point(coordinates: Position(currentPosition!.longitude, currentPosition!.latitude))

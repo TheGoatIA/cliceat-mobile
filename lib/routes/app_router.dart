@@ -27,6 +27,7 @@ import '../../features/delivery/dashboard/presentation/pages/confirm_pickup_page
 import '../../features/delivery/dashboard/presentation/pages/dropoff_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/mission_incoming_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/payout_page.dart';
+import '../../features/delivery/dashboard/presentation/bloc/mission_bloc.dart';
 import '../../features/delivery/dashboard/data/models/mission_model.dart';
 import '../../features/legal/presentation/pages/terms_page.dart';
 import '../../features/legal/presentation/pages/privacy_page.dart';
@@ -46,6 +47,7 @@ import '../../features/client/review/presentation/cubit/review_cubit.dart';
 import '../../core/di/injection.dart';
 import '../../features/client/notification/presentation/pages/notifications_page.dart';
 import '../../features/client/notification/presentation/cubit/notification_cubit.dart';
+import 'package:cliceat_app/shared/pages/map_picker_page.dart';
 import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
 import 'package:cliceat_app/core/widgets/maintenance_page.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -61,9 +63,7 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 /// Helper class to convert a Stream into a Listenable for GoRouter.
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
-    _subscription = stream.listen(
-      (dynamic _) => notifyListeners(),
-    );
+    _subscription = stream.listen((dynamic _) => notifyListeners());
   }
 
   late final StreamSubscription<dynamic> _subscription;
@@ -96,6 +96,7 @@ abstract class AppRoutes {
   static const terms = '/legal/terms';
   static const privacy = '/legal/privacy';
   static const maintenance = '/maintenance';
+  static const mapPicker = '/map-picker';
 }
 
 // ─── Public routes (accessible without authentication) ────────────────────────
@@ -136,7 +137,9 @@ String? _guardRedirect(BuildContext context, GoRouterState state) {
   }
 
   // Ignorer les routes publiques
-  if (_kPublicRoutes.any((r) => location.startsWith(r) && r != AppRoutes.splash)) {
+  if (_kPublicRoutes.any(
+    (r) => location.startsWith(r) && r != AppRoutes.splash,
+  )) {
     return null;
   }
   if (location == AppRoutes.splash) return null;
@@ -165,6 +168,7 @@ String? _guardRedirect(BuildContext context, GoRouterState state) {
     emailVerified: () => null,
     forgotPasswordEmailSent: (_) => null,
     resetPasswordSuccess: () => null,
+    driverRegistrationSuccess: () => null,
     error: (_) => null,
   );
 }
@@ -292,10 +296,7 @@ final GoRouter appRouter = GoRouter(
             return CreateDisputePage(orderId: orderId);
           },
         ),
-        GoRoute(
-          path: 'cart',
-          builder: (context, state) => const CartPage(),
-        ),
+        GoRoute(path: 'cart', builder: (context, state) => const CartPage()),
         GoRoute(
           path: 'address-selection',
           builder: (context, state) => const AddressSelectionPage(),
@@ -306,9 +307,8 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: 'rate/:orderId',
-          builder: (context, state) => OrderRatingPage(
-            orderId: state.pathParameters['orderId']!,
-          ),
+          builder: (context, state) =>
+              OrderRatingPage(orderId: state.pathParameters['orderId']!),
         ),
       ],
     ),
@@ -316,15 +316,13 @@ final GoRouter appRouter = GoRouter(
     // ── Order & Payment routes (Top-level for easy access) ──────────────────
     GoRoute(
       path: AppRoutes.tracking,
-      builder: (context, state) => ClientTrackingPage(
-        orderId: state.pathParameters['orderId']!,
-      ),
+      builder: (context, state) =>
+          ClientTrackingPage(orderId: state.pathParameters['orderId']!),
     ),
     GoRoute(
       path: '/client/order-success/:orderId',
-      builder: (context, state) => OrderSuccessPage(
-        orderId: state.pathParameters['orderId'] ?? '',
-      ),
+      builder: (context, state) =>
+          OrderSuccessPage(orderId: state.pathParameters['orderId'] ?? ''),
     ),
     // Fallback for missing orderId
     GoRoute(
@@ -334,10 +332,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.payment,
       builder: (context, state) {
-        final extra = state.extra as Map<String, String>? ?? {};
+        final extra = state.extra as Map?;
         return PaymentWebviewPage(
-          paymentUrl: extra['paymentUrl'] ?? '',
-          orderId: extra['orderId'] ?? '',
+          paymentUrl: extra?['paymentUrl']?.toString() ?? '',
+          orderId: extra?['orderId']?.toString() ?? '',
+          isWalletRecharge: extra?['isWalletRecharge'] == true,
         );
       },
     ),
@@ -355,9 +354,8 @@ final GoRouter appRouter = GoRouter(
     // Détail restaurant (accessible depuis carte, accueil, recherche)
     GoRoute(
       path: AppRoutes.restaurant,
-      builder: (context, state) => RestaurantDetailPage(
-        restaurantId: state.pathParameters['id']!,
-      ),
+      builder: (context, state) =>
+          RestaurantDetailPage(restaurantId: state.pathParameters['id']!),
     ),
 
     // Checkout (plein écran, hors tab shell)
@@ -375,7 +373,10 @@ final GoRouter appRouter = GoRouter(
           path: 'incoming',
           builder: (context, state) {
             final mission = state.extra as MissionModel;
-            return MissionIncomingPage(mission: mission);
+            return BlocProvider<MissionBloc>(
+              create: (context) => getIt<MissionBloc>(),
+              child: MissionIncomingPage(mission: mission),
+            );
           },
         ),
         GoRoute(
@@ -393,15 +394,28 @@ final GoRouter appRouter = GoRouter(
           path: 'confirm-pickup',
           builder: (context, state) {
             final mission = state.extra as MissionModel;
-            return ConfirmPickupPage(mission: mission);
+            return BlocProvider<MissionBloc>(
+              create: (context) => getIt<MissionBloc>(),
+              child: ConfirmPickupPage(mission: mission),
+            );
           },
         ),
         GoRoute(
           path: 'dropoff',
           builder: (context, state) {
             final mission = state.extra as MissionModel;
-            return DropoffPage(mission: mission);
+            return BlocProvider<MissionBloc>(
+              create: (context) => getIt<MissionBloc>(),
+              child: DropoffPage(mission: mission),
+            );
           },
+        ),
+        GoRoute(
+          path: 'notifications',
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<NotificationCubit>(),
+            child: const NotificationsPage(),
+          ),
         ),
       ],
     ),
@@ -419,12 +433,24 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.maintenance,
       builder: (context, state) {
         final config = context.read<ConfigBloc>().state.maybeWhen(
-              loaded: (c) => c,
-              orElse: () => null,
-            );
+          loaded: (c) => c,
+          orElse: () => null,
+        );
         final locale = context.locale.languageCode;
-        final msg = locale == 'en' ? config?.maintenanceMessageEn : config?.maintenanceMessageFr;
+        final msg = locale == 'en'
+            ? config?.maintenanceMessageEn
+            : config?.maintenanceMessageFr;
         return MaintenancePage(message: msg);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.mapPicker,
+      builder: (context, state) {
+        final Map<String, dynamic>? args = state.extra as Map<String, dynamic>?;
+        return MapPickerPage(
+          initialLat: args?['initialLat'] as double?,
+          initialLng: args?['initialLng'] as double?,
+        );
       },
     ),
   ],

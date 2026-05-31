@@ -2,11 +2,20 @@ import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
+import 'package:intl/intl.dart';
+
+import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/core/services/websocket_service.dart';
+import 'package:cliceat_app/core/theme/app_theme.dart';
+import 'package:cliceat_app/features/client/cart/data/datasources/order_service.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
+import 'package:cliceat_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 
 // Top-level function for background message handling
 @pragma('vm:entry-point')
@@ -105,6 +114,39 @@ class NotificationService {
     } catch (e) {
       _logger.e('[Notif] Impossible d\'obtenir le token FCM', error: e);
     }
+
+    // Écouter de manière globale les événements de mission WebSocket
+    getIt<WebSocketService>().missionEvents.listen((data) {
+      final context = _navigatorKey?.currentContext;
+      if (context == null || !context.mounted) return;
+      try {
+        final mission = MissionModel.fromJson(data);
+        if (context.mounted) {
+          GoRouter.of(context).push('/delivery/incoming', extra: mission);
+        }
+      } catch (e) {
+        _logger.e('[WS Global] Erreur de parsing ou affichage popup mission: $e');
+      }
+    });
+
+    // Écouter dynamiquement les rafraîchissements de token FCM et les enregistrer en base de données
+    _messaging.onTokenRefresh.listen((newToken) async {
+      _logger.i('[Notif] Token FCM rafraîchi : $newToken');
+      try {
+        final authState = getIt<AuthBloc>().state;
+        final isLoggedIn = authState.maybeWhen(
+          authenticated: (token, userId, currentMode) => true,
+          orElse: () => false,
+        );
+        if (isLoggedIn) {
+          final lang = Intl.getCurrentLocale().split('_').first;
+          await getIt<UserRepository>().registerFcmToken(newToken, lang: lang);
+          _logger.i('[Notif] Nouveau token FCM enregistré suite au rafraîchissement.');
+        }
+      } catch (e) {
+        _logger.w('[Notif] Échec de l\'enregistrement du token rafraîchi: $e');
+      }
+    });
   }
 
   /// Returns the FCM registration token for this device, or null on failure.
@@ -167,20 +209,76 @@ class NotificationService {
     }
   }
 
-  void _navigate(String type, String orderId) {
+  Future<void> _navigate(String type, String orderId) async {
     final context = _navigatorKey?.currentContext;
     if (context == null) return;
     final router = GoRouter.of(context);
 
     switch (type) {
+      case 'new_mission':
+        router.go('/delivery');
+        if (orderId.isNotEmpty) {
+          try {
+            // Attendre un tout petit instant pour s'assurer que la route /delivery s'est chargée
+            await Future.delayed(const Duration(milliseconds: 150));
+            if (!context.mounted) return;
+
+            // Afficher un dialogue de chargement
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (ctx) => const Center(
+                child: CircularProgressIndicator(color: AppTheme.primaryRed),
+              ),
+            );
+
+            // Charger les détails de la commande
+            final response = await getIt<OrderService>().getOrderById(orderId);
+            
+            // Fermer le dialogue de chargement
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
+
+            if (response.isSuccessful && response.body != null && context.mounted) {
+              final data = response.body!['data'] as Map<String, dynamic>? ?? response.body!;
+              final orderData = data['order'] as Map<String, dynamic>? ?? data;
+              final mission = MissionModel.fromJson(orderData);
+              
+              // Rediriger vers l'écran d'acceptation de la mission
+              context.push('/delivery/incoming', extra: mission);
+            } else if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Impossible de charger les détails de la mission.'),
+                  backgroundColor: AppTheme.errorColor,
+                ),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Erreur lors du chargement de la mission: $e'),
+                  backgroundColor: AppTheme.errorColor,
+                ),
+              );
+            }
+          }
+        }
+        break;
       case 'order_update':
       case 'order_assigned':
       case 'delivery_mission':
         if (orderId.isNotEmpty) router.push('/client/tracking/$orderId');
+        break;
       case 'mission_assigned':
         if (orderId.isNotEmpty) router.push('/delivery/mission/$orderId');
+        break;
       default:
         if (orderId.isNotEmpty) router.push('/client/tracking/$orderId');
+        break;
     }
   }
 

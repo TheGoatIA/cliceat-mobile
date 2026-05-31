@@ -87,6 +87,7 @@ dependencies:
   timeago: ^3.7.1
   http_certificate_pinning: ^3.0.1
   crypto: ^3.0.7
+  firebase_auth: ^6.5.1
 
 dev_dependencies:
   flutter_test:

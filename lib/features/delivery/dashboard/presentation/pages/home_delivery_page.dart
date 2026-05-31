@@ -57,14 +57,6 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
 
     _wsSubscription = getIt<WebSocketService>().missionEvents.listen((data) {
       _missionBloc.add(MissionEvent.loadActiveMissions());
-      if (mounted && _isOnline) {
-        try {
-          final mission = MissionModel.fromJson(data);
-          context.push('/delivery/incoming', extra: mission);
-        } catch (e) {
-          _logger.e('Error parsing mission from websocket: $e');
-        }
-      }
     });
 
     _loadEarnings();
@@ -172,10 +164,24 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
 
   void _startLocationTracking() {
     _locationSubscription?.cancel();
+
+    // Envoyer la position actuelle immédiatement dès la mise en ligne,
+    // sans attendre un déplacement de 30m. Sinon le backend n'a jamais
+    // les coordonnées du livreur et le dispatch échoue ("no drivers available").
+    Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+    ).then((pos) {
+      getIt<DriverRepository>().updateLocation(pos.latitude, pos.longitude);
+      _logger.i('[GPS] Position initiale envoyée: ${pos.latitude}, ${pos.longitude}');
+    }).catchError((e) {
+      _logger.e('[GPS] Erreur position initiale: $e');
+    });
+
+    // Puis continuer le suivi en continu
     _locationSubscription = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 30,
+        distanceFilter: 10, // Réduit à 10m pour meilleure réactivité
       ),
     ).listen((pos) {
       getIt<DriverRepository>().updateLocation(pos.latitude, pos.longitude);
@@ -210,7 +216,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                   const SizedBox(height: 24),
                   _buildTodayStats(theme),
                   const SizedBox(height: 24),
-                  _buildRecentMissions(theme),
+                  _buildMissionsSection(theme),
                 ],
               ),
             ),
@@ -292,7 +298,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
         ),
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
-          onPressed: () {},
+          onPressed: () {
+            context.push('/delivery/notifications');
+          },
           tooltip: 'Notifications',
         ),
       ],
@@ -497,53 +505,312 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     );
   }
 
-  Widget _buildRecentMissions(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'delivery.recent_deliveries'.tr(),
-          style: GoogleFonts.bricolageGrotesque(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.ink,
-            letterSpacing: -0.3,
-          ),
+  String _getStatusLabel(String status) {
+    switch (status) {
+      case 'accepted':
+      case 'confirmed':
+        return 'order.status_confirmed'.tr();
+      case 'preparing':
+        return 'order.status_preparing'.tr();
+      case 'ready':
+        return 'order.status_ready'.tr();
+      case 'picked_up':
+        return 'order.status_picked_up'.tr();
+      case 'en_route':
+        return 'order.status_en_route'.tr();
+      default:
+        return status;
+    }
+  }
+
+  Widget _buildActiveMissionCard(MissionModel mission, ThemeData theme) {
+    final shortId = mission.id.length > 6
+        ? mission.id.substring(mission.id.length - 6)
+        : mission.id;
+
+    final isEnRoute = mission.status == 'picked_up' || mission.status == 'en_route';
+    final statusColor = isEnRoute ? AppTheme.primaryRed : AppTheme.honey;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: statusColor.withValues(alpha: 0.3),
+          width: 1.5,
         ),
-        const SizedBox(height: 12),
-        BlocBuilder<MissionBloc, MissionState>(
-          bloc: _missionBloc,
-          builder: (context, state) {
-            return state.maybeWhen(
-              loaded: (missionsData) {
-                final missions = missionsData
-                    .map((m) => MissionModel.fromJson(m))
-                    .where((m) => m.status == 'delivered')
-                    .toList();
-
-                if (missions.isEmpty) {
-                  return _buildEmptyMissions(theme);
-                }
-
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: missions.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) =>
-                      _buildMissionCard(missions[index], theme),
-                );
-              },
-              orElse: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(),
+        boxShadow: [
+          BoxShadow(
+            color: statusColor.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _getStatusLabel(mission.status),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: statusColor,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const Spacer(),
+                Text(
+                  'delivery.order_short_id'.tr(args: [shortId]),
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: context.colors.ink,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const Divider(height: 1, color: AppTheme.lineSoft),
+          
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.storefront_outlined, color: AppTheme.muted, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            mission.restaurantName ?? 'Restaurant',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: context.colors.ink,
+                            ),
+                          ),
+                          Text(
+                            mission.restaurantAddress ?? '',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.muted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 9, top: 4, bottom: 4),
+                    width: 2,
+                    height: 16,
+                    color: AppTheme.lineSoft,
+                  ),
+                ),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, color: AppTheme.muted, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            mission.clientName ?? 'Client',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: context.colors.ink,
+                            ),
+                          ),
+                          Text(
+                            mission.deliveryAddress?.address ?? '',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.muted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'delivery.estimated_gain'.tr(),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: AppTheme.muted,
+                      ),
+                    ),
+                    Text(
+                      '${mission.earnings.toStringAsFixed(0)} FCFA',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.green,
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    if (isEnRoute) {
+                      context.push('/delivery/dropoff', extra: mission);
+                    } else {
+                      context.push('/delivery/active-navigation', extra: mission);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: statusColor,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'delivery.navigate'.tr(),
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.arrow_forward_rounded, size: 16),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMissionsSection(ThemeData theme) {
+    return BlocBuilder<MissionBloc, MissionState>(
+      bloc: _missionBloc,
+      builder: (context, state) {
+        return state.maybeWhen(
+          loaded: (missionsData) {
+            final allMissions = missionsData
+                .map((m) => MissionModel.fromJson(m))
+                .toList();
+
+            final activeMissions = allMissions
+                .where((m) =>
+                    m.status != 'delivered' &&
+                    m.status != 'cancelled' &&
+                    m.status != 'anomaly')
+                .toList();
+
+            final recentMissions = allMissions
+                .where((m) => m.status == 'delivered')
+                .toList();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (activeMissions.isNotEmpty) ...[
+                  Text(
+                    'delivery.active_missions'.tr(),
+                    style: GoogleFonts.bricolageGrotesque(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.ink,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...activeMissions.map((m) => _buildActiveMissionCard(m, theme)),
+                  const SizedBox(height: 24),
+                ],
+                Text(
+                  'delivery.recent_deliveries'.tr(),
+                  style: GoogleFonts.bricolageGrotesque(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.ink,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (recentMissions.isEmpty)
+                  _buildEmptyMissions(theme)
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: recentMissions.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) =>
+                        _buildMissionCard(recentMissions[index], theme),
+                  ),
+              ],
             );
           },
-        ),
-      ],
+          orElse: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        );
+      },
     );
   }
 

@@ -6,8 +6,7 @@ class FavoritesTable extends Table {
   TextColumn get restaurantId => text()();
 
   /// When the favorite was added locally.
-  DateTimeColumn get savedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get savedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {restaurantId};

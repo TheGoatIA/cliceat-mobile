@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -6,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/shared/models/address_model.dart';
 import 'package:cliceat_app/features/client/profile/data/models/loyalty_model.dart';
@@ -17,6 +19,9 @@ import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import 'package:dartz/dartz.dart' show Either;
+import 'package:cliceat_app/core/errors/app_error.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -32,8 +37,8 @@ class _ProfilePageState extends State<ProfilePage> {
     return BlocBuilder<ProfileCubit, ProfileState>(
       builder: (context, state) {
         return state.maybeWhen(
-          loading: () => const Scaffold(
-              body: Center(child: CircularProgressIndicator())),
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
           error: (msg) => Scaffold(body: Center(child: Text(msg))),
           loaded: (user) => _buildProfileContent(context, user, theme),
           orElse: () => const SizedBox.shrink(),
@@ -42,7 +47,11 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileContent(BuildContext context, UserModel user, ThemeData theme) {
+  Widget _buildProfileContent(
+    BuildContext context,
+    UserModel user,
+    ThemeData theme,
+  ) {
     return Scaffold(
       backgroundColor: AppTheme.bg,
       body: CustomScrollView(
@@ -98,30 +107,67 @@ class _ProfilePageState extends State<ProfilePage> {
                           width: 3,
                         ),
                       ),
-                      child: CircleAvatar(
-                        radius: 48,
-                        backgroundColor:
-                            Colors.white.withValues(alpha: 0.2),
-                        backgroundImage: photo != null &&
-                                photo.isNotEmpty
-                            ? NetworkImage(photo)
-                            : null,
-                        child: photo == null || photo.isEmpty
-                            ? Text(
-                                name.isNotEmpty
-                                    ? name[0].toUpperCase()
-                                    : 'U',
-                                style: GoogleFonts.bricolageGrotesque(
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                      child: ClipOval(
+                        child: photo != null && photo.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: photo,
+                                width: 96,
+                                height: 96,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  width: 96,
+                                  height: 96,
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  alignment: Alignment.center,
+                                  child: const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
+                                errorWidget: (context, url, error) {
+                                  debugPrint(
+                                    "Avatar image failed to load: $error",
+                                  );
+                                  return Container(
+                                    width: 96,
+                                    height: 96,
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      name.isNotEmpty
+                                          ? name[0].toUpperCase()
+                                          : 'U',
+                                      style: GoogleFonts.bricolageGrotesque(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  );
+                                },
                               )
-                            : null,
+                            : Container(
+                                width: 96,
+                                height: 96,
+                                color: Colors.white.withValues(alpha: 0.2),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                  style: GoogleFonts.bricolageGrotesque(
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => _showEditProfile(context, user),
+                      onTap: () => _pickAndUploadAvatar(context),
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
@@ -182,7 +228,11 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context, ThemeData theme, UserModel user) {
+  Widget _buildMenuSection(
+    BuildContext context,
+    ThemeData theme,
+    UserModel user,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -232,7 +282,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   color: AppTheme.honey,
                   onTap: () => _showLoyalty(context),
                   trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.honeySoft,
                       borderRadius: BorderRadius.circular(10),
@@ -313,11 +366,15 @@ class _ProfilePageState extends State<ProfilePage> {
           BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, mode) {
               return _buildSwitchTile(
-                icon: mode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+                icon: mode == ThemeMode.dark
+                    ? Icons.dark_mode
+                    : Icons.light_mode,
                 title: 'profile.dark_mode'.tr(),
                 value: mode == ThemeMode.dark,
                 onChanged: (v) {
-                  context.read<ThemeCubit>().setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
+                  context.read<ThemeCubit>().setThemeMode(
+                    v ? ThemeMode.dark : ThemeMode.light,
+                  );
                 },
               );
             },
@@ -431,8 +488,11 @@ class _ProfilePageState extends State<ProfilePage> {
               if (trailing != null)
                 trailing
               else
-                const Icon(Icons.chevron_right_rounded,
-                    size: 20, color: AppTheme.mutedLight),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: AppTheme.mutedLight,
+                ),
             ],
           ),
         ),
@@ -450,7 +510,8 @@ class _ProfilePageState extends State<ProfilePage> {
             context: context,
             builder: (_) => AlertDialog(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: Text('profile.logout_confirm_title'.tr()),
               content: Text('profile.logout_confirm_message'.tr()),
               actions: [
@@ -461,9 +522,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    context
-                        .read<AuthBloc>()
-                        .add(const AuthEvent.logout());
+                    context.go('/auth/login');
+                    context.read<AuthBloc>().add(const AuthEvent.logout());
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.errorColor,
@@ -479,7 +539,9 @@ class _ProfilePageState extends State<ProfilePage> {
           foregroundColor: AppTheme.errorColor,
           side: const BorderSide(color: AppTheme.errorColor),
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
         icon: const Icon(Icons.logout_rounded),
         label: Text('profile.logout'.tr()),
@@ -495,7 +557,8 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
           left: 24,
@@ -540,9 +603,9 @@ class _ProfilePageState extends State<ProfilePage> {
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  final result = await getIt<UserRepository>()
-                      .updateProfile(
-                          {'name': nameController.text.trim()});
+                  final result = await getIt<UserRepository>().updateProfile({
+                    'name': nameController.text.trim(),
+                  });
                   result.fold(
                     (err) {
                       if (mounted) {
@@ -552,14 +615,24 @@ class _ProfilePageState extends State<ProfilePage> {
                       }
                     },
                     (updatedUser) {
-                      // ProfileCubit will handle the state update and UI refresh
+                      if (mounted) {
+                        context.read<ProfileCubit>().emitLoaded(updatedUser);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Profil mis à jour avec succès"),
+                            backgroundColor: AppTheme.successColor,
+                          ),
+                        );
+                      }
                     },
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12))),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 child: Text('common.save'.tr()),
               ),
             ),
@@ -569,346 +642,88 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // === FIX: Ajout d'adresse implémenté ===
+  // === photo / avatar select ===
+  Future<void> _pickAndUploadAvatar(BuildContext context) async {
+    try {
+      HapticFeedback.lightImpact();
+      final picker = ImagePicker();
+      final image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+      if (image == null) return;
+
+      if (!context.mounted) return;
+      final file = File(image.path);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              ),
+              SizedBox(width: 12),
+              Text("Mise à jour de la photo de profil..."),
+            ],
+          ),
+          duration: Duration(seconds: 10),
+        ),
+      );
+
+      final result = await getIt<UserRepository>().updateProfilePhoto(file);
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      result.fold(
+        (err) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(err.message.tr()),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        },
+        (updatedUser) {
+          context.read<ProfileCubit>().emitLoaded(updatedUser);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Photo de profil mise à jour avec succès !"),
+              backgroundColor: AppTheme.successColor,
+            ),
+          );
+        },
+      );
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('common.error'.tr()),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  // === FIX: Ajout et modification d'adresse implémentés ===
   void _showAddresses(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) {
-          Future<List<AddressModel>> futureAddresses =
-              getIt<UserRepository>()
-                  .getAddresses()
-                  .then((r) => r.fold((_) => <AddressModel>[], (a) => a));
-
-          return DraggableScrollableSheet(
-            initialChildSize: 0.6,
-            minChildSize: 0.4,
-            maxChildSize: 0.9,
-            expand: false,
-            builder: (_, scrollController) => Column(
-              children: [
-                // Handle + header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 8, 0),
-                  child: Column(
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: AppTheme.lineSoft,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'profile.my_addresses'.tr(),
-                            style: GoogleFonts.bricolageGrotesque(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          // === BOUTON AJOUTER — implémenté ===
-                          IconButton(
-                            icon: const Icon(
-                                Icons.add_circle_outline_rounded),
-                            color: AppTheme.primaryRed,
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              _showAddAddressForm(context);
-                            },
-                            tooltip: 'profile.add_address'.tr(),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: FutureBuilder<List<AddressModel>>(
-                    future: futureAddresses,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(
-                            child: CircularProgressIndicator());
-                      }
-                      final addresses = snapshot.data ?? [];
-                      if (addresses.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment:
-                                MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.location_off_outlined,
-                                size: 48,
-                                color: AppTheme.muted.withValues(alpha: 0.5),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'profile.no_addresses'.tr(),
-                                style: GoogleFonts.inter(
-                                    fontSize: 14, color: AppTheme.muted),
-                              ),
-                              const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  Navigator.pop(ctx);
-                                  _showAddAddressForm(context);
-                                },
-                                icon: const Icon(Icons.add),
-                                label: Text(
-                                    'profile.add_address'.tr()),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                      return ListView.separated(
-                        controller: scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: addresses.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: 8),
-                        itemBuilder: (_, i) {
-                          final addr = addresses[i];
-                          return Dismissible(
-                            key: Key(addr.id.isNotEmpty
-                                ? addr.id
-                                : 'addr_$i'),
-                            direction:
-                                DismissDirection.endToStart,
-                            background: Container(
-                              padding: const EdgeInsets.only(
-                                  right: 20),
-                              decoration: BoxDecoration(
-                                color: AppTheme.errorColor,
-                                borderRadius:
-                                    BorderRadius.circular(16),
-                              ),
-                              alignment: Alignment.centerRight,
-                              child: const Icon(
-                                Icons.delete_outline_rounded,
-                                color: Colors.white,
-                              ),
-                            ),
-                            confirmDismiss: (_) async {
-                              if (addr.id.isEmpty) return false;
-                              final result =
-                                  await getIt<UserRepository>()
-                                      .deleteAddress(addr.id);
-                              return result.isRight();
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius:
-                                    BorderRadius.circular(16),
-                                border: Border.all(color: AppTheme.lineSoft),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.redSoft,
-                                      borderRadius:
-                                          BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.location_on_rounded,
-                                      color: AppTheme.primaryRed,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (addr.label != null)
-                                          Text(
-                                            addr.label!,
-                                            style: const TextStyle(
-                                              fontWeight:
-                                                  FontWeight.bold,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        Text(
-                                          addr.address,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: AppTheme.muted,
-                                          ),
-                                          maxLines: 2,
-                                          overflow:
-                                              TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-    );
-  }
-
-  /// Implémenté: formulaire ajout d'adresse → POST /users/me/addresses
-  void _showAddAddressForm(BuildContext context) {
-    final addressCtrl = TextEditingController();
-    final labelCtrl = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: AppTheme.lineSoft,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Text(
-              'profile.add_address'.tr(),
-              style: GoogleFonts.bricolageGrotesque(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: labelCtrl,
-              decoration: InputDecoration(
-                labelText: 'profile.address_label'.tr(),
-                hintText: 'profile.address_label_hint'.tr(),
-                prefixIcon: const Icon(Icons.bookmark_outline),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: addressCtrl,
-              maxLines: 2,
-              decoration: InputDecoration(
-                labelText: 'profile.address_street'.tr(),
-                hintText: 'profile.address_street_hint'.tr(),
-                prefixIcon: const Icon(Icons.location_on_outlined),
-              ),
-            ),
-            const SizedBox(height: 20),
-            StatefulBuilder(
-              builder: (ctx, setLocalState) => SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final address = addressCtrl.text.trim();
-                    if (address.isEmpty) return;
-
-                    Navigator.pop(ctx);
-
-                    double lat = 4.05;
-                    double lng = 9.70;
-                    try {
-                      final permission = await Geolocator.checkPermission();
-                      if (permission == LocationPermission.always ||
-                          permission == LocationPermission.whileInUse) {
-                        final pos = await Geolocator.getCurrentPosition(
-                          locationSettings:
-                              const LocationSettings(accuracy: LocationAccuracy.low),
-                        ).timeout(const Duration(seconds: 2));
-                        lat = pos.latitude;
-                        lng = pos.longitude;
-                      }
-                    } catch (_) {}
-
-                    final result =
-                        await getIt<UserRepository>().addAddress({
-                      'address': address,
-                      'label': labelCtrl.text.trim().isNotEmpty
-                          ? labelCtrl.text.trim()
-                          : 'Adresse',
-                      'lat': lat,
-                      'lng': lng,
-                    });
-
-                    result.fold(
-                      (err) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(err.message.tr()),
-                              backgroundColor: AppTheme.errorColor,
-                            ),
-                          );
-                        }
-                      },
-                      (_) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text('profile.address_added'.tr()),
-                              backgroundColor: AppTheme.successColor,
-                            ),
-                          );
-                          _showAddresses(context);
-                        }
-                      },
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Text('common.add'.tr()),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      builder: (ctx) => const MyAddressesSheet(),
     );
   }
 
@@ -916,11 +731,12 @@ class _ProfilePageState extends State<ProfilePage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (_) => FutureBuilder<LoyaltyModel?>(
-        future: getIt<UserRepository>()
-            .getLoyalty()
-            .then((r) => r.fold((_) => null, (l) => l)),
+        future: getIt<UserRepository>().getLoyalty().then(
+          (r) => r.fold((_) => null, (l) => l),
+        ),
         builder: (context, snapshot) {
           final points = snapshot.data?.points ?? 0;
           return Padding(
@@ -981,10 +797,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 Text(
                   'profile.loyalty_desc'.tr(),
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppTheme.muted,
-                  ),
+                  style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -999,7 +812,8 @@ class _ProfilePageState extends State<ProfilePage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -1025,8 +839,18 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             const SizedBox(height: 12),
-            _buildLanguageTile(ctx, 'Français', '🇫🇷', const Locale('fr', 'FR')),
-            _buildLanguageTile(ctx, 'English', '🇬🇧', const Locale('en', 'US')),
+            _buildLanguageTile(
+              ctx,
+              'Français',
+              '🇫🇷',
+              const Locale('fr', 'FR'),
+            ),
+            _buildLanguageTile(
+              ctx,
+              'English',
+              '🇬🇧',
+              const Locale('en', 'US'),
+            ),
           ],
         ),
       ),
@@ -1034,7 +858,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildLanguageTile(
-      BuildContext ctx, String lang, String flag, Locale locale) {
+    BuildContext ctx,
+    String lang,
+    String flag,
+    Locale locale,
+  ) {
     final isSelected = ctx.locale == locale;
     return Material(
       color: Colors.transparent,
@@ -1054,12 +882,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Text(
                   lang,
                   style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w500),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               if (isSelected)
-                Icon(Icons.check_circle_rounded,
-                    color: AppTheme.primaryRed, size: 22),
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: AppTheme.primaryRed,
+                  size: 22,
+                ),
             ],
           ),
         ),
@@ -1071,7 +904,8 @@ class _ProfilePageState extends State<ProfilePage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (_) => Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -1084,8 +918,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: AppTheme.greenSoft,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.help_outline_rounded,
-                  size: 32, color: AppTheme.green),
+              child: const Icon(
+                Icons.help_outline_rounded,
+                size: 32,
+                color: AppTheme.green,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -1096,11 +933,12 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('support@cliceat.cm',
-                style: TextStyle(fontSize: 16)),
+            const Text('support@cliceat.cm', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 6),
-            Text('WhatsApp: +237 6XX XXX XXX',
-                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted)),
+            Text(
+              'WhatsApp: +237 6XX XXX XXX',
+              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+            ),
             const SizedBox(height: 16),
           ],
         ),
@@ -1113,7 +951,8 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (_) => const NotificationSettingsSheet(),
     );
   }
@@ -1155,8 +994,7 @@ class NotificationSettingsSheet extends StatefulWidget {
       _NotificationSettingsSheetState();
 }
 
-class _NotificationSettingsSheetState
-    extends State<NotificationSettingsSheet> {
+class _NotificationSettingsSheetState extends State<NotificationSettingsSheet> {
   static const _keyOrderUpdates = 'notif_order_updates';
   static const _keyPromotions = 'notif_promotions';
   static const _keyNewRestaurants = 'notif_new_restaurants';
@@ -1174,18 +1012,75 @@ class _NotificationSettingsSheetState
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      _orderUpdates = prefs.getBool(_keyOrderUpdates) ?? true;
-      _promotions = prefs.getBool(_keyPromotions) ?? true;
-      _newRestaurants = prefs.getBool(_keyNewRestaurants) ?? false;
-      _loaded = true;
-    });
+
+    bool orderUpdates = prefs.getBool(_keyOrderUpdates) ?? true;
+    bool promotions = prefs.getBool(_keyPromotions) ?? true;
+    bool newRestaurants = prefs.getBool(_keyNewRestaurants) ?? false;
+
+    if (mounted) {
+      final profileState = context.read<ProfileCubit>().state;
+      profileState.maybeWhen(
+        loaded: (user) {
+          if (user.notificationPreferences != null) {
+            orderUpdates =
+                user.notificationPreferences!['orderUpdates'] as bool? ??
+                orderUpdates;
+            promotions =
+                user.notificationPreferences!['promotions'] as bool? ??
+                promotions;
+            newRestaurants =
+                user.notificationPreferences!['newRestaurants'] as bool? ??
+                newRestaurants;
+          }
+        },
+        orElse: () {},
+      );
+
+      setState(() {
+        _orderUpdates = orderUpdates;
+        _promotions = promotions;
+        _newRestaurants = newRestaurants;
+        _loaded = true;
+      });
+
+      // Save locally
+      await prefs.setBool(_keyOrderUpdates, _orderUpdates);
+      await prefs.setBool(_keyPromotions, _promotions);
+      await prefs.setBool(_keyNewRestaurants, _newRestaurants);
+    }
   }
 
   Future<void> _save(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
+
+    // Sync with remote server
+    try {
+      await getIt<UserRepository>().updateProfile({
+        'notificationPreferences': {
+          'orderUpdates': _orderUpdates,
+          'promotions': _promotions,
+          'newRestaurants': _newRestaurants,
+        },
+      });
+
+      if (mounted) {
+        final profileCubit = context.read<ProfileCubit>();
+        profileCubit.state.maybeWhen(
+          loaded: (user) {
+            final updatedUser = user.copyWith(
+              notificationPreferences: {
+                'orderUpdates': _orderUpdates,
+                'promotions': _promotions,
+                'newRestaurants': _newRestaurants,
+              },
+            );
+            profileCubit.emitLoaded(updatedUser);
+          },
+          orElse: () {},
+        );
+      }
+    } catch (_) {}
   }
 
   @override
@@ -1232,8 +1127,11 @@ class _NotificationSettingsSheetState
                   color: AppTheme.redSoft,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.receipt_long,
-                    color: AppTheme.primaryRed, size: 20),
+                child: const Icon(
+                  Icons.receipt_long,
+                  color: AppTheme.primaryRed,
+                  size: 20,
+                ),
               ),
               title: Text('profile.notif_order_updates'.tr()),
               subtitle: Text('profile.notif_order_updates_desc'.tr()),
@@ -1253,8 +1151,11 @@ class _NotificationSettingsSheetState
                   color: AppTheme.honeySoft,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.local_offer,
-                    color: AppTheme.honey, size: 20),
+                child: const Icon(
+                  Icons.local_offer,
+                  color: AppTheme.honey,
+                  size: 20,
+                ),
               ),
               title: Text('profile.notif_promotions'.tr()),
               subtitle: Text('profile.notif_promotions_desc'.tr()),
@@ -1274,8 +1175,11 @@ class _NotificationSettingsSheetState
                   color: AppTheme.greenSoft,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.restaurant_menu,
-                    color: AppTheme.green, size: 20),
+                child: const Icon(
+                  Icons.restaurant_menu,
+                  color: AppTheme.green,
+                  size: 20,
+                ),
               ),
               title: Text('profile.notif_new_restaurants'.tr()),
               subtitle: Text('profile.notif_new_restaurants_desc'.tr()),
@@ -1287,6 +1191,468 @@ class _NotificationSettingsSheetState
             ),
           ],
           const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+// ── MyAddressesSheet Component ─────────────────────────────────────────────
+
+class MyAddressesSheet extends StatefulWidget {
+  const MyAddressesSheet({super.key});
+
+  @override
+  State<MyAddressesSheet> createState() => _MyAddressesSheetState();
+}
+
+class _MyAddressesSheetState extends State<MyAddressesSheet> {
+  List<AddressModel> _addresses = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAddresses();
+  }
+
+  Future<void> _loadAddresses() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    final result = await getIt<UserRepository>().getAddresses();
+    if (mounted) {
+      result.fold(
+        (err) => setState(() => _isLoading = false),
+        (list) => setState(() {
+          _addresses = list;
+          _isLoading = false;
+        }),
+      );
+    }
+  }
+
+  Future<void> _deleteAddress(String id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("Supprimer l'adresse ?"),
+        content: const Text(
+          "Voulez-vous vraiment supprimer cette adresse de votre compte ?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text("Annuler", style: TextStyle(color: AppTheme.muted)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Supprimer"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _isLoading = true);
+      final result = await getIt<UserRepository>().deleteAddress(id);
+      result.fold((err) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(err.message.tr()),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+          setState(() => _isLoading = false);
+        }
+      }, (_) => _loadAddresses());
+    }
+  }
+
+  void _showAddressForm({AddressModel? existingAddress}) {
+    final isEditing = existingAddress != null;
+    final addressCtrl = TextEditingController(text: existingAddress?.address);
+    final labelCtrl = TextEditingController(text: existingAddress?.label);
+
+    double selectedLat = existingAddress?.lat ?? 4.0511;
+    double selectedLng = existingAddress?.lng ?? 9.7679;
+    bool locationPicked = isEditing;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: AppTheme.lineSoft,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              isEditing ? 'Modifier l\'adresse' : 'profile.add_address'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: labelCtrl,
+              decoration: InputDecoration(
+                labelText: 'profile.address_label'.tr(),
+                hintText: 'profile.address_label_hint'.tr(),
+                prefixIcon: const Icon(Icons.bookmark_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: addressCtrl,
+              maxLines: 2,
+              decoration: InputDecoration(
+                labelText: 'profile.address_street'.tr(),
+                hintText: 'profile.address_street_hint'.tr(),
+                prefixIcon: const Icon(Icons.location_on_outlined),
+                suffixIcon: IconButton(
+                  icon: const Icon(
+                    Icons.map_rounded,
+                    color: AppTheme.primaryRed,
+                  ),
+                  tooltip: 'Choisir sur la carte',
+                  onPressed: () async {
+                    HapticFeedback.selectionClick();
+                    final result = await context.push(
+                      '/map-picker',
+                      extra: {
+                        'initialLat': selectedLat,
+                        'initialLng': selectedLng,
+                      },
+                    );
+                    if (result != null && result is Map<String, dynamic>) {
+                      selectedLat = result['lat'] as double;
+                      selectedLng = result['lng'] as double;
+                      addressCtrl.text = result['address'] as String;
+                      locationPicked = true;
+                    }
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  final address = addressCtrl.text.trim();
+                  if (address.isEmpty) return;
+
+                  Navigator.pop(ctx);
+                  if (!locationPicked) {
+                    try {
+                      final permission = await Geolocator.checkPermission();
+                      if (permission == LocationPermission.always ||
+                          permission == LocationPermission.whileInUse) {
+                        final pos = await Geolocator.getCurrentPosition(
+                          locationSettings: const LocationSettings(
+                            accuracy: LocationAccuracy.low,
+                          ),
+                        ).timeout(const Duration(seconds: 2));
+                        selectedLat = pos.latitude;
+                        selectedLng = pos.longitude;
+                      }
+                    } catch (_) {}
+                  }
+
+                  final Map<String, dynamic> data = {
+                    'address': address,
+                    'label': labelCtrl.text.trim().isNotEmpty
+                        ? labelCtrl.text.trim()
+                        : 'Adresse',
+                    'lat': selectedLat,
+                    'lng': selectedLng,
+                  };
+
+                  setState(() => _isLoading = true);
+                  final Either<AppError, dynamic> result;
+                  if (isEditing) {
+                    result = await getIt<UserRepository>().updateAddress(
+                      existingAddress.id,
+                      data,
+                    );
+                  } else {
+                    result = await getIt<UserRepository>().addAddress(data);
+                  }
+
+                  result.fold(
+                    (err) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(err.message.tr()),
+                            backgroundColor: AppTheme.errorColor,
+                          ),
+                        );
+                        setState(() => _isLoading = false);
+                      }
+                    },
+                    (_) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isEditing
+                                  ? "Adresse modifiée avec succès"
+                                  : 'profile.address_added'.tr(),
+                            ),
+                            backgroundColor: AppTheme.successColor,
+                          ),
+                        );
+                        _loadAddresses();
+                      }
+                    },
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(isEditing ? 'Enregistrer' : 'common.add'.tr()),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.75,
+      padding: const EdgeInsets.fromLTRB(0, 16, 0, 24),
+      child: Column(
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: AppTheme.lineSoft,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'profile.my_addresses'.tr(),
+                  style: GoogleFonts.bricolageGrotesque(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.ink,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline_rounded, size: 28),
+                  color: AppTheme.primaryRed,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    _showAddressForm();
+                  },
+                  tooltip: 'profile.add_address'.tr(),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Content
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _addresses.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.location_off_outlined,
+                          size: 56,
+                          color: AppTheme.muted.withValues(alpha: 0.3),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'profile.no_addresses'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            color: AppTheme.muted,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            HapticFeedback.selectionClick();
+                            _showAddressForm();
+                          },
+                          icon: const Icon(Icons.add),
+                          label: Text('profile.add_address'.tr()),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.primaryRed,
+                            side: const BorderSide(color: AppTheme.primaryRed),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
+                    itemCount: _addresses.length,
+                    separatorBuilder: (_, index) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final addr = _addresses[index];
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.lineSoft),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.02),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Row(
+                            children: [
+                              // Icon
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.redSoft,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.location_on_rounded,
+                                  color: AppTheme.primaryRed,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+
+                              // Texts
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (addr.label != null &&
+                                        addr.label!.isNotEmpty)
+                                      Text(
+                                        addr.label!,
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: AppTheme.ink,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      addr.address,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        color: AppTheme.muted,
+                                        height: 1.3,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(width: 8),
+
+                              // Action Row
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.edit_outlined,
+                                      size: 20,
+                                    ),
+                                    color: AppTheme.inkSoft,
+                                    onPressed: () {
+                                      HapticFeedback.selectionClick();
+                                      _showAddressForm(existingAddress: addr);
+                                    },
+                                    constraints: const BoxConstraints(),
+                                    padding: const EdgeInsets.all(8),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 20,
+                                    ),
+                                    color: AppTheme.errorColor,
+                                    onPressed: () {
+                                      HapticFeedback.selectionClick();
+                                      _deleteAddress(addr.id);
+                                    },
+                                    constraints: const BoxConstraints(),
+                                    padding: const EdgeInsets.all(8),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
         ],
       ),
     );

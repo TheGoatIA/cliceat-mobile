@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cliceat_app/features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/widgets/empty_state.dart';
 import '../cubit/notification_cubit.dart';
@@ -95,7 +96,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Widget _buildNotificationItem(BuildContext context, NotificationModel item) {
     final cubit = context.read<NotificationCubit>();
-    final dateStr = DateFormat('dd MMM, HH:mm', 'fr').format(item.createdAt);
+    final dateStr = DateFormat('dd MMM, HH:mm', context.locale.toString()).format(item.createdAt);
 
     return Dismissible(
       key: Key(item.id),
@@ -119,8 +120,21 @@ class _NotificationsPageState extends State<NotificationsPage> {
           if (item.data != null) {
             final type = item.data!['type']?.toString();
             final orderId = item.data!['orderId']?.toString();
-            if (orderId != null && (type == 'new_mission' || type == 'order_status' || type == 'delivery')) {
-              context.push('/client/tracking/$orderId');
+            if (orderId != null) {
+              final authState = context.read<AuthBloc>().state;
+              final isDriverMode = authState.maybeWhen(
+                authenticated: (token, userId, currentMode) => currentMode == 'delivery',
+                orElse: () => false,
+              );
+
+              if (isDriverMode) {
+                // Pour le livreur, on redirige vers le dashboard principal qui recharge
+                context.go('/delivery');
+              } else {
+                if (type == 'new_mission' || type == 'order_status' || type == 'delivery') {
+                  context.push('/client/tracking/$orderId');
+                }
+              }
             }
           }
         },

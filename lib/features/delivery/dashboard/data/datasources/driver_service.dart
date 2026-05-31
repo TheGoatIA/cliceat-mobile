@@ -30,7 +30,13 @@ abstract class DriverService extends ChopperService {
   @POST(path: '/register')
   @Multipart()
   Future<Response<Map<String, dynamic>>> registerDriver(
-    @Part() Map<String, dynamic> body,
+    @Part('name') String name,
+    @Part('email') String email,
+    @Part('phone') String phone,
+    @Part('password') String password,
+    @Part('city') String city,
+    @Part('vehicleType') String vehicleType,
+    @Part('vehiclePlate') String vehiclePlate,
     @PartFile('idCard') String idCardPath,
     @PartFile('license') String licensePath,
     @PartFile('photo') String photoPath,

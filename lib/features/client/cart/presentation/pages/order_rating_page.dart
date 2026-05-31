@@ -50,6 +50,7 @@ class _OrderRatingPageState extends State<OrderRatingPage>
     final result = await getIt<OrderRepository>().rateOrder(
       widget.orderId,
       _restaurantRating,
+      _deliveryRating,
       _commentController.text.trim().isNotEmpty
           ? _commentController.text.trim()
           : null,

@@ -34,6 +34,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   String? _error;
 
   StreamSubscription<Map<String, dynamic>>? _wsSub;
+  StreamSubscription<Map<String, dynamic>>? _driverLocationSub;
+  StreamSubscription<WsStatus>? _wsStatusSub;
   Timer? _etaTimer;
 
   static const Map<String, int> _statusToStep = {
@@ -56,11 +58,24 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     super.initState();
     final ws = getIt<WebSocketService>();
     ws.connect();
+    
+    // Rejoindre le salon de commande en temps réel
+    ws.joinOrder(widget.orderId);
+    
     _loadTracking();
     _etaTimer = Timer.periodic(
       const Duration(seconds: 15),
       (_) => _refreshEta(),
     );
+
+    // Gérer les reconnexions automatiques
+    _wsStatusSub = ws.statusStream.listen((status) {
+      if (status == WsStatus.connected) {
+        ws.joinOrder(widget.orderId);
+      }
+    });
+
+    // Écouter les changements de statut de commande
     _wsSub = ws.orderTrackingEvents.listen((event) {
       if (event['orderId'] == widget.orderId ||
           event['_id'] == widget.orderId) {
@@ -74,12 +89,38 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                       'driverLat': _trackingData!.driverLat,
                     if (_trackingData!.driverLng != null)
                       'driverLng': _trackingData!.driverLng,
+                    if (_trackingData!.driverName != null)
+                      'driverName': _trackingData!.driverName,
+                    if (_trackingData!.driverPhone != null)
+                      'driverPhone': _trackingData!.driverPhone,
+                    if (_trackingData!.driverAvatar != null)
+                      'driverAvatar': _trackingData!.driverAvatar,
                   }
                 : <String, dynamic>{}),
             ...event,
           });
         });
-        // Update driver marker on map when location changes
+        _updateDriverMarker();
+      }
+    });
+
+    // Écouter les positions du livreur en temps réel
+    _driverLocationSub = ws.driverLocationEvents.listen((event) {
+      final lat = (event['lat'] as num?)?.toDouble();
+      final lng = (event['lng'] as num?)?.toDouble();
+      if (lat != null && lng != null && _trackingData != null) {
+        setState(() {
+          _trackingData = TrackingModel(
+            orderId: _trackingData!.orderId,
+            status: _trackingData!.status,
+            driverLat: lat,
+            driverLng: lng,
+            etaMinutes: _trackingData!.etaMinutes,
+            driverName: _trackingData!.driverName,
+            driverPhone: _trackingData!.driverPhone,
+            driverAvatar: _trackingData!.driverAvatar,
+          );
+        });
         _updateDriverMarker();
       }
     });
@@ -87,7 +128,11 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
 
   @override
   void dispose() {
+    final ws = getIt<WebSocketService>();
+    ws.leaveOrder(widget.orderId);
     _wsSub?.cancel();
+    _driverLocationSub?.cancel();
+    _wsStatusSub?.cancel();
     _etaTimer?.cancel();
     super.dispose();
   }
@@ -129,6 +174,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     _driverIcon = await _buildDriverIcon();
     _annotationManager = await map.annotations.createPointAnnotationManager();
     _updateDriverMarker();
+    map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    map.compass.updateSettings(CompassSettings(enabled: false));
+    map.attribution.updateSettings(AttributionSettings(enabled: false));
+    map.logo.updateSettings(LogoSettings(enabled: false));
   }
 
   /// Extracts driver lat/lng from tracking data and places/moves the marker.
@@ -214,9 +263,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
           MapWidget(
             key: const ValueKey("clientTrackingMap"),
             onMapCreated: _onMapCreated,
-            styleUri: theme.brightness == Brightness.dark
-                ? MapboxStyles.DARK
-                : MapboxStyles.MAPBOX_STREETS,
+            styleUri: MapboxStyles.MAPBOX_STREETS,
             cameraOptions: CameraOptions(
               center: Point(
                 coordinates: Position(
@@ -432,91 +479,140 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             _buildStepper(theme),
             const SizedBox(height: 24),
             const Divider(),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundImage: driverPhoto != null
-                        ? NetworkImage(driverPhoto)
-                        : null,
-                    backgroundColor: AppTheme.redSoft,
-                    child: driverPhoto == null
-                        ? const Icon(Icons.person, color: AppTheme.primaryRed)
-                        : null,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          driverName,
-                          style: GoogleFonts.inter(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                            color: AppTheme.ink,
-                          ),
-                        ),
-                        if (_trackingData?.driverPhone != null)
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.phone,
-                                size: 14,
-                                color: AppTheme.muted,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _trackingData!.driverPhone!,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: AppTheme.muted,
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      final phone = _trackingData?.driverPhone;
-                      if (phone == null || phone.isEmpty) return;
-
-                      HapticFeedback.mediumImpact();
-                      // Nettoyer le numéro (enlever espaces)
-                      final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
-                      final uri = Uri.parse('tel:$cleaned');
-
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri);
-                      } else if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('tracking.call_unavailable'.tr()),
-                          ),
-                        );
-                      }
-                    },
-                    child: Semantics(
-                      label: 'Appeler le livreur',
-                      button: true,
-                      child: CircleAvatar(
-                        radius: 26,
-                        backgroundColor: AppTheme.redSoft,
-                        child: const Icon(
-                          Icons.call_rounded,
+            if (_trackingData?.driverName == null)
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.redSoft,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
                           color: AppTheme.primaryRed,
-                          size: 24,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Recherche d\'un livreur...',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: AppTheme.ink,
+                            ),
+                          ),
+                          Text(
+                            'Votre commande est en préparation',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundImage: driverPhoto != null
+                          ? NetworkImage(driverPhoto)
+                          : null,
+                      backgroundColor: AppTheme.redSoft,
+                      child: driverPhoto == null
+                          ? const Icon(Icons.person, color: AppTheme.primaryRed)
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            driverName,
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: AppTheme.ink,
+                            ),
+                          ),
+                          if (_trackingData?.driverPhone != null)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.phone,
+                                  size: 14,
+                                  color: AppTheme.muted,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _trackingData!.driverPhone!,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: AppTheme.muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final phone = _trackingData?.driverPhone;
+                        if (phone == null || phone.isEmpty) return;
+
+                        HapticFeedback.mediumImpact();
+                        // Nettoyer le numéro (enlever espaces)
+                        final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+                        final uri = Uri.parse('tel:$cleaned');
+
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri);
+                        } else if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('tracking.call_unavailable'.tr()),
+                            ),
+                          );
+                        }
+                      },
+                      child: Semantics(
+                        label: 'Appeler le livreur',
+                        button: true,
+                        child: CircleAvatar(
+                          radius: 26,
+                          backgroundColor: AppTheme.redSoft,
+                          child: const Icon(
+                            Icons.call_rounded,
+                            color: AppTheme.primaryRed,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -7,6 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:crypto/crypto.dart';
 import 'package:logger/logger.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -62,13 +66,23 @@ class _LoginPageState extends State<LoginPage>
   Future<void> _handleGoogleSignIn(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      final account = await GoogleSignIn.instance.authenticate();
       
+      await GoogleSignIn.instance.initialize(
+        serverClientId: '224830319268-kh67cce091ssp3lse84lgo4jok2q1210.apps.googleusercontent.com',
+      );
+      
+      final account = await GoogleSignIn.instance.authenticate();
       final auth = account.authentication;
-      final idToken = auth.idToken;
+      
+      final credential = GoogleAuthProvider.credential(
+        idToken: auth.idToken,
+      );
+      
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final idToken = await userCredential.user?.getIdToken();
       
       if (idToken == null) {
-        getIt<Logger>().e("Google Sign In failed: idToken is null");
+        getIt<Logger>().e("Firebase Auth Google failed: idToken is null");
         if (context.mounted) _showError(context, 'auth.error_google'.tr());
         return;
       }
@@ -82,21 +96,50 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
+  /// Generates a cryptographically secure random nonce, to be included in a
+  /// credential request.
+  String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  /// Returns the sha256 hash of [input] in hex notation.
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
   Future<void> _handleAppleSignIn(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      final credential = await SignInWithApple.getAppleIDCredential(
+      
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
           AppleIDAuthorizationScopes.fullName,
         ],
+        nonce: nonce,
       );
-      final idToken = credential.identityToken;
+      
+      final AuthCredential credential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      );
+      
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final idToken = await userCredential.user?.getIdToken();
+
       if (idToken == null) {
-        getIt<Logger>().e("Apple Sign In failed: identityToken is null");
+        getIt<Logger>().e("Firebase Auth Apple failed: idToken is null");
         if (context.mounted) _showError(context, 'auth.error_apple'.tr());
         return;
       }
+      
       if (context.mounted) {
         context.read<AuthBloc>().add(AuthEvent.loginWithApple(token: idToken));
       }

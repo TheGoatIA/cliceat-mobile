@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
+import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import 'package:cliceat_app/features/delivery/dashboard/presentation/bloc/payout_cubit.dart';
 
 class PayoutPage extends StatefulWidget {
@@ -142,19 +143,49 @@ class _PayoutPageState extends State<PayoutPage> {
           ),
           const SizedBox(height: 12),
           if (hasAccount) ...[
-            Text(
-              '${'payout.method'.tr()}: ${account['method']?.toString().toUpperCase() ?? ''}',
-              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+            RichText(
+              text: TextSpan(
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+                children: [
+                  TextSpan(
+                    text: '${'payout.method'.tr()}: ',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: account['channel']?.toString().toUpperCase() ?? '',
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 4),
-            Text(
-              '${'payout.number'.tr()}: ${account['phoneNumber'] ?? ''}',
-              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+            RichText(
+              text: TextSpan(
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+                children: [
+                  TextSpan(
+                    text: '${'payout.number'.tr()}: ',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: account['accountNumber'] ?? '',
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 4),
-            Text(
-              '${'payout.name'.tr()}: ${account['accountName'] ?? ''}',
-              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+            RichText(
+              text: TextSpan(
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+                children: [
+                  TextSpan(
+                    text: '${'payout.name'.tr()}: ',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: account['name'] ?? '',
+                  ),
+                ],
+              ),
             ),
           ] else
             Text(
@@ -201,6 +232,23 @@ class _PayoutPageState extends State<PayoutPage> {
             onPressed: () {
               final amt = double.tryParse(_amountController.text);
               if (amt != null && amt > 0) {
+                final profileState = context.read<ProfileCubit>().state;
+                double balance = 0;
+                profileState.maybeWhen(
+                  loaded: (user) => balance = user.balance ?? 0.0,
+                  orElse: () {},
+                );
+                
+                if (amt > balance) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('payout.insufficient_balance'.tr()),
+                      backgroundColor: AppTheme.primaryRed,
+                    ),
+                  );
+                  return;
+                }
+                
                 context.read<PayoutCubit>().requestPayout(amt);
                 _amountController.clear();
               }

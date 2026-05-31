@@ -42,6 +42,12 @@ class WebSocketService {
   Stream<Map<String, dynamic>> get missionEvents =>
       _missionEventController.stream;
 
+  // Notifié quand un autre driver a accepté avant nous
+  final _missionTakenController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get missionTakenEvents =>
+      _missionTakenController.stream;
+
   final _orderTrackingEventController =
       StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get orderTrackingEvents =>
@@ -54,6 +60,13 @@ class WebSocketService {
       StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get driverLocationEvents =>
       _driverLocationController.stream;
+
+  /// Stream des mises à jour d'ETA poussées par le backend.
+  /// Payload attendu: { orderId: String, etaMinutes: int }
+  final _etaUpdateController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get etaUpdateEvents =>
+      _etaUpdateController.stream;
 
   final _chatEventController =
       StreamController<Map<String, dynamic>>.broadcast();
@@ -93,7 +106,21 @@ class WebSocketService {
 
   void emitLocationUpdate(double lat, double lng) {
     if (isConnected) {
-      _socket?.emit('delivery_location_update', {'lat': lat, 'lng': lng});
+      _socket?.emit('driver:location', {'lat': lat, 'lng': lng});
+    }
+  }
+
+  void joinOrder(String orderId) {
+    if (isConnected) {
+      _logger.i('[WS] Rejoint le salon de commande: $orderId');
+      _socket?.emit('join:order', orderId);
+    }
+  }
+
+  void leaveOrder(String orderId) {
+    if (isConnected) {
+      _logger.i('[WS] Quitte le salon de commande: $orderId');
+      _socket?.emit('leave:order', orderId);
     }
   }
 
@@ -132,9 +159,14 @@ class WebSocketService {
       _logger.d('[WS] Pong reçu.');
     });
 
-    _socket!.on('mission_dispatched', (data) {
+    _socket!.on('new_mission', (data) {
       _logger.i('[WS] Nouvelle mission: $data');
       _missionEventController.add(_toMap(data));
+    });
+
+    _socket!.on('mission_taken', (data) {
+      _logger.i('[WS] Mission prise par un autre livreur: $data');
+      _missionTakenController.add(_toMap(data));
     });
 
     _socket!.on('order_status_updated', (data) {
@@ -151,6 +183,26 @@ class WebSocketService {
     _socket!.on('driver_location_updated', (data) {
       _logger.d('[WS] Position livreur reçue: $data');
       _driverLocationController.add(_toMap(data));
+    });
+
+    _socket!.on('driver:location', (data) {
+      _logger.d('[WS] Position livreur reçue (room): $data');
+      _driverLocationController.add(_toMap(data));
+    });
+
+    _socket!.on('eta_updated', (data) {
+      _logger.d('[WS] ETA mis à jour: $data');
+      _etaUpdateController.add(_toMap(data));
+    });
+
+    _socket!.on('status_changed', (data) {
+      _logger.i('[WS] Statut commande changé (room): $data');
+      _orderTrackingEventController.add(_toMap(data));
+    });
+
+    _socket!.on('order_status', (data) {
+      _logger.i('[WS] Statut client order_status: $data');
+      _orderTrackingEventController.add(_toMap(data));
     });
 
     _socket!.onDisconnect((_) {

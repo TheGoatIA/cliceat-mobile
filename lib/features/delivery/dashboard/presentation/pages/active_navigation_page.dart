@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
+import 'package:geolocator/geolocator.dart' as geo;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/core/services/websocket_service.dart';
 
 class ActiveNavigationPage extends StatefulWidget {
   final MissionModel mission;
@@ -19,21 +24,101 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
   MapboxMap? mapboxMap;
   final String _currentInstruction = 'Tournez à droite sur Rue Sylvie';
   final String _distanceToTurn = '150 m';
-  final String _totalEta = '12 min';
-  final String _totalDistance = '2.5 km';
+  String _totalEta = 'Calcul en cours...';
+  String _totalDistance = '--';
+  StreamSubscription<geo.Position>? _positionSubscription;
 
   @override
   void initState() {
     super.initState();
+    _startPositionTracking();
+  }
+
+  @override
+  void dispose() {
+    _positionSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _startPositionTracking() {
+    // 1. Obtenir la dernière position connue pour une initialisation immédiate
+    geo.Geolocator.getLastKnownPosition().then((pos) {
+      if (pos != null && mounted) {
+        _updateDistanceAndEta(pos);
+      }
+    });
+
+    // 2. Écouter les mises à jour de position en temps réel
+    _positionSubscription = geo.Geolocator.getPositionStream(
+      locationSettings: const geo.LocationSettings(
+        accuracy: geo.LocationAccuracy.high,
+        distanceFilter: 10, // Actualise tous les 10 mètres de déplacement
+      ),
+    ).listen((geo.Position position) {
+      if (mounted) {
+        _updateDistanceAndEta(position);
+        // Émettre la position au serveur pour le suivi client en temps réel
+        getIt<WebSocketService>().emitLocationUpdate(
+          position.latitude,
+          position.longitude,
+        );
+      }
+    });
+  }
+
+  void _updateDistanceAndEta(geo.Position currentPos) {
+    final isRestaurantPhase = widget.mission.status != 'picked_up' &&
+        widget.mission.status != 'en_route';
+
+    final destLat = isRestaurantPhase 
+        ? widget.mission.restaurantLat 
+        : widget.mission.deliveryAddress?.lat;
+    final destLng = isRestaurantPhase 
+        ? widget.mission.restaurantLng 
+        : widget.mission.deliveryAddress?.lng;
+
+    if (destLat == null || destLng == null) {
+      setState(() {
+        _totalEta = 'Indisponible';
+        _totalDistance = '--';
+      });
+      return;
+    }
+
+    final distanceInMeters = geo.Geolocator.distanceBetween(
+      currentPos.latitude,
+      currentPos.longitude,
+      destLat,
+      destLng,
+    );
+
+    // Heuristique : Vitesse moyenne urbaine de 25 km/h (moto/trafic)
+    const speedKmh = 25.0;
+    final timeInSeconds = distanceInMeters / (speedKmh * 1000 / 3600);
+    final timeInMinutes = (timeInSeconds / 60).round();
+
+    setState(() {
+      if (distanceInMeters >= 1000) {
+        _totalDistance = '${(distanceInMeters / 1000).toStringAsFixed(1)} km';
+      } else {
+        _totalDistance = '${distanceInMeters.round()} m';
+      }
+      _totalEta = timeInMinutes <= 0 ? '1 min' : '$timeInMinutes min';
+    });
   }
 
   void _onMapCreated(MapboxMap mapboxMap) {
     this.mapboxMap = mapboxMap;
+    mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
+    mapboxMap.attribution.updateSettings(AttributionSettings(enabled: false));
+    mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
   }
 
   @override
   Widget build(BuildContext context) {
-    final isRestaurantPhase = widget.mission.status == 'accepted';
+    final isRestaurantPhase = widget.mission.status != 'picked_up' &&
+        widget.mission.status != 'en_route';
 
     return Scaffold(
       body: Stack(
@@ -192,6 +277,61 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                       ),
                     ],
                   ),
+                  if (widget.mission.clientPhone != null && widget.mission.clientPhone!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.lineSoft.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const CircleAvatar(
+                            radius: 18,
+                            backgroundColor: AppTheme.honeySoft,
+                            child: Icon(Icons.person, color: AppTheme.honey, size: 18),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.mission.clientName ?? 'Client',
+                                  style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: AppTheme.ink,
+                                  ),
+                                ),
+                                Text(
+                                  widget.mission.clientPhone!,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: AppTheme.muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.phone_in_talk_rounded, color: AppTheme.green),
+                            onPressed: () async {
+                              final phone = widget.mission.clientPhone;
+                              if (phone == null || phone.isEmpty) return;
+                              HapticFeedback.mediumImpact();
+                              final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+                              final uri = Uri.parse('tel:$cleaned');
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,

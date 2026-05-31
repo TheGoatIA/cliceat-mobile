@@ -22,7 +22,6 @@
     "login_subtitle_phone": "We will send you a verification code via SMS.",
     "phone_hint": "Phone number",
     "phone_error": "Please enter a valid number",
-
     "send_otp": "Send OTP Code",
     "verify_otp_title": "Verification",
     "verify_subtitle": "SMS Validation",
@@ -268,7 +267,9 @@
     "retry": "Retry",
     "retry_payment": "Retry payment",
     "failed_title": "Payment failed",
-    "failed_message": "An error occurred during verification. Please try again."
+    "failed_message": "An error occurred during verification. Please try again.",
+    "verifying": "Verifying payment...",
+    "waiting_confirmation": "Waiting for confirmation from your operator..."
   },
   "tracking": {
     "title": "Order tracking",
@@ -324,7 +325,6 @@
     "dashboard_title": "Dashboard",
     "online": "ONLINE",
     "offline": "OFFLINE",
-
     "todays_earnings": "Today's earnings",
     "deliveries": "Deliveries",
     "status": "Status",
@@ -409,7 +409,10 @@
     "client_label": "Client: ",
     "unknown_client": "Anonymous",
     "unknown_delivery_address": "Unknown delivery address",
-    "estimated_gain": "Estimated earnings"
+    "estimated_gain": "Estimated earnings",
+    "payouts": "Wallet & Payouts",
+    "accepting": "Accepting...",
+    "mission_taken_by_other": "Mission already taken by another driver."
   },
   "address": {
     "select_title": "Choose an address",
@@ -589,5 +592,26 @@
     "title": "Notifications",
     "empty_title": "No notifications",
     "empty_subtitle": "You will find your order alerts and special offers here."
-  }
+  },
+  "payout": {
+    "load_error": "Failed to load payouts",
+    "request_error": "Error requesting payout",
+    "account_error": "Failed to load payout account",
+    "update_account_error": "Error updating payout account",
+    "title": "Payouts",
+    "history": "Payout History",
+    "no_history": "No payouts yet",
+    "linked_account": "Linked Payout Account",
+    "method": "Method",
+    "number": "Number",
+    "name": "Account Name",
+    "no_account_linked": "No payout account linked",
+    "amount_to_withdraw": "Amount to withdraw",
+    "request_withdraw": "Request Payout",
+    "edit_account": "Edit Account",
+    "insufficient_balance": "Insufficient balance for payout"
+  },
+  "pending": "Pending",
+  "processed": "Processed",
+  "rejected": "Rejected"
 }

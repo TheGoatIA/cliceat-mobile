@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:logger/logger.dart';
 
 import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/core/services/websocket_service.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
 import 'package:cliceat_app/features/delivery/dashboard/presentation/bloc/mission_bloc.dart';
@@ -25,17 +28,22 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
   late AnimationController _pulseController;
   int _timeLeft = 30;
   Timer? _timer;
+  StreamSubscription<Map<String, dynamic>>? _missionTakenSub;
+  final _logger = Logger();
+  bool _accepted = false; // garde contre double-acceptation
 
   @override
   void initState() {
     super.initState();
     HapticFeedback.heavyImpact();
+    _logger.i('[Mission] Popup ouvert pour orderId: ${widget.mission.id}');
 
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
 
+    // Countdown de 30s
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_timeLeft > 0) {
         setState(() => _timeLeft--);
@@ -45,11 +53,29 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
         _onTimeout();
       }
     });
+
+    // Écouter si un autre driver prend la mission avant nous
+    _missionTakenSub = getIt<WebSocketService>().missionTakenEvents.listen((data) {
+      final takenOrderId = data['orderId']?.toString();
+      if (takenOrderId == widget.mission.id && mounted) {
+        _logger.i('[Mission] Mission ${widget.mission.id} prise par un autre driver');
+        _timer?.cancel();
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('delivery.mission_taken_by_other'.tr()),
+            backgroundColor: AppTheme.honey,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    });
   }
 
   void _onTimeout() {
     if (mounted) {
-      getIt<MissionBloc>().add(MissionEvent.rejectMission(widget.mission.id));
+      context.read<MissionBloc>().add(MissionEvent.rejectMission(widget.mission.id));
       context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -65,6 +91,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
 
   @override
   void dispose() {
+    _missionTakenSub?.cancel();
     _pulseController.dispose();
     _timer?.cancel();
     super.dispose();
@@ -72,22 +99,47 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.ink,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: SafeArea(
-            child: Column(
-              children: [
-                _buildTimerBar(),
-                const SizedBox(height: 16),
-                _buildRealMap(),
-                const SizedBox(height: 16),
-                _buildOrderDetails(),
-                const Spacer(),
-                _buildActionButtons(),
-              ],
+    return BlocListener<MissionBloc, MissionState>(
+      listener: (context, state) {
+        state.maybeWhen(
+          actionSuccess: (message) {
+            if (message == 'mission.accepted' && _accepted) {
+              context.pushReplacement('/delivery/active-navigation', extra: widget.mission);
+            }
+          },
+          error: (errorMsg) {
+            if (_accepted) {
+              setState(() => _accepted = false);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(errorMsg.tr()),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              );
+            }
+          },
+          orElse: () {},
+        );
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.ink,
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildTimerBar(),
+                  const SizedBox(height: 16),
+                  _buildRealMap(),
+                  const SizedBox(height: 16),
+                  _buildOrderDetails(),
+                  const Spacer(),
+                  _buildActionButtons(),
+                ],
+              ),
             ),
           ),
         ),
@@ -161,6 +213,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
           children: [
             MapWidget(
               key: const ValueKey("incomingMissionMapPreview"),
+              styleUri: MapboxStyles.MAPBOX_STREETS,
               cameraOptions: CameraOptions(
                 center: Point(coordinates: Position(lng, lat)),
                 zoom: 15.0,
@@ -177,6 +230,10 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
                     doubleTouchToZoomOutEnabled: false,
                   ),
                 );
+                mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+                mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
+                mapboxMap.attribution.updateSettings(AttributionSettings(enabled: false));
+                mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
               },
             ),
             const Center(
@@ -336,40 +393,45 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         children: [
-          Dismissible(
-            key: const Key('accept_slider'),
-            direction: DismissDirection.startToEnd,
-            onDismissed: (_) {
+          GestureDetector(
+            onTap: () {
+              if (_accepted) return; // Guard contre double-tap
+              if (widget.mission.id.isEmpty) {
+                _logger.e('[Mission] Impossible d\'accepter: ID vide');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Erreur: mission ID manquant'),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+                return;
+              }
+
+              setState(() => _accepted = true);
               _timer?.cancel();
               HapticFeedback.heavyImpact();
-              getIt<MissionBloc>()
-                  .add(MissionEvent.acceptMission(widget.mission.id));
-              context.pushReplacement(
-                  '/delivery/active-navigation', extra: widget.mission);
+              _logger.i('[Mission] Acceptation orderId: ${widget.mission.id}');
+
+              context.read<MissionBloc>().add(MissionEvent.acceptMission(widget.mission.id));
             },
-            background: Container(
-              decoration: BoxDecoration(
-                color: AppTheme.green,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Icon(Icons.check_rounded,
-                  color: Colors.white, size: 32),
-            ),
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               width: double.infinity,
               height: 60,
               decoration: BoxDecoration(
-                color: AppTheme.green,
+                color: _accepted ? AppTheme.green.withValues(alpha: 0.6) : AppTheme.green,
                 borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.green.withValues(alpha: 0.4),
-                    blurRadius: 16,
-                    spreadRadius: 2,
-                  ),
-                ],
+                boxShadow: _accepted
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: AppTheme.green.withValues(alpha: 0.4),
+                          blurRadius: 16,
+                          spreadRadius: 2,
+                        ),
+                      ],
               ),
               child: Stack(
                 children: [
@@ -383,13 +445,23 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.arrow_forward_ios_rounded,
-                          color: AppTheme.green, size: 18),
+                      child: _accepted
+                          ? const Padding(
+                              padding: EdgeInsets.all(14),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: AppTheme.green,
+                              ),
+                            )
+                          : const Icon(Icons.check_rounded,
+                              color: AppTheme.green, size: 24),
                     ),
                   ),
                   Center(
                     child: Text(
-                      'delivery.swipe_to_accept'.tr(),
+                      _accepted
+                          ? 'delivery.accepting'.tr()
+                          : 'delivery.accept_mission'.tr(),
                       style: GoogleFonts.inter(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -406,7 +478,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
             onPressed: () {
               HapticFeedback.mediumImpact();
               _timer?.cancel();
-              getIt<MissionBloc>()
+              context.read<MissionBloc>()
                   .add(MissionEvent.rejectMission(widget.mission.id));
               context.pop();
             },

@@ -29,11 +29,24 @@ final class _$UserService extends UserService {
   Future<Response<Map<String, dynamic>>> updateMe(Map<String, dynamic> body) {
     final Uri $url = Uri.parse('/users/me');
     final $body = body;
+    final Request $request = Request('PUT', $url, client.baseUrl, body: $body);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> updateProfilePhoto(
+    MultipartFile photo,
+  ) {
+    final Uri $url = Uri.parse('/users/me');
+    final List<PartValue> $parts = <PartValue>[
+      PartValueFile<MultipartFile>('photo', photo),
+    ];
     final Request $request = Request(
       'PATCH',
       $url,
       client.baseUrl,
-      body: $body,
+      parts: $parts,
+      multipart: true,
     );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
@@ -82,6 +95,17 @@ final class _$UserService extends UserService {
   Future<Response<Map<String, dynamic>>> deleteAddress(String id) {
     final Uri $url = Uri.parse('/users/me/addresses/${id}');
     final Request $request = Request('DELETE', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> updateAddress(
+    String id,
+    Map<String, dynamic> body,
+  ) {
+    final Uri $url = Uri.parse('/users/me/addresses/${id}');
+    final $body = body;
+    final Request $request = Request('PUT', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 

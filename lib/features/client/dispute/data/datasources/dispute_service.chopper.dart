@@ -19,7 +19,6 @@ final class _$DisputeService extends DisputeService {
   final Type definitionType = DisputeService;
 
   @override
-  @override
   Future<Response<Map<String, dynamic>>> createDispute({
     required String orderId,
     required String reason,

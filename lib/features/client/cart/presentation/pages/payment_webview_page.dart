@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,16 +9,22 @@ import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import '../../../../../core/mixins/secure_screen_mixin.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
+import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import '../../../../../core/services/analytics_service.dart';
 
 class PaymentWebviewPage extends StatefulWidget {
   final String paymentUrl;
   final String orderId;
 
+  /// Si true, après vérification du paiement, on navigue vers le wallet
+  /// et non vers la page de succès de commande.
+  final bool isWalletRecharge;
+
   const PaymentWebviewPage({
     super.key,
     required this.paymentUrl,
     required this.orderId,
+    this.isWalletRecharge = false,
   });
 
   @override
@@ -29,6 +37,13 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
   bool _loading = true;
   bool _verifying = false;
   bool _paymentFailed = false;
+
+  /// Polling pour les paiements mobiles (Orange Money, MTN, etc.)
+  /// qui ne redirigent pas toujours vers l'URL de succès.
+  Timer? _pollingTimer;
+  int _pollCount = 0;
+  static const int _maxPollAttempts = 20; // 20 x 3s = 60s max
+  static const Duration _pollInterval = Duration(seconds: 3);
 
   @override
   void initState() {
@@ -43,11 +58,12 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
             final url = request.url.toLowerCase();
 
             if (url.startsWith('cliceat://payment/success')) {
-              _verifyPaymentThenNavigate();
+              _startVerificationWithPolling();
               return NavigationDecision.prevent;
             }
             if (url.startsWith('cliceat://payment/cancel') ||
                 url.startsWith('cliceat://payment/failed')) {
+              _cancelPolling();
               context.pop();
               return NavigationDecision.prevent;
             }
@@ -56,13 +72,14 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
                 url.contains('payment_success') ||
                 url.contains('status=success') ||
                 url.contains('notchpay.co/pay/success')) {
-              _verifyPaymentThenNavigate();
+              _startVerificationWithPolling();
               return NavigationDecision.prevent;
             }
             if (url.contains('/payment/cancel') ||
                 url.contains('payment_cancel') ||
                 url.contains('status=cancel') ||
                 url.contains('status=failed')) {
+              _cancelPolling();
               context.pop();
               return NavigationDecision.prevent;
             }
@@ -76,24 +93,57 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
     getIt<AnalyticsService>().logPaymentInitiated(widget.orderId, 'notchpay');
   }
 
-  Future<void> _verifyPaymentThenNavigate() async {
+  @override
+  void dispose() {
+    _cancelPolling();
+    super.dispose();
+  }
+
+  void _cancelPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+    _pollCount = 0;
+  }
+
+  /// Lance la vérification immédiatement, puis passe en polling
+  /// si le statut est encore "initiated" (paiement mobile en cours de traitement).
+  void _startVerificationWithPolling() {
     if (_verifying) return;
     setState(() => _verifying = true);
+    _pollCount = 0;
+    _attemptVerification();
+  }
+
+  Future<void> _attemptVerification() async {
     try {
       final result =
           await getIt<OrderRepository>().verifyPayment(widget.orderId);
       if (!mounted) return;
+
       result.fold(
-        (_) {
-          setState(() => _verifying = false);
-          _showPaymentFailed();
-        },
-        (isSuccess) {
-          if (isSuccess) {
-            context.go('/client/order-success/${widget.orderId}');
+        (err) {
+          // Erreur réseau / serveur → on réessaie si on n'a pas atteint le max
+          _pollCount++;
+          if (_pollCount < _maxPollAttempts) {
+            _pollingTimer = Timer(_pollInterval, _attemptVerification);
           } else {
             setState(() => _verifying = false);
             _showPaymentFailed();
+          }
+        },
+        (isSuccess) {
+          if (isSuccess) {
+            _cancelPolling();
+            _onPaymentSuccess();
+          } else {
+            // Statut non encore "completed" (ex: initiated, pending) → polling
+            _pollCount++;
+            if (_pollCount < _maxPollAttempts) {
+              _pollingTimer = Timer(_pollInterval, _attemptVerification);
+            } else {
+              setState(() => _verifying = false);
+              _showPaymentFailed();
+            }
           }
         },
       );
@@ -102,6 +152,18 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
         setState(() => _verifying = false);
         _showPaymentFailed();
       }
+    }
+  }
+
+  void _onPaymentSuccess() {
+    if (!mounted) return;
+    if (widget.isWalletRecharge) {
+      // Rechargement wallet : rafraîchir le profil (pour le solde) puis revenir au wallet
+      context.read<ProfileCubit>().loadProfile();
+      context.go('/client/wallet');
+    } else {
+      // Paiement commande : page de succès
+      context.go('/client/order-success/${widget.orderId}');
     }
   }
 
@@ -114,6 +176,7 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
       _paymentFailed = false;
       _loading = true;
     });
+    _cancelPolling();
     _controller.reload();
   }
 
@@ -154,10 +217,23 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
                     if (_verifying) ...[
                       const SizedBox(height: 16),
                       Text(
-                        'common.loading'.tr(),
+                        _pollCount > 0
+                            ? 'payment.verifying'.tr()
+                            : 'common.loading'.tr(),
                         style: GoogleFonts.inter(
                             color: Colors.white, fontSize: 14),
                       ),
+                      if (_pollCount > 0) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          'payment.waiting_confirmation'.tr(),
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withValues(alpha: 0.65),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ],
                   ],
                 ),
@@ -270,6 +346,7 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              _cancelPolling();
               context.pop();
             },
             child: Text(

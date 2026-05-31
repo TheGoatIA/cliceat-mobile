@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
+import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
@@ -321,8 +322,20 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
   }
 
   void _showVehicleEdit(BuildContext context) {
+    final profileState = context.read<ProfileCubit>().state;
     String selectedVehicleType = 'motorcycle';
-    final plateCtrl = TextEditingController();
+    String initialPlate = '';
+    
+    profileState.maybeWhen(
+      loaded: (user) {
+        selectedVehicleType = user.vehicleType ?? 'motorcycle';
+        initialPlate = user.vehiclePlate ?? '';
+      },
+      orElse: () {},
+    );
+
+    final plateCtrl = TextEditingController(text: initialPlate);
+    bool isEditing = false;
 
     const vehicleTypes = [
       ('motorcycle', 'delivery.vehicle_motorcycle'),
@@ -348,50 +361,122 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
               Text('delivery.my_vehicle'.tr(),
                   style: GoogleFonts.bricolageGrotesque(fontWeight: FontWeight.w700, fontSize: 20, color: AppTheme.ink)),
               const SizedBox(height: 16),
-              Text('delivery.vehicle_type'.tr(),
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.inkSoft)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: vehicleTypes.map((vt) {
-                  final (value, labelKey) = vt;
-                  final selected = selectedVehicleType == value;
-                  return ChoiceChip(
-                    label: Text(labelKey.tr()),
-                    selected: selected,
-                    onSelected: (_) => setSheetState(() => selectedVehicleType = value),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: plateCtrl,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(
-                  labelText: 'delivery.vehicle_plate'.tr(),
-                  hintText: 'LT 1234 CM',
-                  prefixIcon: const Icon(Icons.pin_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              
+              if (!isEditing) ...[
+                // Read-only view
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.bg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.lineSoft),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('delivery.vehicle_type'.tr(), style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted)),
+                      const SizedBox(height: 4),
+                      Text(
+                        vehicleTypes.firstWhere((vt) => vt.$1 == selectedVehicleType, orElse: () => vehicleTypes.first).$2.tr(),
+                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.ink),
+                      ),
+                      const Divider(height: 24, color: AppTheme.lineSoft),
+                      Text('delivery.vehicle_plate'.tr(), style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted)),
+                      const SizedBox(height: 4),
+                      Text(
+                        initialPlate.isEmpty ? '-' : initialPlate,
+                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.ink),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    await getIt<UserRepository>().updateProfile({
-                      'deliveryman': {
-                        'vehicleType': selectedVehicleType,
-                        'vehiclePlate':
-                            plateCtrl.text.trim().toUpperCase(),
-                      }
-                    });
-                    _loadProfile();
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setSheetState(() => isEditing = true);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primaryRed,
+                      side: const BorderSide(color: AppTheme.primaryRed),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text('payout.edit_account'.tr(), style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ] else ...[
+                // Edit view
+                Text('delivery.vehicle_type'.tr(),
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.inkSoft)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: vehicleTypes.map((vt) {
+                    final (value, labelKey) = vt;
+                    final selected = selectedVehicleType == value;
+                    return ChoiceChip(
+                      label: Text(labelKey.tr()),
+                      selected: selected,
+                      onSelected: (_) => setSheetState(() => selectedVehicleType = value),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: plateCtrl,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    labelText: 'delivery.vehicle_plate'.tr(),
+                    hintText: 'LT 1234 CM',
+                    prefixIcon: const Icon(Icons.pin_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(ctx);
+                      final result = await getIt<UserRepository>().updateProfile({
+                        'deliveryman': {
+                          'vehicleType': selectedVehicleType,
+                          'vehiclePlate':
+                              plateCtrl.text.trim().toUpperCase(),
+                        }
+                      });
+
+                    result.fold(
+                      (err) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(err.message.tr())),
+                          );
+                        }
+                      },
+                      (user) {
+                        if (mounted) {
+                          setState(() {
+                            _user = user;
+                          });
+                          context.read<ProfileCubit>().emitLoaded(user);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Véhicule mis à jour avec succès"),
+                              backgroundColor: AppTheme.successColor,
+                            ),
+                          );
+                        }
+                      },
+                    );
                   },
                   child: Text('common.save'.tr()),
                 ),
               ),
+              ],
             ],
           ),
         ),
@@ -430,9 +515,32 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  await getIt<UserRepository>().updateProfile(
+                  final result = await getIt<UserRepository>().updateProfile(
                       {'name': nameController.text.trim()});
-                  _loadProfile();
+                  
+                  result.fold(
+                    (err) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(err.message.tr())),
+                        );
+                      }
+                    },
+                    (user) {
+                      if (mounted) {
+                        setState(() {
+                          _user = user;
+                        });
+                        context.read<ProfileCubit>().emitLoaded(user);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Profil mis à jour avec succès"),
+                            backgroundColor: AppTheme.successColor,
+                          ),
+                        );
+                      }
+                    },
+                  );
                 },
                 child: Text('common.save'.tr()),
               ),

@@ -29,6 +29,7 @@ import '../../features/client/home/data/datasources/promotion_service.dart';
 import '../../features/delivery/dashboard/data/datasources/payout_service.dart';
 
 import '../network/pinned_client_provider.dart';
+import '../network/safe_json_converter.dart';
 
 @module
 abstract class NetworkModule {
@@ -59,7 +60,7 @@ abstract class NetworkModule {
         PromotionService.create(),
         PayoutService.create(),
       ],
-      converter: const JsonConverter(),
+      converter: const SafeJsonConverter(),
       interceptors: [
         ConnectivityInterceptor(),
         const TimeoutInterceptor(),

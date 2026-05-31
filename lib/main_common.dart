@@ -26,6 +26,7 @@ import 'package:cliceat_app/features/client/cart/presentation/bloc/cart_cubit.da
 import 'firebase_options.dart';
 import 'core/config/env_config.dart';
 import 'package:http_certificate_pinning/http_certificate_pinning.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 /// Bootstrap commun à tous les flavors.
 /// Appelé depuis [main_dev.dart], [main_staging.dart] et [main_prod.dart]
@@ -58,7 +59,11 @@ Future<void> _bootstrap() async {
 
   debugPrint('🌍 Initializing EasyLocalization...');
   await EasyLocalization.ensureInitialized();
-  debugPrint('✅ EasyLocalization Initialized');
+  await initializeDateFormatting('fr', null);
+  await initializeDateFormatting('en', null);
+  await initializeDateFormatting('fr_FR', null);
+  await initializeDateFormatting('en_US', null);
+  debugPrint('✅ EasyLocalization and Date Formatting Initialized');
 
   debugPrint('🔥 Initializing Firebase...');
   await Firebase.initializeApp(
@@ -158,30 +163,44 @@ class ClicEatApp extends StatelessWidget {
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, mode) {
-          return MaterialApp.router(
-            title: 'ClicEat',
-            localizationsDelegates: context.localizationDelegates,
-            supportedLocales: context.supportedLocales,
-            locale: context.locale,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.light,
-            routerConfig: appRouter,
-            debugShowCheckedModeBanner: false,
-            builder: (context, child) {
-              Widget widget = child!;
-              // Bannière de flavor en overlay (dev/staging uniquement)
-              if (!FlavorConfig.isProd) {
-                widget = Banner(
-                  message: FlavorConfig.name,
-                  location: BannerLocation.topEnd,
-                  color: FlavorConfig.isDev ? Colors.red : Colors.orange,
-                  child: widget,
-                );
-              }
-              // Bannière de connectivité (offline)
-              return ConnectivityBanner(child: widget);
+          return BlocListener<AuthBloc, AuthState>(
+            listener: (context, state) {
+              state.maybeWhen(
+                authenticated: (token, userId, currentMode) {
+                  context.read<ProfileCubit>().loadProfile();
+                },
+                unauthenticated: () {
+                  context.read<ProfileCubit>().clear();
+                  context.read<CartCubit>().clearCart();
+                },
+                orElse: () {},
+              );
             },
+            child: MaterialApp.router(
+              title: 'ClicEat',
+              localizationsDelegates: context.localizationDelegates,
+              supportedLocales: context.supportedLocales,
+              locale: context.locale,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: ThemeMode.light,
+              routerConfig: appRouter,
+              debugShowCheckedModeBanner: false,
+              builder: (context, child) {
+                Widget widget = child!;
+                // Bannière de flavor en overlay (dev/staging uniquement)
+                if (!FlavorConfig.isProd) {
+                  widget = Banner(
+                    message: FlavorConfig.name,
+                    location: BannerLocation.topEnd,
+                    color: FlavorConfig.isDev ? Colors.red : Colors.orange,
+                    child: widget,
+                  );
+                }
+                // Bannière de connectivité (offline)
+                return ConnectivityBanner(child: widget);
+              },
+            ),
           );
         },
       ),

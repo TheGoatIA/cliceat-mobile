@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import '../bloc/mission_bloc.dart';
 import '../../data/models/mission_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DropoffPage extends StatefulWidget {
   final MissionModel mission;
@@ -27,10 +28,12 @@ class _DropoffPageState extends State<DropoffPage> {
     super.dispose();
   }
 
-  bool get _requiresCode => widget.mission.paymentMethod?.toLowerCase() == 'cash';
+  bool get _requiresCode =>
+      widget.mission.paymentMethod?.toLowerCase() == 'cash';
 
   void _onConfirm() {
-    if (_requiresCode && (_codeController.text.isEmpty || _codeController.text.length < 4)) {
+    if (_requiresCode &&
+        (_codeController.text.isEmpty || _codeController.text.length < 4)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('delivery.error_code_required'.tr()),
@@ -43,13 +46,16 @@ class _DropoffPageState extends State<DropoffPage> {
     HapticFeedback.heavyImpact();
     setState(() => _isSubmitting = true);
 
-    context.read<MissionBloc>().add(MissionEvent.updateStatus(
-          widget.mission.id,
-          'delivered',
-          metadata: {
-            if (_codeController.text.isNotEmpty) 'confirmationCode': _codeController.text,
-          },
-        ));
+    context.read<MissionBloc>().add(
+      MissionEvent.updateStatus(
+        widget.mission.id,
+        'delivered',
+        metadata: {
+          if (_codeController.text.isNotEmpty)
+            'confirmationCode': _codeController.text,
+        },
+      ),
+    );
   }
 
   @override
@@ -62,11 +68,14 @@ class _DropoffPageState extends State<DropoffPage> {
             context.go('/delivery');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('delivery.delivery_success_bonus'.tr(args: ['1 500'])),
+                content: Text(
+                  'delivery.delivery_success_bonus'.tr(args: ['1 500']),
+                ),
                 backgroundColor: AppTheme.green,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           },
@@ -78,7 +87,8 @@ class _DropoffPageState extends State<DropoffPage> {
                 backgroundColor: AppTheme.primaryRed,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           },
@@ -119,9 +129,10 @@ class _DropoffPageState extends State<DropoffPage> {
                       Text(
                         'delivery.enter_confirmation_code'.tr(),
                         style: GoogleFonts.inter(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                            color: AppTheme.ink),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          color: AppTheme.ink,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Container(
@@ -143,12 +154,19 @@ class _DropoffPageState extends State<DropoffPage> {
                           decoration: InputDecoration(
                             hintText: '123456',
                             hintStyle: GoogleFonts.inter(
-                                fontSize: 16, color: AppTheme.mutedLight),
-                            prefixIcon: const Icon(Icons.lock_outline,
-                                color: AppTheme.muted, size: 20),
+                              fontSize: 16,
+                              color: AppTheme.mutedLight,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: AppTheme.muted,
+                              size: 20,
+                            ),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 14),
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
                           ),
                           validator: (v) =>
                               (v == null || v.isEmpty) ? 'Required' : null,
@@ -156,11 +174,13 @@ class _DropoffPageState extends State<DropoffPage> {
                       ),
                       const SizedBox(height: 32),
                     ],
-                    
+
                     if (_isSubmitting)
                       const Center(
                         child: CircularProgressIndicator(
-                            color: AppTheme.primaryRed, strokeWidth: 2),
+                          color: AppTheme.primaryRed,
+                          strokeWidth: 2,
+                        ),
                       )
                     else
                       _buildSlider(),
@@ -200,6 +220,42 @@ class _DropoffPageState extends State<DropoffPage> {
             widget.mission.deliveryAddress?.address ?? 'Akwa, Douala',
             style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
           ),
+          if (widget.mission.clientPhone != null &&
+              widget.mission.clientPhone!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.green,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () async {
+                  final phone = widget.mission.clientPhone;
+                  if (phone == null || phone.isEmpty) return;
+                  HapticFeedback.mediumImpact();
+                  final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+                  final uri = Uri.parse('tel:$cleaned');
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri);
+                  }
+                },
+                icon: const Icon(Icons.phone_in_talk_rounded, size: 18),
+                label: Text(
+                  'Appeler le client',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -233,7 +289,9 @@ class _DropoffPageState extends State<DropoffPage> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: _requiresCode ? AppTheme.honeySoft : AppTheme.greenSoft,
+                  color: _requiresCode
+                      ? AppTheme.honeySoft
+                      : AppTheme.greenSoft,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -249,9 +307,10 @@ class _DropoffPageState extends State<DropoffPage> {
                       ? 'delivery.cash_to_collect'.tr()
                       : 'delivery.online_paid'.tr(),
                   style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: AppTheme.ink),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: AppTheme.ink,
+                  ),
                 ),
               ),
               Text(
@@ -282,7 +341,8 @@ class _DropoffPageState extends State<DropoffPage> {
               backgroundColor: AppTheme.primaryRed,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
           return false;
@@ -292,7 +352,9 @@ class _DropoffPageState extends State<DropoffPage> {
       },
       background: Container(
         decoration: BoxDecoration(
-            color: AppTheme.green, borderRadius: BorderRadius.circular(30)),
+          color: AppTheme.green,
+          borderRadius: BorderRadius.circular(30),
+        ),
         alignment: Alignment.centerLeft,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(Icons.check_rounded, color: Colors.white, size: 32),
@@ -320,20 +382,26 @@ class _DropoffPageState extends State<DropoffPage> {
               child: Container(
                 width: 52,
                 decoration: const BoxDecoration(
-                    color: Colors.white, shape: BoxShape.circle),
-                child: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppTheme.green, size: 18),
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: AppTheme.green,
+                  size: 18,
+                ),
               ),
             ),
             Center(
               child: Text(
                 'delivery.confirm_dropoff'.tr(),
                 style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),

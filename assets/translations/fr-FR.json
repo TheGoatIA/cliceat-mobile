@@ -22,7 +22,6 @@
     "login_subtitle_phone": "Nous vous enverrons un code de validation par SMS.",
     "phone_hint": "Numéro de téléphone",
     "phone_error": "Veuillez entrer un numéro valide",
-
     "send_otp": "Envoyer le code OTP",
     "verify_otp_title": "Vérification",
     "verify_subtitle": "Validation SMS",
@@ -268,7 +267,9 @@
     "retry": "Réessayer",
     "retry_payment": "Réessayer le paiement",
     "failed_title": "Paiement échoué",
-    "failed_message": "Une erreur est survenue lors de la vérification. Veuillez réessayer."
+    "failed_message": "Une erreur est survenue lors de la vérification. Veuillez réessayer.",
+    "verifying": "Vérification en cours...",
+    "waiting_confirmation": "En attente de confirmation de votre opérateur..."
   },
   "tracking": {
     "title": "Suivi de commande",
@@ -326,7 +327,6 @@
     "offline": "HORS LIGNE",
     "status_waiting": "En attente de commandes...",
     "status_offline": "Vous êtes hors ligne",
-
     "todays_earnings": "Gains du jour",
     "deliveries": "Livraisons",
     "status": "Statut",
@@ -401,7 +401,7 @@
     "go_online_hint": "Activez le switch pour recevoir des missions",
     "waiting_mission": "En attente d'une nouvelle mission…",
     "deliveries_today": "Livraisons aujourd'hui",
-    "order_short_id": "Commande #{}" ,
+    "order_short_id": "Commande #{}",
     "delivered_to": "Livré à {}",
     "mission_expired": "Mission expirée. Temps dépassé.",
     "new_mission": "NOUVELLE MISSION",
@@ -411,7 +411,10 @@
     "client_label": "Client : ",
     "unknown_client": "Anonyme",
     "unknown_delivery_address": "Adresse de livraison inconnue",
-    "estimated_gain": "Gain estimé"
+    "estimated_gain": "Gain estimé",
+    "payouts": "Portefeuille & Retraits",
+    "accepting": "Acceptation en cours...",
+    "mission_taken_by_other": "Mission déjà prise par un autre livreur."
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -591,5 +594,26 @@
     "title": "Notifications",
     "empty_title": "Aucune notification",
     "empty_subtitle": "Vous retrouverez ici vos alertes de commandes et offres spéciales."
-  }
+  },
+  "payout": {
+    "load_error": "Impossible de charger les retraits",
+    "request_error": "Erreur lors de la demande de retrait",
+    "account_error": "Impossible de charger le compte de retrait",
+    "update_account_error": "Erreur lors de la mise à jour du compte",
+    "title": "Retraits",
+    "history": "Historique des retraits",
+    "no_history": "Aucun retrait effectué pour le moment",
+    "linked_account": "Compte de retrait lié",
+    "method": "Méthode",
+    "number": "Numéro",
+    "name": "Nom du compte",
+    "no_account_linked": "Aucun compte de retrait configuré",
+    "amount_to_withdraw": "Montant à retirer",
+    "request_withdraw": "Demander le retrait",
+    "edit_account": "Modifier le compte",
+    "insufficient_balance": "Solde insuffisant pour le retrait"
+  },
+  "pending": "En attente",
+  "processed": "Traité",
+  "rejected": "Rejeté"
 }

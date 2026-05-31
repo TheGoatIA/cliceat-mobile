@@ -15,5 +15,6 @@ class AuthState with _$AuthState {
   const factory AuthState.emailVerified() = _EmailVerified;
   const factory AuthState.forgotPasswordEmailSent({required String email}) = _ForgotPasswordEmailSent;
   const factory AuthState.resetPasswordSuccess() = _ResetPasswordSuccess;
+  const factory AuthState.driverRegistrationSuccess() = _DriverRegistrationSuccess;
   const factory AuthState.error({required String message}) = _Error;
 }

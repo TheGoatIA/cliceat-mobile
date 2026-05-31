@@ -265,6 +265,16 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i974.Logger>(),
       ),
     );
+    gh.lazySingleton<_i1060.OrderRepository>(
+      () => _i1060.OrderRepository(
+        gh<_i271.OrderService>(),
+        gh<_i816.PaymentService>(),
+        gh<_i667.WalletService>(),
+        gh<_i930.TrackingService>(),
+        gh<_i427.OrderDao>(),
+        gh<_i974.Logger>(),
+      ),
+    );
     gh.factory<_i1030.ReferralRepository>(
       () => _i1030.ReferralRepository(gh<_i596.ReferralService>()),
     );
@@ -298,16 +308,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i173.PlatformRepository>(
       () => _i173.PlatformRepository(gh<_i525.PlatformService>()),
-    );
-    gh.lazySingleton<_i1060.OrderRepository>(
-      () => _i1060.OrderRepository(
-        gh<_i271.OrderService>(),
-        gh<_i816.PaymentService>(),
-        gh<_i667.WalletService>(),
-        gh<_i930.TrackingService>(),
-        gh<_i427.OrderDao>(),
-        gh<_i974.Logger>(),
-      ),
     );
     gh.lazySingleton<_i573.AuthRepository>(
       () => _i573.AuthRepository(

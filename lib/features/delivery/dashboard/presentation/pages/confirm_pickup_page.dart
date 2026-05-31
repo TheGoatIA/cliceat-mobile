@@ -61,7 +61,11 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
           elevation: 0,
           surfaceTintColor: Colors.transparent,
           title: Text(
-            'delivery.confirm_pickup_title'.tr(args: [widget.mission.id.substring(widget.mission.id.length - 5)]),
+            'delivery.confirm_pickup_title'.tr(args: [
+              widget.mission.id.length > 5
+                  ? widget.mission.id.substring(widget.mission.id.length - 5)
+                  : widget.mission.id
+            ]),
             style: GoogleFonts.bricolageGrotesque(
               fontWeight: FontWeight.w700,
               fontSize: 18,
