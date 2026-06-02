@@ -16,10 +16,21 @@ class CouponRepository {
     try {
       final res = await _service.validateCoupon(code);
       if (res.isSuccessful && res.body != null) {
-        return Right(CouponModel.fromJson(res.body!));
+        final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final isValid = data['isValid'] as bool? ?? true;
+        if (!isValid) {
+          final reason = data['reason']?.toString() ?? 'checkout.coupon_invalid';
+          return Left(AppError(
+            message: reason,
+            statusCode: res.statusCode,
+            type: AppErrorType.validation,
+          ));
+        }
+        final coupon = CouponModel.fromJson(res.body!);
+        return Right(coupon.code.isEmpty ? coupon.copyWith(code: code) : coupon);
       }
       return Left(AppError.fromResponse(
-          res.body, 'checkout.coupon_invalid',
+          res.body ?? res.error, 'checkout.coupon_invalid',
           statusCode: res.statusCode));
     } catch (_) {
       return Left(AppError.network());
@@ -36,7 +47,7 @@ class CouponRepository {
             .map(BannerModel.fromJson)
             .toList());
       }
-      return Left(AppError.fromResponse(res.body, 'common.error'));
+      return Left(AppError.fromResponse(res.body ?? res.error, 'common.error'));
     } catch (_) {
       return Left(AppError.network());
     }
@@ -53,7 +64,7 @@ class CouponRepository {
             .map(CouponModel.fromJson)
             .toList());
       }
-      return Left(AppError.fromResponse(res.body, 'common.error'));
+      return Left(AppError.fromResponse(res.body ?? res.error, 'common.error'));
     } catch (_) {
       return Left(AppError.network());
     }

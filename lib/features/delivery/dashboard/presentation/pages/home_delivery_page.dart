@@ -40,6 +40,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
+  bool _hasPromptedResume = false;
 
   @override
   void initState() {
@@ -57,6 +58,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
 
     _wsSubscription = getIt<WebSocketService>().missionEvents.listen((data) {
       _missionBloc.add(MissionEvent.loadActiveMissions());
+      _loadEarnings();
     });
 
     _loadEarnings();
@@ -193,35 +195,141 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     _locationSubscription = null;
   }
 
+  void _promptResumeDelivery(MissionModel mission) {
+    final isEnRoute = mission.status == 'picked_up' || mission.status == 'en_route';
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: AppTheme.primaryRed, size: 28),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Livraison en cours',
+                style: GoogleFonts.bricolageGrotesque(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: AppTheme.ink,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Vous avez une commande en cours de livraison (#${mission.id.substring(mission.id.length - 6).toUpperCase()}). '
+          'Souhaitez-vous reprendre la navigation immédiatement ?',
+          style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Plus tard',
+              style: GoogleFonts.inter(color: AppTheme.muted, fontWeight: FontWeight.w500),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (isEnRoute) {
+                context.push('/delivery/dropoff', extra: mission);
+              } else {
+                context.push('/delivery/active-navigation', extra: mission);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryRed,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+            child: Text(
+              'Reprendre',
+              style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: context.colors.bg,
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(theme, isDark),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 20),
-                  _buildOnlineToggle(theme),
-                  const SizedBox(height: 20),
-                  _buildStatusCard(theme),
-                  const SizedBox(height: 24),
-                  _buildTodayStats(theme),
-                  const SizedBox(height: 24),
-                  _buildMissionsSection(theme),
-                ],
+    return BlocListener<MissionBloc, MissionState>(
+      bloc: _missionBloc,
+      listener: (context, state) {
+        state.maybeWhen(
+          loaded: (missionsData) {
+            final allMissions = missionsData
+                .map((m) => MissionModel.fromJson(m))
+                .toList();
+
+            final activeMissions = allMissions
+                .where((m) =>
+                    m.status != 'delivered' &&
+                    m.status != 'cancelled' &&
+                    m.status != 'anomaly')
+                .toList();
+
+            if (activeMissions.isNotEmpty && !_hasPromptedResume) {
+              _hasPromptedResume = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _promptResumeDelivery(activeMissions.first);
+              });
+            }
+          },
+          actionSuccess: (_) {
+            _loadEarnings();
+            _missionBloc.add(MissionEvent.loadActiveMissions());
+          },
+          orElse: () {},
+        );
+      },
+      child: Scaffold(
+        backgroundColor: context.colors.bg,
+        body: RefreshIndicator(
+          color: AppTheme.primaryRed,
+          backgroundColor: Colors.white,
+          onRefresh: () async {
+            HapticFeedback.mediumImpact();
+            await Future.wait([
+              _loadEarnings(),
+              _loadInitialStatus(),
+            ]);
+            _missionBloc.add(MissionEvent.loadActiveMissions());
+          },
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              _buildAppBar(theme, isDark),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 20),
+                      _buildOnlineToggle(theme),
+                      const SizedBox(height: 20),
+                      _buildStatusCard(theme),
+                      const SizedBox(height: 24),
+                      _buildTodayStats(theme),
+                      const SizedBox(height: 24),
+                      _buildMissionsSection(theme),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -760,6 +868,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
 
             final recentMissions = allMissions
                 .where((m) => m.status == 'delivered')
+                .take(5)
                 .toList();
 
             return Column(

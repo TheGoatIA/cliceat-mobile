@@ -72,7 +72,9 @@ class NotificationService {
     await _localNotifications.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: (response) {
-        _logger.i('[Notif] Tap sur notification locale — payload: ${response.payload}');
+        _logger.i(
+          '[Notif] Tap sur notification locale — payload: ${response.payload}',
+        );
         _routeFromPayloadString(response.payload ?? '');
       },
     );
@@ -125,7 +127,9 @@ class NotificationService {
           GoRouter.of(context).push('/delivery/incoming', extra: mission);
         }
       } catch (e) {
-        _logger.e('[WS Global] Erreur de parsing ou affichage popup mission: $e');
+        _logger.e(
+          '[WS Global] Erreur de parsing ou affichage popup mission: $e',
+        );
       }
     });
 
@@ -141,7 +145,9 @@ class NotificationService {
         if (isLoggedIn) {
           final lang = Intl.getCurrentLocale().split('_').first;
           await getIt<UserRepository>().registerFcmToken(newToken, lang: lang);
-          _logger.i('[Notif] Nouveau token FCM enregistré suite au rafraîchissement.');
+          _logger.i(
+            '[Notif] Nouveau token FCM enregistré suite au rafraîchissement.',
+          );
         }
       } catch (e) {
         _logger.w('[Notif] Échec de l\'enregistrement du token rafraîchi: $e');
@@ -210,14 +216,21 @@ class NotificationService {
   }
 
   Future<void> _navigate(String type, String orderId) async {
+    int retries = 0;
+    while ((_navigatorKey == null || _navigatorKey?.currentContext == null) &&
+        retries < 25) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      retries++;
+    }
     final context = _navigatorKey?.currentContext;
-    if (context == null) return;
+    if (context == null || !context.mounted) return;
     final router = GoRouter.of(context);
 
     switch (type) {
       case 'new_mission':
         router.go('/delivery');
         if (orderId.isNotEmpty) {
+          bool dialogOpened = false;
           try {
             // Attendre un tout petit instant pour s'assurer que la route /delivery s'est chargée
             await Future.delayed(const Duration(milliseconds: 150));
@@ -231,33 +244,44 @@ class NotificationService {
                 child: CircularProgressIndicator(color: AppTheme.primaryRed),
               ),
             );
+            dialogOpened = true;
 
             // Charger les détails de la commande
             final response = await getIt<OrderService>().getOrderById(orderId);
-            
+
             // Fermer le dialogue de chargement
-            if (context.mounted) {
+            if (dialogOpened && context.mounted) {
               Navigator.of(context).pop();
+              dialogOpened = false;
             }
 
-            if (response.isSuccessful && response.body != null && context.mounted) {
-              final data = response.body!['data'] as Map<String, dynamic>? ?? response.body!;
+            if (response.isSuccessful &&
+                response.body != null &&
+                context.mounted) {
+              final data =
+                  response.body!['data'] as Map<String, dynamic>? ??
+                  response.body!;
               final orderData = data['order'] as Map<String, dynamic>? ?? data;
               final mission = MissionModel.fromJson(orderData);
-              
+
               // Rediriger vers l'écran d'acceptation de la mission
               context.push('/delivery/incoming', extra: mission);
             } else if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Impossible de charger les détails de la mission.'),
+                  content: Text(
+                    'Impossible de charger les détails de la mission.',
+                  ),
                   backgroundColor: AppTheme.errorColor,
                 ),
               );
             }
           } catch (e) {
-            if (context.mounted) {
+            if (dialogOpened && context.mounted) {
               Navigator.of(context).pop();
+              dialogOpened = false;
+            }
+            if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Erreur lors du chargement de la mission: $e'),

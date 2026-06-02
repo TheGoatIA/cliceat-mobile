@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/shared/models/address_model.dart';
@@ -76,10 +78,47 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
             const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
+      String addressStr = 'address.current_location'.tr();
+      String labelStr = 'address.current_location'.tr();
+
+      try {
+        final url = Uri.parse(
+            'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.latitude}&lon=${position.longitude}&zoom=18&addressdetails=1');
+        final response = await http.get(
+          url,
+          headers: {
+            'User-Agent': 'ClicEat-App-Mobile/1.0.0 (contact@cliceat.com)',
+            'Accept-Language': 'fr',
+          },
+        ).timeout(const Duration(seconds: 4));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data is Map<String, dynamic>) {
+            final displayName = data['display_name']?.toString();
+            final addressObj = data['address'] as Map<String, dynamic>?;
+            if (displayName != null && displayName.isNotEmpty) {
+              addressStr = displayName;
+            }
+            if (addressObj != null) {
+              final neighborhood = addressObj['neighbourhood']?.toString() ??
+                  addressObj['suburb']?.toString() ??
+                  addressObj['quarter']?.toString() ??
+                  addressObj['city_district']?.toString() ??
+                  addressObj['town']?.toString() ??
+                  addressObj['village']?.toString() ??
+                  addressObj['city']?.toString() ??
+                  'address.current_location'.tr();
+              labelStr = neighborhood;
+            }
+          }
+        }
+      } catch (_) {}
+
       if (mounted) {
         final address = {
-          'address': 'address.current_location'.tr(),
-          'label': 'address.current_location'.tr(),
+          'address': addressStr,
+          'label': labelStr,
           'lat': position.latitude,
           'lng': position.longitude,
         };

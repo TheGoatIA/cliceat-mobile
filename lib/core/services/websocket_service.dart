@@ -174,6 +174,11 @@ class WebSocketService {
       _orderTrackingEventController.add(_toMap(data));
     });
 
+    _socket!.on('driver_assigned', (data) {
+      _logger.i('[WS] Livreur assigné: $data');
+      _orderTrackingEventController.add(_toMap(data));
+    });
+
     _socket!.on('new_message', (data) {
       _logger.i('[WS] Nouveau message chat: $data');
       _chatEventController.add(_toMap(data));

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import '../../../../../core/theme/app_theme.dart';
@@ -125,19 +126,102 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 );
               },
               invoiceDownloaded: (path) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('order.invoice_downloaded'.tr()),
-                    backgroundColor: AppTheme.successColor,
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                showModalBottomSheet(
+                  context: context,
+                  backgroundColor: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
+                  builder: (ctx) => SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: const BoxDecoration(
+                              color: AppTheme.redSoft,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.picture_as_pdf_rounded,
+                              color: AppTheme.primaryRed,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Facture téléchargée',
+                            style: GoogleFonts.bricolageGrotesque(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.ink,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'La facture a été enregistrée en local.',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: AppTheme.muted,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    OpenFilex.open(path);
+                                  },
+                                  icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
+                                  label: const Text('Visualiser'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.ink,
+                                    side: BorderSide(color: AppTheme.lineSoft),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    SharePlus.instance.share(
+                                      ShareParams(
+                                        files: [XFile(path)],
+                                        text: 'Facture ClicEat',
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.share_outlined, size: 18),
+                                  label: const Text('Partager'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.primaryRed,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
-                // ignore: deprecated_member_use
-                Share.shareXFiles([XFile(path)], text: 'Facture ClicEat');
               },
               orElse: () {},
             );

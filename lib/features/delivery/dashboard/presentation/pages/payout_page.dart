@@ -66,11 +66,71 @@ class _PayoutPageState extends State<PayoutPage> {
 
   Widget _buildContent(BuildContext context, List<Map<String, dynamic>> payouts,
       Map<String, dynamic>? account) {
+    final profileState = context.watch<ProfileCubit>().state;
+    final double balance = profileState.maybeWhen(
+      loaded: (user) => (user.balance ?? 0.0).toDouble(),
+      orElse: () => 0.0,
+    );
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppTheme.primaryRed, Color(0xFFE53935)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryRed.withValues(alpha: 0.3),
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 8),
+                )
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'wallet.current_balance'.tr().toUpperCase(),
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '${balance.toStringAsFixed(0)} FCFA',
+                  style: GoogleFonts.bricolageGrotesque(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           _buildAccountCard(context, account),
           const SizedBox(height: 20),
           _buildPayoutAction(context),

@@ -10,6 +10,7 @@ class MissionModel {
   final double? restaurantLng;
   final AddressModel? deliveryAddress;
   final double earnings;
+  final double total;
   final String? clientName;
   final String? clientPhone;
   final DateTime? createdAt;
@@ -25,6 +26,7 @@ class MissionModel {
     this.restaurantLng,
     this.deliveryAddress,
     this.earnings = 0.0,
+    this.total = 0.0,
     this.clientName,
     this.clientPhone,
     this.createdAt,
@@ -93,22 +95,29 @@ class MissionModel {
         (json['deliveryEarnings'] as num?)?.toDouble() ??
         (json['earnings'] as num?)?.toDouble() ??
         0.0;
+
+    final total = (json['total'] as num?)?.toDouble() ??
+        (json['totalAmount'] as num?)?.toDouble() ??
+        0.0;
  
     return MissionModel(
       id: id,
       status: json['status']?.toString() ?? 'pending',
       restaurantName: resolvedRestaurantName,
       restaurantAddress: resolvedRestaurantAddress,
-      restaurantLat: effectiveCoords != null && effectiveCoords.length >= 2
-          ? (effectiveCoords[1] as num?)?.toDouble()
-          : null,
-      restaurantLng: effectiveCoords != null && effectiveCoords.length >= 2
-          ? (effectiveCoords[0] as num?)?.toDouble()
-          : null,
+      restaurantLat: (json['restaurantLat'] as num?)?.toDouble() ??
+          (effectiveCoords != null && effectiveCoords.length >= 2
+              ? (effectiveCoords[1] as num?)?.toDouble()
+              : null),
+      restaurantLng: (json['restaurantLng'] as num?)?.toDouble() ??
+          (effectiveCoords != null && effectiveCoords.length >= 2
+              ? (effectiveCoords[0] as num?)?.toDouble()
+              : null),
       deliveryAddress: deliveryAddrRaw != null
           ? AddressModel.fromJson(deliveryAddrRaw)
           : null,
       earnings: earnings,
+      total: total,
       clientName: client?['name']?.toString(),
       clientPhone: client?['phone']?.toString(),
       createdAt: json['createdAt'] != null
@@ -127,8 +136,19 @@ class MissionModel {
         '_id': id,
         'status': status,
         if (restaurantName != null) 'restaurantName': restaurantName,
+        if (restaurantAddress != null) 'restaurantAddress': restaurantAddress,
+        if (restaurantLat != null) 'restaurantLat': restaurantLat,
+        if (restaurantLng != null) 'restaurantLng': restaurantLng,
+        if (deliveryAddress != null) 'deliveryAddress': deliveryAddress!.toJson(),
         'earnings': earnings,
+        'total': total,
+        if (clientName != null || clientPhone != null) 'client': {
+          'name': clientName,
+          'phone': clientPhone,
+        },
         if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+        'items': items.map((i) => {'name': i.name, 'quantity': i.quantity}).toList(),
+        if (paymentMethod != null) 'paymentMethod': paymentMethod,
       };
 }
 

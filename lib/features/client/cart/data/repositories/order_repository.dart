@@ -53,7 +53,7 @@ class OrderRepository extends BaseRepository {
       final res = await _orderService.estimateOrder(payload);
       if (!res.isSuccessful) {
         return Left(AppError.fromResponse(
-          res.body,
+          res.body ?? res.error,
           'order.estimate_failed',
           statusCode: res.statusCode,
         ));
@@ -85,7 +85,7 @@ class OrderRepository extends BaseRepository {
       final res = await _orderService.createOrder(payload);
       if (!res.isSuccessful) {
         return Left(AppError.fromResponse(
-          res.body,
+          res.body ?? res.error,
           'order.error_create',
           statusCode: res.statusCode,
         ));
@@ -108,7 +108,7 @@ class OrderRepository extends BaseRepository {
           final payRes = await _walletService.payOrder({'orderId': order.id});
           if (!payRes.isSuccessful) {
             return Left(AppError.fromResponse(
-              payRes.body,
+              payRes.body ?? payRes.error,
               'payment.failed',
               statusCode: payRes.statusCode,
             ));
@@ -139,7 +139,7 @@ class OrderRepository extends BaseRepository {
           });
           if (!initRes.isSuccessful) {
             return Left(AppError.fromResponse(
-              initRes.body,
+              initRes.body ?? initRes.error,
               'payment.failed',
               statusCode: initRes.statusCode,
             ));
@@ -239,7 +239,7 @@ class OrderRepository extends BaseRepository {
       }
       return Left(
         AppError.fromResponse(
-          res.body,
+          res.body ?? res.error,
           'order.error_cancel',
           statusCode: res.statusCode,
         ),
@@ -263,7 +263,7 @@ class OrderRepository extends BaseRepository {
       if (!existingRes.isSuccessful || existingRes.body == null) {
         return Left(
           AppError.fromResponse(
-            existingRes.body,
+            existingRes.body ?? existingRes.error,
             'order.error_load',
             statusCode: existingRes.statusCode,
           ),
@@ -296,7 +296,7 @@ class OrderRepository extends BaseRepository {
       }
       return Left(
         AppError.fromResponse(
-          res.body,
+          res.body ?? res.error,
           'order.error_create',
           statusCode: res.statusCode,
         ),
@@ -322,7 +322,7 @@ class OrderRepository extends BaseRepository {
       if (res.isSuccessful) return const Right(null);
       return Left(
         AppError.fromResponse(
-          res.body,
+          res.body ?? res.error,
           'order.error_rate',
           statusCode: res.statusCode,
         ),
@@ -379,7 +379,7 @@ class OrderRepository extends BaseRepository {
       }
       return Left(
         AppError.fromResponse(
-          res.body,
+          res.body ?? res.error,
           'payment.failed',
           statusCode: res.statusCode,
         ),
@@ -400,7 +400,7 @@ class OrderRepository extends BaseRepository {
       }
       return Left(
         AppError.fromResponse(
-          res.body,
+          res.body ?? res.error,
           'order.error_tracking',
           statusCode: res.statusCode,
         ),
@@ -419,7 +419,7 @@ class OrderRepository extends BaseRepository {
       }
       return Left(
         AppError.fromResponse(
-          res.body,
+          res.body ?? res.error,
           'order.error_tracking',
           statusCode: res.statusCode,
         ),

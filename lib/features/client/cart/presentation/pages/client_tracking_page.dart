@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/config/app_constants.dart';
 import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/features/client/cart/data/models/order_model.dart';
 import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import '../../../../../core/services/websocket_service.dart';
@@ -26,7 +28,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   MapboxMap? mapboxMap;
   PointAnnotationManager? _annotationManager;
   PointAnnotation? _driverAnnotation;
+  PointAnnotation? _destinationAnnotation;
   Uint8List? _driverIcon;
+  Uint8List? _destinationIcon;
+  OrderModel? _order;
 
   TrackingModel? _trackingData;
   TrackingModel? _etaData;
@@ -39,18 +44,54 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   Timer? _etaTimer;
 
   static const Map<String, int> _statusToStep = {
-    'pending': 0,
+    'pending_payment': -1,
+    'pending': -1,
     'confirmed': 0,
     'preparing': 1,
     'ready': 1,
     'picked_up': 2,
     'in_transit': 2,
+    'en_route': 2,
     'delivered': 3,
   };
 
   int get _currentStep {
-    final status = _trackingData?.status ?? 'pending';
-    return _statusToStep[status] ?? 0;
+    final status = _trackingData?.status ?? _order?.status ?? 'pending';
+    final isCash = (_order?.paymentMethod?.toLowerCase() == 'cash');
+    if (status == 'pending') {
+      if (isCash) {
+        // En attente de validation admin, pas encore confirmée
+        return -1;
+      } else {
+        // Commande déjà payée, d'office confirmée
+        return 0;
+      }
+    }
+    return _statusToStep[status] ?? -1;
+  }
+
+  String _getLoadingTitle() {
+    final status = _trackingData?.status ?? _order?.status ?? 'pending';
+    final isCash = (_order?.paymentMethod?.toLowerCase() == 'cash');
+    if (status == 'pending_payment') {
+      return 'En attente de paiement...';
+    } else if (status == 'pending' && isCash) {
+      return 'En attente de validation...';
+    } else {
+      return 'Recherche d\'un livreur...';
+    }
+  }
+
+  String _getLoadingSubtitle() {
+    final status = _trackingData?.status ?? _order?.status ?? 'pending';
+    final isCash = (_order?.paymentMethod?.toLowerCase() == 'cash');
+    if (status == 'pending_payment') {
+      return 'Veuillez finaliser le paiement pour lancer votre commande.';
+    } else if (status == 'pending' && isCash) {
+      return 'Votre commande sera confirmée après validation par un administrateur.';
+    } else {
+      return 'Votre commande est en préparation';
+    }
   }
 
   @override
@@ -79,8 +120,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     _wsSub = ws.orderTrackingEvents.listen((event) {
       if (event['orderId'] == widget.orderId ||
           event['_id'] == widget.orderId) {
+        final newStatus = event['status']?.toString();
         setState(() {
-          _trackingData = TrackingModel.fromJson({
+          final mergedMap = <String, dynamic>{
             ...(_trackingData != null
                 ? {
                     'orderId': _trackingData!.orderId,
@@ -98,9 +140,19 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                   }
                 : <String, dynamic>{}),
             ...event,
-          });
+          };
+          if (mergedMap['status'] == null || mergedMap['status'].toString().isEmpty) {
+            mergedMap['status'] = _trackingData?.status ?? _order?.status ?? 'pending';
+          }
+          _trackingData = TrackingModel.fromJson(mergedMap);
         });
         _updateDriverMarker();
+        if (newStatus == 'delivered') {
+          HapticFeedback.heavyImpact();
+          if (mounted) {
+            context.go('/client/rate/${widget.orderId}');
+          }
+        }
       }
     });
 
@@ -138,29 +190,89 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   }
 
   Future<Uint8List> _buildDriverIcon() async {
-    const size = 48.0;
+    const size = 64.0;
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
 
-    // Blue circle for driver
-    final paintOuter = Paint()..color = const Color(0xFF1565C0);
-    canvas.drawCircle(const Offset(24, 24), 20, paintOuter);
+    // Outer shadow/glow
+    final paintShadow = Paint()
+      ..color = AppTheme.primaryRed.withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(const Offset(32, 32), 26, paintShadow);
 
-    // White ring
+    // Outer primary circle (Red representing ClicEat)
+    final paintOuter = Paint()..color = AppTheme.primaryRed;
+    canvas.drawCircle(const Offset(32, 32), 24, paintOuter);
+
+    // White border ring
     final paintRing = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
-    canvas.drawCircle(const Offset(24, 24), 20, paintRing);
+    canvas.drawCircle(const Offset(32, 32), 24, paintRing);
 
-    // Scooter icon (simplified)
-    final paintIcon = Paint()..color = Colors.white;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(12, 18, 24, 8),
-        const Radius.circular(4),
+    // Draw Material Delivery Dining Icon
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
+    textPainter.text = TextSpan(
+      text: String.fromCharCode(Icons.delivery_dining_rounded.codePoint),
+      style: TextStyle(
+        fontSize: 32.0,
+        fontFamily: Icons.delivery_dining_rounded.fontFamily,
+        package: Icons.delivery_dining_rounded.fontPackage,
+        color: Colors.white,
       ),
-      paintIcon,
+    );
+    textPainter.layout();
+    
+    textPainter.paint(
+      canvas,
+      Offset(32 - textPainter.width / 2, 32 - textPainter.height / 2),
+    );
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size.toInt(), size.toInt());
+    final data = await img.toByteData(format: ui.ImageByteFormat.png);
+    return data!.buffer.asUint8List();
+  }
+
+  Future<Uint8List> _buildDestinationIcon() async {
+    const size = 64.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
+
+    // Outer shadow
+    final paintShadow = Paint()
+      ..color = AppTheme.ink.withValues(alpha: 0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(const Offset(32, 32), 26, paintShadow);
+
+    // Outer dark circle
+    final paintOuter = Paint()..color = AppTheme.ink;
+    canvas.drawCircle(const Offset(32, 32), 24, paintOuter);
+
+    // White border ring
+    final paintRing = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    canvas.drawCircle(const Offset(32, 32), 24, paintRing);
+
+    // Draw Material Home Icon
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
+    textPainter.text = TextSpan(
+      text: String.fromCharCode(Icons.home_rounded.codePoint),
+      style: TextStyle(
+        fontSize: 32.0,
+        fontFamily: Icons.home_rounded.fontFamily,
+        package: Icons.home_rounded.fontPackage,
+        color: Colors.white,
+      ),
+    );
+    textPainter.layout();
+    
+    textPainter.paint(
+      canvas,
+      Offset(32 - textPainter.width / 2, 32 - textPainter.height / 2),
     );
 
     final picture = recorder.endRecording();
@@ -172,8 +284,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   Future<void> _onMapCreated(MapboxMap map) async {
     mapboxMap = map;
     _driverIcon = await _buildDriverIcon();
+    _destinationIcon = await _buildDestinationIcon();
     _annotationManager = await map.annotations.createPointAnnotationManager();
     _updateDriverMarker();
+    _updateDeliveryMarker();
     map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
     map.compass.updateSettings(CompassSettings(enabled: false));
     map.attribution.updateSettings(AttributionSettings(enabled: false));
@@ -200,7 +314,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
           textField: 'tracking.driver'.tr(),
           textSize: 10.0,
           textOffset: [0.0, 2.5],
-          textColor: 0xFF1565C0,
+          textColor: 0xFFD32F2F,
           textHaloColor: 0xFFFFFFFF,
           textHaloWidth: 1.5,
         ),
@@ -215,6 +329,38 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       CameraOptions(center: point, zoom: 15.0),
       MapAnimationOptions(duration: 1000),
     );
+  }
+
+  Future<void> _updateDeliveryMarker() async {
+    if (_annotationManager == null || _destinationIcon == null) return;
+    if (_order == null) return;
+
+    final dest = _order!.deliveryAddress;
+    if (dest == null) return;
+    final lat = dest.lat;
+    final lng = dest.lng;
+    if (lat == null || lng == null) return;
+
+    final point = Point(coordinates: Position(lng, lat));
+
+    if (_destinationAnnotation == null) {
+      _destinationAnnotation = await _annotationManager!.create(
+        PointAnnotationOptions(
+          geometry: point,
+          image: _destinationIcon,
+          iconSize: 0.9,
+          textField: 'tracking.destination'.tr(),
+          textSize: 10.0,
+          textOffset: [0.0, 2.5],
+          textColor: 0xFF1E1E1E,
+          textHaloColor: 0xFFFFFFFF,
+          textHaloWidth: 1.5,
+        ),
+      );
+    } else {
+      _destinationAnnotation!.geometry = point;
+      await _annotationManager!.update(_destinationAnnotation!);
+    }
   }
 
   Future<void> _refreshEta() async {
@@ -238,19 +384,23 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     final results = await Future.wait([
       repo.getTracking(widget.orderId),
       repo.getEta(widget.orderId),
+      repo.getOrderById(widget.orderId),
     ]);
     if (!mounted) return;
-    final trackingResult = results[0];
-    final etaResult = results[1];
+    final trackingResult = results[0] as dynamic;
+    final etaResult = results[1] as dynamic;
+    final orderResult = results[2] as dynamic;
     setState(() {
       trackingResult.fold(
         (err) => _error = err.message,
         (tracking) => _trackingData = tracking,
       );
       etaResult.fold((_) {}, (eta) => _etaData = eta);
+      orderResult.fold((_) {}, (order) => _order = order);
       _loading = false;
     });
     _updateDriverMarker();
+    _updateDeliveryMarker();
   }
 
   @override
@@ -390,14 +540,53 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     );
   }
 
+  double _getDistance(double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371000.0; // Earth radius in meters
+    final dLat = (lat2 - lat1) * math.pi / 180.0;
+    final dLon = (lon2 - lon1) * math.pi / 180.0;
+    final a = math.sin(dLat / 2.0) * math.sin(dLat / 2.0) +
+        math.cos(lat1 * math.pi / 180.0) *
+            math.cos(lat2 * math.pi / 180.0) *
+            math.sin(dLon / 2.0) *
+            math.sin(dLon / 2.0);
+    final c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a));
+    return R * c;
+  }
+
+  int? _calculateDynamicEta() {
+    if (_trackingData == null || _order == null) return null;
+    final driverLat = _trackingData!.driverLat;
+    final driverLng = _trackingData!.driverLng;
+    final dest = _order!.deliveryAddress;
+    if (driverLat == null || driverLng == null || dest == null) return null;
+    
+    final destLat = dest.lat;
+    final destLng = dest.lng;
+    if (destLat == null || destLng == null) return null;
+
+    final distanceInMeters = _getDistance(driverLat, driverLng, destLat, destLng);
+    
+    // Average urban speed: 25 km/h (motorcycle delivery)
+    const speedKmh = 25.0;
+    final timeInSeconds = distanceInMeters / (speedKmh * 1000.0 / 3600.0);
+    final timeInMinutes = (timeInSeconds / 60.0).round();
+    
+    return timeInMinutes <= 0 ? 1 : timeInMinutes;
+  }
+
   Widget _buildTrackingPanel(ThemeData theme) {
     final driverName = _trackingData?.driverName ?? 'tracking.driver'.tr();
     final driverPhoto = _trackingData?.driverAvatar;
-    final etaMinutes = _etaData?.etaMinutes ?? _trackingData?.etaMinutes;
+    
+    // Dynamically calculate the driver-to-destination ETA in minutes
+    final dynamicEtaMinutes = _calculateDynamicEta();
+    final etaMinutes = dynamicEtaMinutes ?? _etaData?.etaMinutes ?? _trackingData?.etaMinutes;
 
-    final etaDisplay = etaMinutes != null
-        ? 'tracking.eta_minutes'.tr(args: [etaMinutes.toString()])
-        : '--:--';
+    String etaDisplay = '--:--';
+    if (etaMinutes != null) {
+      final arrivalTime = DateTime.now().add(Duration(minutes: etaMinutes));
+      etaDisplay = DateFormat('HH:mm').format(arrivalTime);
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -477,6 +666,91 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
             ),
             const SizedBox(height: 24),
             _buildStepper(theme),
+            if (_order?.paymentMethod?.toLowerCase() == 'cash' &&
+                _order?.confirmationCode != null &&
+                _order?.status != 'delivered' &&
+                _order?.status != 'cancelled') ...[
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.honeySoft,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.honey.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppTheme.honey.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.vpn_key_rounded,
+                          color: AppTheme.honey,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Code de livraison',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                                color: AppTheme.ink,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'À donner au livreur à l\'arrivée',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.honey.withValues(alpha: 0.15)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.honey.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          _order!.confirmationCode!,
+                          style: GoogleFonts.bricolageGrotesque(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 20,
+                            color: AppTheme.honey,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             const Divider(),
             if (_trackingData?.driverName == null)
@@ -507,7 +781,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Recherche d\'un livreur...',
+                            _getLoadingTitle(),
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
@@ -515,7 +789,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                             ),
                           ),
                           Text(
-                            'Votre commande est en préparation',
+                            _getLoadingSubtitle(),
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               color: AppTheme.muted,

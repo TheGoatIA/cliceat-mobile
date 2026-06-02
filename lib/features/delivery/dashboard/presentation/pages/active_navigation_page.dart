@@ -11,6 +11,7 @@ import 'package:geolocator/geolocator.dart' as geo;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/services/websocket_service.dart';
+import 'package:cliceat_app/features/client/cart/data/datasources/order_service.dart';
 
 class ActiveNavigationPage extends StatefulWidget {
   final MissionModel mission;
@@ -28,10 +29,29 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
   String _totalDistance = '--';
   StreamSubscription<geo.Position>? _positionSubscription;
 
+  PolylineAnnotationManager? _polylineAnnotationManager;
+  PolylineAnnotation? _polylineAnnotation;
+  late MissionModel _mission;
+
   @override
   void initState() {
     super.initState();
+    _mission = widget.mission;
     _startPositionTracking();
+    _loadFreshMission();
+  }
+
+  Future<void> _loadFreshMission() async {
+    try {
+      final response = await getIt<OrderService>().getOrderById(_mission.id);
+      if (response.isSuccessful && response.body != null && mounted) {
+        final data = response.body!['data'] as Map<String, dynamic>? ?? response.body!;
+        final orderData = data['order'] as Map<String, dynamic>? ?? data;
+        setState(() {
+          _mission = MissionModel.fromJson(orderData);
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -67,15 +87,15 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
   }
 
   void _updateDistanceAndEta(geo.Position currentPos) {
-    final isRestaurantPhase = widget.mission.status != 'picked_up' &&
-        widget.mission.status != 'en_route';
+    final isRestaurantPhase = _mission.status != 'picked_up' &&
+        _mission.status != 'en_route';
 
     final destLat = isRestaurantPhase 
-        ? widget.mission.restaurantLat 
-        : widget.mission.deliveryAddress?.lat;
+        ? _mission.restaurantLat 
+        : _mission.deliveryAddress?.lat;
     final destLng = isRestaurantPhase 
-        ? widget.mission.restaurantLng 
-        : widget.mission.deliveryAddress?.lng;
+        ? _mission.restaurantLng 
+        : _mission.deliveryAddress?.lng;
 
     if (destLat == null || destLng == null) {
       setState(() {
@@ -105,6 +125,44 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
       }
       _totalEta = timeInMinutes <= 0 ? '1 min' : '$timeInMinutes min';
     });
+
+    _drawRoutePolyline(currentPos, destLat, destLng);
+  }
+
+  Future<void> _drawRoutePolyline(geo.Position currentPos, double destLat, double destLng) async {
+    if (mapboxMap == null) return;
+    try {
+      _polylineAnnotationManager ??= await mapboxMap!.annotations.createPolylineAnnotationManager();
+
+      final points = [
+        Position(currentPos.longitude, currentPos.latitude),
+        Position(destLng, destLat),
+      ];
+
+      if (_polylineAnnotation == null) {
+        _polylineAnnotation = await _polylineAnnotationManager!.create(
+          PolylineAnnotationOptions(
+            geometry: LineString(coordinates: points),
+            lineColor: Colors.blue.toARGB32(),
+            lineWidth: 6.0,
+            lineOpacity: 0.8,
+          ),
+        );
+      } else {
+        _polylineAnnotation!.geometry = LineString(coordinates: points);
+        await _polylineAnnotationManager!.update(_polylineAnnotation!);
+      }
+
+      // Automatically adjust camera bounds to center between driver and destination
+      final centerLat = (currentPos.latitude + destLat) / 2;
+      final centerLng = (currentPos.longitude + destLng) / 2;
+      mapboxMap?.setCamera(
+        CameraOptions(
+          center: Point(coordinates: Position(centerLng, centerLat)),
+          zoom: 14.0,
+        ),
+      );
+    } catch (_) {}
   }
 
   void _onMapCreated(MapboxMap mapboxMap) {
@@ -117,8 +175,8 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isRestaurantPhase = widget.mission.status != 'picked_up' &&
-        widget.mission.status != 'en_route';
+    final isRestaurantPhase = _mission.status != 'picked_up' &&
+        _mission.status != 'en_route';
 
     return Scaffold(
       body: Stack(
@@ -252,8 +310,8 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                           ),
                           Text(
                             isRestaurantPhase
-                                ? 'Destination: ${widget.mission.restaurantName}'
-                                : 'Destination: ${widget.mission.clientName}',
+                                ? 'Destination: ${_mission.restaurantName}'
+                                : 'Destination: ${_mission.clientName}',
                             style: GoogleFonts.inter(
                                 fontSize: 13, color: AppTheme.muted),
                           ),
@@ -277,7 +335,7 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                       ),
                     ],
                   ),
-                  if (widget.mission.clientPhone != null && widget.mission.clientPhone!.isNotEmpty) ...[
+                  if (_mission.clientPhone != null && _mission.clientPhone!.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -298,7 +356,7 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.mission.clientName ?? 'Client',
+                                  _mission.clientName ?? 'Client',
                                   style: GoogleFonts.inter(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
@@ -306,7 +364,7 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                                   ),
                                 ),
                                 Text(
-                                  widget.mission.clientPhone!,
+                                  _mission.clientPhone!,
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
                                     color: AppTheme.muted,
@@ -318,7 +376,7 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                           IconButton(
                             icon: const Icon(Icons.phone_in_talk_rounded, color: AppTheme.green),
                             onPressed: () async {
-                              final phone = widget.mission.clientPhone;
+                              final phone = _mission.clientPhone;
                               if (phone == null || phone.isEmpty) return;
                               HapticFeedback.mediumImpact();
                               final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
@@ -350,10 +408,10 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                         HapticFeedback.mediumImpact();
                         if (isRestaurantPhase) {
                           context.push('/delivery/confirm-pickup',
-                              extra: widget.mission);
+                              extra: _mission);
                         } else {
                           context.push('/delivery/dropoff',
-                              extra: widget.mission);
+                              extra: _mission);
                         }
                       },
                       child: Text(

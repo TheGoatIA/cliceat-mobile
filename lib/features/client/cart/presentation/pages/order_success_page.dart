@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/features/client/cart/data/models/order_model.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../bloc/cart_cubit.dart';
 
@@ -16,6 +19,9 @@ class OrderSuccessPage extends StatefulWidget {
 }
 
 class _OrderSuccessPageState extends State<OrderSuccessPage> {
+  OrderModel? _order;
+  bool _loading = true;
+
   @override
   void initState() {
     super.initState();
@@ -25,6 +31,24 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
         context.read<CartCubit>().clearCart();
       }
     });
+    _loadOrder();
+  }
+
+  Future<void> _loadOrder() async {
+    if (widget.orderId.isEmpty) {
+      setState(() => _loading = false);
+      return;
+    }
+    final result = await getIt<OrderRepository>().getOrderById(widget.orderId);
+    if (mounted) {
+      result.fold(
+        (_) => setState(() => _loading = false),
+        (order) => setState(() {
+          _order = order;
+          _loading = false;
+        }),
+      );
+    }
   }
 
   @override
@@ -66,7 +90,11 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                 const SizedBox(height: 28),
 
                 Text(
-                  'order.success_title'.tr(),
+                  _loading
+                      ? 'order.success_title'.tr()
+                      : (_order?.paymentMethod?.toLowerCase() == 'cash'
+                          ? 'Commande enregistrée !'
+                          : 'order.success_title'.tr()),
                   style: GoogleFonts.bricolageGrotesque(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
@@ -78,7 +106,11 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'order.success_message'.tr(),
+                  _loading
+                      ? 'order.success_message'.tr()
+                      : (_order?.paymentMethod?.toLowerCase() == 'cash'
+                          ? 'Votre commande avec paiement à la livraison a été enregistrée. Elle sera traitée dès qu\'un administrateur l\'aura confirmée.'
+                          : 'order.success_message'.tr()),
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     color: AppTheme.muted,

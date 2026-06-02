@@ -8,6 +8,8 @@ import 'package:cliceat_app/core/theme/app_theme.dart';
 import '../bloc/mission_bloc.dart';
 import '../../data/models/mission_model.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/features/client/cart/data/datasources/order_service.dart';
 
 class DropoffPage extends StatefulWidget {
   final MissionModel mission;
@@ -20,16 +22,120 @@ class DropoffPage extends StatefulWidget {
 class _DropoffPageState extends State<DropoffPage> {
   final _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _pinFocusNode = FocusNode();
   bool _isSubmitting = false;
+  late MissionModel _mission;
+
+  @override
+  void initState() {
+    super.initState();
+    _mission = widget.mission;
+    _loadFreshMission();
+  }
+
+  Future<void> _loadFreshMission() async {
+    try {
+      final response = await getIt<OrderService>().getOrderById(_mission.id);
+      if (response.isSuccessful && response.body != null && mounted) {
+        final data =
+            response.body!['data'] as Map<String, dynamic>? ?? response.body!;
+        final orderData = data['order'] as Map<String, dynamic>? ?? data;
+        setState(() {
+          _mission = MissionModel.fromJson(orderData);
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
     _codeController.dispose();
+    _pinFocusNode.dispose();
     super.dispose();
   }
 
-  bool get _requiresCode =>
-      widget.mission.paymentMethod?.toLowerCase() == 'cash';
+  bool get _requiresCode => _mission.paymentMethod?.toLowerCase() == 'cash';
+
+  Widget _buildPinInput() {
+    final codeLength = _codeController.text.length;
+    return GestureDetector(
+      onTap: () {
+        _pinFocusNode.requestFocus();
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(4, (index) {
+              final isFilled = codeLength > index;
+              final isFocused = codeLength == index;
+              final digit = isFilled ? _codeController.text[index] : '';
+
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 64,
+                height: 64,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isFocused
+                        ? AppTheme.primaryRed
+                        : (isFilled ? AppTheme.ink : AppTheme.line),
+                    width: isFocused ? 2.5 : 1.5,
+                  ),
+                  boxShadow: isFocused
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.primaryRed.withValues(alpha: 0.15),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          )
+                        ]
+                      : AppTheme.shadowSm,
+                ),
+                child: Text(
+                  digit,
+                  style: GoogleFonts.bricolageGrotesque(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.ink,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              );
+            }),
+          ),
+          // Hidden TextFormField capturing the actual keyboard input
+          SizedBox(
+            height: 0,
+            width: 0,
+            child: Opacity(
+              opacity: 0,
+              child: TextFormField(
+                controller: _codeController,
+                focusNode: _pinFocusNode,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                showCursor: false,
+                enableInteractiveSelection: false,
+                onChanged: (val) {
+                  setState(() {});
+                  HapticFeedback.lightImpact();
+                },
+                decoration: const InputDecoration(
+                  counterText: '',
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _onConfirm() {
     if (_requiresCode &&
@@ -48,7 +154,7 @@ class _DropoffPageState extends State<DropoffPage> {
 
     context.read<MissionBloc>().add(
       MissionEvent.updateStatus(
-        widget.mission.id,
+        _mission.id,
         'delivered',
         metadata: {
           if (_codeController.text.isNotEmpty)
@@ -134,44 +240,8 @@ class _DropoffPageState extends State<DropoffPage> {
                           color: AppTheme.ink,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppTheme.line),
-                        ),
-                        child: TextFormField(
-                          controller: _codeController,
-                          keyboardType: TextInputType.number,
-                          maxLength: 6,
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.ink,
-                            letterSpacing: 2,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: '123456',
-                            hintStyle: GoogleFonts.inter(
-                              fontSize: 16,
-                              color: AppTheme.mutedLight,
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.lock_outline,
-                              color: AppTheme.muted,
-                              size: 20,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                          ),
-                          validator: (v) =>
-                              (v == null || v.isEmpty) ? 'Required' : null,
-                        ),
-                      ),
+                      const SizedBox(height: 16),
+                      _buildPinInput(),
                       const SizedBox(height: 32),
                     ],
 
@@ -207,7 +277,7 @@ class _DropoffPageState extends State<DropoffPage> {
           const Icon(Icons.person_pin_circle, size: 48, color: AppTheme.green),
           const SizedBox(height: 12),
           Text(
-            widget.mission.clientName ?? 'Client',
+            _mission.clientName ?? 'Client',
             style: GoogleFonts.bricolageGrotesque(
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -217,11 +287,11 @@ class _DropoffPageState extends State<DropoffPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            widget.mission.deliveryAddress?.address ?? 'Akwa, Douala',
+            _mission.deliveryAddress?.address ?? 'Akwa, Douala',
             style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
           ),
-          if (widget.mission.clientPhone != null &&
-              widget.mission.clientPhone!.isNotEmpty) ...[
+          if (_mission.clientPhone != null &&
+              _mission.clientPhone!.isNotEmpty) ...[
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
@@ -236,7 +306,7 @@ class _DropoffPageState extends State<DropoffPage> {
                   ),
                 ),
                 onPressed: () async {
-                  final phone = widget.mission.clientPhone;
+                  final phone = _mission.clientPhone;
                   if (phone == null || phone.isEmpty) return;
                   HapticFeedback.mediumImpact();
                   final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
@@ -314,7 +384,7 @@ class _DropoffPageState extends State<DropoffPage> {
                 ),
               ),
               Text(
-                '${widget.mission.earnings.toStringAsFixed(0)} FCFA',
+                '${(_requiresCode ? _mission.total : _mission.earnings).toStringAsFixed(0)} FCFA',
                 style: GoogleFonts.bricolageGrotesque(
                   fontWeight: FontWeight.w800,
                   fontSize: 20,
