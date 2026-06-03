@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
-import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/repositories/driver_repository.dart';
 import 'package:cliceat_app/features/delivery/dashboard/presentation/bloc/payout_cubit.dart';
 
 class PayoutPage extends StatefulWidget {
@@ -16,6 +16,33 @@ class PayoutPage extends StatefulWidget {
 
 class _PayoutPageState extends State<PayoutPage> {
   final _amountController = TextEditingController();
+  double _walletBalance = 0.0;
+  bool _loadingBalance = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWalletBalance();
+  }
+
+  Future<void> _loadWalletBalance() async {
+    setState(() => _loadingBalance = true);
+    final result = await getIt<DriverRepository>().getProfile();
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loadingBalance = false),
+      (profile) {
+        final balance = (profile['wallet']?['balance'] as num?)?.toDouble() ??
+            (profile['walletBalance'] as num?)?.toDouble() ??
+            (profile['balance'] as num?)?.toDouble() ??
+            0.0;
+        setState(() {
+          _walletBalance = balance;
+          _loadingBalance = false;
+        });
+      },
+    );
+  }
 
   @override
   void dispose() {
@@ -66,11 +93,7 @@ class _PayoutPageState extends State<PayoutPage> {
 
   Widget _buildContent(BuildContext context, List<Map<String, dynamic>> payouts,
       Map<String, dynamic>? account) {
-    final profileState = context.watch<ProfileCubit>().state;
-    final double balance = profileState.maybeWhen(
-      loaded: (user) => (user.balance ?? 0.0).toDouble(),
-      orElse: () => 0.0,
-    );
+    final double balance = _walletBalance;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -292,14 +315,7 @@ class _PayoutPageState extends State<PayoutPage> {
             onPressed: () {
               final amt = double.tryParse(_amountController.text);
               if (amt != null && amt > 0) {
-                final profileState = context.read<ProfileCubit>().state;
-                double balance = 0;
-                profileState.maybeWhen(
-                  loaded: (user) => balance = user.balance ?? 0.0,
-                  orElse: () {},
-                );
-                
-                if (amt > balance) {
+                if (amt > _walletBalance) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('payout.insufficient_balance'.tr()),
