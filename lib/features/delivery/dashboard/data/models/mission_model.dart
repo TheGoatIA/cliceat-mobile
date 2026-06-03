@@ -10,6 +10,7 @@ class MissionModel {
   final double? restaurantLng;
   final AddressModel? deliveryAddress;
   final double earnings;
+  final double total;
   final String? clientName;
   final String? clientPhone;
   final DateTime? createdAt;
@@ -25,6 +26,7 @@ class MissionModel {
     this.restaurantLng,
     this.deliveryAddress,
     this.earnings = 0.0,
+    this.total = 0.0,
     this.clientName,
     this.clientPhone,
     this.createdAt,
@@ -33,42 +35,96 @@ class MissionModel {
   });
 
   factory MissionModel.fromJson(Map<String, dynamic> json) {
-    final restaurant = json['restaurant'] as Map<String, dynamic>?;
-    final restaurantLoc =
-        restaurant?['location'] as Map<String, dynamic>?;
-    final restaurantCoords =
-        restaurantLoc?['coordinates'] as List<dynamic>?;
+    // Supporte deux formats :
+    // 1. Payload WebSocket `new_mission` du dispatch worker
+    //    { orderId, orderNumber, restaurantName, restaurantAddress, restaurantLocation, total, deliveryFee, deliveryAddress, ... }
+    // 2. Document ordre complet depuis l'API REST
+    //    { _id, status, restaurantId: { name, address, location }, clientId: { name }, ... }
 
-    final deliveryAddrRaw =
-        json['deliveryAddress'] as Map<String, dynamic>?;
+    // === ID ===
+    final id = json['orderId']?.toString() ??
+        json['_id']?.toString() ??
+        json['id']?.toString() ??
+        '';
 
-    final client = json['client'] as Map<String, dynamic>?;
+    // === Restaurant (WebSocket payload) ===
+    final restaurantName = json['restaurantName']?.toString();
+    final restaurantAddress = json['restaurantAddress']?.toString();
 
-    final rawItems = json['items'] as List<dynamic>? ?? [];
+    // restaurantLocation peut venir du payload WS: { type: 'Point', coordinates: [lng, lat] }
+    final wsRestaurantLoc = json['restaurantLocation'] is Map
+        ? (json['restaurantLocation'] as Map).cast<String, dynamic>()
+        : null;
+    final wsCoords = wsRestaurantLoc?['coordinates'] as List<dynamic>?;
 
+    // Fallback: format API REST avec restaurant peuplé
+    final restaurant = json['restaurant'] is Map
+        ? (json['restaurant'] as Map).cast<String, dynamic>()
+        : json['restaurantId'] is Map
+            ? (json['restaurantId'] as Map).cast<String, dynamic>()
+            : null;
+    final restaurantLoc = restaurant?['location'] is Map
+        ? (restaurant!['location'] as Map).cast<String, dynamic>()
+        : null;
+    final restCoords = restaurantLoc?['coordinates'] as List<dynamic>?;
+ 
+    final effectiveCoords = wsCoords ?? restCoords;
+    final resolvedRestaurantName =
+        restaurantName ?? restaurant?['name']?.toString();
+    final resolvedRestaurantAddress =
+        restaurantAddress ?? restaurant?['address']?.toString();
+ 
+    // === Delivery address ===
+    final deliveryAddrRaw = json['deliveryAddress'] is Map
+        ? (json['deliveryAddress'] as Map).cast<String, dynamic>()
+        : null;
+ 
+    // === Client ===
+    final client = json['client'] is Map
+        ? (json['client'] as Map).cast<String, dynamic>()
+        : json['clientId'] is Map
+            ? (json['clientId'] as Map).cast<String, dynamic>()
+            : null;
+ 
+    // === Items ===
+    final dynamic itemsField = json['items'];
+    final List<dynamic> rawItems = itemsField is List ? itemsField : [];
+ 
+    // === Earnings : le payload WS envoie 'deliveryFee', l'API envoie 'deliveryEarnings' ===
+    final earnings = (json['deliveryFee'] as num?)?.toDouble() ??
+        (json['deliveryEarnings'] as num?)?.toDouble() ??
+        (json['earnings'] as num?)?.toDouble() ??
+        0.0;
+
+    final total = (json['total'] as num?)?.toDouble() ??
+        (json['totalAmount'] as num?)?.toDouble() ??
+        0.0;
+ 
     return MissionModel(
-      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+      id: id,
       status: json['status']?.toString() ?? 'pending',
-      restaurantName: restaurant?['name']?.toString(),
-      restaurantAddress: restaurant?['address']?.toString(),
-      restaurantLat: restaurantCoords != null && restaurantCoords.length >= 2
-          ? (restaurantCoords[1] as num?)?.toDouble()
-          : null,
-      restaurantLng: restaurantCoords != null && restaurantCoords.length >= 2
-          ? (restaurantCoords[0] as num?)?.toDouble()
-          : null,
+      restaurantName: resolvedRestaurantName,
+      restaurantAddress: resolvedRestaurantAddress,
+      restaurantLat: (json['restaurantLat'] as num?)?.toDouble() ??
+          (effectiveCoords != null && effectiveCoords.length >= 2
+              ? (effectiveCoords[1] as num?)?.toDouble()
+              : null),
+      restaurantLng: (json['restaurantLng'] as num?)?.toDouble() ??
+          (effectiveCoords != null && effectiveCoords.length >= 2
+              ? (effectiveCoords[0] as num?)?.toDouble()
+              : null),
       deliveryAddress: deliveryAddrRaw != null
           ? AddressModel.fromJson(deliveryAddrRaw)
           : null,
-      earnings: (json['deliveryEarnings'] as num?)?.toDouble() ??
-          (json['earnings'] as num?)?.toDouble() ??
-          0.0,
+      earnings: earnings,
+      total: total,
       clientName: client?['name']?.toString(),
       clientPhone: client?['phone']?.toString(),
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
       items: rawItems
+          .map((e) => e is Map ? e.cast<String, dynamic>() : null)
           .whereType<Map<String, dynamic>>()
           .map(MissionItemModel.fromJson)
           .toList(),
@@ -80,8 +136,19 @@ class MissionModel {
         '_id': id,
         'status': status,
         if (restaurantName != null) 'restaurantName': restaurantName,
+        if (restaurantAddress != null) 'restaurantAddress': restaurantAddress,
+        if (restaurantLat != null) 'restaurantLat': restaurantLat,
+        if (restaurantLng != null) 'restaurantLng': restaurantLng,
+        if (deliveryAddress != null) 'deliveryAddress': deliveryAddress!.toJson(),
         'earnings': earnings,
+        'total': total,
+        if (clientName != null || clientPhone != null) 'client': {
+          'name': clientName,
+          'phone': clientPhone,
+        },
         if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+        'items': items.map((i) => {'name': i.name, 'quantity': i.quantity}).toList(),
+        if (paymentMethod != null) 'paymentMethod': paymentMethod,
       };
 }
 

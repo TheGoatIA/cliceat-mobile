@@ -1,24 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-class _OnboardingSlide {
-  final String titleKey;
-  final String subtitleKey;
-  final IconData icon;
-  final List<Color> gradient;
-  final Color accentColor;
-
-  const _OnboardingSlide({
-    required this.titleKey,
-    required this.subtitleKey,
-    required this.icon,
-    required this.gradient,
-    required this.accentColor,
-  });
-}
+import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -27,309 +12,321 @@ class OnboardingPage extends StatefulWidget {
   State<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class _OnboardingPageState extends State<OnboardingPage>
-    with SingleTickerProviderStateMixin {
+class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  late final AnimationController _bgAnim;
-  late final Animation<double> _bgScale;
-
-  static const _slides = [
-    _OnboardingSlide(
-      titleKey: 'onboarding.slide1_title',
-      subtitleKey: 'onboarding.slide1_subtitle',
-      icon: Icons.restaurant_menu_rounded,
-      gradient: [Color(0xFFCC0000), Color(0xFFE53935)],
-      accentColor: Color(0xFFCC0000),
+  static final _slides = [
+    _Slide(
+      image: 'assets/images/onboarding_1.png',
+      title: 'Le meilleur de la cuisine locale',
+      subtitle: 'Découvrez les meilleurs restaurants de Douala et Yaoundé livrés directement chez vous.',
     ),
-    _OnboardingSlide(
-      titleKey: 'onboarding.slide2_title',
-      subtitleKey: 'onboarding.slide2_subtitle',
-      icon: Icons.delivery_dining_rounded,
-      gradient: [Color(0xFFF5A623), Color(0xFFFB8C00)],
-      accentColor: Color(0xFFF5A623),
+    _Slide(
+      image: 'assets/images/onboarding_2.png',
+      title: 'Livraison ultra-rapide',
+      subtitle: 'Nos livreurs partenaires sillonnent la ville pour vous garantir un repas chaud en moins de 30 minutes.',
     ),
-    _OnboardingSlide(
-      titleKey: 'onboarding.slide3_title',
-      subtitleKey: 'onboarding.slide3_subtitle',
-      icon: Icons.stars_rounded,
-      gradient: [Color(0xFF1565C0), Color(0xFF1976D2)],
-      accentColor: Color(0xFF1565C0),
+    _Slide(
+      image: 'assets/images/onboarding_3.png',
+      title: 'Gagnez du temps et de l\'argent',
+      subtitle: 'Profitez de nos offres exclusives et d\'un service de qualité sans quitter votre canapé.',
     ),
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _bgAnim = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-    _bgScale = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(parent: _bgAnim, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
   void dispose() {
     _pageController.dispose();
-    _bgAnim.dispose();
     super.dispose();
-  }
-
-  void _nextPage() {
-    HapticFeedback.selectionClick();
-    if (_currentPage < _slides.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final slide = _slides[_currentPage];
+    final isLast = _currentPage == _slides.length - 1;
 
     return Scaffold(
-      body: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              slide.gradient[0],
-              slide.gradient[1],
-              slide.gradient[0].withValues(alpha: 0.4),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Skip button
-              if (_currentPage < _slides.length - 1)
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 16, top: 8),
-                    child: TextButton(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        _pageController.jumpToPage(_slides.length - 1);
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white.withValues(alpha: 0.8),
+      backgroundColor: AppTheme.primaryRed,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Skip
+            if (!isLast)
+              Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 20, top: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _pageController.jumpToPage(_slides.length - 1);
+                    },
+                    child: Text(
+                      'onboarding.skip'.tr(),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
-                      child: Text('onboarding.skip'.tr()),
                     ),
                   ),
-                )
-              else
-                const SizedBox(height: 44),
-
-              // Page View
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: (i) => setState(() => _currentPage = i),
-                  itemCount: _slides.length,
-                  itemBuilder: (_, i) =>
-                      _buildSlide(context, _slides[i], size),
                 ),
-              ),
+              )
+            else
+              const SizedBox(height: 44),
 
-              // Bottom section
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-                child: Column(
-                  children: [
-                    // Page dots
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        _slides.length,
-                        (i) => AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: _currentPage == i ? 28 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: _currentPage == i
-                                ? Colors.white
-                                : Colors.white.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+            // Page view
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (i) => setState(() => _currentPage = i),
+                itemCount: _slides.length,
+                itemBuilder: (_, i) => _buildSlide(_slides[i], size),
+              ),
+            ),
+
+            // Bottom
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 36),
+              child: Column(
+                children: [
+                  // Dots
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(_slides.length, (i) {
+                      final active = i == _currentPage;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: active ? 24 : 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: active ? Colors.white : Colors.white.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 28),
+
+                  if (!isLast)
+                    _WhiteButton(
+                      label: 'onboarding.next'.tr(),
+                      icon: Icons.arrow_forward_rounded,
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 350),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                    )
+                  else ...[
+                    _WhiteButton(
+                      label: 'onboarding.start_client'.tr(),
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        context.push('/auth/login?mode=client');
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        context.push('/auth/login?mode=delivery');
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.delivery_dining_outlined, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'onboarding.mode_delivery'.tr(),
+                              style: GoogleFonts.inter(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
-
-                    // Action buttons
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: _currentPage < _slides.length - 1
-                          ? _buildNextButton()
-                          : _buildFinalButtons(context),
-                    ),
                   ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSlide(
-      BuildContext context, _OnboardingSlide slide, Size size) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Illustration animée
-        AnimatedBuilder(
-          animation: _bgScale,
-          builder: (_, child) => Transform.scale(
-            scale: _bgAnim.status == AnimationStatus.completed ||
-                    _bgAnim.status == AnimationStatus.forward
-                ? _bgScale.value
-                : _bgScale.value,
-            child: child,
-          ),
-          child: Container(
-            width: size.width * 0.55,
-            height: size.width * 0.55,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Container(
-                width: size.width * 0.42,
-                height: size.width * 0.42,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  slide.icon,
-                  size: size.width * 0.2,
-                  color: Colors.white,
-                ),
+                ],
               ),
             ),
-          ),
-        ),
-        const SizedBox(height: 48),
-
-        // Texte
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            children: [
-              Text(
-                slide.titleKey.tr(),
-                textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                slide.subtitleKey.tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white.withValues(alpha: 0.85),
-                  height: 1.6,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNextButton() {
-    return SizedBox(
-      key: const ValueKey('next'),
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _nextPage,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: _slides[_currentPage].accentColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16)),
-          elevation: 0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'onboarding.next'.tr(),
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward_rounded, size: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFinalButtons(BuildContext context) {
-    return Column(
-      key: const ValueKey('final'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            HapticFeedback.mediumImpact();
-            context.push('/auth/login?mode=client');
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: _slides.last.accentColor,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation: 0,
+  Widget _buildSlide(_Slide slide, Size size) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Illustration box
+          Container(
+            width: size.width - 56,
+            height: size.width - 56,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppTheme.honey, AppTheme.honeyLight],
+              ),
+              borderRadius: BorderRadius.circular(32),
+            ),
+            child: Stack(
+              children: [
+                // Diagonal pattern
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    child: CustomPaint(painter: _DiagonalPatternPainter()),
+                  ),
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Image.asset(
+                      slide.image,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                // Status badge
+                Positioned(
+                  bottom: 20,
+                  left: 20,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: AppTheme.ink,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            color: AppTheme.green,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'onboarding.eta_label'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Text(
-            'onboarding.btn_client'.tr(),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          const SizedBox(height: 36),
+          Text(
+            slide.title,
+            textAlign: TextAlign.left,
+            style: GoogleFonts.bricolageGrotesque(
+              fontSize: 36,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              height: 1.05,
+              letterSpacing: -1,
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: () {
-            HapticFeedback.mediumImpact();
-            context.push('/auth/login?mode=delivery');
-          },
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.6)),
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16)),
+          const SizedBox(height: 14),
+          Text(
+            slide.subtitle,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              color: Colors.white.withValues(alpha: 0.85),
+              height: 1.5,
+            ),
           ),
-          icon: const Icon(Icons.delivery_dining_outlined, size: 20),
-          label: Text(
-            'onboarding.btn_delivery'.tr(),
-            style: const TextStyle(fontSize: 15),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+}
+
+class _Slide {
+  final String image;
+  final String title;
+  final String subtitle;
+  const _Slide({required this.image, required this.title, required this.subtitle});
+}
+
+class _WhiteButton extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final VoidCallback onTap;
+  const _WhiteButton({required this.label, this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 52,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryRed,
+              ),
+            ),
+            if (icon != null) ...[
+              const SizedBox(width: 8),
+              Icon(icon, color: AppTheme.primaryRed, size: 20),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DiagonalPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.04)
+      ..strokeWidth = 1.5;
+    const step = 14.0;
+    for (double i = -size.height; i < size.width + size.height; i += step) {
+      canvas.drawLine(Offset(i, 0), Offset(i + size.height, size.height), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

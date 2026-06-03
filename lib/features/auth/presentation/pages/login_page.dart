@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -7,11 +9,15 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:crypto/crypto.dart';
+import 'package:logger/logger.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/di/injection.dart';
 
 class LoginPage extends StatefulWidget {
-  final String mode; // 'client' or 'delivery'
+  final String mode;
   const LoginPage({super.key, required this.mode});
 
   @override
@@ -20,52 +26,31 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  bool _showRegister = false;
-
-  // Email/password login
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _passwordVisible = false;
 
-  // OTP login
-  final _phoneCtrl = TextEditingController();
   final _otpCtrl = TextEditingController();
   String? _otpPhone;
 
-  // Delivery login
   final _deliveryPhoneCtrl = TextEditingController();
   final _deliveryPasswordCtrl = TextEditingController();
   bool _deliveryPasswordVisible = false;
-
-  // Register
-  final _regNameCtrl = TextEditingController();
-  final _regEmailCtrl = TextEditingController();
-  final _regPasswordCtrl = TextEditingController();
-  final _regCityCtrl = TextEditingController(text: 'Douala');
-  bool _regPasswordVisible = false;
 
   bool get _isDelivery => widget.mode == 'delivery';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
-    _phoneCtrl.dispose();
     _otpCtrl.dispose();
     _deliveryPhoneCtrl.dispose();
     _deliveryPasswordCtrl.dispose();
-    _regNameCtrl.dispose();
-    _regEmailCtrl.dispose();
-    _regPasswordCtrl.dispose();
-    _regCityCtrl.dispose();
     super.dispose();
   }
 
@@ -81,48 +66,86 @@ class _LoginPageState extends State<LoginPage>
   Future<void> _handleGoogleSignIn(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
+      
+      await GoogleSignIn.instance.initialize(
+        serverClientId: '224830319268-kh67cce091ssp3lse84lgo4jok2q1210.apps.googleusercontent.com',
+      );
+      
       final account = await GoogleSignIn.instance.authenticate();
       final auth = account.authentication;
-      final idToken = auth.idToken;
+      
+      final credential = GoogleAuthProvider.credential(
+        idToken: auth.idToken,
+      );
+      
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final idToken = await userCredential.user?.getIdToken();
+      
       if (idToken == null) {
-        if (context.mounted) {
-          _showError(context, 'auth.error_google'.tr());
-        }
+        getIt<Logger>().e("Firebase Auth Google failed: idToken is null");
+        if (context.mounted) _showError(context, 'auth.error_google'.tr());
         return;
       }
+      
       if (context.mounted) {
         context.read<AuthBloc>().add(AuthEvent.loginWithGoogle(token: idToken));
       }
-    } catch (_) {
-      if (context.mounted) {
-        _showError(context, 'auth.error_google'.tr());
-      }
+    } catch (e, stack) {
+      getIt<Logger>().e("Google Sign In Error", error: e, stackTrace: stack);
+      if (context.mounted) _showError(context, 'auth.error_google'.tr());
     }
+  }
+
+  /// Generates a cryptographically secure random nonce, to be included in a
+  /// credential request.
+  String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  /// Returns the sha256 hash of [input] in hex notation.
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   Future<void> _handleAppleSignIn(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      final credential = await SignInWithApple.getAppleIDCredential(
+      
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
           AppleIDAuthorizationScopes.fullName,
         ],
+        nonce: nonce,
       );
-      final idToken = credential.identityToken;
+      
+      final AuthCredential credential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      );
+      
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final idToken = await userCredential.user?.getIdToken();
+
       if (idToken == null) {
-        if (context.mounted) {
-          _showError(context, 'auth.error_apple'.tr());
-        }
+        getIt<Logger>().e("Firebase Auth Apple failed: idToken is null");
+        if (context.mounted) _showError(context, 'auth.error_apple'.tr());
         return;
       }
+      
       if (context.mounted) {
         context.read<AuthBloc>().add(AuthEvent.loginWithApple(token: idToken));
       }
-    } catch (_) {
-      if (context.mounted) {
-        _showError(context, 'auth.error_apple'.tr());
-      }
+    } catch (e, stack) {
+      getIt<Logger>().e("Apple Sign In Error", error: e, stackTrace: stack);
+      if (context.mounted) _showError(context, 'auth.error_apple'.tr());
     }
   }
 
@@ -130,7 +153,7 @@ class _LoginPageState extends State<LoginPage>
     ScaffoldMessenger.of(ctx).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Theme.of(ctx).colorScheme.error,
+        backgroundColor: AppTheme.primaryRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -139,8 +162,6 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         state.maybeWhen(
@@ -159,203 +180,117 @@ class _LoginPageState extends State<LoginPage>
           orElse: () => false,
         );
         return Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          body: Stack(
-            children: [
-              // Gradient décoratif en haut
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 400,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: _isDelivery
-                          ? [
-                              const Color(0xFF1565C0),
-                              const Color(0xFF1565C0),
-                              const Color(0xFF1565C0).withValues(alpha: 0),
-                            ]
-                          : [
-                              theme.colorScheme.primary,
-                              theme.colorScheme.primary,
-                              theme.colorScheme.primary.withValues(alpha: 0),
-                            ],
-                      stops: const [0.0, 0.5, 1.0],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+          backgroundColor: context.colors.bg,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Back button row
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Row(
+                    children: [
+                      _BackButton(onTap: () => context.go('/onboarding')),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          switchInCurve: Curves.easeOut,
+                          switchOutCurve: Curves.easeIn,
+                          child: _otpPhone != null
+                              ? _buildOtpForm(context, isLoading)
+                              : _isDelivery
+                              ? _buildDeliveryForm(context, isLoading)
+                              : _buildClientForm(context, isLoading),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-
-              // Content
-              SafeArea(
-                child: Column(
-                  children: [
-                    // Back button
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white,
-                          ),
-                          onPressed: () => context.go('/onboarding'),
-                        ),
-                      ),
-                    ),
-
-                    Expanded(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 480),
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 8,
-                            ),
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 250),
-                              switchInCurve: Curves.easeOut,
-                              switchOutCurve: Curves.easeIn,
-                              child: _showRegister && !_isDelivery
-                                  ? _buildRegisterForm(
-                                      context,
-                                      theme,
-                                      isLoading,
-                                    )
-                                  : _otpPhone != null
-                                  ? _buildOtpForm(context, theme, isLoading)
-                                  : _isDelivery
-                                  ? _buildDeliveryLoginForm(
-                                      context,
-                                      theme,
-                                      isLoading,
-                                    )
-                                  : _buildClientLoginForm(
-                                      context,
-                                      theme,
-                                      isLoading,
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  // ─── Formulaire Client ────────────────────────────────────────────────────
+  // ── Client Login ──────────────────────────────────────────────────────────
 
-  Widget _buildClientLoginForm(
-    BuildContext context,
-    ThemeData theme,
-    bool isLoading,
-  ) {
+  Widget _buildClientForm(BuildContext context, bool isLoading) {
     return Column(
-      key: const ValueKey('client_login'),
+      key: const ValueKey('client'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header avec icon
-        _buildHeader(
-          theme,
-          icon: Icons.fastfood_rounded,
-          title: 'auth.login_title'.tr(),
-          subtitle: 'auth.login_subtitle'.tr(),
-          iconColor: Colors.white,
-          bgColor: theme.colorScheme.primary,
-        ),
+        // Logo + Title
+        _CELogo(),
         const SizedBox(height: 28),
-
-        // Card formulaire
-        _buildCard(
-          theme,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Tabs Email / Téléphone
-              Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(
-                    alpha: 0.5,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-                  dividerColor: Colors.transparent,
-                  tabs: [
-                    Tab(text: 'auth.email'.tr()),
-                    Tab(text: 'auth.phone_hint'.tr()),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              SizedBox(
-                height: 200,
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildEmailTab(context, isLoading),
-                    _buildPhoneTab(context, isLoading),
-                  ],
-                ),
-              ),
-            ],
+        Text(
+          'auth.login_title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.ink,
+            letterSpacing: -0.8,
+            height: 1.1,
           ),
         ),
+        const SizedBox(height: 10),
+        Text(
+          'auth.login_subtitle'.tr(),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: context.colors.muted,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 32),
 
-        const SizedBox(height: 12),
+        _buildEmailTab(context, isLoading),
 
-        // Actions secondaires
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
               onPressed: () => context.push('/auth/forgot-password'),
+              style: TextButton.styleFrom(padding: EdgeInsets.zero),
               child: Text(
                 'auth.forgot_password'.tr(),
-                style: TextStyle(color: theme.colorScheme.primary),
+                style: GoogleFonts.inter(
+                  color: AppTheme.primaryRed,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
             ),
-            const Text('·', style: TextStyle(color: Colors.grey)),
+            Text(' · ', style: GoogleFonts.inter(color: AppTheme.muted)),
             TextButton(
-              onPressed: () => setState(() => _showRegister = true),
+              onPressed: () => context.push('/auth/register?role=client'),
+              style: TextButton.styleFrom(padding: EdgeInsets.zero),
               child: Text(
                 'auth.no_account'.tr(),
-                style: TextStyle(color: theme.colorScheme.primary),
+                style: GoogleFonts.inter(
+                  color: AppTheme.primaryRed,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
             ),
           ],
         ),
 
-        // Diviseur ou
-        _buildOrDivider(theme),
-
-        // Social Sign-In
-        _buildGoogleButton(context),
+        _orDivider(),
+        _googleButton(context),
         if (Platform.isIOS) ...[
           const SizedBox(height: 12),
           SignInWithAppleButton(
@@ -368,137 +303,127 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  // ─── Formulaire Livreur ───────────────────────────────────────────────────
+  // ── Delivery Login ────────────────────────────────────────────────────────
 
-  Widget _buildDeliveryLoginForm(
-    BuildContext context,
-    ThemeData theme,
-    bool isLoading,
-  ) {
+  Widget _buildDeliveryForm(BuildContext context, bool isLoading) {
     return Column(
-      key: const ValueKey('delivery_login'),
+      key: const ValueKey('delivery'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(
-          theme,
-          icon: Icons.delivery_dining_rounded,
-          title: 'auth.delivery_login_title'.tr(),
-          subtitle: 'auth.delivery_login_subtitle'.tr(),
-          iconColor: Colors.white,
-          bgColor: const Color(0xFF1565C0),
-        ),
+        _CELogo(),
         const SizedBox(height: 28),
-
-        _buildCard(
-          theme,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Champ téléphone
-              _buildTextField(
-                controller: _deliveryPhoneCtrl,
-                label: 'auth.phone_number'.tr(),
-                icon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 14),
-
-              // Champ mot de passe
-              TextField(
-                controller: _deliveryPasswordCtrl,
-                obscureText: !_deliveryPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: 'auth.password'.tr(),
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _deliveryPasswordVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                    ),
-                    onPressed: () => setState(
-                      () =>
-                          _deliveryPasswordVisible = !_deliveryPasswordVisible,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Bouton connexion
-              ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        HapticFeedback.mediumImpact();
-                        final phone = _deliveryPhoneCtrl.text.trim();
-                        final password = _deliveryPasswordCtrl.text;
-                        if (phone.isEmpty || password.isEmpty) return;
-                        context.read<AuthBloc>().add(
-                          AuthEvent.loginDelivery(
-                            phone: phone,
-                            password: password,
-                          ),
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1565C0),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text('auth.login_btn'.tr()),
-              ),
-            ],
+        Text(
+          'auth.delivery_login_title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.ink,
+            letterSpacing: -0.8,
+            height: 1.1,
           ),
         ),
-
-        const SizedBox(height: 16),
-        TextButton(
-          onPressed: () => context.push('/auth/forgot-password'),
-          child: Text('auth.forgot_password'.tr()),
+        const SizedBox(height: 10),
+        Text(
+          'auth.delivery_login_subtitle'.tr(),
+          style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
         ),
-
-        // Info box pour les livreurs
-        Container(
-          margin: const EdgeInsets.only(top: 8),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1565C0).withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF1565C0).withValues(alpha: 0.2),
+        const SizedBox(height: 32),
+        _styledInput(
+          controller: _deliveryPhoneCtrl,
+          label: 'auth.phone_number'.tr(),
+          icon: Icons.phone_outlined,
+          keyboardType: TextInputType.phone,
+        ),
+        const SizedBox(height: 14),
+        _styledInput(
+          controller: _deliveryPasswordCtrl,
+          label: 'auth.password'.tr(),
+          icon: Icons.lock_outline,
+          obscureText: !_deliveryPasswordVisible,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _deliveryPasswordVisible
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+            ),
+            onPressed: () => setState(
+              () => _deliveryPasswordVisible = !_deliveryPasswordVisible,
             ),
           ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.info_outline,
-                color: Color(0xFF1565C0),
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'auth.delivery_info'.tr(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: 24),
+        _redButton(
+          label: 'auth.login_btn'.tr(),
+          isLoading: isLoading,
+          onTap: () {
+            HapticFeedback.mediumImpact();
+            final phone = _deliveryPhoneCtrl.text.trim();
+            final password = _deliveryPasswordCtrl.text;
+            if (phone.isEmpty || password.isEmpty) return;
+            context.read<AuthBloc>().add(
+              AuthEvent.loginDelivery(phone: phone, password: password),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: () => context.push('/auth/forgot-password'),
+          child: Text(
+            'auth.forgot_password'.tr(),
+            style: GoogleFonts.inter(
+              color: AppTheme.primaryRed,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => context.push('/auth/register?role=delivery'),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.honeySoft,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.honey.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.person_add_outlined,
+                  color: AppTheme.orange,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'auth.become_driver_title'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: context.colors.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'auth.become_driver_subtitle'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: context.colors.inkSoft,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: AppTheme.muted,
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -506,513 +431,328 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  // ─── OTP Form ─────────────────────────────────────────────────────────────
+  // ── OTP Form ──────────────────────────────────────────────────────────────
 
-  Widget _buildOtpForm(BuildContext context, ThemeData theme, bool isLoading) {
+  Widget _buildOtpForm(BuildContext context, bool isLoading) {
     return Column(
       key: const ValueKey('otp'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(
-          theme,
-          icon: Icons.sms_outlined,
-          title: 'auth.verify_otp_title'.tr(),
-          subtitle: '${'auth.verify_instruction'.tr()} $_otpPhone',
-          iconColor: Colors.white,
-          bgColor: theme.colorScheme.primary,
+        const SizedBox(height: 8),
+        Text(
+          'Entre le code\nreçu par SMS',
+          style: GoogleFonts.bricolageGrotesque(
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.ink,
+            letterSpacing: -0.8,
+            height: 1.1,
+          ),
         ),
-        const SizedBox(height: 28),
-
-        _buildCard(
-          theme,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        const SizedBox(height: 10),
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
             children: [
-              // OTP input avec grand style
-              TextField(
-                controller: _otpCtrl,
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                maxLength: 6,
-                style: GoogleFonts.nunito(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 10,
+              const TextSpan(text: 'Envoyé au '),
+              TextSpan(
+                text: _otpPhone,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.ink,
                 ),
-                decoration: InputDecoration(
-                  hintText: '------',
-                  hintStyle: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.3,
-                    ),
-                    fontSize: 32,
-                    letterSpacing: 10,
-                  ),
-                  counterText: '',
-                  filled: true,
-                  fillColor: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.5),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: theme.colorScheme.primary,
-                      width: 2,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 20),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        HapticFeedback.mediumImpact();
-                        context.read<AuthBloc>().add(
-                          AuthEvent.verifyOtp(
-                            phone: _otpPhone!,
-                            otp: _otpCtrl.text.trim(),
-                          ),
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text('auth.verify_btn'.tr()),
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => setState(() => _otpPhone = null),
-                child: Text('common.back'.tr()),
               ),
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  // ─── Register Form ────────────────────────────────────────────────────────
-
-  Widget _buildRegisterForm(
-    BuildContext context,
-    ThemeData theme,
-    bool isLoading,
-  ) {
-    return Column(
-      key: const ValueKey('register'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildHeader(
-          theme,
-          icon: Icons.person_add_rounded,
-          title: 'auth.register_btn'.tr(),
-          subtitle: 'auth.register_subtitle'.tr(),
-          iconColor: Colors.white,
-          bgColor: theme.colorScheme.primary,
-        ),
-        const SizedBox(height: 28),
-
-        _buildCard(
-          theme,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildTextField(
-                controller: _regNameCtrl,
-                label: 'auth.name'.tr(),
-                icon: Icons.person_outline,
-              ),
-              const SizedBox(height: 12),
-              _buildTextField(
-                controller: _regEmailCtrl,
-                label: 'auth.email'.tr(),
-                icon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _regPasswordCtrl,
-                obscureText: !_regPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: 'auth.password'.tr(),
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _regPasswordVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                    ),
-                    onPressed: () => setState(
-                      () => _regPasswordVisible = !_regPasswordVisible,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildDropdownField(
-                value: _regCityCtrl.text,
-                label: 'auth.city'.tr(),
-                icon: Icons.location_city_outlined,
-                items: ['Douala', 'Yaoundé'],
-                onChanged: (val) => setState(() => _regCityCtrl.text = val!),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        HapticFeedback.mediumImpact();
-                        context.read<AuthBloc>().add(
-                          AuthEvent.register(
-                            name: _regNameCtrl.text.trim(),
-                            email: _regEmailCtrl.text.trim(),
-                            password: _regPasswordCtrl.text,
-                            city: _regCityCtrl.text.trim(),
-                          ),
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text('auth.register_btn'.tr()),
-              ),
-            ],
+        const SizedBox(height: 40),
+        TextField(
+          controller: _otpCtrl,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          maxLength: 6,
+          style: GoogleFonts.inter(
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 10,
+            color: AppTheme.ink,
+          ),
+          decoration: InputDecoration(
+            hintText: '· · · · · ·',
+            hintStyle: GoogleFonts.inter(
+              fontSize: 28,
+              color: AppTheme.mutedLight,
+              letterSpacing: 8,
+            ),
+            counterText: '',
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppTheme.line),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppTheme.line),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppTheme.ink, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 20),
           ),
         ),
-
-        const SizedBox(height: 12),
-
-        // CGU
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+        const SizedBox(height: 16),
+        Center(
           child: Text.rich(
             TextSpan(
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
               children: [
-                TextSpan(text: 'auth.terms_prefix'.tr()),
-                WidgetSpan(
-                  child: GestureDetector(
-                    onTap: () =>
-                        launchUrl(Uri.parse('https://cliceat.cm/terms')),
-                    child: Text(
-                      'auth.terms_cgu'.tr(),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
+                const TextSpan(text: 'Renvoyer le code dans '),
+                TextSpan(
+                  text: '0:42',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryRed,
                   ),
                 ),
-                TextSpan(text: 'auth.terms_conjunction'.tr()),
-                WidgetSpan(
-                  child: GestureDetector(
-                    onTap: () =>
-                        launchUrl(Uri.parse('https://cliceat.cm/privacy')),
-                    child: Text(
-                      'auth.terms_privacy'.tr(),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
-                const TextSpan(text: '.'),
               ],
             ),
-            textAlign: TextAlign.center,
           ),
+        ),
+        const SizedBox(height: 28),
+        _redButton(
+          label: 'auth.verify_btn'.tr(),
+          isLoading: isLoading,
+          onTap: () {
+            HapticFeedback.mediumImpact();
+            context.read<AuthBloc>().add(
+              AuthEvent.verifyOtp(phone: _otpPhone!, otp: _otpCtrl.text.trim()),
+            );
+          },
         ),
         const SizedBox(height: 8),
         TextButton(
-          onPressed: () => setState(() => _showRegister = false),
-          child: Text('auth.have_account'.tr()),
+          onPressed: () => setState(() => _otpPhone = null),
+          child: Text(
+            'Retour',
+            style: GoogleFonts.inter(
+              color: AppTheme.muted,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }
 
-  // ─── Tabs email & phone ───────────────────────────────────────────────────
+  // ── Tabs ──────────────────────────────────────────────────────────────────
 
   Widget _buildEmailTab(BuildContext context, bool isLoading) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildTextField(
+        _styledInput(
           controller: _emailCtrl,
           label: 'auth.email'.tr(),
           icon: Icons.email_outlined,
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 12),
-        TextField(
+        _styledInput(
           controller: _passwordCtrl,
+          label: 'auth.password'.tr(),
+          icon: Icons.lock_outline,
           obscureText: !_passwordVisible,
-          decoration: InputDecoration(
-            labelText: 'auth.password'.tr(),
-            prefixIcon: const Icon(Icons.lock_outline),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _passwordVisible
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _passwordVisible
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+            ),
+            onPressed: () =>
+                setState(() => _passwordVisible = !_passwordVisible),
+          ),
+        ),
+        const SizedBox(height: 14),
+        _redButton(
+          label: 'auth.login_btn'.tr(),
+          isLoading: isLoading,
+          onTap: () {
+            HapticFeedback.mediumImpact();
+            context.read<AuthBloc>().add(
+              AuthEvent.loginWithEmail(
+                email: _emailCtrl.text.trim(),
+                password: _passwordCtrl.text,
               ),
-              onPressed: () =>
-                  setState(() => _passwordVisible = !_passwordVisible),
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        ElevatedButton(
-          onPressed: isLoading
-              ? null
-              : () {
-                  HapticFeedback.mediumImpact();
-                  context.read<AuthBloc>().add(
-                    AuthEvent.loginWithEmail(
-                      email: _emailCtrl.text.trim(),
-                      password: _passwordCtrl.text,
-                    ),
-                  );
-                },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: isLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : Text('auth.login_btn'.tr()),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildPhoneTab(BuildContext context, bool isLoading) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildTextField(
-          controller: _phoneCtrl,
-          label: 'auth.phone_hint'.tr(),
-          icon: Icons.phone_outlined,
-          keyboardType: TextInputType.phone,
-        ),
-        const SizedBox(height: 14),
-        const Spacer(),
-        ElevatedButton(
-          onPressed: isLoading
-              ? null
-              : () {
-                  HapticFeedback.mediumImpact();
-                  final phone = _phoneCtrl.text.trim();
-                  if (phone.isEmpty) return;
-                  context.read<AuthBloc>().add(AuthEvent.sendOtp(phone: phone));
-                },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: isLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : Text('auth.send_otp'.tr()),
-        ),
-      ],
-    );
-  }
+  // ── Reusable helpers ──────────────────────────────────────────────────────
 
-  // ─── Reusable components ──────────────────────────────────────────────────
-
-  Widget _buildHeader(
-    ThemeData theme, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color iconColor,
-    required Color bgColor,
-  }) {
-    return Column(
-      children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: bgColor.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
-              width: 2,
-            ),
-          ),
-          child: Icon(icon, size: 36, color: Colors.white),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          title,
-          style: GoogleFonts.nunito(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          subtitle,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.white.withValues(alpha: 0.8),
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCard(ThemeData theme, {required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color ?? theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-
-  Widget _buildTextField({
+  Widget _styledInput({
     required TextEditingController controller,
     required String label,
     required IconData icon,
     TextInputType? keyboardType,
+    bool obscureText = false,
+    Widget? suffixIcon,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
+      obscureText: obscureText,
+      style: GoogleFonts.inter(fontSize: 15, color: AppTheme.ink),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.inter(color: AppTheme.inkSoft, fontSize: 14),
+        hintStyle: GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
+        prefixIcon: Icon(icon, color: AppTheme.muted, size: 20),
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppTheme.line),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppTheme.line),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppTheme.ink, width: 2),
+        ),
+      ),
     );
   }
 
-  Widget _buildOrDivider(ThemeData theme) {
+  Widget _redButton({
+    required String label,
+    required bool isLoading,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.primaryRed,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _orDivider() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         children: [
-          Expanded(
-            child: Divider(color: theme.dividerColor.withValues(alpha: 0.4)),
-          ),
+          Expanded(child: Divider(color: AppTheme.lineSoft)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              'auth.or'.tr(),
-              style: TextStyle(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontSize: 13,
-              ),
+              'ou',
+              style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
             ),
           ),
-          Expanded(
-            child: Divider(color: theme.dividerColor.withValues(alpha: 0.4)),
-          ),
+          Expanded(child: Divider(color: AppTheme.lineSoft)),
         ],
       ),
     );
   }
 
-  Widget _buildGoogleButton(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _googleButton(BuildContext context) {
     return OutlinedButton(
       onPressed: () => _handleGoogleSignIn(context),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 14),
-        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        side: const BorderSide(color: AppTheme.line),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        backgroundColor: Colors.white,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.g_mobiledata, size: 26),
+          const Icon(Icons.g_mobiledata, size: 26, color: AppTheme.ink),
           const SizedBox(width: 8),
-          Text('auth.continue_with_google'.tr()),
+          Text(
+            'auth.continue_with_google'.tr(),
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.ink,
+            ),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildDropdownField({
-    required String value,
-    required String label,
-    required IconData icon,
-    required List<String> items,
-    required void Function(String?) onChanged,
-  }) {
-    return DropdownButtonFormField<String>(
-      initialValue: items.contains(value) ? value : items.first,
-      onChanged: onChanged,
-      items: items.map((city) {
-        return DropdownMenuItem(
-          value: city,
-          child: Text(city),
-        );
-      }).toList(),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
+class _BackButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _BackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: AppTheme.line),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 18,
+          color: AppTheme.ink,
+        ),
+      ),
+    );
+  }
+}
+
+class _CELogo extends StatelessWidget {
+  const _CELogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Image.asset(
+        'assets/images/logo.png',
+        width: 80,
+        height: 80,
+        fit: BoxFit.contain,
       ),
     );
   }

@@ -14,6 +14,7 @@ import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/token_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/features/delivery/dashboard/data/datasources/driver_service.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import '../../data/datasources/auth_service.dart';
 
@@ -27,6 +28,7 @@ const _kSessionCheckInterval = Duration(minutes: 5);
 @injectable
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService _authService;
+  final DriverService _driverService;
   final FlutterSecureStorage _secureStorage;
   final AppDatabase _db;
   final Logger _logger = Logger();
@@ -41,6 +43,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   AuthBloc(
     this._authService,
+    this._driverService,
     this._secureStorage,
     this._db,
     this._tokenService,
@@ -53,6 +56,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<_LoginWithGoogle>(_onLoginWithGoogle);
     on<_LoginWithApple>(_onLoginWithApple);
     on<_Register>(_onRegister);
+    on<_RegisterDriver>(_onRegisterDriver);
     on<_ForgotPassword>(_onForgotPassword);
     on<_ResetPassword>(_onResetPassword);
     on<_VerifyEmail>(_onVerifyEmail);
@@ -60,6 +64,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<_SwitchMode>(_onSwitchMode);
     on<_Logout>(_onLogout);
     on<_SessionExpired>(_onSessionExpired);
+
+    // Écouter les événements de session expirée venant du TokenService
+    _subscriptions.add(
+      _tokenService.onSessionExpired.listen((_) => add(const AuthEvent.sessionExpired())),
+    );
   }
 
   // ─── Event handlers ─────────────────────────────────────────────────────
@@ -96,7 +105,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.sendOtp({
-        'phone': event.phone,
+        'phone': _formatPhone(event.phone),
         'countryCode': '237',
       });
       if (res.isSuccessful) {
@@ -115,7 +124,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.verifyOtp({
-        'phone': event.phone,
+        'phone': _formatPhone(event.phone),
         'otp': event.otp,
       });
       if (res.isSuccessful && res.body != null) {
@@ -177,7 +186,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     try {
       final res = await _authService.loginDelivery({
-        'phone': event.phone,
+        'phone': _formatPhone(event.phone),
         'password': event.password,
       });
       if (res.isSuccessful && res.body != null) {
@@ -306,6 +315,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
+  Future<void> _onRegisterDriver(
+      _RegisterDriver event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final res = await _driverService.registerDriver(
+        event.name,
+        event.email,
+        _formatPhone(event.phone),
+        event.password,
+        event.city.toLowerCase(),
+        event.vehicleType,
+        event.vehiclePlate,
+        event.idCardPath,
+        event.licensePath,
+        event.photoPath,
+      );
+
+      if (res.isSuccessful) {
+        emit(const AuthState.driverRegistrationSuccess()); 
+      } else {
+        final msg = _extractError(res.body, 'auth.error_register');
+        emit(AuthState.error(message: msg));
+      }
+    } catch (e) {
+      _logger.e('[Auth] Erreur inscription livreur: $e');
+      emit(const AuthState.error(message: 'common.network_error'));
+    }
+  }
 
   Future<void> _onForgotPassword(
       _ForgotPassword event, Emitter<AuthState> emit) async {
@@ -382,35 +419,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onSwitchMode(
       _SwitchMode event, Emitter<AuthState> emit) async {
-    state.maybeWhen(
-      authenticated: (token, userId, currentMode) async {
-        await _secureStorage.write(key: 'current_mode', value: event.mode);
-        getIt<AnalyticsService>().setUserMode(event.mode);
-        emit(AuthState.authenticated(
-            token: token, userId: userId, currentMode: event.mode));
-      },
-      orElse: () {},
-    );
+    final s = state.mapOrNull(authenticated: (s) => s);
+    if (s != null) {
+      await _secureStorage.write(key: 'current_mode', value: event.mode);
+      getIt<AnalyticsService>().setUserMode(event.mode);
+      emit(AuthState.authenticated(
+        token: s.token,
+        userId: s.userId,
+        currentMode: event.mode,
+      ));
+    }
   }
 
   Future<void> _onLogout(_Logout event, Emitter<AuthState> emit) async {
-    emit(const AuthState.loading());
     _stopSessionTimer();
-    await _cancelSubscriptions();
-    // Revoke FCM token before clearing credentials
-    await _revokeFcmToken();
+    // Emit immediately to trigger UI redirection
+    emit(const AuthState.unauthenticated());
+
+    // Perform cleanup in background without blocking
     try {
-      try {
-        await _authService.logout();
-      } catch (_) {}
+      _cancelSubscriptions();
       getIt<WebSocketService>().disconnect();
       getIt<AnalyticsService>().logLogout();
       getIt<AnalyticsService>().clearUser();
+      
+      // Attempt background logout and FCM revocation
+      unawaited(_authService.logout().timeout(const Duration(seconds: 2)).catchError((_) => null as dynamic));
+      unawaited(_revokeFcmToken().timeout(const Duration(seconds: 3)).catchError((_) => null));
+      
       await _clearCredentials();
-      emit(const AuthState.unauthenticated());
     } catch (e) {
-      _logger.e('[Auth] Erreur déconnexion: $e');
-      emit(const AuthState.unauthenticated());
+      _logger.e('[Auth] Error during background logout: $e');
     }
   }
 
@@ -474,6 +513,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
+  /// Formatte le numéro de téléphone pour toujours inclure le préfixe +237 (Cameroun)
+  /// si aucun préfixe international n'est fourni.
+  String _formatPhone(String phone) {
+    var p = phone.replaceAll(RegExp(r'\s+'), '');
+    if (p.startsWith('+')) return p;
+    if (p.startsWith('237')) return '+$p';
+    if (p.startsWith('00237')) return '+${p.substring(2)}';
+    return '+237$p';
+  }
+
   /// Parse la réponse d'auth : retourne (accessToken, userId) ou null.
   (String, String)? _parseAuthResponse(dynamic body) {
     try {
@@ -481,7 +530,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final tokens = map['tokens'] as Map<String, dynamic>?;
       final token = tokens?['accessToken'] as String?;
       final data = map['data'] as Map<String, dynamic>?;
-      final user = data?['user'] as Map<String, dynamic>?;
+      final user = data?['user'] as Map<String, dynamic>? ?? 
+                   data?['driver'] as Map<String, dynamic>?;
+                   
       final userId =
           user?['_id']?.toString() ?? user?['id']?.toString();
       if (token != null && userId != null) return (token, userId);
@@ -493,8 +544,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   String _extractError(dynamic body, String fallback) {
     try {
-      return (body as Map<String, dynamic>)['message']?.toString() ??
-          fallback;
+      final map = body as Map<String, dynamic>;
+      if (map['details'] != null && map['details'] is List && (map['details'] as List).isNotEmpty) {
+        final firstDetail = (map['details'] as List).first;
+        if (firstDetail is Map<String, dynamic> && firstDetail['message'] != null) {
+          return firstDetail['message'].toString();
+        }
+      }
+      return map['message']?.toString() ?? fallback;
     } catch (_) {
       return fallback;
     }

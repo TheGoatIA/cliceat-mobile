@@ -40,6 +40,11 @@ class RefreshInterceptor implements Interceptor {
 
     if (response.statusCode != 401) return response;
 
+    final path = chain.request.url.path;
+    if (path.contains('/login') || path.contains('/register') || path.contains('/refresh') || path.contains('/firebase')) {
+      return response;
+    }
+
     // ── Attendre le refresh en cours ou en démarrer un ────────────────────
 
     final newToken = await _getOrStartRefresh();

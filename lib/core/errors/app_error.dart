@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// Typed application error returned by all repositories.
 enum AppErrorType { network, auth, notFound, validation, server, unknown }
 
@@ -32,11 +34,35 @@ class AppError {
   factory AppError.fromResponse(dynamic body, String fallback,
       {int? statusCode}) {
     String msg = fallback;
-    if (body is Map) {
-      msg = body['message']?.toString() ??
-          body['error']?.toString() ??
-          fallback;
+    dynamic decoded;
+
+    if (body != null) {
+      if (body is Map) {
+        decoded = body;
+      } else if (body is String) {
+        try {
+          decoded = jsonDecode(body);
+        } catch (_) {}
+      }
     }
+
+    if (decoded is Map) {
+      if (decoded['details'] is List && (decoded['details'] as List).isNotEmpty) {
+        final firstDetail = (decoded['details'] as List).first;
+        if (firstDetail is Map && firstDetail['message'] != null) {
+          msg = firstDetail['message'].toString();
+        } else {
+          msg = decoded['message']?.toString() ??
+              decoded['error']?.toString() ??
+              fallback;
+        }
+      } else {
+        msg = decoded['message']?.toString() ??
+            decoded['error']?.toString() ??
+            fallback;
+      }
+    }
+
     return AppError(
       message: msg,
       statusCode: statusCode,

@@ -30,11 +30,17 @@ class ReviewModel extends Equatable {
   });
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) {
+    final restaurant = json['restaurantId'] is Map
+        ? (json['restaurantId'] as Map).cast<String, dynamic>()
+        : null;
+
     return ReviewModel(
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
       orderId: json['orderId']?.toString() ?? '',
-      restaurantId: json['restaurantId']?.toString() ?? '',
-      restaurantName: json['restaurantName']?.toString(), // optional populated field
+      restaurantId: restaurant != null
+          ? restaurant['_id']?.toString() ?? restaurant['id']?.toString() ?? ''
+          : json['restaurantId']?.toString() ?? '',
+      restaurantName: json['restaurantName']?.toString() ?? restaurant?['name']?.toString(),
       clientId: json['clientId']?.toString() ?? '',
       clientName: json['clientName']?.toString() ?? 'Utilisateur',
       restaurantRating: (json['restaurantRating'] as num?)?.toInt() ?? 5,

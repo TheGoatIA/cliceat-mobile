@@ -55,7 +55,7 @@ extension AuthEventPatterns on AuthEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _AppStarted value)?  appStarted,TResult Function( _SendOtp value)?  sendOtp,TResult Function( _VerifyOtp value)?  verifyOtp,TResult Function( _LoginWithEmail value)?  loginWithEmail,TResult Function( _LoginDelivery value)?  loginDelivery,TResult Function( _LoginWithGoogle value)?  loginWithGoogle,TResult Function( _LoginWithApple value)?  loginWithApple,TResult Function( _Register value)?  register,TResult Function( _ForgotPassword value)?  forgotPassword,TResult Function( _ResetPassword value)?  resetPassword,TResult Function( _VerifyEmail value)?  verifyEmail,TResult Function( _ResendVerificationEmail value)?  resendVerificationEmail,TResult Function( _Logout value)?  logout,TResult Function( _SwitchMode value)?  switchMode,TResult Function( _SessionExpired value)?  sessionExpired,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _AppStarted value)?  appStarted,TResult Function( _SendOtp value)?  sendOtp,TResult Function( _VerifyOtp value)?  verifyOtp,TResult Function( _LoginWithEmail value)?  loginWithEmail,TResult Function( _LoginDelivery value)?  loginDelivery,TResult Function( _LoginWithGoogle value)?  loginWithGoogle,TResult Function( _LoginWithApple value)?  loginWithApple,TResult Function( _Register value)?  register,TResult Function( _RegisterDriver value)?  registerDriver,TResult Function( _ForgotPassword value)?  forgotPassword,TResult Function( _ResetPassword value)?  resetPassword,TResult Function( _VerifyEmail value)?  verifyEmail,TResult Function( _ResendVerificationEmail value)?  resendVerificationEmail,TResult Function( _Logout value)?  logout,TResult Function( _SwitchMode value)?  switchMode,TResult Function( _SessionExpired value)?  sessionExpired,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _AppStarted() when appStarted != null:
@@ -66,7 +66,8 @@ return loginWithEmail(_that);case _LoginDelivery() when loginDelivery != null:
 return loginDelivery(_that);case _LoginWithGoogle() when loginWithGoogle != null:
 return loginWithGoogle(_that);case _LoginWithApple() when loginWithApple != null:
 return loginWithApple(_that);case _Register() when register != null:
-return register(_that);case _ForgotPassword() when forgotPassword != null:
+return register(_that);case _RegisterDriver() when registerDriver != null:
+return registerDriver(_that);case _ForgotPassword() when forgotPassword != null:
 return forgotPassword(_that);case _ResetPassword() when resetPassword != null:
 return resetPassword(_that);case _VerifyEmail() when verifyEmail != null:
 return verifyEmail(_that);case _ResendVerificationEmail() when resendVerificationEmail != null:
@@ -91,7 +92,7 @@ return sessionExpired(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _AppStarted value)  appStarted,required TResult Function( _SendOtp value)  sendOtp,required TResult Function( _VerifyOtp value)  verifyOtp,required TResult Function( _LoginWithEmail value)  loginWithEmail,required TResult Function( _LoginDelivery value)  loginDelivery,required TResult Function( _LoginWithGoogle value)  loginWithGoogle,required TResult Function( _LoginWithApple value)  loginWithApple,required TResult Function( _Register value)  register,required TResult Function( _ForgotPassword value)  forgotPassword,required TResult Function( _ResetPassword value)  resetPassword,required TResult Function( _VerifyEmail value)  verifyEmail,required TResult Function( _ResendVerificationEmail value)  resendVerificationEmail,required TResult Function( _Logout value)  logout,required TResult Function( _SwitchMode value)  switchMode,required TResult Function( _SessionExpired value)  sessionExpired,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _AppStarted value)  appStarted,required TResult Function( _SendOtp value)  sendOtp,required TResult Function( _VerifyOtp value)  verifyOtp,required TResult Function( _LoginWithEmail value)  loginWithEmail,required TResult Function( _LoginDelivery value)  loginDelivery,required TResult Function( _LoginWithGoogle value)  loginWithGoogle,required TResult Function( _LoginWithApple value)  loginWithApple,required TResult Function( _Register value)  register,required TResult Function( _RegisterDriver value)  registerDriver,required TResult Function( _ForgotPassword value)  forgotPassword,required TResult Function( _ResetPassword value)  resetPassword,required TResult Function( _VerifyEmail value)  verifyEmail,required TResult Function( _ResendVerificationEmail value)  resendVerificationEmail,required TResult Function( _Logout value)  logout,required TResult Function( _SwitchMode value)  switchMode,required TResult Function( _SessionExpired value)  sessionExpired,}){
 final _that = this;
 switch (_that) {
 case _AppStarted():
@@ -102,7 +103,8 @@ return loginWithEmail(_that);case _LoginDelivery():
 return loginDelivery(_that);case _LoginWithGoogle():
 return loginWithGoogle(_that);case _LoginWithApple():
 return loginWithApple(_that);case _Register():
-return register(_that);case _ForgotPassword():
+return register(_that);case _RegisterDriver():
+return registerDriver(_that);case _ForgotPassword():
 return forgotPassword(_that);case _ResetPassword():
 return resetPassword(_that);case _VerifyEmail():
 return verifyEmail(_that);case _ResendVerificationEmail():
@@ -126,7 +128,7 @@ return sessionExpired(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _AppStarted value)?  appStarted,TResult? Function( _SendOtp value)?  sendOtp,TResult? Function( _VerifyOtp value)?  verifyOtp,TResult? Function( _LoginWithEmail value)?  loginWithEmail,TResult? Function( _LoginDelivery value)?  loginDelivery,TResult? Function( _LoginWithGoogle value)?  loginWithGoogle,TResult? Function( _LoginWithApple value)?  loginWithApple,TResult? Function( _Register value)?  register,TResult? Function( _ForgotPassword value)?  forgotPassword,TResult? Function( _ResetPassword value)?  resetPassword,TResult? Function( _VerifyEmail value)?  verifyEmail,TResult? Function( _ResendVerificationEmail value)?  resendVerificationEmail,TResult? Function( _Logout value)?  logout,TResult? Function( _SwitchMode value)?  switchMode,TResult? Function( _SessionExpired value)?  sessionExpired,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _AppStarted value)?  appStarted,TResult? Function( _SendOtp value)?  sendOtp,TResult? Function( _VerifyOtp value)?  verifyOtp,TResult? Function( _LoginWithEmail value)?  loginWithEmail,TResult? Function( _LoginDelivery value)?  loginDelivery,TResult? Function( _LoginWithGoogle value)?  loginWithGoogle,TResult? Function( _LoginWithApple value)?  loginWithApple,TResult? Function( _Register value)?  register,TResult? Function( _RegisterDriver value)?  registerDriver,TResult? Function( _ForgotPassword value)?  forgotPassword,TResult? Function( _ResetPassword value)?  resetPassword,TResult? Function( _VerifyEmail value)?  verifyEmail,TResult? Function( _ResendVerificationEmail value)?  resendVerificationEmail,TResult? Function( _Logout value)?  logout,TResult? Function( _SwitchMode value)?  switchMode,TResult? Function( _SessionExpired value)?  sessionExpired,}){
 final _that = this;
 switch (_that) {
 case _AppStarted() when appStarted != null:
@@ -137,7 +139,8 @@ return loginWithEmail(_that);case _LoginDelivery() when loginDelivery != null:
 return loginDelivery(_that);case _LoginWithGoogle() when loginWithGoogle != null:
 return loginWithGoogle(_that);case _LoginWithApple() when loginWithApple != null:
 return loginWithApple(_that);case _Register() when register != null:
-return register(_that);case _ForgotPassword() when forgotPassword != null:
+return register(_that);case _RegisterDriver() when registerDriver != null:
+return registerDriver(_that);case _ForgotPassword() when forgotPassword != null:
 return forgotPassword(_that);case _ResetPassword() when resetPassword != null:
 return resetPassword(_that);case _VerifyEmail() when verifyEmail != null:
 return verifyEmail(_that);case _ResendVerificationEmail() when resendVerificationEmail != null:
@@ -161,7 +164,7 @@ return sessionExpired(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  appStarted,TResult Function( String phone)?  sendOtp,TResult Function( String phone,  String otp)?  verifyOtp,TResult Function( String email,  String password)?  loginWithEmail,TResult Function( String phone,  String password)?  loginDelivery,TResult Function( String token)?  loginWithGoogle,TResult Function( String token)?  loginWithApple,TResult Function( String name,  String email,  String password,  String city)?  register,TResult Function( String email)?  forgotPassword,TResult Function( String token,  String newPassword)?  resetPassword,TResult Function( String token)?  verifyEmail,TResult Function( String email)?  resendVerificationEmail,TResult Function()?  logout,TResult Function( String mode)?  switchMode,TResult Function()?  sessionExpired,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  appStarted,TResult Function( String phone)?  sendOtp,TResult Function( String phone,  String otp)?  verifyOtp,TResult Function( String email,  String password)?  loginWithEmail,TResult Function( String phone,  String password)?  loginDelivery,TResult Function( String token)?  loginWithGoogle,TResult Function( String token)?  loginWithApple,TResult Function( String name,  String email,  String password,  String city)?  register,TResult Function( String name,  String email,  String phone,  String password,  String city,  String vehicleType,  String vehiclePlate,  String idCardPath,  String licensePath,  String photoPath)?  registerDriver,TResult Function( String email)?  forgotPassword,TResult Function( String token,  String newPassword)?  resetPassword,TResult Function( String token)?  verifyEmail,TResult Function( String email)?  resendVerificationEmail,TResult Function()?  logout,TResult Function( String mode)?  switchMode,TResult Function()?  sessionExpired,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppStarted() when appStarted != null:
 return appStarted();case _SendOtp() when sendOtp != null:
@@ -171,7 +174,8 @@ return loginWithEmail(_that.email,_that.password);case _LoginDelivery() when log
 return loginDelivery(_that.phone,_that.password);case _LoginWithGoogle() when loginWithGoogle != null:
 return loginWithGoogle(_that.token);case _LoginWithApple() when loginWithApple != null:
 return loginWithApple(_that.token);case _Register() when register != null:
-return register(_that.name,_that.email,_that.password,_that.city);case _ForgotPassword() when forgotPassword != null:
+return register(_that.name,_that.email,_that.password,_that.city);case _RegisterDriver() when registerDriver != null:
+return registerDriver(_that.name,_that.email,_that.phone,_that.password,_that.city,_that.vehicleType,_that.vehiclePlate,_that.idCardPath,_that.licensePath,_that.photoPath);case _ForgotPassword() when forgotPassword != null:
 return forgotPassword(_that.email);case _ResetPassword() when resetPassword != null:
 return resetPassword(_that.token,_that.newPassword);case _VerifyEmail() when verifyEmail != null:
 return verifyEmail(_that.token);case _ResendVerificationEmail() when resendVerificationEmail != null:
@@ -196,7 +200,7 @@ return sessionExpired();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  appStarted,required TResult Function( String phone)  sendOtp,required TResult Function( String phone,  String otp)  verifyOtp,required TResult Function( String email,  String password)  loginWithEmail,required TResult Function( String phone,  String password)  loginDelivery,required TResult Function( String token)  loginWithGoogle,required TResult Function( String token)  loginWithApple,required TResult Function( String name,  String email,  String password,  String city)  register,required TResult Function( String email)  forgotPassword,required TResult Function( String token,  String newPassword)  resetPassword,required TResult Function( String token)  verifyEmail,required TResult Function( String email)  resendVerificationEmail,required TResult Function()  logout,required TResult Function( String mode)  switchMode,required TResult Function()  sessionExpired,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  appStarted,required TResult Function( String phone)  sendOtp,required TResult Function( String phone,  String otp)  verifyOtp,required TResult Function( String email,  String password)  loginWithEmail,required TResult Function( String phone,  String password)  loginDelivery,required TResult Function( String token)  loginWithGoogle,required TResult Function( String token)  loginWithApple,required TResult Function( String name,  String email,  String password,  String city)  register,required TResult Function( String name,  String email,  String phone,  String password,  String city,  String vehicleType,  String vehiclePlate,  String idCardPath,  String licensePath,  String photoPath)  registerDriver,required TResult Function( String email)  forgotPassword,required TResult Function( String token,  String newPassword)  resetPassword,required TResult Function( String token)  verifyEmail,required TResult Function( String email)  resendVerificationEmail,required TResult Function()  logout,required TResult Function( String mode)  switchMode,required TResult Function()  sessionExpired,}) {final _that = this;
 switch (_that) {
 case _AppStarted():
 return appStarted();case _SendOtp():
@@ -206,7 +210,8 @@ return loginWithEmail(_that.email,_that.password);case _LoginDelivery():
 return loginDelivery(_that.phone,_that.password);case _LoginWithGoogle():
 return loginWithGoogle(_that.token);case _LoginWithApple():
 return loginWithApple(_that.token);case _Register():
-return register(_that.name,_that.email,_that.password,_that.city);case _ForgotPassword():
+return register(_that.name,_that.email,_that.password,_that.city);case _RegisterDriver():
+return registerDriver(_that.name,_that.email,_that.phone,_that.password,_that.city,_that.vehicleType,_that.vehiclePlate,_that.idCardPath,_that.licensePath,_that.photoPath);case _ForgotPassword():
 return forgotPassword(_that.email);case _ResetPassword():
 return resetPassword(_that.token,_that.newPassword);case _VerifyEmail():
 return verifyEmail(_that.token);case _ResendVerificationEmail():
@@ -230,7 +235,7 @@ return sessionExpired();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  appStarted,TResult? Function( String phone)?  sendOtp,TResult? Function( String phone,  String otp)?  verifyOtp,TResult? Function( String email,  String password)?  loginWithEmail,TResult? Function( String phone,  String password)?  loginDelivery,TResult? Function( String token)?  loginWithGoogle,TResult? Function( String token)?  loginWithApple,TResult? Function( String name,  String email,  String password,  String city)?  register,TResult? Function( String email)?  forgotPassword,TResult? Function( String token,  String newPassword)?  resetPassword,TResult? Function( String token)?  verifyEmail,TResult? Function( String email)?  resendVerificationEmail,TResult? Function()?  logout,TResult? Function( String mode)?  switchMode,TResult? Function()?  sessionExpired,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  appStarted,TResult? Function( String phone)?  sendOtp,TResult? Function( String phone,  String otp)?  verifyOtp,TResult? Function( String email,  String password)?  loginWithEmail,TResult? Function( String phone,  String password)?  loginDelivery,TResult? Function( String token)?  loginWithGoogle,TResult? Function( String token)?  loginWithApple,TResult? Function( String name,  String email,  String password,  String city)?  register,TResult? Function( String name,  String email,  String phone,  String password,  String city,  String vehicleType,  String vehiclePlate,  String idCardPath,  String licensePath,  String photoPath)?  registerDriver,TResult? Function( String email)?  forgotPassword,TResult? Function( String token,  String newPassword)?  resetPassword,TResult? Function( String token)?  verifyEmail,TResult? Function( String email)?  resendVerificationEmail,TResult? Function()?  logout,TResult? Function( String mode)?  switchMode,TResult? Function()?  sessionExpired,}) {final _that = this;
 switch (_that) {
 case _AppStarted() when appStarted != null:
 return appStarted();case _SendOtp() when sendOtp != null:
@@ -240,7 +245,8 @@ return loginWithEmail(_that.email,_that.password);case _LoginDelivery() when log
 return loginDelivery(_that.phone,_that.password);case _LoginWithGoogle() when loginWithGoogle != null:
 return loginWithGoogle(_that.token);case _LoginWithApple() when loginWithApple != null:
 return loginWithApple(_that.token);case _Register() when register != null:
-return register(_that.name,_that.email,_that.password,_that.city);case _ForgotPassword() when forgotPassword != null:
+return register(_that.name,_that.email,_that.password,_that.city);case _RegisterDriver() when registerDriver != null:
+return registerDriver(_that.name,_that.email,_that.phone,_that.password,_that.city,_that.vehicleType,_that.vehiclePlate,_that.idCardPath,_that.licensePath,_that.photoPath);case _ForgotPassword() when forgotPassword != null:
 return forgotPassword(_that.email);case _ResetPassword() when resetPassword != null:
 return resetPassword(_that.token,_that.newPassword);case _VerifyEmail() when verifyEmail != null:
 return verifyEmail(_that.token);case _ResendVerificationEmail() when resendVerificationEmail != null:
@@ -764,6 +770,90 @@ as String,
 /// @nodoc
 
 
+class _RegisterDriver implements AuthEvent {
+  const _RegisterDriver({required this.name, required this.email, required this.phone, required this.password, required this.city, required this.vehicleType, required this.vehiclePlate, required this.idCardPath, required this.licensePath, required this.photoPath});
+  
+
+ final  String name;
+ final  String email;
+ final  String phone;
+ final  String password;
+ final  String city;
+ final  String vehicleType;
+ final  String vehiclePlate;
+ final  String idCardPath;
+ final  String licensePath;
+ final  String photoPath;
+
+/// Create a copy of AuthEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RegisterDriverCopyWith<_RegisterDriver> get copyWith => __$RegisterDriverCopyWithImpl<_RegisterDriver>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RegisterDriver&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.password, password) || other.password == password)&&(identical(other.city, city) || other.city == city)&&(identical(other.vehicleType, vehicleType) || other.vehicleType == vehicleType)&&(identical(other.vehiclePlate, vehiclePlate) || other.vehiclePlate == vehiclePlate)&&(identical(other.idCardPath, idCardPath) || other.idCardPath == idCardPath)&&(identical(other.licensePath, licensePath) || other.licensePath == licensePath)&&(identical(other.photoPath, photoPath) || other.photoPath == photoPath));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,name,email,phone,password,city,vehicleType,vehiclePlate,idCardPath,licensePath,photoPath);
+
+@override
+String toString() {
+  return 'AuthEvent.registerDriver(name: $name, email: $email, phone: $phone, password: $password, city: $city, vehicleType: $vehicleType, vehiclePlate: $vehiclePlate, idCardPath: $idCardPath, licensePath: $licensePath, photoPath: $photoPath)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RegisterDriverCopyWith<$Res> implements $AuthEventCopyWith<$Res> {
+  factory _$RegisterDriverCopyWith(_RegisterDriver value, $Res Function(_RegisterDriver) _then) = __$RegisterDriverCopyWithImpl;
+@useResult
+$Res call({
+ String name, String email, String phone, String password, String city, String vehicleType, String vehiclePlate, String idCardPath, String licensePath, String photoPath
+});
+
+
+
+
+}
+/// @nodoc
+class __$RegisterDriverCopyWithImpl<$Res>
+    implements _$RegisterDriverCopyWith<$Res> {
+  __$RegisterDriverCopyWithImpl(this._self, this._then);
+
+  final _RegisterDriver _self;
+  final $Res Function(_RegisterDriver) _then;
+
+/// Create a copy of AuthEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? name = null,Object? email = null,Object? phone = null,Object? password = null,Object? city = null,Object? vehicleType = null,Object? vehiclePlate = null,Object? idCardPath = null,Object? licensePath = null,Object? photoPath = null,}) {
+  return _then(_RegisterDriver(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
+as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String,city: null == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String,vehicleType: null == vehicleType ? _self.vehicleType : vehicleType // ignore: cast_nullable_to_non_nullable
+as String,vehiclePlate: null == vehiclePlate ? _self.vehiclePlate : vehiclePlate // ignore: cast_nullable_to_non_nullable
+as String,idCardPath: null == idCardPath ? _self.idCardPath : idCardPath // ignore: cast_nullable_to_non_nullable
+as String,licensePath: null == licensePath ? _self.licensePath : licensePath // ignore: cast_nullable_to_non_nullable
+as String,photoPath: null == photoPath ? _self.photoPath : photoPath // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
 class _ForgotPassword implements AuthEvent {
   const _ForgotPassword({required this.email});
   
@@ -1201,7 +1291,7 @@ extension AuthStatePatterns on AuthState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Unauthenticated value)?  unauthenticated,TResult Function( _OtpSent value)?  otpSent,TResult Function( _Authenticated value)?  authenticated,TResult Function( _EmailVerificationRequired value)?  emailVerificationRequired,TResult Function( _EmailVerified value)?  emailVerified,TResult Function( _ForgotPasswordEmailSent value)?  forgotPasswordEmailSent,TResult Function( _ResetPasswordSuccess value)?  resetPasswordSuccess,TResult Function( _Error value)?  error,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Unauthenticated value)?  unauthenticated,TResult Function( _OtpSent value)?  otpSent,TResult Function( _Authenticated value)?  authenticated,TResult Function( _EmailVerificationRequired value)?  emailVerificationRequired,TResult Function( _EmailVerified value)?  emailVerified,TResult Function( _ForgotPasswordEmailSent value)?  forgotPasswordEmailSent,TResult Function( _ResetPasswordSuccess value)?  resetPasswordSuccess,TResult Function( _DriverRegistrationSuccess value)?  driverRegistrationSuccess,TResult Function( _Error value)?  error,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
@@ -1213,7 +1303,8 @@ return authenticated(_that);case _EmailVerificationRequired() when emailVerifica
 return emailVerificationRequired(_that);case _EmailVerified() when emailVerified != null:
 return emailVerified(_that);case _ForgotPasswordEmailSent() when forgotPasswordEmailSent != null:
 return forgotPasswordEmailSent(_that);case _ResetPasswordSuccess() when resetPasswordSuccess != null:
-return resetPasswordSuccess(_that);case _Error() when error != null:
+return resetPasswordSuccess(_that);case _DriverRegistrationSuccess() when driverRegistrationSuccess != null:
+return driverRegistrationSuccess(_that);case _Error() when error != null:
 return error(_that);case _:
   return orElse();
 
@@ -1232,7 +1323,7 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Unauthenticated value)  unauthenticated,required TResult Function( _OtpSent value)  otpSent,required TResult Function( _Authenticated value)  authenticated,required TResult Function( _EmailVerificationRequired value)  emailVerificationRequired,required TResult Function( _EmailVerified value)  emailVerified,required TResult Function( _ForgotPasswordEmailSent value)  forgotPasswordEmailSent,required TResult Function( _ResetPasswordSuccess value)  resetPasswordSuccess,required TResult Function( _Error value)  error,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Unauthenticated value)  unauthenticated,required TResult Function( _OtpSent value)  otpSent,required TResult Function( _Authenticated value)  authenticated,required TResult Function( _EmailVerificationRequired value)  emailVerificationRequired,required TResult Function( _EmailVerified value)  emailVerified,required TResult Function( _ForgotPasswordEmailSent value)  forgotPasswordEmailSent,required TResult Function( _ResetPasswordSuccess value)  resetPasswordSuccess,required TResult Function( _DriverRegistrationSuccess value)  driverRegistrationSuccess,required TResult Function( _Error value)  error,}){
 final _that = this;
 switch (_that) {
 case _Initial():
@@ -1244,7 +1335,8 @@ return authenticated(_that);case _EmailVerificationRequired():
 return emailVerificationRequired(_that);case _EmailVerified():
 return emailVerified(_that);case _ForgotPasswordEmailSent():
 return forgotPasswordEmailSent(_that);case _ResetPasswordSuccess():
-return resetPasswordSuccess(_that);case _Error():
+return resetPasswordSuccess(_that);case _DriverRegistrationSuccess():
+return driverRegistrationSuccess(_that);case _Error():
 return error(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -1262,7 +1354,7 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Unauthenticated value)?  unauthenticated,TResult? Function( _OtpSent value)?  otpSent,TResult? Function( _Authenticated value)?  authenticated,TResult? Function( _EmailVerificationRequired value)?  emailVerificationRequired,TResult? Function( _EmailVerified value)?  emailVerified,TResult? Function( _ForgotPasswordEmailSent value)?  forgotPasswordEmailSent,TResult? Function( _ResetPasswordSuccess value)?  resetPasswordSuccess,TResult? Function( _Error value)?  error,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Unauthenticated value)?  unauthenticated,TResult? Function( _OtpSent value)?  otpSent,TResult? Function( _Authenticated value)?  authenticated,TResult? Function( _EmailVerificationRequired value)?  emailVerificationRequired,TResult? Function( _EmailVerified value)?  emailVerified,TResult? Function( _ForgotPasswordEmailSent value)?  forgotPasswordEmailSent,TResult? Function( _ResetPasswordSuccess value)?  resetPasswordSuccess,TResult? Function( _DriverRegistrationSuccess value)?  driverRegistrationSuccess,TResult? Function( _Error value)?  error,}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
@@ -1274,7 +1366,8 @@ return authenticated(_that);case _EmailVerificationRequired() when emailVerifica
 return emailVerificationRequired(_that);case _EmailVerified() when emailVerified != null:
 return emailVerified(_that);case _ForgotPasswordEmailSent() when forgotPasswordEmailSent != null:
 return forgotPasswordEmailSent(_that);case _ResetPasswordSuccess() when resetPasswordSuccess != null:
-return resetPasswordSuccess(_that);case _Error() when error != null:
+return resetPasswordSuccess(_that);case _DriverRegistrationSuccess() when driverRegistrationSuccess != null:
+return driverRegistrationSuccess(_that);case _Error() when error != null:
 return error(_that);case _:
   return null;
 
@@ -1292,7 +1385,7 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function()?  unauthenticated,TResult Function( String phone)?  otpSent,TResult Function( String token,  String userId,  String currentMode)?  authenticated,TResult Function( String email)?  emailVerificationRequired,TResult Function()?  emailVerified,TResult Function( String email)?  forgotPasswordEmailSent,TResult Function()?  resetPasswordSuccess,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function()?  unauthenticated,TResult Function( String phone)?  otpSent,TResult Function( String token,  String userId,  String currentMode)?  authenticated,TResult Function( String email)?  emailVerificationRequired,TResult Function()?  emailVerified,TResult Function( String email)?  forgotPasswordEmailSent,TResult Function()?  resetPasswordSuccess,TResult Function()?  driverRegistrationSuccess,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
@@ -1303,7 +1396,8 @@ return authenticated(_that.token,_that.userId,_that.currentMode);case _EmailVeri
 return emailVerificationRequired(_that.email);case _EmailVerified() when emailVerified != null:
 return emailVerified();case _ForgotPasswordEmailSent() when forgotPasswordEmailSent != null:
 return forgotPasswordEmailSent(_that.email);case _ResetPasswordSuccess() when resetPasswordSuccess != null:
-return resetPasswordSuccess();case _Error() when error != null:
+return resetPasswordSuccess();case _DriverRegistrationSuccess() when driverRegistrationSuccess != null:
+return driverRegistrationSuccess();case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -1322,7 +1416,7 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function()  unauthenticated,required TResult Function( String phone)  otpSent,required TResult Function( String token,  String userId,  String currentMode)  authenticated,required TResult Function( String email)  emailVerificationRequired,required TResult Function()  emailVerified,required TResult Function( String email)  forgotPasswordEmailSent,required TResult Function()  resetPasswordSuccess,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function()  unauthenticated,required TResult Function( String phone)  otpSent,required TResult Function( String token,  String userId,  String currentMode)  authenticated,required TResult Function( String email)  emailVerificationRequired,required TResult Function()  emailVerified,required TResult Function( String email)  forgotPasswordEmailSent,required TResult Function()  resetPasswordSuccess,required TResult Function()  driverRegistrationSuccess,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
@@ -1333,7 +1427,8 @@ return authenticated(_that.token,_that.userId,_that.currentMode);case _EmailVeri
 return emailVerificationRequired(_that.email);case _EmailVerified():
 return emailVerified();case _ForgotPasswordEmailSent():
 return forgotPasswordEmailSent(_that.email);case _ResetPasswordSuccess():
-return resetPasswordSuccess();case _Error():
+return resetPasswordSuccess();case _DriverRegistrationSuccess():
+return driverRegistrationSuccess();case _Error():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
 
@@ -1351,7 +1446,7 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function()?  unauthenticated,TResult? Function( String phone)?  otpSent,TResult? Function( String token,  String userId,  String currentMode)?  authenticated,TResult? Function( String email)?  emailVerificationRequired,TResult? Function()?  emailVerified,TResult? Function( String email)?  forgotPasswordEmailSent,TResult? Function()?  resetPasswordSuccess,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function()?  unauthenticated,TResult? Function( String phone)?  otpSent,TResult? Function( String token,  String userId,  String currentMode)?  authenticated,TResult? Function( String email)?  emailVerificationRequired,TResult? Function()?  emailVerified,TResult? Function( String email)?  forgotPasswordEmailSent,TResult? Function()?  resetPasswordSuccess,TResult? Function()?  driverRegistrationSuccess,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
@@ -1362,7 +1457,8 @@ return authenticated(_that.token,_that.userId,_that.currentMode);case _EmailVeri
 return emailVerificationRequired(_that.email);case _EmailVerified() when emailVerified != null:
 return emailVerified();case _ForgotPasswordEmailSent() when forgotPasswordEmailSent != null:
 return forgotPasswordEmailSent(_that.email);case _ResetPasswordSuccess() when resetPasswordSuccess != null:
-return resetPasswordSuccess();case _Error() when error != null:
+return resetPasswordSuccess();case _DriverRegistrationSuccess() when driverRegistrationSuccess != null:
+return driverRegistrationSuccess();case _Error() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -1791,6 +1887,38 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'AuthState.resetPasswordSuccess()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class _DriverRegistrationSuccess implements AuthState {
+  const _DriverRegistrationSuccess();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DriverRegistrationSuccess);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'AuthState.driverRegistrationSuccess()';
 }
 
 

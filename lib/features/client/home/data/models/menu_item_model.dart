@@ -17,8 +17,10 @@ class MenuVariationModel {
 /// A restaurant menu item.
 class MenuItemModel {
   final String id;
-  final String name;
-  final String? description;
+  final String nameFr;
+  final String nameEn;
+  final String? descriptionFr;
+  final String? descriptionEn;
   final double price;
   final String? image;
   final String? category;
@@ -27,8 +29,10 @@ class MenuItemModel {
 
   const MenuItemModel({
     required this.id,
-    required this.name,
-    this.description,
+    required this.nameFr,
+    required this.nameEn,
+    this.descriptionFr,
+    this.descriptionEn,
     required this.price,
     this.image,
     this.category,
@@ -37,12 +41,13 @@ class MenuItemModel {
   });
 
   factory MenuItemModel.fromJson(Map<String, dynamic> json) {
-    final rawVariations =
-        (json['variations'] as List<dynamic>? ?? []);
+    final rawVariations = (json['variations'] as List<dynamic>? ?? []);
     return MenuItemModel(
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      description: json['description']?.toString(),
+      nameFr: json['name_fr']?.toString() ?? json['name']?.toString() ?? '',
+      nameEn: json['name_en']?.toString() ?? json['name']?.toString() ?? '',
+      descriptionFr: json['description_fr']?.toString() ?? json['description']?.toString(),
+      descriptionEn: json['description_en']?.toString() ?? json['description']?.toString(),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       image: json['image']?.toString() ?? json['imageUrl']?.toString(),
       category: json['category']?.toString(),
@@ -54,10 +59,15 @@ class MenuItemModel {
     );
   }
 
+  String getName(String lang) => lang == 'en' ? nameEn : nameFr;
+  String? getDescription(String lang) => lang == 'en' ? descriptionEn : descriptionFr;
+
   Map<String, dynamic> toJson() => {
         '_id': id,
-        'name': name,
-        if (description != null) 'description': description,
+        'name_fr': nameFr,
+        'name_en': nameEn,
+        if (descriptionFr != null) 'description_fr': descriptionFr,
+        if (descriptionEn != null) 'description_en': descriptionEn,
         'price': price,
         if (image != null) 'image': image,
         if (category != null) 'category': category,

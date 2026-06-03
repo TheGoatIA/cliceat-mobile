@@ -19,6 +19,26 @@ class CouponModel {
     this.isValid = true,
   });
 
+  CouponModel copyWith({
+    String? id,
+    String? code,
+    double? discount,
+    String? discountType,
+    double? maxDiscount,
+    DateTime? expiresAt,
+    bool? isValid,
+  }) {
+    return CouponModel(
+      id: id ?? this.id,
+      code: code ?? this.code,
+      discount: discount ?? this.discount,
+      discountType: discountType ?? this.discountType,
+      maxDiscount: maxDiscount ?? this.maxDiscount,
+      expiresAt: expiresAt ?? this.expiresAt,
+      isValid: isValid ?? this.isValid,
+    );
+  }
+
   factory CouponModel.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>? ??
         json['coupon'] as Map<String, dynamic>? ??

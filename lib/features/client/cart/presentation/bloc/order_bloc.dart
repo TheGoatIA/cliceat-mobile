@@ -150,7 +150,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   Future<void> _onCancelOrder(
       CancelOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
-    final result = await _orderRepository.cancelOrder(event.orderId);
+    final result = await _orderRepository.cancelOrder(event.orderId, event.reason);
     result.fold(
       (err) {
         _logger.e('Error cancelling order: ${err.message}');
@@ -180,7 +180,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       RateOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
     final result = await _orderRepository.rateOrder(
-        event.orderId, event.rating, event.comment);
+        event.orderId, event.restaurantRating, event.deliveryRating, event.comment);
     result.fold(
       (err) {
         _logger.e('Error rating order: ${err.message}');

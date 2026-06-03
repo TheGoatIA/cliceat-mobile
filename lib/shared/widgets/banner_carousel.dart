@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:cliceat_app/features/client/banner/data/models/banner_model.dart';
@@ -21,6 +22,28 @@ class BannerCarousel extends StatefulWidget {
 class _BannerCarouselState extends State<BannerCarousel> {
   int _currentPage = 0;
   final _controller = PageController();
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoPlay();
+  }
+
+  void _startAutoPlay() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (!mounted) return;
+      if (_banners.length <= 1) return;
+
+      final nextPage = (_currentPage + 1) % _banners.length;
+      _controller.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOutCubic,
+      );
+    });
+  }
 
   static final _fallback = [
     BannerModel(
@@ -60,6 +83,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -73,7 +97,10 @@ class _BannerCarouselState extends State<BannerCarousel> {
           child: PageView.builder(
             controller: _controller,
             itemCount: _banners.length,
-            onPageChanged: (i) => setState(() => _currentPage = i),
+            onPageChanged: (i) {
+              setState(() => _currentPage = i);
+              _startAutoPlay(); // Restart timer to reset the 4-second delay after manual swipe
+            },
             itemBuilder: (_, i) => _BannerItem(
               banner: _banners[i],
               height: widget.height,

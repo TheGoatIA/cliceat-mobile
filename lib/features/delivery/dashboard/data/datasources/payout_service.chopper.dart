@@ -20,7 +20,7 @@ final class _$PayoutService extends PayoutService {
 
   @override
   Future<Response<Map<String, dynamic>>> getPayouts() {
-    final Uri $url = Uri.parse('/drivers/me/payouts');
+    final Uri $url = Uri.parse('/payouts/history');
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
@@ -29,7 +29,7 @@ final class _$PayoutService extends PayoutService {
   Future<Response<Map<String, dynamic>>> requestPayout(
     Map<String, dynamic> body,
   ) {
-    final Uri $url = Uri.parse('/drivers/me/payouts');
+    final Uri $url = Uri.parse('/payouts/request');
     final $body = body;
     final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
@@ -37,7 +37,7 @@ final class _$PayoutService extends PayoutService {
 
   @override
   Future<Response<Map<String, dynamic>>> getPayoutAccount() {
-    final Uri $url = Uri.parse('/drivers/me/payout-account');
+    final Uri $url = Uri.parse('/payouts/account');
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
@@ -46,9 +46,9 @@ final class _$PayoutService extends PayoutService {
   Future<Response<Map<String, dynamic>>> updatePayoutAccount(
     Map<String, dynamic> body,
   ) {
-    final Uri $url = Uri.parse('/drivers/me/payout-account');
+    final Uri $url = Uri.parse('/payouts/account');
     final $body = body;
-    final Request $request = Request('PUT', $url, client.baseUrl, body: $body);
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 }

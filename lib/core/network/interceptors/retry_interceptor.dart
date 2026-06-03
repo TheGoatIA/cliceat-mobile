@@ -16,6 +16,9 @@ class RetryInterceptor implements Interceptor {
   @override
   FutureOr<Response<BodyType>> intercept<BodyType>(
       Chain<BodyType> chain) async {
+    if (chain.request.multipart) {
+      return chain.proceed(chain.request);
+    }
     int attempt = 0;
     while (true) {
       try {

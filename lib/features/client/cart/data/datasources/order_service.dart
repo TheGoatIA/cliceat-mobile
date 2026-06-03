@@ -12,6 +12,11 @@ abstract class OrderService extends ChopperService {
   Future<Response<Map<String, dynamic>>> createOrder(
       @Body() Map<String, dynamic> body);
 
+  /// POST /orders/estimate — estimate an order dynamically
+  @POST(path: '/estimate')
+  Future<Response<Map<String, dynamic>>> estimateOrder(
+      @Body() Map<String, dynamic> body);
+
   /// GET /orders — list client orders (paginated)
   @GET()
   Future<Response<Map<String, dynamic>>> getOrders({
@@ -25,7 +30,10 @@ abstract class OrderService extends ChopperService {
 
   /// POST /orders/{id}/cancel — cancel an order
   @POST(path: '/{id}/cancel')
-  Future<Response<Map<String, dynamic>>> cancelOrder(@Path('id') String id);
+  Future<Response<Map<String, dynamic>>> cancelOrder(
+    @Path('id') String id,
+    @Body() Map<String, dynamic> body,
+  );
 
   /// POST /orders/{id}/rate — rate a delivered order
   @POST(path: '/{id}/rate')

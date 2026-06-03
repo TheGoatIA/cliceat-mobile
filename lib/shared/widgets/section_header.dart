@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 
-/// Section title with an optional "see all" / action button on the right.
 class SectionHeader extends StatelessWidget {
   final String title;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final Widget? leading;
   final EdgeInsetsGeometry padding;
 
   const SectionHeader({
@@ -12,36 +14,38 @@ class SectionHeader extends StatelessWidget {
     required this.title,
     this.actionLabel,
     this.onAction,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    this.leading,
+    this.padding = const EdgeInsets.fromLTRB(20, 20, 20, 12),
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
       padding: padding,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
+          if (leading != null) ...[leading!, const SizedBox(width: 6)],
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.bricolageGrotesque(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.ink,
+                letterSpacing: -0.4,
+              ),
+            ),
           ),
           if (actionLabel != null)
-            TextButton(
-              onPressed: onAction,
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
+            GestureDetector(
+              onTap: onAction,
               child: Text(
                 actionLabel!,
-                style: TextStyle(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.bold,
+                style: GoogleFonts.inter(
                   fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryRed,
                 ),
               ),
             ),

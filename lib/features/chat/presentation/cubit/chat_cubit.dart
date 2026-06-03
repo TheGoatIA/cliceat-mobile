@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:dartz/dartz.dart';
+import 'package:cliceat_app/core/errors/app_error.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/models/chat_model.dart';
 import 'chat_state.dart';
@@ -90,7 +92,7 @@ class ChatCubit extends Cubit<ChatState> {
     );
   }
 
-  Future<void> sendMessage(String conversationId, String content, {File? file}) async {
+  Future<Either<AppError, MessageModel>> sendMessage(String conversationId, String content, {File? file}) async {
     // Optimistic UI could be implemented here
     final res = await _repository.sendMessage(
       conversationId: conversationId,
@@ -99,7 +101,7 @@ class ChatCubit extends Cubit<ChatState> {
     );
 
     res.fold(
-      (err) => emit(ChatState.error(err.message)),
+      (err) {},
       (newMessage) {
         state.maybeWhen(
           messagesLoaded: (conversation, messages) {
@@ -110,6 +112,7 @@ class ChatCubit extends Cubit<ChatState> {
         );
       },
     );
+    return res;
   }
 
   Future<void> createSupportConversation() async {

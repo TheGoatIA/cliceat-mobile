@@ -17,12 +17,15 @@ class ReviewRepository {
     try {
       final res = await _service.getRestaurantReviews(restaurantId, page: page);
       if (res.isSuccessful && res.body != null) {
-        final data = res.body!['data'] as List;
-        return Right(data.map((e) => ReviewModel.fromJson(e as Map<String, dynamic>)).toList());
+        // Backend returns: {success, items: [...], total, page, hasNext}
+        // Fallback also checks 'data' for forward-compatibility
+        final raw = res.body!['items'] ?? res.body!['data'] ?? [];
+        final list = raw is List ? raw : [];
+        return Right(list.whereType<Map<String, dynamic>>().map(ReviewModel.fromJson).toList());
       }
       return Left(AppError.fromResponse(res.body, 'review.error_load'));
     } catch (_) {
-      return Left(AppError.network());
+      return Left(const AppError(message: 'review.error_load', type: AppErrorType.server));
     }
   }
 
@@ -30,12 +33,13 @@ class ReviewRepository {
     try {
       final res = await _service.getMyReviews(page: page);
       if (res.isSuccessful && res.body != null) {
-        final data = res.body!['data'] as List;
-        return Right(data.map((e) => ReviewModel.fromJson(e as Map<String, dynamic>)).toList());
+        final raw = res.body!['items'] ?? res.body!['data'] ?? [];
+        final list = raw is List ? raw : [];
+        return Right(list.whereType<Map<String, dynamic>>().map(ReviewModel.fromJson).toList());
       }
       return Left(AppError.fromResponse(res.body, 'review.error_load'));
     } catch (_) {
-      return Left(AppError.network());
+      return Left(const AppError(message: 'review.error_load', type: AppErrorType.server));
     }
   }
 

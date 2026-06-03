@@ -6,10 +6,20 @@ abstract class OrderEvent {
   static OrderEvent createOrder(Map<String, dynamic> payload) => CreateOrder(payload);
   static OrderEvent loadOrders() => const LoadOrders();
   static OrderEvent loadMoreOrders() => const LoadMoreOrders();
-  static OrderEvent cancelOrder(String orderId) => CancelOrder(orderId);
+  static OrderEvent cancelOrder(String orderId, [String? reason]) => CancelOrder(orderId, reason);
   static OrderEvent reorderOrder(String orderId) => ReorderOrder(orderId);
-  static OrderEvent rateOrder({required String orderId, required int rating, String? comment}) => 
-      RateOrder(orderId: orderId, rating: rating, comment: comment);
+  static OrderEvent rateOrder({
+    required String orderId,
+    required int restaurantRating,
+    required int deliveryRating,
+    String? comment,
+  }) => 
+      RateOrder(
+        orderId: orderId,
+        restaurantRating: restaurantRating,
+        deliveryRating: deliveryRating,
+        comment: comment,
+      );
   static OrderEvent downloadInvoice(String orderId) => DownloadInvoice(orderId);
   static OrderEvent statusUpdate(Map<String, dynamic> payload) => StatusUpdate(payload);
 }
@@ -29,7 +39,8 @@ class LoadMoreOrders extends OrderEvent {
 
 class CancelOrder extends OrderEvent {
   final String orderId;
-  const CancelOrder(this.orderId);
+  final String? reason;
+  const CancelOrder(this.orderId, [this.reason]);
 }
 
 class ReorderOrder extends OrderEvent {
@@ -39,9 +50,15 @@ class ReorderOrder extends OrderEvent {
 
 class RateOrder extends OrderEvent {
   final String orderId;
-  final int rating;
+  final int restaurantRating;
+  final int deliveryRating;
   final String? comment;
-  const RateOrder({required this.orderId, required this.rating, this.comment});
+  const RateOrder({
+    required this.orderId,
+    required this.restaurantRating,
+    required this.deliveryRating,
+    this.comment,
+  });
 }
 
 class DownloadInvoice extends OrderEvent {

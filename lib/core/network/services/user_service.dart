@@ -1,4 +1,5 @@
 import 'package:chopper/chopper.dart';
+import 'package:http/http.dart' show MultipartFile;
 
 part 'user_service.chopper.dart';
 
@@ -10,10 +11,16 @@ abstract class UserService extends ChopperService {
   @GET(path: '/me')
   Future<Response<Map<String, dynamic>>> getMe();
 
-  /// PATCH /users/me
-  @PATCH(path: '/me')
+  /// PUT /users/me
+  @PUT(path: '/me')
   Future<Response<Map<String, dynamic>>> updateMe(
       @Body() Map<String, dynamic> body);
+
+  /// PATCH /users/me (Multipart)
+  @PATCH(path: '/me')
+  @multipart
+  Future<Response<Map<String, dynamic>>> updateProfilePhoto(
+      @PartFile('photo') MultipartFile photo);
 
   /// POST /users/me/device-token — register FCM token with locale
   @POST(path: '/me/device-token')
@@ -39,7 +46,31 @@ abstract class UserService extends ChopperService {
   Future<Response<Map<String, dynamic>>> deleteAddress(
       @Path('id') String id);
 
+  /// PUT /users/me/addresses/{id}
+  @PUT(path: '/me/addresses/{id}')
+  Future<Response<Map<String, dynamic>>> updateAddress(
+      @Path('id') String id, @Body() Map<String, dynamic> body);
+
   /// GET /users/me/loyalty
   @GET(path: '/me/loyalty')
   Future<Response<Map<String, dynamic>>> getLoyalty();
+
+  /// GET /users/me/notifications
+  @GET(path: '/me/notifications')
+  Future<Response<Map<String, dynamic>>> getNotifications(
+    @Query('page') int page,
+    @Query('limit') int limit,
+  );
+
+  /// PATCH /users/me/notifications/{id}/read
+  @PATCH(path: '/me/notifications/{id}/read')
+  Future<Response<Map<String, dynamic>>> markNotificationRead(
+    @Path('id') String id,
+  );
+
+  /// DELETE /users/me/notifications/{id}
+  @DELETE(path: '/me/notifications/{id}')
+  Future<Response<Map<String, dynamic>>> deleteNotification(
+    @Path('id') String id,
+  );
 }

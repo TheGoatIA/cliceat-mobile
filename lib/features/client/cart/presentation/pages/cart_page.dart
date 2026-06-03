@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../../../../shared/widgets/primary_button.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../../core/theme/app_theme.dart';
 import '../bloc/cart_cubit.dart';
 
 class CartPage extends StatelessWidget {
@@ -12,34 +13,70 @@ class CartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('cart.title'.tr()),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
-        ),
-      ),
+      backgroundColor: AppTheme.bg,
       body: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) {
           if (state.items.isEmpty) {
-            return Center(
+            return SafeArea(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shopping_cart_outlined,
-                      size: 80,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  const SizedBox(height: 16),
-                  Text(
-                    'cart.empty'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'cart.empty_subtitle'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Row(
+                      children: [
+                        Text(
+                          'cart.title'.tr(),
+                          style: GoogleFonts.bricolageGrotesque(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.ink,
+                            letterSpacing: -0.6,
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 88,
+                            height: 88,
+                            decoration: BoxDecoration(
+                              color: AppTheme.bgWarm,
+                              borderRadius: BorderRadius.circular(44),
+                            ),
+                            child: const Icon(
+                              Icons.shopping_bag_outlined,
+                              size: 40,
+                              color: AppTheme.muted,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'cart.empty'.tr(),
+                            style: GoogleFonts.bricolageGrotesque(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.ink,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'cart.empty_subtitle'.tr(),
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: AppTheme.muted,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -51,14 +88,58 @@ class CartPage extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 600),
               child: Column(
                 children: [
+                  // Header
+                  SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: Row(
+                        children: [
+                          Text(
+                            'cart.title'.tr(),
+                            style: GoogleFonts.bricolageGrotesque(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.ink,
+                              letterSpacing: -0.6,
+                            ),
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () {
+                              HapticFeedback.mediumImpact();
+                              context.read<CartCubit>().clearCart();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.redSoft,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'Vider',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.primaryRed,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(16),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                       itemCount: state.items.length,
-                      separatorBuilder: (context, index) => const Divider(),
                       itemBuilder: (context, index) {
                         final item = state.items[index];
-                        return _buildCartItem(context, item, state);
+                        return _buildCartItem(context, item);
                       },
                     ),
                   ),
@@ -72,70 +153,155 @@ class CartPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCartItem(BuildContext context, CartItem item, CartState state) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          ),
-          child: Center(
-            child: Icon(Icons.fastfood,
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.name,
-                style: Theme.of(context).textTheme.titleMedium,
+  Widget _buildCartItem(BuildContext context, CartItem item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppTheme.bgWarm,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.fastfood_rounded,
+                color: AppTheme.muted,
+                size: 24,
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${(item.price * item.quantity).toStringAsFixed(0)} FCFA',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.ink,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  '${(item.price * item.quantity).toStringAsFixed(0)} FCFA',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryRed,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.remove_circle_outline),
-              onPressed: () {
-                HapticFeedback.selectionClick();
-                context
-                    .read<CartCubit>()
-                    .updateQuantity(item.id, item.quantity - 1);
-              },
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.bg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.lineSoft),
             ),
-            Text(
-              '${item.quantity}',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    context.read<CartCubit>().updateQuantity(
+                      item.id,
+                      item.quantity - 1,
+                    );
+                  },
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: item.quantity <= 1
+                          ? AppTheme.redSoft
+                          : AppTheme.bgWarm,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      item.quantity <= 1
+                          ? Icons.delete_outline_rounded
+                          : Icons.remove_rounded,
+                      size: 16,
+                      color: item.quantity <= 1
+                          ? AppTheme.primaryRed
+                          : AppTheme.inkSoft,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 32,
+                  child: Center(
+                    child: Text(
+                      '${item.quantity}',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.ink,
+                      ),
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    context.read<CartCubit>().updateQuantity(
+                      item.id,
+                      item.quantity + 1,
+                    );
+                  },
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryRed,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.add_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline),
-              color: Theme.of(context).colorScheme.primary,
-              onPressed: () {
-                HapticFeedback.selectionClick();
-                context
-                    .read<CartCubit>()
-                    .updateQuantity(item.id, item.quantity + 1);
-              },
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              context.read<CartCubit>().removeItem(item.id);
+            },
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppTheme.redSoft,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.delete_outline_rounded,
+                size: 18,
+                color: AppTheme.primaryRed,
+              ),
             ),
-          ],
-        )
-      ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -144,65 +310,96 @@ class CartPage extends StatelessWidget {
     final total = state.subtotal + deliveryFee;
 
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
-            offset: const Offset(0, -4),
-            blurRadius: 10,
-          )
-        ],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: AppTheme.lineSoft)),
       ),
       child: SafeArea(
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('cart.sub_total'.tr()),
-                Text('${state.subtotal.toStringAsFixed(0)} FCFA'),
-              ],
+            _SummaryRow(
+              label: 'cart.sub_total'.tr(),
+              value: '${state.subtotal.toStringAsFixed(0)} FCFA',
             ),
             const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('cart.delivery_fee'.tr()),
-                Text('${deliveryFee.toStringAsFixed(0)} FCFA'),
-              ],
+            _SummaryRow(
+              label: 'cart.delivery_fee'.tr(),
+              value: '${deliveryFee.toStringAsFixed(0)} FCFA',
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Container(height: 1, color: AppTheme.lineSoft),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('cart.total'.tr(),
-                    style: Theme.of(context).textTheme.titleLarge),
-                Text(
-                  '${total.toStringAsFixed(0)} FCFA',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+            _SummaryRow(
+              label: 'cart.total'.tr(),
+              value: '${total.toStringAsFixed(0)} FCFA',
+              bold: true,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => context.push('/checkout'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryRed,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-              ],
+                child: Text(
+                  '${'cart.checkout_btn'.tr()} · ${total.toStringAsFixed(0)} FCFA',
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
-            PrimaryButton(
-              text:
-                  '${'cart.checkout_btn'.tr()} (${total.toStringAsFixed(0)} FCFA)',
-              onPressed: () {
-                context.push('/checkout');
-              },
-            ),
+            const SizedBox(height: 4),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool bold;
+
+  const _SummaryRow({
+    required this.label,
+    required this.value,
+    this.bold = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: bold ? 16 : 14,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+            color: bold ? AppTheme.ink : AppTheme.muted,
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            fontSize: bold ? 16 : 14,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+            color: bold ? AppTheme.primaryRed : AppTheme.inkSoft,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -5,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/shared/models/address_model.dart';
 import 'package:cliceat_app/features/client/profile/data/models/loyalty_model.dart';
@@ -12,8 +15,13 @@ import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/core/theme/presentation/bloc/theme_cubit.dart';
+import 'package:cliceat_app/core/config/feature_flags.dart';
+import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import 'package:dartz/dartz.dart' show Either;
+import 'package:cliceat_app/core/errors/app_error.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -29,8 +37,8 @@ class _ProfilePageState extends State<ProfilePage> {
     return BlocBuilder<ProfileCubit, ProfileState>(
       builder: (context, state) {
         return state.maybeWhen(
-          loading: () => const Scaffold(
-              body: Center(child: CircularProgressIndicator())),
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
           error: (msg) => Scaffold(body: Center(child: Text(msg))),
           loaded: (user) => _buildProfileContent(context, user, theme),
           orElse: () => const SizedBox.shrink(),
@@ -39,9 +47,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileContent(BuildContext context, UserModel user, ThemeData theme) {
+  Widget _buildProfileContent(
+    BuildContext context,
+    UserModel user,
+    ThemeData theme,
+  ) {
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: AppTheme.bg,
       body: CustomScrollView(
         slivers: [
           _buildSliverHeader(theme, user),
@@ -65,18 +77,15 @@ class _ProfilePageState extends State<ProfilePage> {
     return SliverAppBar(
       expandedHeight: 230,
       pinned: true,
-      backgroundColor: theme.colorScheme.primary,
+      backgroundColor: AppTheme.primaryRed,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       leading: const SizedBox.shrink(),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withValues(alpha: 0.85),
-              ],
+              colors: [AppTheme.primaryRed, AppTheme.redDeep],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -98,30 +107,67 @@ class _ProfilePageState extends State<ProfilePage> {
                           width: 3,
                         ),
                       ),
-                      child: CircleAvatar(
-                        radius: 48,
-                        backgroundColor:
-                            Colors.white.withValues(alpha: 0.2),
-                        backgroundImage: photo != null &&
-                                photo.isNotEmpty
-                            ? NetworkImage(photo)
-                            : null,
-                        child: photo == null || photo.isEmpty
-                            ? Text(
-                                name.isNotEmpty
-                                    ? name[0].toUpperCase()
-                                    : 'U',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                      child: ClipOval(
+                        child: photo != null && photo.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: photo,
+                                width: 96,
+                                height: 96,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  width: 96,
+                                  height: 96,
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  alignment: Alignment.center,
+                                  child: const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
+                                errorWidget: (context, url, error) {
+                                  debugPrint(
+                                    "Avatar image failed to load: $error",
+                                  );
+                                  return Container(
+                                    width: 96,
+                                    height: 96,
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      name.isNotEmpty
+                                          ? name[0].toUpperCase()
+                                          : 'U',
+                                      style: GoogleFonts.bricolageGrotesque(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  );
+                                },
                               )
-                            : null,
+                            : Container(
+                                width: 96,
+                                height: 96,
+                                color: Colors.white.withValues(alpha: 0.2),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                  style: GoogleFonts.bricolageGrotesque(
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => _showEditProfile(context, user),
+                      onTap: () => _pickAndUploadAvatar(context),
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
@@ -134,10 +180,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ],
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.camera_alt_rounded,
                           size: 16,
-                          color: theme.colorScheme.primary,
+                          color: AppTheme.primaryRed,
                         ),
                       ),
                     ),
@@ -146,7 +192,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 12),
                 Text(
                   name,
-                  style: GoogleFonts.nunito(
+                  style: GoogleFonts.bricolageGrotesque(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -182,7 +228,11 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context, ThemeData theme, UserModel user) {
+  Widget _buildMenuSection(
+    BuildContext context,
+    ThemeData theme,
+    UserModel user,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -195,7 +245,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.person_outline_rounded,
             title: 'profile.edit_profile'.tr(),
-            color: theme.colorScheme.primary,
+            color: AppTheme.primaryRed,
             onTap: () => _showEditProfile(context, user),
           ),
           _buildDivider(theme),
@@ -206,42 +256,62 @@ class _ProfilePageState extends State<ProfilePage> {
             onTap: () => _showAddresses(context),
           ),
           _buildDivider(theme),
-          _buildMenuItem(
-            icon: Icons.account_balance_wallet_outlined,
-            title: 'wallet.title'.tr(),
-            color: Colors.teal,
-            onTap: () => context.push('/client/wallet'),
+          FeatureGate(
+            featureKey: FeatureFlags.wallet,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildMenuItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: 'wallet.title'.tr(),
+                  color: AppTheme.green,
+                  onTap: () => context.push('/client/wallet'),
+                ),
+                _buildDivider(theme),
+              ],
+            ),
           ),
-          _buildDivider(theme),
-          _buildMenuItem(
-            icon: Icons.card_giftcard_outlined,
-            title: 'profile.loyalty'.tr(),
-            color: theme.colorScheme.secondary,
-            onTap: () => _showLoyalty(context),
-            trailing: Container(
+          FeatureGate(
+            featureKey: FeatureFlags.loyalty,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildMenuItem(
+                  icon: Icons.card_giftcard_outlined,
+                  title: 'profile.loyalty'.tr(),
+                  color: AppTheme.honey,
+                  onTap: () => _showLoyalty(context),
+                  trailing: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.secondary
-                          .withValues(alpha: 0.1),
+                      color: AppTheme.honeySoft,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       'profile.points'.tr(),
-                      style: TextStyle(
+                      style: GoogleFonts.inter(
                         fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.secondary,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.honey,
                       ),
                     ),
                   ),
+                ),
+                _buildDivider(theme),
+              ],
+            ),
           ),
-          _buildDivider(theme),
-          _buildMenuItem(
-            icon: Icons.group_add_outlined,
-            title: 'referral.title'.tr(),
-            color: Colors.orange,
-            onTap: () => context.push('/client/profile/referrals'),
+          FeatureGate(
+            featureKey: FeatureFlags.referral,
+            child: _buildMenuItem(
+              icon: Icons.group_add_outlined,
+              title: 'referral.title'.tr(),
+              color: AppTheme.honey,
+              onTap: () => context.push('/client/profile/referrals'),
+            ),
           ),
         ], theme),
 
@@ -254,21 +324,21 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.receipt_long_outlined,
             title: 'profile.order_history'.tr(),
-            color: const Color(0xFF6200EA),
+            color: AppTheme.primaryRed,
             onTap: () => context.push('/client/orders'),
           ),
           _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.rate_review_outlined,
             title: 'review.my_reviews'.tr(),
-            color: Colors.amber.shade700,
+            color: AppTheme.honey,
             onTap: () => context.push('/client/profile/reviews'),
           ),
           _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.gavel_outlined,
             title: 'dispute.history_title'.tr(),
-            color: Colors.redAccent,
+            color: AppTheme.errorColor,
             onTap: () => context.push('/client/dispute/history'),
           ),
         ], theme),
@@ -282,27 +352,30 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.notifications_outlined,
             title: 'profile.notifications'.tr(),
-            color: const Color(0xFFFF6D00),
+            color: AppTheme.honey,
             onTap: () => _showNotificationSettings(context),
           ),
           _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.language_outlined,
             title: 'profile.language'.tr(),
-            color: const Color(0xFF0097A7),
+            color: AppTheme.green,
             onTap: () => _showLanguagePicker(context),
           ),
           _buildDivider(theme),
           BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, mode) {
               return _buildSwitchTile(
-                icon: mode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+                icon: mode == ThemeMode.dark
+                    ? Icons.dark_mode
+                    : Icons.light_mode,
                 title: 'profile.dark_mode'.tr(),
                 value: mode == ThemeMode.dark,
                 onChanged: (v) {
-                  context.read<ThemeCubit>().setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
+                  context.read<ThemeCubit>().setThemeMode(
+                    v ? ThemeMode.dark : ThemeMode.light,
+                  );
                 },
-                theme: theme,
               );
             },
           ),
@@ -310,7 +383,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.help_outline_rounded,
             title: 'profile.help'.tr(),
-            color: const Color(0xFF388E3C),
+            color: AppTheme.green,
             onTap: () => _showHelp(context),
           ),
         ], theme),
@@ -326,9 +399,7 @@ class _ProfilePageState extends State<ProfilePage> {
         Center(
           child: Text(
             'ClicEat v1.0.0',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
+            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
           ),
         ),
       ],
@@ -340,10 +411,11 @@ class _ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Text(
         title.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
+        style: GoogleFonts.inter(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.primaryRed,
+          letterSpacing: 1.5,
         ),
       ),
     );
@@ -352,7 +424,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildMenuGroup(List<Widget> children, ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardTheme.color ?? theme.colorScheme.surface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -371,7 +443,7 @@ class _ProfilePageState extends State<ProfilePage> {
       height: 1,
       thickness: 0.5,
       indent: 56,
-      color: theme.dividerColor.withValues(alpha: 0.4),
+      color: AppTheme.lineSoft,
     );
   }
 
@@ -416,8 +488,11 @@ class _ProfilePageState extends State<ProfilePage> {
               if (trailing != null)
                 trailing
               else
-                const Icon(Icons.chevron_right_rounded,
-                    size: 20, color: Colors.grey),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: AppTheme.mutedLight,
+                ),
             ],
           ),
         ),
@@ -435,7 +510,8 @@ class _ProfilePageState extends State<ProfilePage> {
             context: context,
             builder: (_) => AlertDialog(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: Text('profile.logout_confirm_title'.tr()),
               content: Text('profile.logout_confirm_message'.tr()),
               actions: [
@@ -446,12 +522,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    context
-                        .read<AuthBloc>()
-                        .add(const AuthEvent.logout());
+                    context.go('/auth/login');
+                    context.read<AuthBloc>().add(const AuthEvent.logout());
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.error,
+                    backgroundColor: AppTheme.errorColor,
                     foregroundColor: Colors.white,
                   ),
                   child: Text('profile.logout'.tr()),
@@ -461,11 +536,12 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         },
         style: OutlinedButton.styleFrom(
-          foregroundColor: theme.colorScheme.error,
-          side: BorderSide(
-              color: theme.colorScheme.error.withValues(alpha: 0.4)),
+          foregroundColor: AppTheme.errorColor,
+          side: const BorderSide(color: AppTheme.errorColor),
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
         icon: const Icon(Icons.logout_rounded),
         label: Text('profile.logout'.tr()),
@@ -477,12 +553,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _showEditProfile(BuildContext context, UserModel user) {
     final nameController = TextEditingController(text: user.name);
-    final theme = Theme.of(context);
+    final phoneController = TextEditingController(text: user.phone ?? '');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
           left: 24,
@@ -501,14 +578,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: theme.dividerColor,
+                  color: AppTheme.lineSoft,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             Text(
               'profile.edit_profile'.tr(),
-              style: GoogleFonts.nunito(
+              style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -521,15 +598,28 @@ class _ProfilePageState extends State<ProfilePage> {
                 prefixIcon: const Icon(Icons.person_outline),
               ),
             ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                labelText: 'profile.phone'.tr(),
+                hintText: '+237 6XX XXX XXX',
+                prefixIcon: const Icon(Icons.phone_outlined),
+                helperText: 'Votre numéro est requis pour passer commande.',
+                helperStyle: GoogleFonts.inter(fontSize: 11, color: AppTheme.muted),
+              ),
+            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  final result = await getIt<UserRepository>()
-                      .updateProfile(
-                          {'name': nameController.text.trim()});
+                  final payload = <String, dynamic>{'name': nameController.text.trim()};
+                  final phone = phoneController.text.trim();
+                  if (phone.isNotEmpty) payload['phone'] = phone;
+                  final result = await getIt<UserRepository>().updateProfile(payload);
                   result.fold(
                     (err) {
                       if (mounted) {
@@ -539,14 +629,24 @@ class _ProfilePageState extends State<ProfilePage> {
                       }
                     },
                     (updatedUser) {
-                      // ProfileCubit will handle the state update and UI refresh
+                      if (mounted) {
+                        context.read<ProfileCubit>().emitLoaded(updatedUser);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Profil mis à jour avec succès"),
+                            backgroundColor: AppTheme.successColor,
+                          ),
+                        );
+                      }
                     },
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12))),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 child: Text('common.save'.tr()),
               ),
             ),
@@ -556,219 +656,164 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // === FIX: Ajout d'adresse implémenté ===
+  // === photo / avatar select ===
+  Future<void> _pickAndUploadAvatar(BuildContext context) async {
+    try {
+      HapticFeedback.lightImpact();
+      final picker = ImagePicker();
+      final image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+      if (image == null) return;
+
+      if (!context.mounted) return;
+      final file = File(image.path);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              ),
+              SizedBox(width: 12),
+              Text("Mise à jour de la photo de profil..."),
+            ],
+          ),
+          duration: Duration(seconds: 10),
+        ),
+      );
+
+      final result = await getIt<UserRepository>().updateProfilePhoto(file);
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      result.fold(
+        (err) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(err.message.tr()),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        },
+        (updatedUser) {
+          context.read<ProfileCubit>().emitLoaded(updatedUser);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Photo de profil mise à jour avec succès !"),
+              backgroundColor: AppTheme.successColor,
+            ),
+          );
+        },
+      );
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('common.error'.tr()),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  // === FIX: Ajout et modification d'adresse implémentés ===
   void _showAddresses(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) {
-          Future<List<AddressModel>> futureAddresses =
-              getIt<UserRepository>()
-                  .getAddresses()
-                  .then((r) => r.fold((_) => <AddressModel>[], (a) => a));
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => const MyAddressesSheet(),
+    );
+  }
 
-          return DraggableScrollableSheet(
-            initialChildSize: 0.6,
-            minChildSize: 0.4,
-            maxChildSize: 0.9,
-            expand: false,
-            builder: (_, scrollController) => Column(
+  void _showLoyalty(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => FutureBuilder<LoyaltyModel?>(
+        future: getIt<UserRepository>().getLoyalty().then(
+          (r) => r.fold((_) => null, (l) => l),
+        ),
+        builder: (context, snapshot) {
+          final points = snapshot.data?.points ?? 0;
+          return Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Handle + header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 8, 0),
+                // Handle
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: AppTheme.lineSoft,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Points badge
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.honey, AppTheme.honeyLight],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(ctx).dividerColor,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
+                      Text(
+                        '$points',
+                        style: GoogleFonts.bricolageGrotesque(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
-                      Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'profile.my_addresses'.tr(),
-                            style: GoogleFonts.nunito(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          // === BOUTON AJOUTER — implémenté ===
-                          IconButton(
-                            icon: const Icon(
-                                Icons.add_circle_outline_rounded),
-                            color:
-                                Theme.of(ctx).colorScheme.primary,
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              _showAddAddressForm(context);
-                            },
-                            tooltip: 'profile.add_address'.tr(),
-                          ),
-                        ],
+                      Text(
+                        'pts',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                Expanded(
-                  child: FutureBuilder<List<AddressModel>>(
-                    future: futureAddresses,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(
-                            child: CircularProgressIndicator());
-                      }
-                      final addresses = snapshot.data ?? [];
-                      if (addresses.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment:
-                                MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.location_off_outlined,
-                                size: 48,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant
-                                    .withValues(alpha: 0.4),
-                              ),
-                              const SizedBox(height: 12),
-                              Text('profile.no_addresses'.tr(),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium),
-                              const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  Navigator.pop(ctx);
-                                  _showAddAddressForm(context);
-                                },
-                                icon: const Icon(Icons.add),
-                                label: Text(
-                                    'profile.add_address'.tr()),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                      return ListView.separated(
-                        controller: scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: addresses.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: 8),
-                        itemBuilder: (_, i) {
-                          final addr = addresses[i];
-                          return Dismissible(
-                            key: Key(addr.id.isNotEmpty
-                                ? addr.id
-                                : 'addr_$i'),
-                            direction:
-                                DismissDirection.endToStart,
-                            background: Container(
-                              padding: const EdgeInsets.only(
-                                  right: 20),
-                              decoration: BoxDecoration(
-                                color:
-                                    Theme.of(context).colorScheme.error,
-                                borderRadius:
-                                    BorderRadius.circular(16),
-                              ),
-                              alignment: Alignment.centerRight,
-                              child: const Icon(
-                                Icons.delete_outline_rounded,
-                                color: Colors.white,
-                              ),
-                            ),
-                            confirmDismiss: (_) async {
-                              if (addr.id.isEmpty) return false;
-                              final result =
-                                  await getIt<UserRepository>()
-                                      .deleteAddress(addr.id);
-                              return result.isRight();
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .cardTheme
-                                    .color,
-                                borderRadius:
-                                    BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withValues(alpha: 0.1),
-                                      borderRadius:
-                                          BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      Icons.location_on_rounded,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (addr.label != null)
-                                          Text(
-                                            addr.label!,
-                                            style: const TextStyle(
-                                              fontWeight:
-                                                  FontWeight.bold,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        Text(
-                                          addr.address,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                          maxLines: 2,
-                                          overflow:
-                                              TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
+                const SizedBox(height: 16),
+                Text(
+                  'profile.loyalty'.tr(),
+                  style: GoogleFonts.bricolageGrotesque(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  'profile.loyalty_desc'.tr(),
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+                ),
+                const SizedBox(height: 16),
               ],
             ),
           );
@@ -777,17 +822,487 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /// Implémenté: formulaire ajout d'adresse → POST /users/me/addresses
-  void _showAddAddressForm(BuildContext context) {
-    final addressCtrl = TextEditingController();
-    final labelCtrl = TextEditingController();
-    final theme = Theme.of(context);
+  void _showLanguagePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.lineSoft,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              'profile.language'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildLanguageTile(
+              ctx,
+              'Français',
+              '🇫🇷',
+              const Locale('fr', 'FR'),
+            ),
+            _buildLanguageTile(
+              ctx,
+              'English',
+              '🇬🇧',
+              const Locale('en', 'US'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile(
+    BuildContext ctx,
+    String lang,
+    String flag,
+    Locale locale,
+  ) {
+    final isSelected = ctx.locale == locale;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          ctx.setLocale(locale);
+          Navigator.pop(ctx);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          child: Row(
+            children: [
+              Text(flag, style: const TextStyle(fontSize: 24)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  lang,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              if (isSelected)
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: AppTheme.primaryRed,
+                  size: 22,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showHelp(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(
+                color: AppTheme.greenSoft,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.help_outline_rounded,
+                size: 32,
+                color: AppTheme.green,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'profile.help'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('support@cliceat.cm', style: TextStyle(fontSize: 16)),
+            const SizedBox(height: 6),
+            Text(
+              'WhatsApp: +237 6XX XXX XXX',
+              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showNotificationSettings(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => const NotificationSettingsSheet(),
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required IconData icon,
+    required String title,
+    required bool value,
+    required Function(bool) onChanged,
+  }) {
+    return SwitchListTile(
+      value: value,
+      onChanged: onChanged,
+      secondary: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppTheme.bgWarm,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: AppTheme.inkSoft, size: 22),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    );
+  }
+}
+
+// ── Notification Settings Sheet ─────────────────────────────────────────────
+
+class NotificationSettingsSheet extends StatefulWidget {
+  const NotificationSettingsSheet({super.key});
+
+  @override
+  State<NotificationSettingsSheet> createState() =>
+      _NotificationSettingsSheetState();
+}
+
+class _NotificationSettingsSheetState extends State<NotificationSettingsSheet> {
+  static const _keyOrderUpdates = 'notif_order_updates';
+  static const _keyPromotions = 'notif_promotions';
+  static const _keyNewRestaurants = 'notif_new_restaurants';
+
+  bool _orderUpdates = true;
+  bool _promotions = true;
+  bool _newRestaurants = false;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    bool orderUpdates = prefs.getBool(_keyOrderUpdates) ?? true;
+    bool promotions = prefs.getBool(_keyPromotions) ?? true;
+    bool newRestaurants = prefs.getBool(_keyNewRestaurants) ?? false;
+
+    if (mounted) {
+      final profileState = context.read<ProfileCubit>().state;
+      profileState.maybeWhen(
+        loaded: (user) {
+          if (user.notificationPreferences != null) {
+            orderUpdates =
+                user.notificationPreferences!['orderUpdates'] as bool? ??
+                orderUpdates;
+            promotions =
+                user.notificationPreferences!['promotions'] as bool? ??
+                promotions;
+            newRestaurants =
+                user.notificationPreferences!['newRestaurants'] as bool? ??
+                newRestaurants;
+          }
+        },
+        orElse: () {},
+      );
+
+      setState(() {
+        _orderUpdates = orderUpdates;
+        _promotions = promotions;
+        _newRestaurants = newRestaurants;
+        _loaded = true;
+      });
+
+      // Save locally
+      await prefs.setBool(_keyOrderUpdates, _orderUpdates);
+      await prefs.setBool(_keyPromotions, _promotions);
+      await prefs.setBool(_keyNewRestaurants, _newRestaurants);
+    }
+  }
+
+  Future<void> _save(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+
+    // Sync with remote server
+    try {
+      await getIt<UserRepository>().updateProfile({
+        'notificationPreferences': {
+          'orderUpdates': _orderUpdates,
+          'promotions': _promotions,
+          'newRestaurants': _newRestaurants,
+        },
+      });
+
+      if (mounted) {
+        final profileCubit = context.read<ProfileCubit>();
+        profileCubit.state.maybeWhen(
+          loaded: (user) {
+            final updatedUser = user.copyWith(
+              notificationPreferences: {
+                'orderUpdates': _orderUpdates,
+                'promotions': _promotions,
+                'newRestaurants': _newRestaurants,
+              },
+            );
+            profileCubit.emitLoaded(updatedUser);
+          },
+          orElse: () {},
+        );
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppTheme.lineSoft,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          Text(
+            'profile.notifications'.tr(),
+            style: GoogleFonts.bricolageGrotesque(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'profile.notifications_subtitle'.tr(),
+            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+          ),
+          const SizedBox(height: 20),
+          if (!_loaded)
+            const Center(child: CircularProgressIndicator())
+          else ...[
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppTheme.redSoft,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.receipt_long,
+                  color: AppTheme.primaryRed,
+                  size: 20,
+                ),
+              ),
+              title: Text('profile.notif_order_updates'.tr()),
+              subtitle: Text('profile.notif_order_updates_desc'.tr()),
+              value: _orderUpdates,
+              onChanged: (v) {
+                setState(() => _orderUpdates = v);
+                _save(_keyOrderUpdates, v);
+              },
+            ),
+            const Divider(height: 1),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppTheme.honeySoft,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.local_offer,
+                  color: AppTheme.honey,
+                  size: 20,
+                ),
+              ),
+              title: Text('profile.notif_promotions'.tr()),
+              subtitle: Text('profile.notif_promotions_desc'.tr()),
+              value: _promotions,
+              onChanged: (v) {
+                setState(() => _promotions = v);
+                _save(_keyPromotions, v);
+              },
+            ),
+            const Divider(height: 1),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppTheme.greenSoft,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.restaurant_menu,
+                  color: AppTheme.green,
+                  size: 20,
+                ),
+              ),
+              title: Text('profile.notif_new_restaurants'.tr()),
+              subtitle: Text('profile.notif_new_restaurants_desc'.tr()),
+              value: _newRestaurants,
+              onChanged: (v) {
+                setState(() => _newRestaurants = v);
+                _save(_keyNewRestaurants, v);
+              },
+            ),
+          ],
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+// ── MyAddressesSheet Component ─────────────────────────────────────────────
+
+class MyAddressesSheet extends StatefulWidget {
+  const MyAddressesSheet({super.key});
+
+  @override
+  State<MyAddressesSheet> createState() => _MyAddressesSheetState();
+}
+
+class _MyAddressesSheetState extends State<MyAddressesSheet> {
+  List<AddressModel> _addresses = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAddresses();
+  }
+
+  Future<void> _loadAddresses() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    final result = await getIt<UserRepository>().getAddresses();
+    if (mounted) {
+      result.fold(
+        (err) => setState(() => _isLoading = false),
+        (list) => setState(() {
+          _addresses = list;
+          _isLoading = false;
+        }),
+      );
+    }
+  }
+
+  Future<void> _deleteAddress(String id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("Supprimer l'adresse ?"),
+        content: const Text(
+          "Voulez-vous vraiment supprimer cette adresse de votre compte ?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text("Annuler", style: TextStyle(color: AppTheme.muted)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Supprimer"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _isLoading = true);
+      final result = await getIt<UserRepository>().deleteAddress(id);
+      result.fold((err) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(err.message.tr()),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+          setState(() => _isLoading = false);
+        }
+      }, (_) => _loadAddresses());
+    }
+  }
+
+  void _showAddressForm({AddressModel? existingAddress}) {
+    final isEditing = existingAddress != null;
+    final addressCtrl = TextEditingController(text: existingAddress?.address);
+    final labelCtrl = TextEditingController(text: existingAddress?.label);
+
+    double selectedLat = existingAddress?.lat ?? 4.0511;
+    double selectedLng = existingAddress?.lng ?? 9.7679;
+    bool locationPicked = isEditing;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
           left: 24,
@@ -805,14 +1320,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: theme.dividerColor,
+                  color: AppTheme.lineSoft,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             Text(
-              'profile.add_address'.tr(),
-              style: GoogleFonts.nunito(
+              isEditing ? 'Modifier l\'adresse' : 'profile.add_address'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -834,449 +1349,324 @@ class _ProfilePageState extends State<ProfilePage> {
                 labelText: 'profile.address_street'.tr(),
                 hintText: 'profile.address_street_hint'.tr(),
                 prefixIcon: const Icon(Icons.location_on_outlined),
+                suffixIcon: IconButton(
+                  icon: const Icon(
+                    Icons.map_rounded,
+                    color: AppTheme.primaryRed,
+                  ),
+                  tooltip: 'Choisir sur la carte',
+                  onPressed: () async {
+                    HapticFeedback.selectionClick();
+                    final result = await context.push(
+                      '/map-picker',
+                      extra: {
+                        'initialLat': selectedLat,
+                        'initialLng': selectedLng,
+                      },
+                    );
+                    if (result != null && result is Map<String, dynamic>) {
+                      selectedLat = result['lat'] as double;
+                      selectedLng = result['lng'] as double;
+                      addressCtrl.text = result['address'] as String;
+                      locationPicked = true;
+                    }
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            StatefulBuilder(
-              builder: (ctx, setLocalState) => SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final address = addressCtrl.text.trim();
-                    if (address.isEmpty) return;
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  final address = addressCtrl.text.trim();
+                  if (address.isEmpty) return;
 
-                    Navigator.pop(ctx);
+                  Navigator.pop(ctx);
+                  if (!locationPicked) {
+                    try {
+                      final permission = await Geolocator.checkPermission();
+                      if (permission == LocationPermission.always ||
+                          permission == LocationPermission.whileInUse) {
+                        final pos = await Geolocator.getCurrentPosition(
+                          locationSettings: const LocationSettings(
+                            accuracy: LocationAccuracy.low,
+                          ),
+                        ).timeout(const Duration(seconds: 2));
+                        selectedLat = pos.latitude;
+                        selectedLng = pos.longitude;
+                      }
+                    } catch (_) {}
+                  }
 
-                    final result =
-                        await getIt<UserRepository>().addAddress({
-                      'address': address,
-                      if (labelCtrl.text.trim().isNotEmpty)
-                        'label': labelCtrl.text.trim(),
-                    });
+                  final Map<String, dynamic> data = {
+                    'address': address,
+                    'label': labelCtrl.text.trim().isNotEmpty
+                        ? labelCtrl.text.trim()
+                        : 'Adresse',
+                    'lat': selectedLat,
+                    'lng': selectedLng,
+                  };
 
-                    result.fold(
-                      (err) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(err.message.tr()),
-                              backgroundColor:
-                                  theme.colorScheme.error,
-                            ),
-                          );
-                        }
-                      },
-                      (_) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text('profile.address_added'.tr()),
-                              backgroundColor: AppTheme.successColor,
-                            ),
-                          );
-                          _showAddresses(context);
-                        }
-                      },
+                  setState(() => _isLoading = true);
+                  final Either<AppError, dynamic> result;
+                  if (isEditing) {
+                    result = await getIt<UserRepository>().updateAddress(
+                      existingAddress.id,
+                      data,
                     );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                  } else {
+                    result = await getIt<UserRepository>().addAddress(data);
+                  }
+
+                  result.fold(
+                    (err) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(err.message.tr()),
+                            backgroundColor: AppTheme.errorColor,
+                          ),
+                        );
+                        setState(() => _isLoading = false);
+                      }
+                    },
+                    (_) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isEditing
+                                  ? "Adresse modifiée avec succès"
+                                  : 'profile.address_added'.tr(),
+                            ),
+                            backgroundColor: AppTheme.successColor,
+                          ),
+                        );
+                        _loadAddresses();
+                      }
+                    },
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text('common.add'.tr()),
                 ),
+                child: Text(isEditing ? 'Enregistrer' : 'common.add'.tr()),
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _showLoyalty(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => FutureBuilder<LoyaltyModel?>(
-        future: getIt<UserRepository>()
-            .getLoyalty()
-            .then((r) => r.fold((_) => null, (l) => l)),
-        builder: (context, snapshot) {
-          final theme = Theme.of(context);
-          final points = snapshot.data?.points ?? 0;
-          return Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: theme.dividerColor,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                // Points badge
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.secondary,
-                        theme.colorScheme.secondary.withValues(alpha: 0.7),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '$points',
-                        style: GoogleFonts.nunito(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        'pts',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'profile.loyalty'.tr(),
-                  style: GoogleFonts.nunito(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'profile.loyalty_desc'.tr(),
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showLanguagePicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(ctx).dividerColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Text(
-              'profile.language'.tr(),
-              style: GoogleFonts.nunito(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildLanguageTile(ctx, 'Français', '🇫🇷', const Locale('fr', 'FR')),
-            _buildLanguageTile(ctx, 'English', '🇬🇧', const Locale('en', 'US')),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLanguageTile(
-      BuildContext ctx, String lang, String flag, Locale locale) {
-    final theme = Theme.of(ctx);
-    final isSelected = ctx.locale == locale;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          ctx.setLocale(locale);
-          Navigator.pop(ctx);
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          child: Row(
-            children: [
-              Text(flag, style: const TextStyle(fontSize: 24)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  lang,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-              ),
-              if (isSelected)
-                Icon(Icons.check_circle_rounded,
-                    color: theme.colorScheme.primary, size: 22),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showHelp(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: const Color(0xFF388E3C).withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.help_outline_rounded,
-                  size: 32, color: Color(0xFF388E3C)),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'profile.help'.tr(),
-              style: GoogleFonts.nunito(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('support@cliceat.cm',
-                style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 6),
-            const Text('WhatsApp: +237 6XX XXX XXX',
-                style: TextStyle(fontSize: 14, color: Colors.grey)),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showNotificationSettings(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => const NotificationSettingsSheet(),
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String title,
-    required bool value,
-    required Function(bool) onChanged,
-    required ThemeData theme,
-  }) {
-    return SwitchListTile(
-      value: value,
-      onChanged: onChanged,
-      secondary: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 22),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-    );
-  }
-}
-
-// ── Notification Settings Sheet ─────────────────────────────────────────────
-
-class NotificationSettingsSheet extends StatefulWidget {
-  const NotificationSettingsSheet({super.key});
-
-  @override
-  State<NotificationSettingsSheet> createState() =>
-      _NotificationSettingsSheetState();
-}
-
-class _NotificationSettingsSheetState
-    extends State<NotificationSettingsSheet> {
-  static const _keyOrderUpdates = 'notif_order_updates';
-  static const _keyPromotions = 'notif_promotions';
-  static const _keyNewRestaurants = 'notif_new_restaurants';
-
-  bool _orderUpdates = true;
-  bool _promotions = true;
-  bool _newRestaurants = false;
-  bool _loaded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPrefs();
-  }
-
-  Future<void> _loadPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      _orderUpdates = prefs.getBool(_keyOrderUpdates) ?? true;
-      _promotions = prefs.getBool(_keyPromotions) ?? true;
-      _newRestaurants = prefs.getBool(_keyNewRestaurants) ?? false;
-      _loaded = true;
-    });
-  }
-
-  Future<void> _save(String key, bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.75,
+      padding: const EdgeInsets.fromLTRB(0, 16, 0, 24),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Drag handle
           Center(
             child: Container(
               width: 40,
               height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
+              margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: theme.dividerColor,
+                color: AppTheme.lineSoft,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
-          Text(
-            'profile.notifications'.tr(),
-            style: GoogleFonts.nunito(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'profile.my_addresses'.tr(),
+                  style: GoogleFonts.bricolageGrotesque(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.ink,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline_rounded, size: 28),
+                  color: AppTheme.primaryRed,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    _showAddressForm();
+                  },
+                  tooltip: 'profile.add_address'.tr(),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'profile.notifications_subtitle'.tr(),
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+
+          const SizedBox(height: 16),
+
+          // Content
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _addresses.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.location_off_outlined,
+                          size: 56,
+                          color: AppTheme.muted.withValues(alpha: 0.3),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'profile.no_addresses'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            color: AppTheme.muted,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            HapticFeedback.selectionClick();
+                            _showAddressForm();
+                          },
+                          icon: const Icon(Icons.add),
+                          label: Text('profile.add_address'.tr()),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.primaryRed,
+                            side: const BorderSide(color: AppTheme.primaryRed),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
+                    itemCount: _addresses.length,
+                    separatorBuilder: (_, index) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final addr = _addresses[index];
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.lineSoft),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.02),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Row(
+                            children: [
+                              // Icon
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.redSoft,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.location_on_rounded,
+                                  color: AppTheme.primaryRed,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+
+                              // Texts
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (addr.label != null &&
+                                        addr.label!.isNotEmpty)
+                                      Text(
+                                        addr.label!,
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: AppTheme.ink,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      addr.address,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        color: AppTheme.muted,
+                                        height: 1.3,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(width: 8),
+
+                              // Action Row
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.edit_outlined,
+                                      size: 20,
+                                    ),
+                                    color: AppTheme.inkSoft,
+                                    onPressed: () {
+                                      HapticFeedback.selectionClick();
+                                      _showAddressForm(existingAddress: addr);
+                                    },
+                                    constraints: const BoxConstraints(),
+                                    padding: const EdgeInsets.all(8),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 20,
+                                    ),
+                                    color: AppTheme.errorColor,
+                                    onPressed: () {
+                                      HapticFeedback.selectionClick();
+                                      _deleteAddress(addr.id);
+                                    },
+                                    constraints: const BoxConstraints(),
+                                    padding: const EdgeInsets.all(8),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
-          const SizedBox(height: 20),
-          if (!_loaded)
-            const Center(child: CircularProgressIndicator())
-          else ...[
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              secondary: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(Icons.receipt_long,
-                    color: theme.colorScheme.primary, size: 20),
-              ),
-              title: Text('profile.notif_order_updates'.tr()),
-              subtitle: Text('profile.notif_order_updates_desc'.tr()),
-              value: _orderUpdates,
-              onChanged: (v) {
-                setState(() => _orderUpdates = v);
-                _save(_keyOrderUpdates, v);
-              },
-            ),
-            const Divider(height: 1),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              secondary: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(Icons.local_offer,
-                    color: theme.colorScheme.secondary, size: 20),
-              ),
-              title: Text('profile.notif_promotions'.tr()),
-              subtitle: Text('profile.notif_promotions_desc'.tr()),
-              value: _promotions,
-              onChanged: (v) {
-                setState(() => _promotions = v);
-                _save(_keyPromotions, v);
-              },
-            ),
-            const Divider(height: 1),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              secondary: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(Icons.restaurant_menu,
-                    color: theme.colorScheme.tertiary, size: 20),
-              ),
-              title: Text('profile.notif_new_restaurants'.tr()),
-              subtitle: Text('profile.notif_new_restaurants_desc'.tr()),
-              value: _newRestaurants,
-              onChanged: (v) {
-                setState(() => _newRestaurants = v);
-                _save(_keyNewRestaurants, v);
-              },
-            ),
-          ],
-          const SizedBox(height: 8),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
@@ -29,5 +30,22 @@ class ProfileCubit extends Cubit<ProfileState> {
       (error) => emit(ProfileState.error(error.message)),
       (user) => emit(ProfileState.loaded(user)),
     );
+  }
+
+  void emitLoaded(UserModel user) {
+    emit(ProfileState.loaded(user));
+  }
+
+  Future<void> updateAvatar(File file) async {
+    emit(const ProfileState.loading());
+    final result = await _userRepository.updateProfilePhoto(file);
+    result.fold(
+      (error) => emit(ProfileState.error(error.message)),
+      (user) => emit(ProfileState.loaded(user)),
+    );
+  }
+
+  void clear() {
+    emit(const ProfileState.initial());
   }
 }

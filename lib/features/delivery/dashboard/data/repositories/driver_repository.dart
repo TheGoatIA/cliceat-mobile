@@ -20,7 +20,16 @@ class DriverRepository {
     try {
       final res = await _missionService.getMyOrders();
       if (res.isSuccessful && res.body != null) {
-        final raw = res.body!['data'] as List<dynamic>? ?? [];
+        final data = res.body!['data'];
+        List<dynamic> raw = [];
+        if (data is List) {
+          raw = data;
+        } else if (data is Map<String, dynamic>) {
+          raw = data['items'] as List<dynamic>? ??
+                data['orders'] as List<dynamic>? ?? 
+                data['missions'] as List<dynamic>? ?? [];
+        }
+        
         final missions = raw
             .whereType<Map<String, dynamic>>()
             .map(MissionModel.fromJson)
@@ -91,6 +100,25 @@ class DriverRepository {
     try {
       final res = await _missionService.reportMission(id, report);
       if (res.isSuccessful) return const Right(null);
+      return Left(AppError.fromResponse(res.body, 'common.error'));
+    } catch (_) {
+      return Left(AppError.network());
+    }
+  }
+
+  // ─── Profile ──────────────────────────────────────────────────────────────
+  
+  Future<Either<AppError, Map<String, dynamic>>> getProfile() async {
+    try {
+      // We can use the /users/me endpoint which we just fixed on the backend
+      // for both users and drivers.
+      final res = await _driverService.getProfile(); 
+      if (res.isSuccessful && res.body != null) {
+        final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final profile = data['user'] as Map<String, dynamic>? ?? 
+                        data['driver'] as Map<String, dynamic>? ?? data;
+        return Right(profile);
+      }
       return Left(AppError.fromResponse(res.body, 'common.error'));
     } catch (_) {
       return Left(AppError.network());

@@ -19,6 +19,13 @@ final class _$DriverService extends DriverService {
   final Type definitionType = DriverService;
 
   @override
+  Future<Response<Map<String, dynamic>>> getProfile() {
+    final Uri $url = Uri.parse('/delivery/me');
+    final Request $request = Request('GET', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
   Future<Response<Map<String, dynamic>>> getMyEarnings() {
     final Uri $url = Uri.parse('/delivery/me/earnings');
     final Request $request = Request('GET', $url, client.baseUrl);
@@ -51,6 +58,42 @@ final class _$DriverService extends DriverService {
       $url,
       client.baseUrl,
       body: $body,
+    );
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> registerDriver(
+    String name,
+    String email,
+    String phone,
+    String password,
+    String city,
+    String vehicleType,
+    String vehiclePlate,
+    String idCardPath,
+    String licensePath,
+    String photoPath,
+  ) {
+    final Uri $url = Uri.parse('/delivery/register');
+    final List<PartValue> $parts = <PartValue>[
+      PartValue<String>('name', name),
+      PartValue<String>('email', email),
+      PartValue<String>('phone', phone),
+      PartValue<String>('password', password),
+      PartValue<String>('city', city),
+      PartValue<String>('vehicleType', vehicleType),
+      PartValue<String>('vehiclePlate', vehiclePlate),
+      PartValueFile<String>('idCard', idCardPath),
+      PartValueFile<String>('license', licensePath),
+      PartValueFile<String>('photo', photoPath),
+    ];
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      parts: $parts,
+      multipart: true,
     );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }

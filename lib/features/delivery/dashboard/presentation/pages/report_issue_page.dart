@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
+import 'package:cliceat_app/core/theme/app_theme.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import '../../../../../core/di/injection.dart';
 import '../../data/datasources/mission_service.dart';
@@ -40,10 +42,21 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: Text('common.report_issue_title'.tr()),
-        backgroundColor: Theme.of(context).colorScheme.error,
-        foregroundColor: Theme.of(context).colorScheme.onError,
+        backgroundColor: AppTheme.primaryRed,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        title: Text(
+          'common.report_issue_title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: Colors.white,
+            letterSpacing: -0.3,
+          ),
+        ),
       ),
       body: Center(
         child: ConstrainedBox(
@@ -56,47 +69,71 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppTheme.redSoft,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppTheme.line),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.error),
+                      const Icon(Icons.warning_amber_rounded,
+                          color: AppTheme.primaryRed),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
                           'Les signalements sont traités par notre service client en priorité.',
-                          style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+                          style: GoogleFonts.inter(
+                              fontSize: 13, color: AppTheme.inkSoft),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
                 Text(
                   'Motif du signalement',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: AppTheme.ink,
+                  ),
                 ),
-                const SizedBox(height: 16),
-                ..._reasons.map((reason) => 
-                  RadioListTile<String>(
-                    title: Text(reason),
-                    value: reason,
-                    // ignore: deprecated_member_use
-                    groupValue: _selectedReason,
-                    activeColor: Theme.of(context).colorScheme.error,
-                    // ignore: deprecated_member_use
-                    onChanged: (value) {
-                      setState(() => _selectedReason = value);
-                    },
-                  )),
-                const SizedBox(height: 24),
-                TextField(
-                  controller: _detailsController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText: 'Détails supplémentaires...',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                const SizedBox(height: 12),
+                RadioGroup<String>(
+                  groupValue: _selectedReason,
+                  onChanged: (value) {
+                    setState(() => _selectedReason = value);
+                  },
+                  child: Column(
+                    children: _reasons.map((reason) => RadioListTile<String>(
+                      title: Text(
+                        reason,
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: AppTheme.ink),
+                      ),
+                      value: reason,
+                      activeColor: AppTheme.primaryRed,
+                    )).toList(),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppTheme.line),
+                  ),
+                  child: TextField(
+                    controller: _detailsController,
+                    maxLines: 4,
+                    style:
+                        GoogleFonts.inter(fontSize: 14, color: AppTheme.ink),
+                    decoration: InputDecoration(
+                      hintText: 'Détails supplémentaires...',
+                      hintStyle: GoogleFonts.inter(
+                          fontSize: 14, color: AppTheme.mutedLight),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 48),

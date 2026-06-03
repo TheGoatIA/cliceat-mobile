@@ -17,6 +17,7 @@ import 'package:cliceat_app/features/client/cart/data/models/order_model.dart';
 import 'package:cliceat_app/features/client/cart/data/models/tracking_model.dart';
 import 'package:cliceat_app/features/client/cart/data/datasources/order_service.dart';
 import 'package:cliceat_app/features/client/cart/data/datasources/payment_service.dart';
+import 'package:cliceat_app/features/client/wallet/data/datasources/wallet_service.dart';
 import 'package:cliceat_app/core/network/services/tracking_service.dart';
 import 'package:cliceat_app/core/data/base_repository.dart';
 
@@ -29,36 +30,146 @@ const _kPaymentSuccessStatuses = {'completed', 'success', 'approved', 'paid'};
 class OrderRepository extends BaseRepository {
   final OrderService _orderService;
   final PaymentService _paymentService;
+  final WalletService _walletService;
   final TrackingService _trackingService;
   final OrderDao _orderDao;
   final Logger _logger;
 
-
   OrderRepository(
     this._orderService,
     this._paymentService,
+    this._walletService,
     this._trackingService,
     this._orderDao,
     this._logger,
   );
 
+  // ─── Estimate ─────────────────────────────────────────────────────────────
+
+  Future<Either<AppError, Map<String, dynamic>>> estimateOrder(
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final res = await _orderService.estimateOrder(payload);
+      if (!res.isSuccessful) {
+        return Left(AppError.fromResponse(
+          res.body ?? res.error,
+          'order.estimate_failed',
+          statusCode: res.statusCode,
+        ));
+      }
+
+      if (res.body == null) {
+        return Left(const AppError(
+          message: 'common.error_empty_response',
+          type: AppErrorType.server,
+        ));
+      }
+
+      final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+      return Right(data);
+    } catch (e) {
+      return Left(AppError(
+        message: e.toString(),
+        type: AppErrorType.unknown,
+      ));
+    }
+  }
+
   // ─── Create ───────────────────────────────────────────────────────────────
 
   Future<Either<AppError, OrderModel>> createOrder(
-      Map<String, dynamic> payload) async {
-    return safeCall<OrderModel>(
-      () async {
-        final res = await _orderService.createOrder(payload);
-        // Note: safeCall handles statusCode mapping and body null check.
-        // We just need to transform the body to OrderModel.
-        if (res.isSuccessful && res.body != null) {
-          final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
-          return res.copyWith<OrderModel>(body: OrderModel.fromJson(data));
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final res = await _orderService.createOrder(payload);
+      if (!res.isSuccessful) {
+        return Left(AppError.fromResponse(
+          res.body ?? res.error,
+          'order.error_create',
+          statusCode: res.statusCode,
+        ));
+      }
+
+      if (res.body == null) {
+        return Left(const AppError(
+          message: 'common.error_empty_response',
+          type: AppErrorType.server,
+        ));
+      }
+
+      final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+      final orderData = data['order'] as Map<String, dynamic>? ?? data;
+      var order = OrderModel.fromJson(orderData);
+
+      final method = payload['paymentMethod'] as String?;
+      if (method != null && method != 'cash') {
+        if (method == 'wallet') {
+          final payRes = await _walletService.payOrder({'orderId': order.id});
+          if (!payRes.isSuccessful) {
+            return Left(AppError.fromResponse(
+              payRes.body ?? payRes.error,
+              'payment.failed',
+              statusCode: payRes.statusCode,
+            ));
+          }
+          order = OrderModel(
+            id: order.id,
+            restaurantId: order.restaurantId,
+            restaurantName: order.restaurantName,
+            restaurantLogo: order.restaurantLogo,
+            items: order.items,
+            total: order.total,
+            deliveryFee: order.deliveryFee,
+            status: 'pending',
+            paymentUrl: null,
+            paymentMethod: order.paymentMethod,
+            deliveryAddress: order.deliveryAddress,
+            notes: order.notes,
+            createdAt: order.createdAt,
+            rating: order.rating,
+            invoiceUrl: order.invoiceUrl,
+          );
+        } else if (method == 'orange_money' || method == 'mtn_momo' || method == 'wave') {
+          final initRes = await _paymentService.initializePayment({
+            'orderId': order.id,
+            'method': method,
+            'returnUrl': 'cliceat://payment/success',
+            'cancelUrl': 'cliceat://payment/cancel',
+          });
+          if (!initRes.isSuccessful) {
+            return Left(AppError.fromResponse(
+              initRes.body ?? initRes.error,
+              'payment.failed',
+              statusCode: initRes.statusCode,
+            ));
+          }
+          final initData = initRes.body!['data'] as Map<String, dynamic>? ?? initRes.body!;
+          final paymentUrl = initData['paymentUrl'] as String?;
+          order = OrderModel(
+            id: order.id,
+            restaurantId: order.restaurantId,
+            restaurantName: order.restaurantName,
+            restaurantLogo: order.restaurantLogo,
+            items: order.items,
+            total: order.total,
+            deliveryFee: order.deliveryFee,
+            status: order.status,
+            paymentUrl: paymentUrl,
+            paymentMethod: order.paymentMethod,
+            deliveryAddress: order.deliveryAddress,
+            notes: order.notes,
+            createdAt: order.createdAt,
+            rating: order.rating,
+            invoiceUrl: order.invoiceUrl,
+          );
         }
-        return res.copyWith<OrderModel>(body: null);
-      },
-      fallbackMessage: 'order.error_create',
-    );
+      }
+
+      return Right(order);
+    } catch (e) {
+      return Left(AppError.network(e.toString()));
+    }
   }
 
   // ─── Load list ────────────────────────────────────────────────────────────
@@ -67,21 +178,26 @@ class OrderRepository extends BaseRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    final result = await safeCall<List<OrderModel>>(
-      () async {
-        final res = await _orderService.getOrders(page: page, limit: limit);
-        if (res.isSuccessful && res.body != null) {
-          final raw = res.body!['data'] as List<dynamic>? ?? [];
-          final orders = raw
-              .whereType<Map<String, dynamic>>()
-              .map(OrderModel.fromJson)
-              .toList();
-          return res.copyWith<List<OrderModel>>(body: orders);
+    final result = await safeCall<List<OrderModel>>(() async {
+      final res = await _orderService.getOrders(page: page, limit: limit);
+      if (res.isSuccessful && res.body != null) {
+        final data = res.body!['data'];
+        List<dynamic> raw = [];
+        if (data is Map<String, dynamic>) {
+          raw = (data['items'] as List<dynamic>?) ??
+              (data['orders'] as List<dynamic>?) ??
+              [];
+        } else if (data is List) {
+          raw = data;
         }
-        return res.copyWith<List<OrderModel>>(body: null);
-      },
-      fallbackMessage: 'order.error_load',
-    );
+        final orders = raw
+            .whereType<Map<String, dynamic>>()
+            .map(OrderModel.fromJson)
+            .toList();
+        return res.copyWith<List<OrderModel>>(body: orders);
+      }
+      return res.copyWith<List<OrderModel>>(body: null);
+    }, fallbackMessage: 'order.error_load');
 
     return result.fold(
       (error) async {
@@ -99,31 +215,35 @@ class OrderRepository extends BaseRepository {
   }
 
   Future<Either<AppError, OrderModel>> getOrderById(String id) async {
-    return safeCall<OrderModel>(
-      () async {
-        final res = await _orderService.getOrderById(id);
-        if (res.isSuccessful && res.body != null) {
-          final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
-          return res.copyWith<OrderModel>(body: OrderModel.fromJson(data));
-        }
-        return res.copyWith<OrderModel>(body: null);
-      },
-      fallbackMessage: 'order.error_load',
-    );
+    return safeCall<OrderModel>(() async {
+      final res = await _orderService.getOrderById(id);
+      if (res.isSuccessful && res.body != null) {
+        final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final orderData = data['order'] as Map<String, dynamic>? ?? data;
+        return res.copyWith<OrderModel>(body: OrderModel.fromJson(orderData));
+      }
+      return res.copyWith<OrderModel>(body: null);
+    }, fallbackMessage: 'order.error_load');
   }
 
   // ─── Cancel ───────────────────────────────────────────────────────────────
 
-  Future<Either<AppError, void>> cancelOrder(String id) async {
+  Future<Either<AppError, void>> cancelOrder(String id, [String? reason]) async {
     try {
-      final res = await _orderService.cancelOrder(id);
+      final res = await _orderService.cancelOrder(id, {
+        'reason': reason ?? 'Annulation par le client',
+      });
       if (res.isSuccessful) {
         await _removeFromCache(id);
         return const Right(null);
       }
-      return Left(AppError.fromResponse(
-          res.body, 'order.error_cancel',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body ?? res.error,
+          'order.error_cancel',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -141,13 +261,19 @@ class OrderRepository extends BaseRepository {
       // 1. Récupérer la commande originale
       final existingRes = await _orderService.getOrderById(id);
       if (!existingRes.isSuccessful || existingRes.body == null) {
-        return Left(AppError.fromResponse(
-            existingRes.body, 'order.error_load',
-            statusCode: existingRes.statusCode));
+        return Left(
+          AppError.fromResponse(
+            existingRes.body ?? existingRes.error,
+            'order.error_load',
+            statusCode: existingRes.statusCode,
+          ),
+        );
       }
-      final data = existingRes.body!['data'] as Map<String, dynamic>? ??
+      final data =
+          existingRes.body!['data'] as Map<String, dynamic>? ??
           existingRes.body!;
-      final existing = OrderModel.fromJson(data);
+      final existingData = data['order'] as Map<String, dynamic>? ?? data;
+      final existing = OrderModel.fromJson(existingData);
 
       // 2. Construire le payload du nouvel order
       final payload = <String, dynamic>{
@@ -163,29 +289,44 @@ class OrderRepository extends BaseRepository {
       // 3. Créer la nouvelle commande
       final res = await _orderService.createOrder(payload);
       if (res.isSuccessful && res.body != null) {
-        final newData =
-            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
-        return Right(OrderModel.fromJson(newData));
+        final newData = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final newOrderData =
+            newData['order'] as Map<String, dynamic>? ?? newData;
+        return Right(OrderModel.fromJson(newOrderData));
       }
-      return Left(AppError.fromResponse(
-          res.body, 'order.error_create',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body ?? res.error,
+          'order.error_create',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
   }
 
   Future<Either<AppError, void>> rateOrder(
-      String id, int rating, String? comment) async {
+    String id,
+    int restaurantRating,
+    int deliveryRating,
+    String? comment,
+  ) async {
     try {
-      final res = await _orderService.rateOrder(id, {
-        'rating': rating,
-        'comment': comment,
-      });
+      final body = <String, dynamic>{
+        'restaurantRating': restaurantRating,
+        'deliveryRating': deliveryRating,
+        if (comment != null && comment.isNotEmpty) 'comment': comment,
+      };
+      final res = await _orderService.rateOrder(id, body);
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(
-          res.body, 'order.error_rate',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body ?? res.error,
+          'order.error_rate',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -201,11 +342,10 @@ class OrderRepository extends BaseRepository {
     try {
       final res = await _paymentService.verifyPayment(orderId);
       if (res.isSuccessful && res.body != null) {
-        final data =
-            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
 
-        final rawStatus = data['status']?.toString() ??
-            data['paymentStatus']?.toString();
+        final rawStatus =
+            data['status']?.toString() ?? data['paymentStatus']?.toString();
 
         // Statut absent dans la réponse → erreur explicite
         if (rawStatus == null || rawStatus.isEmpty) {
@@ -213,10 +353,12 @@ class OrderRepository extends BaseRepository {
             '[Payment] orderId=$orderId — statut de paiement absent dans la réponse. '
             'Body: ${jsonEncode(res.body)}',
           );
-          return Left(const AppError(
-            message: 'payment.failed',
-            type: AppErrorType.server,
-          ));
+          return Left(
+            const AppError(
+              message: 'payment.failed',
+              type: AppErrorType.server,
+            ),
+          );
         }
 
         final normalised = rawStatus.trim().toLowerCase();
@@ -228,14 +370,20 @@ class OrderRepository extends BaseRepository {
             'Statuts acceptés: $_kPaymentSuccessStatuses',
           );
         } else {
-          _logger.i('[Payment] orderId=$orderId — succès. Statut: "$normalised"');
+          _logger.i(
+            '[Payment] orderId=$orderId — succès. Statut: "$normalised"',
+          );
         }
 
         return Right(isSuccess);
       }
-      return Left(AppError.fromResponse(
-          res.body, 'payment.failed',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body ?? res.error,
+          'payment.failed',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -247,13 +395,16 @@ class OrderRepository extends BaseRepository {
     try {
       final res = await _trackingService.getTracking(orderId);
       if (res.isSuccessful && res.body != null) {
-        final data =
-            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
         return Right(TrackingModel.fromJson(data));
       }
-      return Left(AppError.fromResponse(
-          res.body, 'order.error_tracking',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body ?? res.error,
+          'order.error_tracking',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -263,13 +414,16 @@ class OrderRepository extends BaseRepository {
     try {
       final res = await _trackingService.getEta(orderId);
       if (res.isSuccessful && res.body != null) {
-        final data =
-            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
         return Right(TrackingModel.fromJson(data));
       }
-      return Left(AppError.fromResponse(
-          res.body, 'order.error_tracking',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body ?? res.error,
+          'order.error_tracking',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -320,9 +474,11 @@ class OrderRepository extends BaseRepository {
       deliveryFee: Value(o.deliveryFee),
       status: o.status,
       paymentMethod: Value(o.paymentMethod),
-      deliveryAddressJson: Value(o.deliveryAddress != null 
-          ? jsonEncode(o.deliveryAddress!.toJson()) 
-          : null),
+      deliveryAddressJson: Value(
+        o.deliveryAddress != null
+            ? jsonEncode(o.deliveryAddress!.toJson())
+            : null,
+      ),
       notes: Value(o.notes),
       createdAt: Value(o.createdAt),
       rating: Value(o.rating),
@@ -333,7 +489,9 @@ class OrderRepository extends BaseRepository {
     List<OrderItemModel> items = [];
     try {
       final List<dynamic> decoded = jsonDecode(r.itemsJson);
-      items = decoded.map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>)).toList();
+      items = decoded
+          .map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {}
 
     AddressModel? addr;
@@ -347,6 +505,7 @@ class OrderRepository extends BaseRepository {
       id: r.id,
       restaurantId: r.restaurantId,
       restaurantName: r.restaurantName,
+      restaurantLogo: null,
       items: items,
       total: r.total,
       deliveryFee: r.deliveryFee,
@@ -365,8 +524,10 @@ class OrderRepository extends BaseRepository {
     try {
       final secureStorage = getIt<FlutterSecureStorage>();
       final token = await secureStorage.read(key: 'jwt_token');
-      
-      final url = Uri.parse('${EnvConfig.apiBaseUrl}/orders/$orderId/invoice/download');
+
+      final url = Uri.parse(
+        '${EnvConfig.apiBaseUrl}/orders/$orderId/invoice/download',
+      );
       final response = await http.get(
         url,
         headers: token != null ? {'Authorization': 'Bearer $token'} : {},
@@ -378,9 +539,16 @@ class OrderRepository extends BaseRepository {
         await file.writeAsBytes(response.bodyBytes);
         return Right(file.path);
       }
-      return const Left(AppError(message: 'order.error_download_invoice', type: AppErrorType.server));
+      return const Left(
+        AppError(
+          message: 'order.error_download_invoice',
+          type: AppErrorType.server,
+        ),
+      );
     } catch (_) {
-      return const Left(AppError(message: 'common.error_network', type: AppErrorType.network));
+      return const Left(
+        AppError(message: 'common.error_network', type: AppErrorType.network),
+      );
     }
   }
 }

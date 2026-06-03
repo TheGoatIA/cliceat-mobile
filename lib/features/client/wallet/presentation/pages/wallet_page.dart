@@ -3,50 +3,112 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/di/injection.dart';
-import 'package:cliceat_app/features/client/wallet/presentation/bloc/wallet_cubit.dart';
-import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
+import 'package:cliceat_app/features/client/wallet/presentation/bloc/wallet_cubit.dart';
+import 'package:cliceat_app/core/config/feature_flags.dart';
+import 'package:cliceat_app/core/widgets/feature_gate.dart';
+import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 
-class WalletPage extends StatelessWidget {
+class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
+
+  @override
+  State<WalletPage> createState() => _WalletPageState();
+}
+
+class _WalletPageState extends State<WalletPage> {
+  late final WalletCubit _walletCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _walletCubit = getIt<WalletCubit>()..loadHistory();
+    context.read<ProfileCubit>().loadProfile();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<WalletCubit>()..loadHistory(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('wallet.title'.tr()),
-          elevation: 0,
-        ),
-        body: RefreshIndicator(
-          onRefresh: () async {
-            context.read<WalletCubit>().loadHistory();
-            context.read<ProfileCubit>().loadProfile();
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildBalanceCard(context),
-                const SizedBox(height: 32),
-                _buildQuickActions(context),
-                const SizedBox(height: 32),
-                Text(
-                  'wallet.history_title'.tr(),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+      create: (context) => _walletCubit,
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: AppTheme.bg,
+            appBar: AppBar(
+              backgroundColor: AppTheme.bg,
+              elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              title: Text(
+                'wallet.title'.tr(),
+                style: GoogleFonts.bricolageGrotesque(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: AppTheme.ink,
+                  letterSpacing: -0.3,
                 ),
-                const SizedBox(height: 16),
-                _buildTransactionHistory(context),
-              ],
+              ),
             ),
-          ),
-        ),
+            body: FeatureGate(
+              featureKey: FeatureFlags.wallet,
+              fallback: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.lock_outline_rounded,
+                        size: 64,
+                        color: AppTheme.muted,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Feature disabled by administrator',
+                        style: GoogleFonts.bricolageGrotesque(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              child: RefreshIndicator(
+                color: AppTheme.primaryRed,
+                onRefresh: () async {
+                  context.read<WalletCubit>().loadHistory();
+                  context.read<ProfileCubit>().loadProfile();
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildBalanceCard(context),
+                      const SizedBox(height: 24),
+                      _buildQuickActions(context),
+                      const SizedBox(height: 28),
+                      Text(
+                        'wallet.history_title'.tr(),
+                        style: GoogleFonts.bricolageGrotesque(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                          color: AppTheme.ink,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTransactionHistory(context),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -62,20 +124,17 @@ class WalletPage extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-              ],
+            gradient: const LinearGradient(
+              colors: [AppTheme.primaryRed, AppTheme.redDeep],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                color: AppTheme.primaryRed.withValues(alpha: 0.35),
                 blurRadius: 20,
-                offset: const Offset(0, 10),
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -87,34 +146,40 @@ class WalletPage extends StatelessWidget {
                 children: [
                   Text(
                     'wallet.current_balance'.tr(),
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
                       color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 16,
+                      fontSize: 14,
                     ),
                   ),
-                  const Icon(Icons.account_balance_wallet, color: Colors.white70),
+                  const Icon(
+                    Icons.account_balance_wallet,
+                    color: Colors.white70,
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
                 '${balance.toStringAsFixed(0)} FCFA',
-                style: const TextStyle(
+                style: GoogleFonts.bricolageGrotesque(
                   color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
+                  fontSize: 40,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1,
                 ),
               ),
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'wallet.safe_payment'.tr(),
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: GoogleFonts.inter(color: Colors.white, fontSize: 12),
                 ),
               ),
             ],
@@ -132,20 +197,9 @@ class WalletPage extends StatelessWidget {
             context,
             icon: Icons.add_circle_outline,
             label: 'wallet.recharge'.tr(),
+            iconBg: AppTheme.greenSoft,
+            iconColor: AppTheme.green,
             onTap: () => _showRechargeDialog(context),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _actionButton(
-            context,
-            icon: Icons.qr_code_scanner,
-            label: 'wallet.scan'.tr(),
-            onTap: () {
-               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('common.coming_soon'.tr())),
-              );
-            },
           ),
         ),
       ],
@@ -156,33 +210,39 @@ class WalletPage extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String label,
+    required Color iconBg,
+    required Color iconColor,
     required VoidCallback onTap,
   }) {
-    final theme = Theme.of(context);
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: Border.all(color: AppTheme.lineSoft),
+          boxShadow: AppTheme.shadowSm,
         ),
         child: Column(
           children: [
-            Icon(icon, color: theme.colorScheme.primary, size: 28),
-            const SizedBox(height: 8),
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: iconColor, size: 24),
+            ),
+            const SizedBox(height: 10),
             Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: AppTheme.ink,
+              ),
             ),
           ],
         ),
@@ -194,13 +254,42 @@ class WalletPage extends StatelessWidget {
     return BlocBuilder<WalletCubit, WalletState>(
       builder: (context, state) {
         return state.maybeWhen(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(
+            child: CircularProgressIndicator(
+              color: AppTheme.primaryRed,
+              strokeWidth: 2,
+            ),
+          ),
           loaded: (history) {
             if (history.isEmpty) {
               return Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(40),
-                  child: Text('wallet.no_transactions'.tr()),
+                  padding: const EdgeInsets.symmetric(vertical: 48),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: AppTheme.lineSoft,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Icon(
+                          Icons.receipt_long_outlined,
+                          color: AppTheme.muted,
+                          size: 32,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'wallet.no_transactions'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: AppTheme.muted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -208,59 +297,118 @@ class WalletPage extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: history.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final tx = history[index];
-                final isCredit = tx['type'] == 'recharge' || tx['type'] == 'credit';
-                final amount = (tx['amount'] as num).toDouble();
-                final date = DateTime.tryParse(tx['createdAt'] ?? '') ?? DateTime.now();
+                final type = tx['type']?.toString() ?? '';
+                final status = tx['status']?.toString() ?? 'initiated';
+                final amount = (tx['amount'] as num? ?? 0).toDouble();
+                final date = DateTime.tryParse(tx['createdAt']?.toString() ?? '') ?? DateTime.now();
+                final description = tx['description']?.toString() ?? _fallbackDescription(type);
+                final method = tx['method']?.toString() ?? '';
+
+                // Config visuelle selon le type
+                final config = _txConfig(type, status);
 
                 return Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+                    border: Border.all(color: AppTheme.lineSoft),
+                    boxShadow: AppTheme.shadowSm,
                   ),
                   child: Row(
                     children: [
+                      // Icône avec couleur de fond
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          color: isCredit
-                              ? AppTheme.successColor.withValues(alpha: 0.1)
-                              : Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
+                          color: config['bgColor'] as Color,
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(
-                          isCredit ? Icons.arrow_downward : Icons.arrow_upward,
-                          color: isCredit ? AppTheme.successColor : Theme.of(context).colorScheme.error,
-                          size: 20,
+                          config['icon'] as IconData,
+                          color: config['iconColor'] as Color,
+                          size: 22,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
+                      // Infos textuelles
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              tx['description'] ?? (isCredit ? 'Recharge' : 'Paiement commande'),
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              description,
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: AppTheme.ink,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            Text(
-                              DateFormat('dd MMM, HH:mm').format(date),
-                              style: Theme.of(context).textTheme.bodySmall,
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Text(
+                                  DateFormat('dd MMM, HH:mm').format(date),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: AppTheme.muted,
+                                  ),
+                                ),
+                                if (method.isNotEmpty && type != 'recharge') ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    width: 3,
+                                    height: 3,
+                                    decoration: const BoxDecoration(
+                                      color: AppTheme.muted,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _methodLabel(method),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: AppTheme.muted,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
+                            const SizedBox(height: 6),
+                            // Badge de statut
+                            _statusBadge(status),
                           ],
                         ),
                       ),
-                      Text(
-                        '${isCredit ? '+' : '-'}${amount.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isCredit ? AppTheme.successColor : Theme.of(context).colorScheme.error,
-                        ),
+                      const SizedBox(width: 10),
+                      // Montant
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${config['prefix'] as String}${amount.toStringAsFixed(0)}',
+                            style: GoogleFonts.bricolageGrotesque(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              color: config['amountColor'] as Color,
+                            ),
+                          ),
+                          Text(
+                            'FCFA',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppTheme.muted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -268,22 +416,178 @@ class WalletPage extends StatelessWidget {
               },
             );
           },
-          error: (msg) => Center(child: Text(msg)),
+          error: (msg) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                children: [
+                  const Icon(Icons.error_outline, color: AppTheme.primaryRed, size: 36),
+                  const SizedBox(height: 12),
+                  Text(
+                    msg,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      color: AppTheme.primaryRed,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           orElse: () => const SizedBox.shrink(),
         );
       },
     );
   }
 
-  void _showRechargeDialog(BuildContext context) {
+  /// Configuration visuelle par type de transaction
+  Map<String, dynamic> _txConfig(String type, String status) {
+    if (status == 'refunded') {
+      return {
+        'icon': Icons.undo_rounded,
+        'bgColor': const Color(0xFFE8F5E9),
+        'iconColor': const Color(0xFF2E7D32),
+        'amountColor': const Color(0xFF2E7D32),
+        'prefix': '+',
+      };
+    }
+    switch (type) {
+      case 'recharge':
+        return {
+          'icon': Icons.add_circle_rounded,
+          'bgColor': const Color(0xFFE8F5E9),
+          'iconColor': const Color(0xFF2E7D32),
+          'amountColor': const Color(0xFF2E7D32),
+          'prefix': '+',
+        };
+      case 'wallet_payment':
+        return {
+          'icon': Icons.account_balance_wallet_rounded,
+          'bgColor': const Color(0xFFFFF3E0),
+          'iconColor': const Color(0xFFE65100),
+          'amountColor': AppTheme.primaryRed,
+          'prefix': '-',
+        };
+      case 'refund':
+        return {
+          'icon': Icons.undo_rounded,
+          'bgColor': const Color(0xFFE8F5E9),
+          'iconColor': const Color(0xFF2E7D32),
+          'amountColor': const Color(0xFF2E7D32),
+          'prefix': '+',
+        };
+      default: // order_payment
+        return {
+          'icon': Icons.shopping_bag_rounded,
+          'bgColor': AppTheme.redSoft,
+          'iconColor': AppTheme.primaryRed,
+          'amountColor': AppTheme.primaryRed,
+          'prefix': '-',
+        };
+    }
+  }
+
+  String _fallbackDescription(String type) {
+    switch (type) {
+      case 'recharge':
+        return 'Rechargement Wallet';
+      case 'wallet_payment':
+        return 'Paiement commande (Wallet)';
+      case 'refund':
+        return 'Remboursement';
+      default:
+        return 'Paiement commande';
+    }
+  }
+
+  String _methodLabel(String method) {
+    switch (method) {
+      case 'orange_money':
+        return 'Orange Money';
+      case 'mtn_momo':
+        return 'MTN MoMo';
+      case 'wave':
+        return 'Wave';
+      case 'wallet':
+        return 'Wallet';
+      case 'cash':
+        return 'Espèces';
+      default:
+        return method;
+    }
+  }
+
+  Widget _statusBadge(String status) {
+    Color bg;
+    Color fg;
+    String label;
+    switch (status) {
+      case 'completed':
+        bg = const Color(0xFFE8F5E9);
+        fg = const Color(0xFF2E7D32);
+        label = 'Complété';
+        break;
+      case 'initiated':
+      case 'pending':
+        bg = const Color(0xFFFFF8E1);
+        fg = const Color(0xFFFF8F00);
+        label = 'En attente';
+        break;
+      case 'failed':
+        bg = AppTheme.redSoft;
+        fg = AppTheme.primaryRed;
+        label = 'Échoué';
+        break;
+      case 'refunded':
+        bg = const Color(0xFFE3F2FD);
+        fg = const Color(0xFF1565C0);
+        label = 'Remboursé';
+        break;
+      case 'cancelled':
+        bg = AppTheme.lineSoft;
+        fg = AppTheme.muted;
+        label = 'Annulé';
+        break;
+      default:
+        bg = AppTheme.lineSoft;
+        fg = AppTheme.muted;
+        label = status;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: fg,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  void _showRechargeDialog(BuildContext pageContext) {
     final amountController = TextEditingController();
     String method = 'orange_money';
 
     showDialog(
-      context: context,
+      context: pageContext,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text('wallet.recharge'.tr()),
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Text(
+            'wallet.recharge'.tr(),
+            style: GoogleFonts.bricolageGrotesque(
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              color: AppTheme.ink,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -300,8 +604,11 @@ class WalletPage extends StatelessWidget {
               DropdownButtonFormField<String>(
                 initialValue: method,
                 decoration: InputDecoration(labelText: 'wallet.method'.tr()),
-                items: [
-                  DropdownMenuItem(value: 'orange_money', child: Text('Orange Money')),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'orange_money',
+                    child: Text('Orange Money'),
+                  ),
                   DropdownMenuItem(value: 'mtn_momo', child: Text('MTN MoMo')),
                 ],
                 onChanged: (v) => setDialogState(() => method = v!),
@@ -311,14 +618,25 @@ class WalletPage extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('common.cancel'.tr()),
+              child: Text(
+                'common.cancel'.tr(),
+                style: GoogleFonts.inter(color: AppTheme.muted),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
                 final amount = double.tryParse(amountController.text) ?? 1000;
                 Navigator.pop(ctx);
-                _initiateRecharge(context, amount, method);
+                _initiateRecharge(pageContext, amount, method);
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryRed,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               child: Text('wallet.confirm'.tr()),
             ),
           ],
@@ -327,23 +645,43 @@ class WalletPage extends StatelessWidget {
     );
   }
 
-  Future<void> _initiateRecharge(BuildContext context, double amount, String method) async {
-    final walletCubit = context.read<WalletCubit>();
-    await walletCubit.recharge(amount, method);
-    
-    if (context.mounted) {
-      final state = walletCubit.state;
-      state.maybeWhen(
-        rechargeInitiated: (url) {
-           context.push('/client/payment', extra: {
-              'paymentUrl': url,
-              'orderId': 'recharge_${DateTime.now().millisecondsSinceEpoch}',
-            });
+  Future<void> _initiateRecharge(
+    BuildContext pageContext,
+    double amount,
+    String method,
+  ) async {
+    final walletCubit = pageContext.read<WalletCubit>();
+
+    final result = await walletCubit.recharge(amount, method);
+
+    if (pageContext.mounted) {
+      result.fold(
+        (err) {
+          ScaffoldMessenger.of(pageContext).showSnackBar(
+            SnackBar(
+              content: Text(err.message),
+              backgroundColor: AppTheme.primaryRed,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
         },
-        error: (msg) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        (data) async {
+          await pageContext.push(
+            '/client/payment',
+            extra: {
+              'paymentUrl': data['url'],
+              'orderId': data['reference'],
+              'isWalletRecharge': true,
+            },
+          );
+          if (pageContext.mounted) {
+            pageContext.read<WalletCubit>().loadHistory();
+            pageContext.read<ProfileCubit>().loadProfile();
+          }
         },
-        orElse: () {},
       );
     }
   }

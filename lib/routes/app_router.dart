@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
@@ -26,6 +27,7 @@ import '../../features/delivery/dashboard/presentation/pages/confirm_pickup_page
 import '../../features/delivery/dashboard/presentation/pages/dropoff_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/mission_incoming_page.dart';
 import '../../features/delivery/dashboard/presentation/pages/payout_page.dart';
+import '../../features/delivery/dashboard/presentation/bloc/mission_bloc.dart';
 import '../../features/delivery/dashboard/data/models/mission_model.dart';
 import '../../features/legal/presentation/pages/terms_page.dart';
 import '../../features/legal/presentation/pages/privacy_page.dart';
@@ -43,11 +45,38 @@ import '../../features/chat/presentation/cubit/chat_cubit.dart';
 import '../../features/client/referral/presentation/cubit/referral_cubit.dart';
 import '../../features/client/review/presentation/cubit/review_cubit.dart';
 import '../../core/di/injection.dart';
+import '../../features/client/notification/presentation/pages/notifications_page.dart';
+import '../../features/client/notification/presentation/cubit/notification_cubit.dart';
+import 'package:cliceat_app/shared/pages/map_picker_page.dart';
+import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
+import 'package:cliceat_app/core/widgets/maintenance_page.dart';
+import 'package:cliceat_app/core/widgets/force_update_page.dart';
+import 'package:cliceat_app/core/config/app_constants.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'dart:io' show Platform;
+
+import 'dart:async';
 
 // ─── Navigator key ────────────────────────────────────────────────────────────
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
+
+// ─── Refresh Listenable ───────────────────────────────────────────────────────
+
+/// Helper class to convert a Stream into a Listenable for GoRouter.
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    _subscription = stream.listen((dynamic _) => notifyListeners());
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
 
 // ─── Route names (constants to avoid typos) ───────────────────────────────────
 
@@ -55,6 +84,7 @@ abstract class AppRoutes {
   static const splash = '/';
   static const onboarding = '/onboarding';
   static const login = '/auth/login';
+  static const register = '/auth/register';
   static const forgotPassword = '/auth/forgot-password';
   static const resetPassword = '/auth/reset-password';
   static const verifyEmail = '/auth/verify-email';
@@ -63,8 +93,14 @@ abstract class AppRoutes {
   static const restaurant = '/restaurant/:id';
   static const checkout = '/checkout';
   static const delivery = '/delivery';
+  static const orderSuccess = '/client/order-success/:orderId';
+  static const tracking = '/client/tracking/:orderId';
+  static const payment = '/client/payment';
   static const terms = '/legal/terms';
   static const privacy = '/legal/privacy';
+  static const maintenance = '/maintenance';
+  static const update = '/update';
+  static const mapPicker = '/map-picker';
 }
 
 // ─── Public routes (accessible without authentication) ────────────────────────
@@ -73,23 +109,76 @@ const _kPublicRoutes = {
   AppRoutes.splash,
   AppRoutes.onboarding,
   AppRoutes.login,
+  AppRoutes.register,
   AppRoutes.forgotPassword,
   AppRoutes.resetPassword,
   AppRoutes.verifyEmail,
   AppRoutes.terms,
   AppRoutes.privacy,
+  AppRoutes.maintenance,
+  AppRoutes.update,
 };
 
 // ─── Role-based redirect logic ────────────────────────────────────────────────
+
+bool _isVersionBelow(String current, String? minRequired) {
+  if (minRequired == null || minRequired.isEmpty) return false;
+  
+  final currentParts = current.split('+')[0].split('.');
+  final minParts = minRequired.split('+')[0].split('.');
+  
+  for (int i = 0; i < 3; i++) {
+    final currentPart = i < currentParts.length ? int.tryParse(currentParts[i]) ?? 0 : 0;
+    final minPart = i < minParts.length ? int.tryParse(minParts[i]) ?? 0 : 0;
+    
+    if (currentPart < minPart) return true;
+    if (currentPart > minPart) return false;
+  }
+  return false;
+}
 
 /// Retourne le chemin de redirection si l'utilisateur n'est pas autorisé,
 /// ou `null` si la navigation est permise.
 String? _guardRedirect(BuildContext context, GoRouterState state) {
   final authState = context.read<AuthBloc>().state;
+  final configState = context.read<ConfigBloc>().state;
   final location = state.matchedLocation;
 
+  // 1. Check Maintenance Mode
+  final isMaintenance = configState.maybeWhen(
+    loaded: (c) => c.maintenanceMode,
+    orElse: () => false,
+  );
+
+  if (isMaintenance && location != AppRoutes.maintenance) {
+    return AppRoutes.maintenance;
+  }
+  if (!isMaintenance && location == AppRoutes.maintenance) {
+    return AppRoutes.splash;
+  }
+
+  // 2. Check Force Update
+  final needsUpdate = configState.maybeWhen(
+    loaded: (c) {
+      if (!c.forceUpdate) return false;
+      final currentVersion = AppConstants.appVersion;
+      final minVersion = Platform.isIOS ? c.iosMinVersion : c.androidMinVersion;
+      return _isVersionBelow(currentVersion, minVersion);
+    },
+    orElse: () => false,
+  );
+
+  if (needsUpdate && location != AppRoutes.update) {
+    return AppRoutes.update;
+  }
+  if (!needsUpdate && location == AppRoutes.update) {
+    return AppRoutes.splash;
+  }
+
   // Ignorer les routes publiques
-  if (_kPublicRoutes.any((r) => location.startsWith(r) && r != AppRoutes.splash)) {
+  if (_kPublicRoutes.any(
+    (r) => location.startsWith(r) && r != AppRoutes.splash,
+  )) {
     return null;
   }
   if (location == AppRoutes.splash) return null;
@@ -118,6 +207,7 @@ String? _guardRedirect(BuildContext context, GoRouterState state) {
     emailVerified: () => null,
     forgotPasswordEmailSent: (_) => null,
     resetPasswordSuccess: () => null,
+    driverRegistrationSuccess: () => null,
     error: (_) => null,
   );
 }
@@ -127,6 +217,7 @@ String? _guardRedirect(BuildContext context, GoRouterState state) {
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: AppRoutes.splash,
+  refreshListenable: GoRouterRefreshStream(getIt<AuthBloc>().stream),
   redirect: _guardRedirect,
   routes: [
     // Splash — gère le check d'auth et redirige
@@ -145,6 +236,13 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final mode = state.uri.queryParameters['mode'] ?? 'client';
         return LoginPage(mode: mode);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.register,
+      builder: (context, state) {
+        final role = state.uri.queryParameters['role'];
+        return RegisterPage(initialRole: role);
       },
     ),
 
@@ -185,6 +283,13 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
+          path: 'notifications',
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<NotificationCubit>(),
+            child: const NotificationsPage(),
+          ),
+        ),
+        GoRoute(
           path: 'chat',
           builder: (context, state) => BlocProvider(
             create: (context) => getIt<ChatCubit>()..loadConversations(),
@@ -195,7 +300,10 @@ final GoRouter appRouter = GoRouter(
           path: 'chat/:id',
           builder: (context, state) {
             final conv = state.extra as ConversationModel;
-            return ChatDetailPage(conversation: conv);
+            return BlocProvider(
+              create: (context) => getIt<ChatCubit>(),
+              child: ChatDetailPage(conversation: conv),
+            );
           },
         ),
         GoRoute(
@@ -227,10 +335,7 @@ final GoRouter appRouter = GoRouter(
             return CreateDisputePage(orderId: orderId);
           },
         ),
-        GoRoute(
-          path: 'cart',
-          builder: (context, state) => const CartPage(),
-        ),
+        GoRoute(path: 'cart', builder: (context, state) => const CartPage()),
         GoRoute(
           path: 'address-selection',
           builder: (context, state) => const AddressSelectionPage(),
@@ -241,33 +346,38 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: 'rate/:orderId',
-          builder: (context, state) => OrderRatingPage(
-            orderId: state.pathParameters['orderId']!,
-          ),
-        ),
-        GoRoute(
-          path: 'tracking/:orderId',
-          builder: (context, state) => ClientTrackingPage(
-            orderId: state.pathParameters['orderId']!,
-          ),
-        ),
-        GoRoute(
-          path: 'order-success/:orderId',
-          builder: (context, state) => OrderSuccessPage(
-            orderId: state.pathParameters['orderId']!,
-          ),
-        ),
-        GoRoute(
-          path: 'payment',
-          builder: (context, state) {
-            final extra = state.extra as Map<String, String>? ?? {};
-            return PaymentWebviewPage(
-              paymentUrl: extra['paymentUrl'] ?? '',
-              orderId: extra['orderId'] ?? '',
-            );
-          },
+          builder: (context, state) =>
+              OrderRatingPage(orderId: state.pathParameters['orderId']!),
         ),
       ],
+    ),
+
+    // ── Order & Payment routes (Top-level for easy access) ──────────────────
+    GoRoute(
+      path: AppRoutes.tracking,
+      builder: (context, state) =>
+          ClientTrackingPage(orderId: state.pathParameters['orderId']!),
+    ),
+    GoRoute(
+      path: '/client/order-success/:orderId',
+      builder: (context, state) =>
+          OrderSuccessPage(orderId: state.pathParameters['orderId'] ?? ''),
+    ),
+    // Fallback for missing orderId
+    GoRoute(
+      path: '/client/order-success',
+      builder: (context, state) => const OrderSuccessPage(orderId: ''),
+    ),
+    GoRoute(
+      path: AppRoutes.payment,
+      builder: (context, state) {
+        final extra = state.extra as Map?;
+        return PaymentWebviewPage(
+          paymentUrl: extra?['paymentUrl']?.toString() ?? '',
+          orderId: extra?['orderId']?.toString() ?? '',
+          isWalletRecharge: extra?['isWalletRecharge'] == true,
+        );
+      },
     ),
 
     // Résultats de recherche (accessible depuis le shell client)
@@ -275,16 +385,16 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.search,
       builder: (context, state) {
         final query = state.uri.queryParameters['q'] ?? '';
-        return SearchResultsPage(initialQuery: query);
+        final city = state.uri.queryParameters['city'] ?? 'Douala';
+        return SearchResultsPage(initialQuery: query, city: city);
       },
     ),
 
     // Détail restaurant (accessible depuis carte, accueil, recherche)
     GoRoute(
       path: AppRoutes.restaurant,
-      builder: (context, state) => RestaurantDetailPage(
-        restaurantId: state.pathParameters['id']!,
-      ),
+      builder: (context, state) =>
+          RestaurantDetailPage(restaurantId: state.pathParameters['id']!),
     ),
 
     // Checkout (plein écran, hors tab shell)
@@ -302,7 +412,10 @@ final GoRouter appRouter = GoRouter(
           path: 'incoming',
           builder: (context, state) {
             final mission = state.extra as MissionModel;
-            return MissionIncomingPage(mission: mission);
+            return BlocProvider<MissionBloc>(
+              create: (context) => getIt<MissionBloc>(),
+              child: MissionIncomingPage(mission: mission),
+            );
           },
         ),
         GoRoute(
@@ -320,15 +433,28 @@ final GoRouter appRouter = GoRouter(
           path: 'confirm-pickup',
           builder: (context, state) {
             final mission = state.extra as MissionModel;
-            return ConfirmPickupPage(mission: mission);
+            return BlocProvider<MissionBloc>(
+              create: (context) => getIt<MissionBloc>(),
+              child: ConfirmPickupPage(mission: mission),
+            );
           },
         ),
         GoRoute(
           path: 'dropoff',
           builder: (context, state) {
             final mission = state.extra as MissionModel;
-            return DropoffPage(mission: mission);
+            return BlocProvider<MissionBloc>(
+              create: (context) => getIt<MissionBloc>(),
+              child: DropoffPage(mission: mission),
+            );
           },
+        ),
+        GoRoute(
+          path: 'notifications',
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<NotificationCubit>(),
+            child: const NotificationsPage(),
+          ),
         ),
       ],
     ),
@@ -341,6 +467,45 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.privacy,
       builder: (context, state) => const PrivacyPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.maintenance,
+      builder: (context, state) {
+        final config = context.read<ConfigBloc>().state.maybeWhen(
+          loaded: (c) => c,
+          orElse: () => null,
+        );
+        final locale = context.locale.languageCode;
+        final msg = locale == 'en'
+            ? config?.maintenanceMessageEn
+            : config?.maintenanceMessageFr;
+        return MaintenancePage(message: msg);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.update,
+      builder: (context, state) {
+        final config = context.read<ConfigBloc>().state.maybeWhen(
+          loaded: (c) => c,
+          orElse: () => null,
+        );
+        final locale = context.locale.languageCode;
+        final msg = locale == 'en'
+            ? config?.updateMessageEn
+            : config?.updateMessageFr;
+        final updateUrl = Platform.isIOS ? config?.iosUpdateUrl : config?.updateUrl;
+        return ForceUpdatePage(message: msg, updateUrl: updateUrl);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.mapPicker,
+      builder: (context, state) {
+        final Map<String, dynamic>? args = state.extra as Map<String, dynamic>?;
+        return MapPickerPage(
+          initialLat: args?['initialLat'] as double?,
+          initialLng: args?['initialLng'] as double?,
+        );
+      },
     ),
   ],
 );

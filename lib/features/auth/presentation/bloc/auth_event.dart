@@ -16,6 +16,18 @@ class AuthEvent with _$AuthEvent {
     required String password,
     required String city,
   }) = _Register;
+  const factory AuthEvent.registerDriver({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+    required String city,
+    required String vehicleType,
+    required String vehiclePlate,
+    required String idCardPath,
+    required String licensePath,
+    required String photoPath,
+  }) = _RegisterDriver;
   const factory AuthEvent.forgotPassword({required String email}) = _ForgotPassword;
   const factory AuthEvent.resetPassword({required String token, required String newPassword}) = _ResetPassword;
   const factory AuthEvent.verifyEmail({required String token}) = _VerifyEmail;

@@ -10,7 +10,7 @@ class AppConstants {
   static const double defaultZoom = 12.0;
 
   // ── Delivery fee (FCFA) — used as fallback before server value ────────────
-  static const double defaultDeliveryFee = 1000.0;
+  static const double defaultDeliveryFee = 2000.0;
 
   // ── Location update interval for delivery drivers ─────────────────────────
   static const Duration locationUpdateInterval = Duration(seconds: 5);
@@ -22,4 +22,7 @@ class AppConstants {
   // gamme répandus en Afrique subsaharienne.
   static const int imageCacheMaxCount = 150;         // nb d'images en mémoire
   static const int imageCacheMaxSizeBytes = 80 * 1024 * 1024; // 80 MiB
+
+  // ── Current app version loaded at startup ─────────────────────────────────
+  static String appVersion = '1.0.0';
 }

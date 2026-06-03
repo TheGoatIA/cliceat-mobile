@@ -48,7 +48,8 @@ class ChatRepository {
       final res = await _chatService.getConversations(
           page: page, limit: limit, status: status);
       if (res.isSuccessful && res.body != null) {
-        final data = res.body!['data'] as List;
+        final raw = res.body!['data'] ?? res.body!['items'] ?? [];
+        final data = raw as List;
         final list = data
             .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
             .toList();
@@ -88,7 +89,8 @@ class ChatRepository {
       final res = await _chatService.getMessages(conversationId,
           page: page, limit: limit);
       if (res.isSuccessful && res.body != null) {
-        final data = res.body!['data'] as List;
+        final raw = res.body!['data'] ?? res.body!['items'] ?? [];
+        final data = raw as List;
         final list = data
             .map((e) => MessageModel.fromJson(e as Map<String, dynamic>))
             .toList();

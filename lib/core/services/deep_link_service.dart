@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 import 'package:injectable/injectable.dart';
+import 'package:cliceat_app/core/di/injection.dart';
+import 'package:cliceat_app/core/theme/app_theme.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
+import 'package:cliceat_app/features/client/cart/presentation/bloc/cart_cubit.dart';
 
 /// Handles incoming deep links and routes them to the correct page.
 ///
@@ -52,8 +56,13 @@ class DeepLinkService {
     if (context == null) return;
 
     final router = GoRouter.of(context);
-    final path = uri.path.replaceFirst(RegExp(r'^/+'), '');
     final query = uri.queryParameters;
+    var path = uri.path.replaceFirst(RegExp(r'^/+'), '');
+
+    // Handle backend-prefixed paths (e.g., from api.cliceat.cm/api/auth/...)
+    if (path.startsWith('api/auth/')) {
+      path = path.substring('api/auth/'.length);
+    }
 
     // cliceat://reset-password?token=XXX  or  /reset-password?token=XXX
     if (path == 'reset-password') {
@@ -97,8 +106,105 @@ class DeepLinkService {
       }
     }
 
+    // cliceat://payment/success?orderId=XXX
+    if (path == 'payment/success') {
+      final orderId = query['orderId'];
+      if (orderId != null && orderId.isNotEmpty) {
+        if (orderId == 'recharge') {
+          router.go('/client/wallet');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Rechargement du portefeuille effectué avec succès !'),
+              backgroundColor: AppTheme.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        } else {
+          _verifyPaymentThenNavigate(context, orderId, router);
+        }
+        return;
+      }
+    }
+
+    // cliceat://payment/cancel
+    if (path == 'payment/cancel') {
+      router.go('/client');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Paiement annulé.'),
+          backgroundColor: AppTheme.primaryRed,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+      return;
+    }
+
     // cliceat://open → just open the app (no-op, already open)
     _logger.w('Unhandled deep link: $uri');
+  }
+
+  Future<void> _verifyPaymentThenNavigate(
+    BuildContext context,
+    String orderId,
+    GoRouter router,
+  ) async {
+    // Show a loading dialog so the user knows we are validating their payment
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const PopScope(
+        canPop: false,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.primaryRed,
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final result = await getIt<OrderRepository>().verifyPayment(orderId);
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close the loading dialog
+      }
+      result.fold(
+        (_) {
+          _showPaymentFailedSnackbar(context);
+        },
+        (isSuccess) {
+          if (isSuccess) {
+            getIt<CartCubit>().clearCart();
+            router.go('/client/order-success/$orderId');
+          } else {
+            _showPaymentFailedSnackbar(context);
+          }
+        },
+      );
+    } catch (_) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close the loading dialog
+        _showPaymentFailedSnackbar(context);
+      }
+    }
+  }
+
+  void _showPaymentFailedSnackbar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('La validation du paiement a échoué. Veuillez réessayer.'),
+        backgroundColor: AppTheme.primaryRed,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
   }
 
   void dispose() {

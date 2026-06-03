@@ -24,6 +24,8 @@ final class _$RestaurantService extends RestaurantService {
     double? radius,
     double? lat,
     double? lng,
+    int? page,
+    int? limit,
   ) {
     final Uri $url = Uri.parse('/restaurants');
     final Map<String, dynamic> $params = <String, dynamic>{
@@ -31,6 +33,8 @@ final class _$RestaurantService extends RestaurantService {
       'radius': radius,
       'lat': lat,
       'lng': lng,
+      'page': page,
+      'limit': limit,
     };
     final Request $request = Request(
       'GET',
@@ -49,9 +53,17 @@ final class _$RestaurantService extends RestaurantService {
   }
 
   @override
-  Future<Response<dynamic>> searchRestaurants(String query) {
+  Future<Response<dynamic>> searchRestaurants(
+    String query,
+    int? page,
+    int? limit,
+  ) {
     final Uri $url = Uri.parse('/restaurants/search');
-    final Map<String, dynamic> $params = <String, dynamic>{'q': query};
+    final Map<String, dynamic> $params = <String, dynamic>{
+      'q': query,
+      'page': page,
+      'limit': limit,
+    };
     final Request $request = Request(
       'GET',
       $url,

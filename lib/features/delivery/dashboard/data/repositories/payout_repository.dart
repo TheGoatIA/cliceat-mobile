@@ -51,9 +51,9 @@ class PayoutRepository {
   }) async {
     try {
       final res = await _payoutService.updatePayoutAccount({
-        'method': method,
-        'phoneNumber': phoneNumber,
-        'accountName': accountName,
+        'channel': method == 'om' ? 'cm.orange' : 'cm.mobile',
+        'accountNumber': phoneNumber,
+        'name': accountName,
       });
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'payout.update_account_error'));

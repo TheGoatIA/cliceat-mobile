@@ -5,22 +5,23 @@
     "subtitle": "La meilleure plateforme de livraison au Cameroun. Choisissez votre profil pour commencer.",
     "btn_client": "Je veux commander",
     "btn_delivery": "Je suis livreur",
-    "slide1_title": "Des plats livrés chez vous",
-    "slide1_subtitle": "Parcourez des centaines de restaurants et commandez vos plats préférés en quelques clics.",
-    "slide2_title": "Livraison rapide",
-    "slide2_subtitle": "Nos livreurs vous apportent vos repas en moins de 45 minutes, directement à votre porte.",
-    "slide3_title": "Payez en toute sécurité",
-    "slide3_subtitle": "Orange Money, MTN MoMo ou carte bancaire — choisissez le moyen de paiement qui vous convient.",
-    "skip": "Ignorer",
-    "next": "Suivant"
+    "slide1_title": "Le goût du pays,\nlivré chez toi",
+    "slide1_subtitle": "Ndolé, Poulet DG, poisson braisé — tes plats préférés de Douala et Yaoundé, en quelques clics.",
+    "slide2_title": "Livraison rapide\ndans toute la ville",
+    "slide2_subtitle": "Suivi GPS en temps réel, chat avec ton livreur et estimations précises à la minute.",
+    "slide3_title": "Paye comme\ntu veux",
+    "slide3_subtitle": "MTN MoMo, Orange Money, Wallet ClicEat ou espèces — tout est possible.",
+    "skip": "Passer",
+    "next": "Suivant",
+    "start_client": "Commencer en tant que client",
+    "mode_delivery": "Mode Livreur",
+    "eta_label": "Livraison en 25 min"
   },
   "auth": {
     "login_title": "Connexion",
-    "login_phone_title": "Entrez votre numéro",
-    "login_subtitle": "Nous vous enverrons un code de validation par SMS.",
+    "login_subtitle_phone": "Nous vous enverrons un code de validation par SMS.",
     "phone_hint": "Numéro de téléphone",
     "phone_error": "Veuillez entrer un numéro valide",
-
     "send_otp": "Envoyer le code OTP",
     "verify_otp_title": "Vérification",
     "verify_subtitle": "Validation SMS",
@@ -76,7 +77,23 @@
     "phone_number": "Numéro de téléphone",
     "delivery_info": "Pas encore livreur ? Inscrivez-vous sur cliceat.cm/devenir-livreur",
     "register_subtitle": "Créez votre compte ClicEat gratuitement",
-    "login_subtitle": "Connectez-vous pour commander"
+    "login_subtitle": "Connectez-vous pour commander",
+    "personal_info": "Informations personnelles",
+    "role_client_title": "Client",
+    "role_client_subtitle": "Commander vos plats préférés",
+    "role_delivery_title": "Livreur",
+    "role_delivery_subtitle": "Travailler comme livreur indépendant",
+    "registration_submitted": "Inscription soumise ! Nos équipes vérifieront vos documents sous 48h.",
+    "id_card": "Photo de la CNI / Passeport",
+    "license": "Permis de conduire",
+    "photo": "Photo de profil / Selfie",
+    "documents_title": "Documents livreur",
+    "documents_subtitle": "Vos documents seront vérifiés sous 48h.",
+    "document_selected": "Document sélectionné",
+    "vehicle_plate_label": "Matricule véhicule",
+    "become_driver_title": "Devenir livreur ClicEat",
+    "become_driver_subtitle": "Créez votre compte partenaire dès maintenant",
+    "upload_all_docs": "Veuillez uploader tous les documents"
   },
   "client": {
     "home_title": "Découvrir",
@@ -110,7 +127,23 @@
     "min_order": "Commande min.",
     "delivery_fee": "Livraison",
     "choose_variation": "Choisir une option",
-    "closed": "Fermé"
+    "closed": "Fermé",
+    "tab_menu": "Menu",
+    "tab_reviews": "Avis",
+    "tab_infos": "Infos",
+    "opening_hours": "Horaires d'ouverture",
+    "contact_info": "Contact",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "open": "Ouvert",
+    "today": "Aujourd'hui",
+    "mon": "Lundi",
+    "tue": "Mardi",
+    "wed": "Mercredi",
+    "thu": "Jeudi",
+    "fri": "Vendredi",
+    "sat": "Samedi",
+    "sun": "Dimanche"
   },
   "cart": {
     "title": "Mon Panier",
@@ -205,7 +238,25 @@
     "downloading": "Téléchargement...",
     "download_invoice": "Télécharger la facture",
     "invoice_downloaded": "Facture téléchargée",
-    "browse_restaurants": "Explorer les restaurants"
+    "browse_restaurants": "Explorer les restaurants",
+    "cancel_dialog_title": "Annuler la commande ?",
+    "cancel_dialog_message": "Souhaitez-vous vraiment annuler cette commande ? Cette action est irréversible.",
+    "cancel_reason_hint": "Motif d'annulation (optionnel)",
+    "cancel_confirm": "Oui, annuler",
+    "cancel_success": "Commande annulée avec succès",
+    "report_problem": "Signaler un problème",
+    "details": "Détails",
+    "status_explanation_title": "Guide des statuts",
+    "status_explanation_subtitle": "Voici la signification de chaque étape de votre commande :",
+    "explain_pending_payment": "La commande attend la validation de votre paiement.",
+    "explain_pending": "Payée ! En attente d'acceptation par le restaurant.",
+    "explain_confirmed": "Le restaurant a accepté votre commande.",
+    "explain_preparing": "Vos délicieux plats sont en cours de cuisine.",
+    "explain_ready": "Plats prêts, en attente de récupération par le livreur.",
+    "explain_en_route": "Le livreur est en route avec votre repas. Suivez-le en direct !",
+    "explain_delivered": "Votre commande a été livrée. Bon appétit !",
+    "explain_cancelled": "Commande annulée. Si elle était payée, le remboursement est automatique.",
+    "explain_anomaly": "Un incident opérationnel est survenu. Notre service support intervient immédiatement !"
   },
   "payment": {
     "title": "Paiement sécurisé",
@@ -216,7 +267,9 @@
     "retry": "Réessayer",
     "retry_payment": "Réessayer le paiement",
     "failed_title": "Paiement échoué",
-    "failed_message": "Une erreur est survenue lors de la vérification. Veuillez réessayer."
+    "failed_message": "Une erreur est survenue lors de la vérification. Veuillez réessayer.",
+    "verifying": "Vérification en cours...",
+    "waiting_confirmation": "En attente de confirmation de votre opérateur..."
   },
   "tracking": {
     "title": "Suivi de commande",
@@ -274,7 +327,6 @@
     "offline": "HORS LIGNE",
     "status_waiting": "En attente de commandes...",
     "status_offline": "Vous êtes hors ligne",
-
     "todays_earnings": "Gains du jour",
     "deliveries": "Livraisons",
     "status": "Statut",
@@ -349,7 +401,7 @@
     "go_online_hint": "Activez le switch pour recevoir des missions",
     "waiting_mission": "En attente d'une nouvelle mission…",
     "deliveries_today": "Livraisons aujourd'hui",
-    "order_short_id": "Commande #{}" ,
+    "order_short_id": "Commande #{}",
     "delivered_to": "Livré à {}",
     "mission_expired": "Mission expirée. Temps dépassé.",
     "new_mission": "NOUVELLE MISSION",
@@ -359,7 +411,10 @@
     "client_label": "Client : ",
     "unknown_client": "Anonyme",
     "unknown_delivery_address": "Adresse de livraison inconnue",
-    "estimated_gain": "Gain estimé"
+    "estimated_gain": "Gain estimé",
+    "payouts": "Portefeuille & Retraits",
+    "accepting": "Acceptation en cours...",
+    "mission_taken_by_other": "Mission déjà prise par un autre livreur."
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -370,7 +425,8 @@
     "use_current_location": "Utiliser ma position actuelle",
     "current_location": "Position actuelle",
     "location_denied": "Permission de localisation refusée",
-    "location_error": "Impossible d'obtenir la position actuelle"
+    "location_error": "Impossible d'obtenir la position actuelle",
+    "add_first": "Ajoutez votre première adresse pour commencer."
   },
   "mission": {
     "error_load": "Impossible de récupérer les missions.",
@@ -417,7 +473,8 @@
     "report_issue": "Signaler",
     "report_issue_title": "Signaler un problème",
     "report_sent": "Signalement envoyé. Le support vous contactera.",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "understood": "J'ai compris"
   },
   "legal": {
     "terms_title": "Conditions Générales d'Utilisation",
@@ -450,10 +507,43 @@
     "privacy_s6_body": "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, notamment le chiffrement des données sensibles et la transmission sécurisée (HTTPS/TLS)."
   },
   "wallet": {
-    "title": "Mon Portefeuille"
+    "title": "Mon Portefeuille",
+    "history_title": "Historique des transactions",
+    "current_balance": "Solde disponible",
+    "safe_payment": "Paiement 100% sécurisé",
+    "recharge": "Recharger",
+    "scan": "Scanner QR",
+    "no_transactions": "Aucune transaction pour le moment",
+    "amount": "Montant à recharger",
+    "method": "Méthode de paiement",
+    "confirm": "Confirmer le rechargement",
+    "recharge_error": "Impossible d'initier le rechargement.",
+    "history_error": "Impossible de charger l'historique des transactions."
   },
   "dispute": {
-    "history_title": "Mes Litiges"
+    "history_title": "Mes Litiges",
+    "create_title": "Signaler un problème",
+    "reason_wrong_item": "Mauvais article reçu",
+    "reason_missing_item": "Article manquant",
+    "reason_late_delivery": "Livraison en retard",
+    "reason_quality_issue": "Problème de qualité",
+    "reason_other": "Autre problème",
+    "max_images": "Vous pouvez uploader jusqu'à 3 images.",
+    "submit_success": "Votre litige a été soumis avec succès.",
+    "reason_label": "Motif du litige",
+    "description_label": "Description du problème",
+    "description_hint": "Décrivez en détail ce qui ne va pas avec votre commande...",
+    "evidence_label": "Preuves (Photos)",
+    "evidence_hint": "Ajoutez des photos pour nous aider à comprendre le problème",
+    "submit": "Soumettre le litige",
+    "description_required": "Veuillez fournir une description du problème.",
+    "create_error": "Impossible de soumettre le litige.",
+    "history_error": "Impossible de charger l'historique des litiges.",
+    "no_history": "Aucun litige soumis pour le moment.",
+    "order_id_short": "Commande #{}",
+    "status_pending": "En cours",
+    "status_resolved": "Résolu",
+    "status_rejected": "Rejeté"
   },
   "chat": {
     "title": "Messages",
@@ -462,7 +552,12 @@
     "restaurant": "Restaurant",
     "type_message": "Tapez un message...",
     "empty": "Aucun message pour le moment",
-    "contact_support": "Contacter le support"
+    "contact_support": "Contacter le support",
+    "error_create": "Impossible de créer la conversation.",
+    "error_load": "Impossible de charger les conversations.",
+    "error_load_messages": "Impossible de charger les messages.",
+    "error_send": "Impossible d'envoyer le message.",
+    "error_update": "Impossible de mettre à jour la conversation."
   },
   "referral": {
     "title": "Parrainage",
@@ -485,6 +580,40 @@
   "review": {
     "my_reviews": "Mes Avis",
     "no_reviews_yet": "Aucun avis pour le moment",
-    "restaurant_reply": "Réponse du restaurant"
-  }
+    "restaurant_reply": "Réponse du restaurant",
+    "write_review": "Rédiger un avis",
+    "no_eligible_order_title": "Aucune commande éligible",
+    "no_eligible_order_message": "Seuls les clients ayant commandé dans ce restaurant peuvent laisser un avis. Passez votre première commande !",
+    "overall_rating": "Note globale",
+    "based_on_reviews": "Basé sur les avis vérifiés",
+    "client_reviews": "Avis des clients",
+    "error_load": "Impossible de charger les avis.",
+    "error_create": "Impossible de soumettre l'avis."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty_title": "Aucune notification",
+    "empty_subtitle": "Vous retrouverez ici vos alertes de commandes et offres spéciales."
+  },
+  "payout": {
+    "load_error": "Impossible de charger les retraits",
+    "request_error": "Erreur lors de la demande de retrait",
+    "account_error": "Impossible de charger le compte de retrait",
+    "update_account_error": "Erreur lors de la mise à jour du compte",
+    "title": "Retraits",
+    "history": "Historique des retraits",
+    "no_history": "Aucun retrait effectué pour le moment",
+    "linked_account": "Compte de retrait lié",
+    "method": "Méthode",
+    "number": "Numéro",
+    "name": "Nom du compte",
+    "no_account_linked": "Aucun compte de retrait configuré",
+    "amount_to_withdraw": "Montant à retirer",
+    "request_withdraw": "Demander le retrait",
+    "edit_account": "Modifier le compte",
+    "insufficient_balance": "Solde insuffisant pour le retrait"
+  },
+  "pending": "En attente",
+  "processed": "Traité",
+  "rejected": "Rejeté"
 }

@@ -5,22 +5,23 @@
     "subtitle": "The best delivery platform in Cameroon. Choose your profile to start.",
     "btn_client": "I want to order",
     "btn_delivery": "I am a delivery agent",
-    "slide1_title": "Meals delivered to you",
-    "slide1_subtitle": "Browse hundreds of restaurants and order your favorite dishes in just a few taps.",
-    "slide2_title": "Fast delivery",
-    "slide2_subtitle": "Our drivers bring your meals in under 45 minutes, right to your door.",
-    "slide3_title": "Pay securely",
-    "slide3_subtitle": "Orange Money, MTN MoMo, or bank card — choose the payment method that suits you.",
+    "slide1_title": "The taste of home,\ndelivered to you",
+    "slide1_subtitle": "Ndolé, Poulet DG, grilled fish — your favorite dishes from Douala and Yaoundé, in just a few clicks.",
+    "slide2_title": "Fast delivery\nacross the city",
+    "slide2_subtitle": "Real-time GPS tracking, chat with your driver and precise minute-by-minute estimates.",
+    "slide3_title": "Pay as\nyou wish",
+    "slide3_subtitle": "MTN MoMo, Orange Money, ClicEat Wallet or cash — everything is possible.",
     "skip": "Skip",
-    "next": "Next"
+    "next": "Next",
+    "start_client": "Get started as a client",
+    "mode_delivery": "Driver Mode",
+    "eta_label": "Delivery in 25 min"
   },
   "auth": {
     "login_title": "Login",
-    "login_phone_title": "Enter your number",
-    "login_subtitle": "We will send you a verification code via SMS.",
+    "login_subtitle_phone": "We will send you a verification code via SMS.",
     "phone_hint": "Phone number",
     "phone_error": "Please enter a valid number",
-
     "send_otp": "Send OTP Code",
     "verify_otp_title": "Verification",
     "verify_subtitle": "SMS Validation",
@@ -76,7 +77,23 @@
     "phone_number": "Phone number",
     "delivery_info": "Not a driver yet? Register at cliceat.cm/become-driver",
     "register_subtitle": "Create your ClicEat account for free",
-    "login_subtitle": "Sign in to order food"
+    "login_subtitle": "Sign in to order food",
+    "personal_info": "Personal information",
+    "role_client_title": "Client",
+    "role_client_subtitle": "Order your favorite dishes",
+    "role_delivery_title": "Driver",
+    "role_delivery_subtitle": "Work as an independent driver",
+    "registration_submitted": "Registration submitted! Our team will verify your documents within 48h.",
+    "id_card": "ID Card / Passport Photo",
+    "license": "Driver's License",
+    "photo": "Profile Photo / Selfie",
+    "documents_title": "Driver Documents",
+    "documents_subtitle": "Your documents will be verified within 48h.",
+    "document_selected": "Document selected",
+    "vehicle_plate_label": "Vehicle plate",
+    "become_driver_title": "Become a ClicEat driver",
+    "become_driver_subtitle": "Create your partner account now",
+    "upload_all_docs": "Please upload all documents"
   },
   "client": {
     "home_title": "Discover",
@@ -110,7 +127,23 @@
     "min_order": "Min. order",
     "delivery_fee": "Delivery",
     "choose_variation": "Choose an option",
-    "closed": "Closed"
+    "closed": "Closed",
+    "tab_menu": "Menu",
+    "tab_reviews": "Reviews",
+    "tab_infos": "Info",
+    "opening_hours": "Opening Hours",
+    "contact_info": "Contact",
+    "phone": "Phone",
+    "address": "Address",
+    "open": "Open",
+    "today": "Today",
+    "mon": "Monday",
+    "tue": "Tuesday",
+    "wed": "Wednesday",
+    "thu": "Thursday",
+    "fri": "Friday",
+    "sat": "Saturday",
+    "sun": "Sunday"
   },
   "cart": {
     "title": "My Cart",
@@ -205,7 +238,25 @@
     "downloading": "Downloading...",
     "download_invoice": "Download invoice",
     "invoice_downloaded": "Invoice downloaded",
-    "browse_restaurants": "Browse restaurants"
+    "browse_restaurants": "Browse restaurants",
+    "cancel_dialog_title": "Cancel order?",
+    "cancel_dialog_message": "Are you sure you want to cancel this order? This action cannot be undone.",
+    "cancel_reason_hint": "Reason for cancellation (optional)",
+    "cancel_confirm": "Yes, cancel",
+    "cancel_success": "Order successfully cancelled",
+    "report_problem": "Report a problem",
+    "details": "Details",
+    "status_explanation_title": "Status Guide",
+    "status_explanation_subtitle": "Here is what each stage of your order means:",
+    "explain_pending_payment": "The order awaits your payment validation.",
+    "explain_pending": "Paid! Awaiting acceptance by the restaurant.",
+    "explain_confirmed": "The restaurant has accepted your order.",
+    "explain_preparing": "Your delicious dishes are being cooked.",
+    "explain_ready": "Dishes ready, waiting to be picked up by the rider.",
+    "explain_en_route": "The rider is on the way with your meal. Track them live!",
+    "explain_delivered": "Your order has been delivered. Enjoy your meal!",
+    "explain_cancelled": "Order cancelled. If paid, refund is automatic.",
+    "explain_anomaly": "An operational incident occurred. Our support team is intervening immediately!"
   },
   "payment": {
     "title": "Secure payment",
@@ -216,7 +267,9 @@
     "retry": "Retry",
     "retry_payment": "Retry payment",
     "failed_title": "Payment failed",
-    "failed_message": "An error occurred during verification. Please try again."
+    "failed_message": "An error occurred during verification. Please try again.",
+    "verifying": "Verifying payment...",
+    "waiting_confirmation": "Waiting for confirmation from your operator..."
   },
   "tracking": {
     "title": "Order tracking",
@@ -272,7 +325,6 @@
     "dashboard_title": "Dashboard",
     "online": "ONLINE",
     "offline": "OFFLINE",
-
     "todays_earnings": "Today's earnings",
     "deliveries": "Deliveries",
     "status": "Status",
@@ -357,7 +409,10 @@
     "client_label": "Client: ",
     "unknown_client": "Anonymous",
     "unknown_delivery_address": "Unknown delivery address",
-    "estimated_gain": "Estimated earnings"
+    "estimated_gain": "Estimated earnings",
+    "payouts": "Wallet & Payouts",
+    "accepting": "Accepting...",
+    "mission_taken_by_other": "Mission already taken by another driver."
   },
   "address": {
     "select_title": "Choose an address",
@@ -368,7 +423,8 @@
     "use_current_location": "Use current location",
     "current_location": "Current location",
     "location_denied": "Location permission denied",
-    "location_error": "Unable to get current location"
+    "location_error": "Unable to get current location",
+    "add_first": "Add your first address to get started."
   },
   "mission": {
     "error_load": "Unable to retrieve missions.",
@@ -415,7 +471,8 @@
     "report_issue": "Report",
     "report_issue_title": "Report an issue",
     "report_sent": "Report sent. Support will contact you.",
-    "add": "Add"
+    "add": "Add",
+    "understood": "Got it"
   },
   "legal": {
     "terms_title": "Terms of Service",
@@ -448,10 +505,43 @@
     "privacy_s6_body": "We implement technical and organizational security measures to protect your data against unauthorized access, including encryption of sensitive data and secure transmission (HTTPS/TLS)."
   },
   "wallet": {
-    "title": "My Wallet"
+    "title": "My Wallet",
+    "history_title": "Transaction History",
+    "current_balance": "Available Balance",
+    "safe_payment": "100% Secure Payment",
+    "recharge": "Recharge",
+    "scan": "Scan QR",
+    "no_transactions": "No transactions yet",
+    "amount": "Amount to recharge",
+    "method": "Payment Method",
+    "confirm": "Confirm Recharge",
+    "recharge_error": "Unable to initiate recharge.",
+    "history_error": "Unable to load transaction history."
   },
   "dispute": {
-    "history_title": "My Disputes"
+    "history_title": "My Disputes",
+    "create_title": "Report a Problem",
+    "reason_wrong_item": "Wrong item received",
+    "reason_missing_item": "Missing item",
+    "reason_late_delivery": "Late delivery",
+    "reason_quality_issue": "Quality issue",
+    "reason_other": "Other issue",
+    "max_images": "You can upload up to 3 images.",
+    "submit_success": "Your dispute has been successfully submitted.",
+    "reason_label": "Reason for dispute",
+    "description_label": "Problem description",
+    "description_hint": "Describe in detail what is wrong with your order...",
+    "evidence_label": "Evidence (Photos)",
+    "evidence_hint": "Add photos to help us understand the problem",
+    "submit": "Submit dispute",
+    "description_required": "Please provide a description of the problem.",
+    "create_error": "Unable to submit dispute.",
+    "history_error": "Unable to load dispute history.",
+    "no_history": "No disputes submitted yet.",
+    "order_id_short": "Order #{}",
+    "status_pending": "Pending",
+    "status_resolved": "Resolved",
+    "status_rejected": "Rejected"
   },
   "chat": {
     "title": "Messages",
@@ -460,7 +550,12 @@
     "restaurant": "Restaurant",
     "type_message": "Type a message...",
     "empty": "No messages yet",
-    "contact_support": "Contact Support"
+    "contact_support": "Contact Support",
+    "error_create": "Unable to create conversation.",
+    "error_load": "Unable to load conversations.",
+    "error_load_messages": "Unable to load messages.",
+    "error_send": "Unable to send message.",
+    "error_update": "Unable to update conversation."
   },
   "referral": {
     "title": "Referrals",
@@ -483,6 +578,40 @@
   "review": {
     "my_reviews": "My Reviews",
     "no_reviews_yet": "No reviews yet",
-    "restaurant_reply": "Restaurant reply"
-  }
+    "restaurant_reply": "Restaurant reply",
+    "write_review": "Write a review",
+    "no_eligible_order_title": "No eligible order",
+    "no_eligible_order_message": "Only customers who have ordered from this restaurant can leave a review. Place your first order!",
+    "overall_rating": "Overall rating",
+    "based_on_reviews": "Based on verified reviews",
+    "client_reviews": "Customer reviews",
+    "error_load": "Unable to load reviews.",
+    "error_create": "Unable to submit review."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty_title": "No notifications",
+    "empty_subtitle": "You will find your order alerts and special offers here."
+  },
+  "payout": {
+    "load_error": "Failed to load payouts",
+    "request_error": "Error requesting payout",
+    "account_error": "Failed to load payout account",
+    "update_account_error": "Error updating payout account",
+    "title": "Payouts",
+    "history": "Payout History",
+    "no_history": "No payouts yet",
+    "linked_account": "Linked Payout Account",
+    "method": "Method",
+    "number": "Number",
+    "name": "Account Name",
+    "no_account_linked": "No payout account linked",
+    "amount_to_withdraw": "Amount to withdraw",
+    "request_withdraw": "Request Payout",
+    "edit_account": "Edit Account",
+    "insufficient_balance": "Insufficient balance for payout"
+  },
+  "pending": "Pending",
+  "processed": "Processed",
+  "rejected": "Rejected"
 }

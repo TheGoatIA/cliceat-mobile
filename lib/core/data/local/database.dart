@@ -8,6 +8,7 @@ import 'tables/user_prefs_table.dart';
 import 'tables/restaurants_table.dart';
 import 'tables/cart_table.dart';
 import 'tables/pending_actions_table.dart';
+import 'tables/favorites_table.dart';
 
 import 'tables/menu_items_table.dart';
 import 'tables/conversations_table.dart';
@@ -21,6 +22,7 @@ import 'daos/cart_dao.dart';
 import 'daos/restaurant_dao.dart';
 import 'daos/user_prefs_dao.dart';
 import 'daos/order_dao.dart';
+import 'daos/favorites_dao.dart';
 
 part 'database.g.dart';
 
@@ -34,6 +36,7 @@ part 'database.g.dart';
     ConversationsTable,
     MessagesTable,
     OrdersTable,
+    FavoritesTable,
   ],
   daos: [
     CartDao,
@@ -43,6 +46,7 @@ part 'database.g.dart';
     ChatDao,
     PendingActionsDao,
     OrderDao,
+    FavoritesDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -52,35 +56,38 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) => m.createAll(),
-        onUpgrade: (m, from, to) async {
-          if (from < 2) {
-            await m.createTable(pendingActionsTable);
-          }
-          if (from < 3) {
-            await m.createTable(menuItemsTable);
-            await m.createTable(conversationsTable);
-            await m.createTable(messagesTable);
-          }
-          if (from < 4) {
-            await m.addColumn(messagesTable, messagesTable.status);
-          }
-          if (from < 5) {
-            await m.createTable(ordersTable);
-          }
-          if (from < 6) {
-            await m.addColumn(userPrefsTable, userPrefsTable.isDarkMode);
-          }
-        },
-        beforeOpen: (details) async {
-          // Active les foreign keys (bonne pratique SQLite)
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(pendingActionsTable);
+      }
+      if (from < 3) {
+        await m.createTable(menuItemsTable);
+        await m.createTable(conversationsTable);
+        await m.createTable(messagesTable);
+      }
+      if (from < 4) {
+        await m.addColumn(messagesTable, messagesTable.status);
+      }
+      if (from < 5) {
+        await m.createTable(ordersTable);
+      }
+      if (from < 6) {
+        await m.addColumn(userPrefsTable, userPrefsTable.isDarkMode);
+      }
+      if (from < 7) {
+        await m.createTable(favoritesTable);
+      }
+    },
+    beforeOpen: (details) async {
+      // Active les foreign keys (bonne pratique SQLite)
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 }
 
 LazyDatabase _openConnection() {
