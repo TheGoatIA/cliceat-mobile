@@ -356,6 +356,43 @@ Application déployée pour une fintech alimentaire, la sécurité est de rigueu
 
 ---
 
+## 🚀 CI/CD Pipelines
+
+[![Flutter CI](https://github.com/TheGoatIA/cliceat-mobile/actions/workflows/flutter-ci.yml/badge.svg?branch=dev)](https://github.com/TheGoatIA/cliceat-mobile/actions/workflows/flutter-ci.yml)
+
+| Déclencheur | Pipeline | Livrable |
+|-------------|----------|----------|
+| PR vers `dev` / `main` | `flutter-ci.yml` — analyse, formatage, tests, vérification build | Statut de vérification PR |
+| Push sur `dev` | `flutter-android-staging.yml` | AAB → Firebase App Distribution (internal-testers, qa-team) |
+| Push sur `dev` | `flutter-ios-staging.yml` | IPA → TestFlight + Firebase (internal-testers) |
+| Push sur `main` | `flutter-android-production.yml` | AAB → Firebase (beta-users) + Google Play Beta |
+| Push sur `main` | `flutter-ios-production.yml` | IPA → App Store via TestFlight (approbation manuelle requise) |
+
+### Secrets GitHub requis
+
+**Android :**
+- `ANDROID_KEYSTORE_BASE64` — keystore encodé en base64
+- `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`
+- `GOOGLE_PLAY_SERVICE_ACCOUNT` — compte de service Google Play (JSON)
+
+**iOS :**
+- `IOS_CERTIFICATE_P12` — certificat de distribution encodé en base64
+- `IOS_CERTIFICATE_PASSWORD`
+- `IOS_PROVISIONING_PROFILE_STAGING` — profil ad-hoc encodé en base64
+- `IOS_PROVISIONING_PROFILE_PRODUCTION` — profil App Store encodé en base64
+- `ASC_ISSUER_ID`, `ASC_KEY_ID`, `ASC_PRIVATE_KEY` — clés App Store Connect API
+
+**Firebase :**
+- `FIREBASE_ANDROID_APP_ID`, `FIREBASE_IOS_APP_ID`
+- `FIREBASE_SERVICE_ACCOUNT` — compte de service Firebase (JSON)
+
+**Communs :**
+- `STAGING_API_URL`, `PRODUCTION_API_URL`
+- `SLACK_WEBHOOK_URL` — notifications Slack sur #deploys
+- `CODECOV_TOKEN` — rapport de couverture
+
+---
+
 ## 🤝 Contribution
 
 Nous suivons le format **Git Flow** couplé aux conventions classiques *(Conventional Commits)* :
