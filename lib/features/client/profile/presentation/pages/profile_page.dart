@@ -553,6 +553,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _showEditProfile(BuildContext context, UserModel user) {
     final nameController = TextEditingController(text: user.name);
+    final phoneController = TextEditingController(text: user.phone ?? '');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -597,15 +598,28 @@ class _ProfilePageState extends State<ProfilePage> {
                 prefixIcon: const Icon(Icons.person_outline),
               ),
             ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                labelText: 'profile.phone'.tr(),
+                hintText: '+237 6XX XXX XXX',
+                prefixIcon: const Icon(Icons.phone_outlined),
+                helperText: 'Votre numéro est requis pour passer commande.',
+                helperStyle: GoogleFonts.inter(fontSize: 11, color: AppTheme.muted),
+              ),
+            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  final result = await getIt<UserRepository>().updateProfile({
-                    'name': nameController.text.trim(),
-                  });
+                  final payload = <String, dynamic>{'name': nameController.text.trim()};
+                  final phone = phoneController.text.trim();
+                  if (phone.isNotEmpty) payload['phone'] = phone;
+                  final result = await getIt<UserRepository>().updateProfile(payload);
                   result.fold(
                     (err) {
                       if (mounted) {

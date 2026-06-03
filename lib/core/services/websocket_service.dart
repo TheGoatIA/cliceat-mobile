@@ -126,6 +126,14 @@ class WebSocketService {
 
   // ─── Connection logic ─────────────────────────────────────────────────────
 
+
+  /// Declenche localement un evenement de rafraichissement du dashboard livreur.
+  /// Utilise apres confirmation de livraison pour forcer le rechargement
+  /// sans attendre un prochain evenement WebSocket du serveur.
+  void triggerLocalMissionRefresh() {
+    _missionEventController.add({'type': 'local_refresh'});
+  }
+
   Future<void> _doConnect() async {
     final token = await _tokenService.getToken();
     if (token == null) {

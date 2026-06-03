@@ -17,6 +17,8 @@ import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
 import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
+import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
+import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -324,6 +326,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
       return;
     }
 
+    // Verify phone number before placing order
+    final profileState = context.read<ProfileCubit>().state;
+    final phone = profileState.maybeWhen(
+      loaded: (user) => user.phone ?? '',
+      orElse: () => '',
+    );
+    if (phone.isEmpty) {
+      _showPhoneRequiredDialog(context);
+      return;
+    }
+
     final items = cartState.items
         .map((item) => {
               'menuItemId': item.itemId,
@@ -349,6 +362,101 @@ class _CheckoutPageState extends State<CheckoutPage> {
     };
 
     context.read<OrderBloc>().add(OrderEvent.createOrder(payload));
+  }
+
+  Future<void> _showPhoneRequiredDialog(BuildContext context) async {
+    final phoneController = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.redSoft,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.phone_outlined, color: AppTheme.primaryRed, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Numéro requis',
+                style: GoogleFonts.bricolageGrotesque(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.ink,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Veuillez renseigner votre numéro de téléphone pour que le livreur puisse vous contacter.',
+              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted, height: 1.5),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'Téléphone',
+                hintText: '+237 6XX XXX XXX',
+                prefixIcon: const Icon(Icons.phone_outlined, color: AppTheme.primaryRed),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppTheme.primaryRed, width: 2),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Annuler', style: GoogleFonts.inter(color: AppTheme.muted)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final phone = phoneController.text.trim();
+              if (phone.isNotEmpty) Navigator.pop(ctx, phone);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryRed,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text('Enregistrer', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty && mounted) {
+      // Save phone number
+      final saved = await getIt<UserRepository>().updateProfile({'phone': result});
+      if (!mounted) return;
+      saved.fold(
+        (err) => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(err.message), backgroundColor: AppTheme.primaryRed),
+        ),
+        (updatedUser) {
+          context.read<ProfileCubit>().emitLoaded(updatedUser);
+          // Retry order confirmation
+          _onConfirm(context);
+        },
+      );
+    }
   }
 
   Widget _buildSection({required String title, required Widget child}) {
