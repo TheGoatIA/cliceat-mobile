@@ -30,7 +30,7 @@ android {
     defaultConfig {
         applicationId = "com.tbg.cliceat"
         // Explicit SDK versions for auditability
-        minSdk = 23                            // Android 6.0 (flutter_secure_storage requirement)
+        minSdk = flutter.minSdkVersion                            // Android 6.0 (flutter_secure_storage requirement)
         targetSdk = 35     // Mandatory for Play Store (Aug 2024)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -58,10 +58,10 @@ android {
         // Release signing — keys loaded from android/key.properties (gitignored).
         // Create key.properties with: storeFile, storePassword, keyAlias, keyPassword.
         // Run: keytool -genkey -v -keystore cliceat-release.jks -alias cliceat -keyalg RSA
-        create("release") {
-            val props = Properties()
-            val keyPropsFile = rootProject.file("key.properties")
-            if (keyPropsFile.exists()) {
+        val keyPropsFile = rootProject.file("key.properties")
+        if (keyPropsFile.exists()) {
+            create("release") {
+                val props = Properties()
                 props.load(keyPropsFile.inputStream())
                 keyAlias = props["keyAlias"] as String
                 keyPassword = props["keyPassword"] as String
@@ -74,12 +74,9 @@ android {
     buildTypes {
         release {
             val keyPropsFile = rootProject.file("key.properties")
-            if (!keyPropsFile.exists()) {
-                throw GradleException(
-                    "key.properties not found. Create android/key.properties with keystore credentials before building a release."
-                )
+            if (keyPropsFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
             }
-            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
