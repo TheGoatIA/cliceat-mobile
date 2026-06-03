@@ -300,8 +300,16 @@ class NotificationService {
       case 'mission_assigned':
         if (orderId.isNotEmpty) router.push('/delivery/mission/$orderId');
         break;
+      case 'promotion':
+      case 'marketing':
+        router.push('/client/notifications');
+        break;
       default:
-        if (orderId.isNotEmpty) router.push('/client/tracking/$orderId');
+        if (orderId.isNotEmpty) {
+          router.push('/client/tracking/$orderId');
+        } else {
+          router.push('/client/notifications');
+        }
         break;
     }
   }

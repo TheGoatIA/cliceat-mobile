@@ -16,6 +16,7 @@ import '../../../../../core/services/analytics_service.dart';
 import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
+import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -43,6 +44,26 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void initState() {
     super.initState();
     ScreenProtector.preventScreenshotOn();
+    
+    // Select first enabled payment method based on platform configuration
+    final configState = context.read<ConfigBloc>().state;
+    final paymentConfig = configState.maybeWhen(
+      loaded: (config) => config.payment,
+      orElse: () => null,
+    );
+    if (paymentConfig != null) {
+      final enabled = paymentConfig.enabledMethods;
+      if (enabled.contains('cm.orange')) {
+        _selectedPaymentMethod = 'orange_money';
+      } else if (enabled.contains('cm.mtn')) {
+        _selectedPaymentMethod = 'mtn_momo';
+      } else if (paymentConfig.walletEnabled) {
+        _selectedPaymentMethod = 'wallet';
+      } else if (enabled.contains('cash')) {
+        _selectedPaymentMethod = 'cash';
+      }
+    }
+
     final subtotal = context.read<CartCubit>().state.subtotal;
     getIt<AnalyticsService>().logBeginCheckout(subtotal);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -576,17 +597,35 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildPaymentMethods(BuildContext context) {
+    final configState = context.read<ConfigBloc>().state;
+    final paymentConfig = configState.maybeWhen(
+      loaded: (config) => config.payment,
+      orElse: () => null,
+    );
+
+    final showOrange = paymentConfig?.enabledMethods.contains('cm.orange') ?? true;
+    final showMtn = paymentConfig?.enabledMethods.contains('cm.mtn') ?? true;
+    final showWallet = paymentConfig?.walletEnabled ?? true;
+    final showCash = paymentConfig?.enabledMethods.contains('cash') ?? true;
+
     return _buildSection(
       title: 'checkout.payment_method'.tr(),
       child: Column(
         children: [
-          _buildPaymentOption(context, 'orange_money', 'checkout.orange_money'.tr(), '🟠'),
-          const SizedBox(height: 8),
-          _buildPaymentOption(context, 'mtn_momo', 'checkout.mtn_momo'.tr(), '🟡'),
-          const SizedBox(height: 8),
-          _buildPaymentOption(context, 'wallet', 'wallet.title'.tr(), '💳'),
-          const SizedBox(height: 8),
-          _buildPaymentOption(context, 'cash', 'checkout.cash_on_delivery'.tr(), '💵'),
+          if (showOrange) ...[
+            _buildPaymentOption(context, 'orange_money', 'checkout.orange_money'.tr(), '🟠'),
+            if (showMtn || showWallet || showCash) const SizedBox(height: 8),
+          ],
+          if (showMtn) ...[
+            _buildPaymentOption(context, 'mtn_momo', 'checkout.mtn_momo'.tr(), '🟡'),
+            if (showWallet || showCash) const SizedBox(height: 8),
+          ],
+          if (showWallet) ...[
+            _buildPaymentOption(context, 'wallet', 'wallet.title'.tr(), '💳'),
+            if (showCash) const SizedBox(height: 8),
+          ],
+          if (showCash)
+            _buildPaymentOption(context, 'cash', 'checkout.cash_on_delivery'.tr(), '💵'),
         ],
       ),
     );

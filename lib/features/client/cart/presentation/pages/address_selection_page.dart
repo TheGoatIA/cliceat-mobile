@@ -9,6 +9,7 @@ import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/shared/models/address_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
+import 'package:cliceat_app/features/client/profile/presentation/pages/profile_page.dart';
 
 class AddressSelectionPage extends StatefulWidget {
   const AddressSelectionPage({super.key});
@@ -141,144 +142,17 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
     }
   }
 
-  void _showAddAddressSheet() {
-    final labelCtrl = TextEditingController();
-    final addressCtrl = TextEditingController();
-    showModalBottomSheet(
+  Future<void> _showManageAddressesSheet() async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 24,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: AppTheme.lineSoft,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Text(
-              'address.add_title'.tr(),
-              style: GoogleFonts.bricolageGrotesque(
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
-                color: AppTheme.ink,
-                letterSpacing: -0.4,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: AppTheme.bg,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.line),
-              ),
-              child: TextField(
-                controller: addressCtrl,
-                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.ink),
-                decoration: InputDecoration(
-                  labelText: 'address.address_hint'.tr(),
-                  labelStyle:
-                      GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
-                  prefixIcon: const Icon(Icons.location_on_outlined,
-                      color: AppTheme.muted, size: 20),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: AppTheme.bg,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.line),
-              ),
-              child: TextField(
-                controller: labelCtrl,
-                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.ink),
-                decoration: InputDecoration(
-                  labelText: 'address.label_hint'.tr(),
-                  labelStyle:
-                      GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
-                  prefixIcon: const Icon(Icons.label_outline,
-                      color: AppTheme.muted, size: 20),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () async {
-                  final address = addressCtrl.text.trim();
-                  if (address.isEmpty) return;
-                  Navigator.pop(ctx);
-                  
-                  double lat = 4.05;
-                  double lng = 9.70;
-                  try {
-                    final permission = await Geolocator.checkPermission();
-                    if (permission == LocationPermission.always ||
-                        permission == LocationPermission.whileInUse) {
-                      final pos = await Geolocator.getCurrentPosition(
-                        locationSettings:
-                            const LocationSettings(accuracy: LocationAccuracy.low),
-                      ).timeout(const Duration(seconds: 2));
-                      lat = pos.latitude;
-                      lng = pos.longitude;
-                    }
-                  } catch (_) {}
-
-                  try {
-                    await getIt<UserRepository>().addAddress({
-                      'address': address,
-                      'label': labelCtrl.text.trim().isNotEmpty
-                          ? labelCtrl.text.trim()
-                          : 'Adresse',
-                      'lat': lat,
-                      'lng': lng,
-                    });
-                    await _loadAddresses();
-                  } catch (_) {}
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryRed,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
-                child: Text(
-                  'common.save'.tr(),
-                  style: GoogleFonts.inter(
-                      fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (ctx) => const MyAddressesSheet(),
     );
+    _loadAddresses();
   }
 
   @override
@@ -300,7 +174,7 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
         ),
         actions: [
           GestureDetector(
-            onTap: _showAddAddressSheet,
+            onTap: _showManageAddressesSheet,
             child: Container(
               margin: const EdgeInsets.only(right: 16),
               width: 36,
@@ -400,7 +274,7 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                               SizedBox(
                                 height: 48,
                                 child: ElevatedButton.icon(
-                                  onPressed: _showAddAddressSheet,
+                                  onPressed: _showManageAddressesSheet,
                                   icon: const Icon(Icons.add, size: 18),
                                   label: Text('address.add_title'.tr()),
                                   style: ElevatedButton.styleFrom(

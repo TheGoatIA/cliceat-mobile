@@ -1705,6 +1705,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
       await cartCubit.clearCart();
     }
 
+    // Capture ScaffoldMessenger BEFORE the async gap.
+    // Calling ScaffoldMessenger.of(context) after an await is unsafe: the
+    // widget tree may have rebuilt and the reference could be stale.
+    final messenger = ScaffoldMessenger.of(context);
+
     final displayName = variation != null
         ? '${item.getName(lang)} ($variation)'
         : item.getName(lang);
@@ -1719,25 +1724,29 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
       notes: notes,
     );
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('restaurant.added_to_cart'.tr()),
-          backgroundColor: AppTheme.ink,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          duration: const Duration(seconds: 1),
-          action: SnackBarAction(
-            label: 'restaurant.view_cart'.tr(),
-            textColor: AppTheme.honey,
-            onPressed: () => context.push('/client/cart'),
-          ),
+    // The persistent bottom bar (bottomNavigationBar) already shows "Voir le panier"
+    // so the SnackBar only needs to confirm the add – no action button needed.
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 10),
+            Text('restaurant.added_to_cart'.tr()),
+          ],
         ),
-      );
-    }
+        backgroundColor: AppTheme.ink,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
+
+
 
   void _showItemDetailModal(
     BuildContext context,

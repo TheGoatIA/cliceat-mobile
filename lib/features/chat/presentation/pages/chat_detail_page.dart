@@ -24,15 +24,34 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatCubit>().initGlobalChatListeners();
       context.read<ChatCubit>().loadMessages(widget.conversation);
     });
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isNotEmpty) {
-      context.read<ChatCubit>().sendMessage(widget.conversation.id, text);
+      final cubit = context.read<ChatCubit>();
       _controller.clear();
+      final res = await cubit.sendMessage(widget.conversation.id, text);
+      if (mounted) {
+        res.fold(
+          (err) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(err.message),
+                backgroundColor: AppTheme.primaryRed,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            );
+          },
+          (_) {},
+        );
+      }
     }
   }
 

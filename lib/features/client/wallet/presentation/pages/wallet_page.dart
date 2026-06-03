@@ -11,13 +11,27 @@ import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 
-class WalletPage extends StatelessWidget {
+class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
+
+  @override
+  State<WalletPage> createState() => _WalletPageState();
+}
+
+class _WalletPageState extends State<WalletPage> {
+  late final WalletCubit _walletCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _walletCubit = getIt<WalletCubit>()..loadHistory();
+    context.read<ProfileCubit>().loadProfile();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<WalletCubit>()..loadHistory(),
+      create: (context) => _walletCubit,
       child: Builder(
         builder: (context) {
           return Scaffold(
@@ -654,8 +668,8 @@ class WalletPage extends StatelessWidget {
             ),
           );
         },
-        (data) {
-          pageContext.push(
+        (data) async {
+          await pageContext.push(
             '/client/payment',
             extra: {
               'paymentUrl': data['url'],
@@ -663,6 +677,10 @@ class WalletPage extends StatelessWidget {
               'isWalletRecharge': true,
             },
           );
+          if (pageContext.mounted) {
+            pageContext.read<WalletCubit>().loadHistory();
+            pageContext.read<ProfileCubit>().loadProfile();
+          }
         },
       );
     }

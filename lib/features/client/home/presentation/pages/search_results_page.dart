@@ -44,7 +44,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   Future<List<RestaurantModel>> _search(String query) async {
     if (query.trim().isEmpty) {
-      final result = await getIt<RestaurantRepository>().getRestaurants(city: widget.city);
+      final result = await getIt<RestaurantRepository>().getRestaurants(
+        city: widget.city,
+        limit: 1000,
+      );
       return result.fold((_) => [], (list) => list);
     }
     final result = await getIt<RestaurantRepository>().search(query.trim());

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/services/websocket_service.dart';
@@ -778,6 +779,24 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                         ],
                       ),
                     ),
+                    if (mission.clientPhone != null && mission.clientPhone!.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.phone_in_talk_rounded, color: AppTheme.green),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () async {
+                          final phone = mission.clientPhone;
+                          if (phone == null || phone.isEmpty) return;
+                          HapticFeedback.mediumImpact();
+                          final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+                          final uri = Uri.parse('tel:$cleaned');
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri);
+                          }
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ],

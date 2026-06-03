@@ -50,7 +50,10 @@ import '../../features/client/notification/presentation/cubit/notification_cubit
 import 'package:cliceat_app/shared/pages/map_picker_page.dart';
 import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
 import 'package:cliceat_app/core/widgets/maintenance_page.dart';
+import 'package:cliceat_app/core/widgets/force_update_page.dart';
+import 'package:cliceat_app/core/config/app_constants.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'dart:io' show Platform;
 
 import 'dart:async';
 
@@ -96,6 +99,7 @@ abstract class AppRoutes {
   static const terms = '/legal/terms';
   static const privacy = '/legal/privacy';
   static const maintenance = '/maintenance';
+  static const update = '/update';
   static const mapPicker = '/map-picker';
 }
 
@@ -112,9 +116,26 @@ const _kPublicRoutes = {
   AppRoutes.terms,
   AppRoutes.privacy,
   AppRoutes.maintenance,
+  AppRoutes.update,
 };
 
 // ─── Role-based redirect logic ────────────────────────────────────────────────
+
+bool _isVersionBelow(String current, String? minRequired) {
+  if (minRequired == null || minRequired.isEmpty) return false;
+  
+  final currentParts = current.split('+')[0].split('.');
+  final minParts = minRequired.split('+')[0].split('.');
+  
+  for (int i = 0; i < 3; i++) {
+    final currentPart = i < currentParts.length ? int.tryParse(currentParts[i]) ?? 0 : 0;
+    final minPart = i < minParts.length ? int.tryParse(minParts[i]) ?? 0 : 0;
+    
+    if (currentPart < minPart) return true;
+    if (currentPart > minPart) return false;
+  }
+  return false;
+}
 
 /// Retourne le chemin de redirection si l'utilisateur n'est pas autorisé,
 /// ou `null` si la navigation est permise.
@@ -133,6 +154,24 @@ String? _guardRedirect(BuildContext context, GoRouterState state) {
     return AppRoutes.maintenance;
   }
   if (!isMaintenance && location == AppRoutes.maintenance) {
+    return AppRoutes.splash;
+  }
+
+  // 2. Check Force Update
+  final needsUpdate = configState.maybeWhen(
+    loaded: (c) {
+      if (!c.forceUpdate) return false;
+      final currentVersion = AppConstants.appVersion;
+      final minVersion = Platform.isIOS ? c.iosMinVersion : c.androidMinVersion;
+      return _isVersionBelow(currentVersion, minVersion);
+    },
+    orElse: () => false,
+  );
+
+  if (needsUpdate && location != AppRoutes.update) {
+    return AppRoutes.update;
+  }
+  if (!needsUpdate && location == AppRoutes.update) {
     return AppRoutes.splash;
   }
 
@@ -441,6 +480,21 @@ final GoRouter appRouter = GoRouter(
             ? config?.maintenanceMessageEn
             : config?.maintenanceMessageFr;
         return MaintenancePage(message: msg);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.update,
+      builder: (context, state) {
+        final config = context.read<ConfigBloc>().state.maybeWhen(
+          loaded: (c) => c,
+          orElse: () => null,
+        );
+        final locale = context.locale.languageCode;
+        final msg = locale == 'en'
+            ? config?.updateMessageEn
+            : config?.updateMessageFr;
+        final updateUrl = Platform.isIOS ? config?.iosUpdateUrl : config?.updateUrl;
+        return ForceUpdatePage(message: msg, updateUrl: updateUrl);
       },
     ),
     GoRoute(

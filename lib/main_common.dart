@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'core/config/app_constants.dart';
 import 'core/config/flavor_config.dart';
@@ -42,7 +43,13 @@ void mainCommon() {
 Future<void> _bootstrap() async {
   debugPrint('🚀 Starting bootstrap...');
   WidgetsFlutterBinding.ensureInitialized();
-  debugPrint('✅ Flutter Binding Initialized');
+  try {
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    AppConstants.appVersion = packageInfo.version;
+  } catch (e) {
+    debugPrint('⚠️ Failed to load PackageInfo: $e');
+  }
+  debugPrint('✅ Flutter Binding Initialized (App Version: ${AppConstants.appVersion})');
 
   // Limiter le cache image (appareils bas de gamme)
   PaintingBinding.instance.imageCache

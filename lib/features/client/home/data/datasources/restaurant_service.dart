@@ -13,13 +13,19 @@ abstract class RestaurantService extends ChopperService {
     @Query('radius') double? radius,
     @Query('lat') double? lat,
     @Query('lng') double? lng,
+    @Query('page') int? page,
+    @Query('limit') int? limit,
   );
 
   @GET(path: '/featured')
   Future<Response> getFeaturedRestaurants();
 
   @GET(path: '/search')
-  Future<Response> searchRestaurants(@Query('q') String query);
+  Future<Response> searchRestaurants(
+    @Query('q') String query,
+    @Query('page') int? page,
+    @Query('limit') int? limit,
+  );
 
   @GET(path: '/{id}')
   Future<Response> getRestaurantDetails(@Path('id') String id);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
@@ -16,6 +17,14 @@ class ChatListPage extends StatefulWidget {
 }
 
 class _ChatListPageState extends State<ChatListPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatCubit>().initGlobalChatListeners();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -273,6 +282,14 @@ class _ChatListPageState extends State<ChatListPage> {
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          HapticFeedback.mediumImpact();
+          context.read<ChatCubit>().createSupportConversation();
+        },
+        backgroundColor: AppTheme.primaryRed,
+        child: const Icon(Icons.support_agent, color: Colors.white),
       ),
     );
   }

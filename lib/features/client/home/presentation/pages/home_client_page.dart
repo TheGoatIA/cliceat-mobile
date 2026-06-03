@@ -1207,8 +1207,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   color: AppTheme.primaryRed,
                 ),
         ),
-        _buildRestaurantList(),
         if (!_isSearching) _buildFilterStrip(),
+        _buildRestaurantList(),
       ],
     );
   }
@@ -1226,7 +1226,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
       padding: const EdgeInsets.only(top: 8, bottom: 4),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(left: 20),
+        padding: const EdgeInsets.only(left: 20, right: 80),
         child: Row(
           children: filters.map<Widget>((f) {
             final isSelected =

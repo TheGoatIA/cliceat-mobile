@@ -27,11 +27,19 @@ class RestaurantRepository {
     required String city,
     double? lat,
     double? lng,
+    int? page,
+    int? limit,
   }) async {
     try {
       final normalizedCity = city.toLowerCase().replaceAll('é', 'e');
-      final res =
-          await _service.getRestaurants(normalizedCity, 20000.0, lat, lng);
+      final res = await _service.getRestaurants(
+        normalizedCity,
+        20000.0,
+        lat,
+        lng,
+        page,
+        limit,
+      );
       if (res.isSuccessful && res.body != null) {
         final raw = _extractList(res.body);
         final models = raw.map(RestaurantModel.fromJson).toList();
@@ -42,9 +50,13 @@ class RestaurantRepository {
       // Cache fallback
       final cached = await _dao.getByCity(city);
       if (cached.isNotEmpty) return Right(_fromRows(cached));
-      return Left(AppError.fromResponse(
-          res.body, 'common.error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       final cached = await _dao.getByCity(city);
       if (cached.isNotEmpty) return Right(_fromRows(cached));
@@ -53,7 +65,7 @@ class RestaurantRepository {
   }
 
   Future<Either<AppError, List<RestaurantModel>>>
-      getFeaturedRestaurants() async {
+  getFeaturedRestaurants() async {
     try {
       final res = await _service.getFeaturedRestaurants();
       if (res.isSuccessful && res.body != null) {
@@ -69,9 +81,12 @@ class RestaurantRepository {
   }
 
   Future<Either<AppError, List<RestaurantModel>>> search(
-      String query) async {
+    String query, {
+    int? page,
+    int? limit,
+  }) async {
     try {
-      final res = await _service.searchRestaurants(query);
+      final res = await _service.searchRestaurants(query, page, limit);
       if (res.isSuccessful && res.body != null) {
         final raw = _extractList(res.body);
         return Right(raw.map(RestaurantModel.fromJson).toList());
@@ -91,19 +106,22 @@ class RestaurantRepository {
         final data = res.body is Map && res.body['data'] != null
             ? res.body['data'] as Map<String, dynamic>
             : res.body as Map<String, dynamic>;
-        
+
         final restaurantJson = data.containsKey('restaurant')
             ? data['restaurant'] as Map<String, dynamic>
             : data;
 
         final model = RestaurantModel.fromJson(restaurantJson);
-        
+
         // Save to cache
         await _dao.upsert(_toCompanion(model));
         if (model.menus.isNotEmpty) {
-          await _menuDao.replaceItemsForRestaurant(id, _toMenuCompanions(id, model.menus));
+          await _menuDao.replaceItemsForRestaurant(
+            id,
+            _toMenuCompanions(id, model.menus),
+          );
         }
-        
+
         return Right(model);
       }
       // Try cache
@@ -112,9 +130,13 @@ class RestaurantRepository {
         final menuRows = await _menuDao.getByRestaurant(id);
         return Right(_fromRowWithMenus(cached, menuRows));
       }
-      return Left(AppError.fromResponse(
-          res.body, 'restaurant.error_load',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'restaurant.error_load',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       final cached = await _dao.getById(id);
       if (cached != null) {
@@ -171,46 +193,62 @@ class RestaurantRepository {
     );
   }
 
-  List<MenuItemsTableCompanion> _toMenuCompanions(String restaurantId, List<MenuItemModel> menus) {
-    return menus.map((m) => MenuItemsTableCompanion.insert(
-      id: m.id,
-      restaurantId: restaurantId,
-      name: m.nameFr,
-      price: m.price,
-      description: drift.Value(m.descriptionFr),
-      imageUrl: drift.Value(m.image),
-      category: drift.Value(m.category),
-      isAvailable: drift.Value(m.isAvailable),
-      extrasJson: drift.Value(jsonEncode(m.variations.map((v) => v.toJson()).toList())),
-    )).toList();
+  List<MenuItemsTableCompanion> _toMenuCompanions(
+    String restaurantId,
+    List<MenuItemModel> menus,
+  ) {
+    return menus
+        .map(
+          (m) => MenuItemsTableCompanion.insert(
+            id: m.id,
+            restaurantId: restaurantId,
+            name: m.nameFr,
+            price: m.price,
+            description: drift.Value(m.descriptionFr),
+            imageUrl: drift.Value(m.image),
+            category: drift.Value(m.category),
+            isAvailable: drift.Value(m.isAvailable),
+            extrasJson: drift.Value(
+              jsonEncode(m.variations.map((v) => v.toJson()).toList()),
+            ),
+          ),
+        )
+        .toList();
   }
 
   List<RestaurantModel> _fromRows(List<RestaurantsTableData> rows) =>
       rows.map(_fromRow).toList();
 
   RestaurantModel _fromRow(RestaurantsTableData r) => RestaurantModel(
-        id: r.id,
-        name: r.name,
-        description: r.description,
-        city: r.city,
-        lat: r.lat,
-        lng: r.lng,
-        logoUrl: r.logoUrl,
-        coverImage: r.coverUrl,
-        rating: r.rating,
-        isOpen: r.isOpen,
-        deliveryFee: r.deliveryFee,
-        minOrder: r.minOrder,
-        deliveryTimeMinutes: r.avgDeliveryTime,
-      );
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    city: r.city,
+    lat: r.lat,
+    lng: r.lng,
+    logoUrl: r.logoUrl,
+    coverImage: r.coverUrl,
+    rating: r.rating,
+    isOpen: r.isOpen,
+    deliveryFee: r.deliveryFee,
+    minOrder: r.minOrder,
+    deliveryTimeMinutes: r.avgDeliveryTime,
+  );
 
-  RestaurantModel _fromRowWithMenus(RestaurantsTableData r, List<MenuItemsTableData> menuRows) {
+  RestaurantModel _fromRowWithMenus(
+    RestaurantsTableData r,
+    List<MenuItemsTableData> menuRows,
+  ) {
     final menus = menuRows.map((m) {
       List<MenuVariationModel> variations = [];
       if (m.extrasJson != null) {
         try {
           final List<dynamic> decoded = jsonDecode(m.extrasJson!);
-          variations = decoded.map((e) => MenuVariationModel.fromJson(e as Map<String, dynamic>)).toList();
+          variations = decoded
+              .map(
+                (e) => MenuVariationModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList();
         } catch (_) {}
       }
       return MenuItemModel(

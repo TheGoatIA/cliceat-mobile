@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:cliceat_app/features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/widgets/empty_state.dart';
@@ -120,7 +121,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           if (item.data != null) {
             final type = item.data!['type']?.toString();
             final orderId = item.data!['orderId']?.toString();
-            if (orderId != null) {
+            if (orderId != null && orderId.isNotEmpty) {
               final authState = context.read<AuthBloc>().state;
               final isDriverMode = authState.maybeWhen(
                 authenticated: (token, userId, currentMode) => currentMode == 'delivery',
@@ -135,7 +136,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   context.push('/client/tracking/$orderId');
                 }
               }
+            } else {
+              _showPromotionDetailDialog(context, item);
             }
+          } else {
+            _showPromotionDetailDialog(context, item);
           }
         },
         child: AnimatedContainer(
@@ -206,6 +211,32 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         fontWeight: item.isRead ? FontWeight.normal : FontWeight.w500,
                       ),
                     ),
+                    if (item.data != null && (item.data!['imageUrl'] != null || item.data!['image'] != null)) ...[
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          (item.data!['imageUrl'] ?? item.data!['image']).toString(),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: 150,
+                          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              height: 150,
+                              color: AppTheme.bgWarm,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppTheme.primaryRed,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 8),
                     Text(
                       dateStr,
@@ -281,6 +312,144 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showPromotionDetailDialog(BuildContext context, NotificationModel item) {
+    final imageUrl = item.data?['imageUrl']?.toString() ?? item.data?['image']?.toString() ?? '';
+    final linkUrl = item.data?['linkUrl']?.toString() ?? item.data?['link']?.toString() ?? item.data?['url']?.toString() ?? '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 10,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Upper Image Header
+                if (imageUrl.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      height: 180,
+                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          height: 180,
+                          color: AppTheme.bgWarm,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: AppTheme.primaryRed,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                // Title and Body Content
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: GoogleFonts.bricolageGrotesque(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        DateFormat('dd MMMM yyyy, HH:mm', context.locale.toString()).format(item.createdAt),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: AppTheme.muted,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        item.body,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          height: 1.5,
+                          color: AppTheme.ink.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Buttons
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text(
+                          'Fermer',
+                          style: TextStyle(
+                            color: AppTheme.muted,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (linkUrl.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryRed,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            elevation: 0,
+                          ),
+                          onPressed: () async {
+                            Navigator.of(ctx).pop();
+                            final uri = Uri.tryParse(linkUrl);
+                            if (uri != null && await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Voir l\'offre',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.open_in_new_rounded, size: 14),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
