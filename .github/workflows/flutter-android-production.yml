@@ -1,0 +1,104 @@
+name: Android Production — Google Play Beta
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: android-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    name: Build & Publish Android Production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Decode keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/cliceat-release.keystore
+
+      - name: Create key.properties
+        run: |
+          cat > android/key.properties << 'KEYEOF'
+          storeFile=cliceat-release.keystore
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEYEOF
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1 | tr -d ' ')
+          echo "name=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build App Bundle (Production)
+        run: |
+          flutter build appbundle \
+            --release \
+            --flavor prod \
+            --target lib/main_prod.dart \
+            --build-number=${{ github.run_number }} \
+            --build-name=${{ steps.version.outputs.name }} \
+            --dart-define=ENV=production \
+            --dart-define=API_URL=${{ secrets.PRODUCTION_API_URL }}
+
+      - name: Find AAB file
+        id: find-aab
+        run: |
+          AAB=$(find build/app/outputs/bundle -name "*.aab" | head -1)
+          echo "path=$AAB" >> $GITHUB_OUTPUT
+
+          # Find mapping file (may not exist if minify disabled)
+          MAPPING=$(find build/app/outputs/mapping -name "mapping.txt" 2>/dev/null | head -1 || echo "")
+          echo "mapping=$MAPPING" >> $GITHUB_OUTPUT
+
+      - name: Upload to Firebase (beta-users)
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: beta-users
+          releaseNotes: "🚀 Production v${{ steps.version.outputs.name }} #${{ github.run_number }}"
+          file: ${{ steps.find-aab.outputs.path }}
+
+      - name: Upload to Google Play Beta
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          packageName: com.tbg.cliceat
+          releaseFiles: ${{ steps.find-aab.outputs.path }}
+          track: beta
+          status: completed
+          mappingFile: ${{ steps.find-aab.outputs.mapping }}
+          changesNotSentForReview: false
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: >
+            {"text":"${{ job.status == 'success' && '🚀 Android v${{ steps.version.outputs.name }} soumis au Play Store Beta' || '❌ Android production build échoué' }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs>"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Cleanup secrets
+        if: always()
+        run: rm -f android/app/cliceat-release.keystore android/key.properties
