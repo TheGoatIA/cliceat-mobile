@@ -128,8 +128,39 @@ Future<void> _bootstrap() async {
     } catch (e, stack) {
       if (!kDebugMode) {
         FirebaseCrashlytics.instance.recordError(e, stack, fatal: true, reason: 'Certificate Pinning Failed');
+        // BLOQUER l'app — ne pas continuer avec un certificat invalide
+        runApp(
+          MaterialApp(
+            home: Scaffold(
+              backgroundColor: Colors.white,
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.security, size: 64, color: Colors.red),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Connexion sécurisée impossible',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Une anomalie de sécurité a été détectée. Fermez l\'application et reconnectez-vous à un réseau de confiance.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        return; // Ne pas appeler runApp(ClicEatApp()) après
       }
-      // On peut potentiellement bloquer l'app ici si le pinning échoue en production.
       debugPrint('🚨 ALERTE SÉCURITÉ : MITM DÉTECTÉ OU CERTIFICAT INVALIDE 🚨');
     }
   }
@@ -190,7 +221,7 @@ class ClicEatApp extends StatelessWidget {
               locale: context.locale,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-              themeMode: ThemeMode.light,
+              themeMode: mode,
               routerConfig: appRouter,
               debugShowCheckedModeBanner: false,
               builder: (context, child) {

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dartz/dartz.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:http/http.dart' show MultipartFile;
 // ignore: depend_on_referenced_packages
@@ -16,11 +16,12 @@ import 'package:cliceat_app/core/network/services/user_service.dart';
 @lazySingleton
 class UserRepository {
   final UserService _service;
+  final FlutterSecureStorage _secureStorage;
 
   static const _profileCacheKey = 'cached_user_profile';
   static const _addressesCacheKey = 'cached_user_addresses';
 
-  UserRepository(this._service);
+  UserRepository(this._service, this._secureStorage);
 
   // ─── Profile ──────────────────────────────────────────────────────────────
 
@@ -238,16 +239,14 @@ class UserRepository {
 
   Future<void> _cacheProfile(UserModel user) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-          _profileCacheKey, jsonEncode(user.toJson()));
+      await _secureStorage.write(
+          key: _profileCacheKey, value: jsonEncode(user.toJson()));
     } catch (_) {}
   }
 
   Future<UserModel?> _loadCachedProfile() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_profileCacheKey);
+      final raw = await _secureStorage.read(key: _profileCacheKey);
       if (raw == null) return null;
       return UserModel.fromJson(
           jsonDecode(raw) as Map<String, dynamic>);
@@ -258,16 +257,15 @@ class UserRepository {
 
   Future<void> _cacheAddresses(List<AddressModel> addresses) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_addressesCacheKey,
-          jsonEncode(addresses.map((a) => a.toJson()).toList()));
+      await _secureStorage.write(
+          key: _addressesCacheKey,
+          value: jsonEncode(addresses.map((a) => a.toJson()).toList()));
     } catch (_) {}
   }
 
   Future<List<AddressModel>> _loadCachedAddresses() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_addressesCacheKey);
+      final raw = await _secureStorage.read(key: _addressesCacheKey);
       if (raw == null) return [];
       final list = jsonDecode(raw) as List<dynamic>;
       return list
@@ -288,8 +286,7 @@ class UserRepository {
   }
 
   Future<void> clearCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_profileCacheKey);
-    await prefs.remove(_addressesCacheKey);
+    await _secureStorage.delete(key: _profileCacheKey);
+    await _secureStorage.delete(key: _addressesCacheKey);
   }
 }

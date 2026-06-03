@@ -257,7 +257,8 @@
     "explain_en_route": "Le livreur est en route avec votre repas. Suivez-le en direct !",
     "explain_delivered": "Votre commande a été livrée. Bon appétit !",
     "explain_cancelled": "Commande annulée. Si elle était payée, le remboursement est automatique.",
-    "explain_anomaly": "Un incident opérationnel est survenu. Notre service support intervient immédiatement !"
+    "explain_anomaly": "Un incident opérationnel est survenu. Notre service support intervient immédiatement !",
+    "history_title": "Historique des commandes"
   },
   "payment": {
     "title": "Paiement sécurisé",
@@ -418,7 +419,8 @@
     "payouts": "Portefeuille & Retraits",
     "accepting": "Acceptation en cours...",
     "mission_taken_by_other": "Mission déjà prise par un autre livreur.",
-    "mission_load_error": "Impossible de charger les détails de la mission."
+    "mission_load_error": "Impossible de charger les détails de la mission.",
+    "mission_id_missing": "Erreur : ID de mission manquant"
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -478,7 +480,9 @@
     "report_issue_title": "Signaler un problème",
     "report_sent": "Signalement envoyé. Le support vous contactera.",
     "add": "Ajouter",
-    "understood": "J'ai compris"
+    "understood": "J'ai compris",
+    "lang_french": "Français",
+    "lang_english": "English"
   },
   "legal": {
     "terms_title": "Conditions Générales d'Utilisation",

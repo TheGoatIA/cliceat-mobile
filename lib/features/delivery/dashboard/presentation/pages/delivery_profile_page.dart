@@ -21,6 +21,9 @@ class DeliveryProfilePage extends StatefulWidget {
 }
 
 class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
+  static const _supportEmail = 'support@cliceat.cm';
+  static const _supportWhatsApp = '+237 699 000 000';
+
   UserModel? _user;
   bool _loading = true;
 
@@ -580,7 +583,7 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
             const SizedBox(height: 16),
             ListTile(
               leading: const Text('🇫🇷', style: TextStyle(fontSize: 24)),
-              title: const Text('Français'),
+              title: Text('common.lang_french'.tr()),
               trailing: context.locale == const Locale('fr', 'FR')
                   ? const Icon(Icons.check)
                   : null,
@@ -591,7 +594,7 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
             ),
             ListTile(
               leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
-              title: const Text('English'),
+              title: Text('common.lang_english'.tr()),
               trailing: context.locale == const Locale('en', 'US')
                   ? const Icon(Icons.check)
                   : null,
@@ -626,10 +629,10 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
                   color: AppTheme.ink),
             ),
             const SizedBox(height: 16),
-            Text('support@cliceat.cm',
+            Text(_supportEmail,
                 style: GoogleFonts.inter(fontSize: 16, color: AppTheme.ink, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            Text('WhatsApp: +237 699 000 000',
+            Text('WhatsApp: $_supportWhatsApp',
                 style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted)),
           ],
         ),

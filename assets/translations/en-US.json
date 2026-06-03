@@ -257,7 +257,8 @@
     "explain_en_route": "The rider is on the way with your meal. Track them live!",
     "explain_delivered": "Your order has been delivered. Enjoy your meal!",
     "explain_cancelled": "Order cancelled. If paid, refund is automatic.",
-    "explain_anomaly": "An operational incident occurred. Our support team is intervening immediately!"
+    "explain_anomaly": "An operational incident occurred. Our support team is intervening immediately!",
+    "history_title": "Order History"
   },
   "payment": {
     "title": "Secure payment",
@@ -416,7 +417,10 @@
     "payouts": "Wallet & Payouts",
     "accepting": "Accepting...",
     "mission_taken_by_other": "Mission already taken by another driver.",
-    "mission_load_error": "Unable to load mission details."
+    "mission_load_error": "Unable to load mission details.",
+    "status_waiting": "Waiting for a mission",
+    "status_offline": "Offline",
+    "mission_id_missing": "Error: missing mission ID"
   },
   "address": {
     "select_title": "Choose an address",
@@ -476,7 +480,9 @@
     "report_issue_title": "Report an issue",
     "report_sent": "Report sent. Support will contact you.",
     "add": "Add",
-    "understood": "Got it"
+    "understood": "Got it",
+    "lang_french": "Français",
+    "lang_english": "English"
   },
   "legal": {
     "terms_title": "Terms of Service",

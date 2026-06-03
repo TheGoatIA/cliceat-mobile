@@ -30,7 +30,7 @@ android {
     defaultConfig {
         applicationId = "com.tbg.cliceat"
         // Explicit SDK versions for auditability
-        minSdk = flutter.minSdkVersion        // Android 6.0
+        minSdk = 23                            // Android 6.0 (flutter_secure_storage requirement)
         targetSdk = 35     // Mandatory for Play Store (Aug 2024)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -74,11 +74,12 @@ android {
     buildTypes {
         release {
             val keyPropsFile = rootProject.file("key.properties")
-            signingConfig = if (keyPropsFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
+            if (!keyPropsFile.exists()) {
+                throw GradleException(
+                    "key.properties not found. Create android/key.properties with keystore credentials before building a release."
+                )
             }
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
