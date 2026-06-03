@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:app_links/app_links.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -114,7 +115,7 @@ class DeepLinkService {
           router.go('/client/wallet');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Rechargement du portefeuille effectué avec succès !'),
+              content: Text('wallet.recharge_success'.tr()),
               backgroundColor: AppTheme.green,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -134,7 +135,7 @@ class DeepLinkService {
       router.go('/client');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Paiement annulé.'),
+          content: Text('payment.cancelled'.tr()),
           backgroundColor: AppTheme.primaryRed,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -197,7 +198,7 @@ class DeepLinkService {
   void _showPaymentFailedSnackbar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('La validation du paiement a échoué. Veuillez réessayer.'),
+        content: Text('payment.validation_failed'.tr()),
         backgroundColor: AppTheme.primaryRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

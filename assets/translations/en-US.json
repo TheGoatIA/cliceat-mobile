@@ -93,7 +93,8 @@
     "vehicle_plate_label": "Vehicle plate",
     "become_driver_title": "Become a ClicEat driver",
     "become_driver_subtitle": "Create your partner account now",
-    "upload_all_docs": "Please upload all documents"
+    "upload_all_docs": "Please upload all documents",
+    "driver_pending_validation": "Registration successful! Your driver account is pending validation by an administrator."
   },
   "client": {
     "home_title": "Discover",
@@ -269,7 +270,9 @@
     "failed_title": "Payment failed",
     "failed_message": "An error occurred during verification. Please try again.",
     "verifying": "Verifying payment...",
-    "waiting_confirmation": "Waiting for confirmation from your operator..."
+    "waiting_confirmation": "Waiting for confirmation from your operator...",
+    "cancelled": "Payment cancelled.",
+    "validation_failed": "Payment validation failed. Please try again."
   },
   "tracking": {
     "title": "Order tracking",
@@ -412,7 +415,8 @@
     "estimated_gain": "Estimated earnings",
     "payouts": "Wallet & Payouts",
     "accepting": "Accepting...",
-    "mission_taken_by_other": "Mission already taken by another driver."
+    "mission_taken_by_other": "Mission already taken by another driver.",
+    "mission_load_error": "Unable to load mission details."
   },
   "address": {
     "select_title": "Choose an address",
@@ -516,7 +520,8 @@
     "method": "Payment Method",
     "confirm": "Confirm Recharge",
     "recharge_error": "Unable to initiate recharge.",
-    "history_error": "Unable to load transaction history."
+    "history_error": "Unable to load transaction history.",
+    "recharge_success": "Wallet top-up successful!"
   },
   "dispute": {
     "history_title": "My Disputes",

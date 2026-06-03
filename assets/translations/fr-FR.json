@@ -93,7 +93,8 @@
     "vehicle_plate_label": "Matricule véhicule",
     "become_driver_title": "Devenir livreur ClicEat",
     "become_driver_subtitle": "Créez votre compte partenaire dès maintenant",
-    "upload_all_docs": "Veuillez uploader tous les documents"
+    "upload_all_docs": "Veuillez uploader tous les documents",
+    "driver_pending_validation": "Inscription réussie ! Votre compte livreur est en attente de validation par un administrateur."
   },
   "client": {
     "home_title": "Découvrir",
@@ -269,7 +270,9 @@
     "failed_title": "Paiement échoué",
     "failed_message": "Une erreur est survenue lors de la vérification. Veuillez réessayer.",
     "verifying": "Vérification en cours...",
-    "waiting_confirmation": "En attente de confirmation de votre opérateur..."
+    "waiting_confirmation": "En attente de confirmation de votre opérateur...",
+    "cancelled": "Paiement annulé.",
+    "validation_failed": "La validation du paiement a échoué. Veuillez réessayer."
   },
   "tracking": {
     "title": "Suivi de commande",
@@ -414,7 +417,8 @@
     "estimated_gain": "Gain estimé",
     "payouts": "Portefeuille & Retraits",
     "accepting": "Acceptation en cours...",
-    "mission_taken_by_other": "Mission déjà prise par un autre livreur."
+    "mission_taken_by_other": "Mission déjà prise par un autre livreur.",
+    "mission_load_error": "Impossible de charger les détails de la mission."
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -518,7 +522,8 @@
     "method": "Méthode de paiement",
     "confirm": "Confirmer le rechargement",
     "recharge_error": "Impossible d'initier le rechargement.",
-    "history_error": "Impossible de charger l'historique des transactions."
+    "history_error": "Impossible de charger l'historique des transactions.",
+    "recharge_success": "Rechargement du portefeuille effectué avec succès !"
   },
   "dispute": {
     "history_title": "Mes Litiges",
