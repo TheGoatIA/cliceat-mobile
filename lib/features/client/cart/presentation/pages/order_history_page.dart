@@ -179,7 +179,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                     OpenFilex.open(path);
                                   },
                                   icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
-                                  label: const Text('Visualiser'),
+                                  label: Text('order.view'.tr()),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppTheme.ink,
                                     side: BorderSide(color: AppTheme.lineSoft),
@@ -203,7 +203,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                     );
                                   },
                                   icon: const Icon(Icons.share_outlined, size: 18),
-                                  label: const Text('Partager'),
+                                  label: Text('order.share'.tr()),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.primaryRed,
                                     foregroundColor: Colors.white,

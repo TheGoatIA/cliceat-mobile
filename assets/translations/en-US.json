@@ -94,7 +94,8 @@
     "become_driver_title": "Become a ClicEat driver",
     "become_driver_subtitle": "Create your partner account now",
     "upload_all_docs": "Please upload all documents",
-    "driver_pending_validation": "Registration successful! Your driver account is pending validation by an administrator."
+    "driver_pending_validation": "Registration successful! Your driver account is pending validation by an administrator.",
+    "password_complexity": "Password must contain at least one uppercase letter, one lowercase letter, and one digit."
   },
   "client": {
     "home_title": "Discover",
@@ -258,7 +259,9 @@
     "explain_delivered": "Your order has been delivered. Enjoy your meal!",
     "explain_cancelled": "Order cancelled. If paid, refund is automatic.",
     "explain_anomaly": "An operational incident occurred. Our support team is intervening immediately!",
-    "history_title": "Order History"
+    "history_title": "Order History",
+    "view": "View",
+    "share": "Share"
   },
   "payment": {
     "title": "Secure payment",
@@ -527,7 +530,9 @@
     "confirm": "Confirm Recharge",
     "recharge_error": "Unable to initiate recharge.",
     "history_error": "Unable to load transaction history.",
-    "recharge_success": "Wallet top-up successful!"
+    "recharge_success": "Wallet top-up successful!",
+    "orange_money": "Orange Money",
+    "mtn_momo": "MTN MoMo"
   },
   "dispute": {
     "history_title": "My Disputes",
@@ -602,7 +607,8 @@
   "notifications": {
     "title": "Notifications",
     "empty_title": "No notifications",
-    "empty_subtitle": "You will find your order alerts and special offers here."
+    "empty_subtitle": "You will find your order alerts and special offers here.",
+    "mission_load_error": "Unable to load mission details."
   },
   "payout": {
     "load_error": "Failed to load payouts",
@@ -620,7 +626,9 @@
     "amount_to_withdraw": "Amount to withdraw",
     "request_withdraw": "Request Payout",
     "edit_account": "Edit Account",
-    "insufficient_balance": "Insufficient balance for payout"
+    "insufficient_balance": "Insufficient balance for payout",
+    "mtn_mobile_money": "MTN Mobile Money",
+    "orange_money": "Orange Money"
   },
   "pending": "Pending",
   "processed": "Processed",

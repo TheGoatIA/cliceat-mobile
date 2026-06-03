@@ -269,7 +269,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     if (!passRegex.hasMatch(password)) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: const Text('Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.'),
+                                          content: Text('auth.password_complexity'.tr()),
                                           backgroundColor: AppTheme.primaryRed,
                                         ),
                                       );

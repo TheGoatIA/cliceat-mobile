@@ -291,7 +291,7 @@ class NotificationService {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Impossible de charger les détails de la mission.'),
+                  content: Text('notifications.mission_load_error'.tr()),
                   backgroundColor: AppTheme.errorColor,
                 ),
               );

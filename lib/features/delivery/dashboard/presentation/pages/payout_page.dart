@@ -430,9 +430,9 @@ class _PayoutPageState extends State<PayoutPage> {
               initialValue: methodController.text,
               items: const [
                 DropdownMenuItem(
-                    value: 'momo', child: Text('MTN Mobile Money')),
+                    value: 'momo', child: Text('payout.mtn_mobile_money'.tr())),
                 DropdownMenuItem(
-                    value: 'om', child: Text('Orange Money')),
+                    value: 'om', child: Text('payout.orange_money'.tr())),
               ],
               onChanged: (v) => methodController.text = v!,
               decoration:
