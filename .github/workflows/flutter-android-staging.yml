@@ -1,0 +1,98 @@
+name: Android Staging — Firebase App Distribution
+
+on:
+  push:
+    branches: [dev]
+
+concurrency:
+  group: android-staging
+  cancel-in-progress: true
+
+jobs:
+  build-and-distribute:
+    name: Build & Distribute Android Staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore firebase_options.dart
+        run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/cliceat-release.keystore
+
+      - name: Create key.properties
+        run: |
+          cat > android/key.properties << 'KEYEOF'
+          storeFile=cliceat-release.keystore
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEYEOF
+
+      - name: Get version from pubspec
+        id: version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1 | tr -d ' ')
+          echo "name=${VERSION}-staging" >> $GITHUB_OUTPUT
+
+      - name: Build App Bundle
+        run: |
+          flutter build appbundle \
+            --release \
+            --flavor staging \
+            --target lib/main_staging.dart \
+            --build-number=${{ github.run_number }} \
+            --build-name=${{ steps.version.outputs.name }} \
+            --dart-define=ENV=staging \
+            --dart-define=API_URL=${{ secrets.STAGING_API_URL }}
+
+      - name: Find AAB file
+        id: find-aab
+        run: |
+          AAB=$(find build/app/outputs/bundle -name "*.aab" | head -1)
+          echo "path=$AAB" >> $GITHUB_OUTPUT
+          echo "Found AAB: $AAB"
+
+      - name: Upload to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: internal-testers,qa-team
+          releaseNotes: |
+            🔧 Staging Build #${{ github.run_number }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            ${{ github.event.head_commit.message }}
+          file: ${{ steps.find-aab.outputs.path }}
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: >
+            {"text":"${{ job.status == 'success' && '📱 Android staging dispo sur Firebase App Distribution' || '❌ Android staging build échoué' }} — Build #${{ github.run_number }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs>"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Cleanup secrets
+        if: always()
+        run: rm -f android/app/cliceat-release.keystore android/key.properties

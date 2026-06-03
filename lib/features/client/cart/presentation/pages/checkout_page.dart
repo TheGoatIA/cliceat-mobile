@@ -423,7 +423,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Annuler', style: GoogleFonts.inter(color: AppTheme.muted)),
+            child: Text('common.cancel'.tr(), style: GoogleFonts.inter(color: AppTheme.muted)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -436,7 +436,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text('Enregistrer', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+            child: Text('common.save'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
