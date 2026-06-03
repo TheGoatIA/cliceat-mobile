@@ -289,7 +289,7 @@ class NotificationService {
             }
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text('notifications.mission_load_error'.tr()),
                   backgroundColor: AppTheme.errorColor,
                 ),

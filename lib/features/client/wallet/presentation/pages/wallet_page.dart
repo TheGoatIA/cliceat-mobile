@@ -604,7 +604,7 @@ class _WalletPageState extends State<WalletPage> {
               DropdownButtonFormField<String>(
                 initialValue: method,
                 decoration: InputDecoration(labelText: 'wallet.method'.tr()),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: 'orange_money',
                     child: Text('wallet.orange_money'.tr()),

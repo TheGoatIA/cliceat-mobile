@@ -425,7 +425,7 @@ class _PayoutPageState extends State<PayoutPage> {
           children: [
             DropdownButtonFormField<String>(
               initialValue: methodController.text,
-              items: const [
+              items: [
                 DropdownMenuItem(
                     value: 'momo', child: Text('payout.mtn_mobile_money'.tr())),
                 DropdownMenuItem(
