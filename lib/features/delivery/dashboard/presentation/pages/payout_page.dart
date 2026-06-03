@@ -17,7 +17,6 @@ class PayoutPage extends StatefulWidget {
 class _PayoutPageState extends State<PayoutPage> {
   final _amountController = TextEditingController();
   double _walletBalance = 0.0;
-  bool _loadingBalance = true;
 
   @override
   void initState() {
@@ -26,11 +25,10 @@ class _PayoutPageState extends State<PayoutPage> {
   }
 
   Future<void> _loadWalletBalance() async {
-    setState(() => _loadingBalance = true);
     final result = await getIt<DriverRepository>().getProfile();
     if (!mounted) return;
     result.fold(
-      (_) => setState(() => _loadingBalance = false),
+      (_) {},
       (profile) {
         final balance = (profile['wallet']?['balance'] as num?)?.toDouble() ??
             (profile['walletBalance'] as num?)?.toDouble() ??
@@ -38,7 +36,6 @@ class _PayoutPageState extends State<PayoutPage> {
             0.0;
         setState(() {
           _walletBalance = balance;
-          _loadingBalance = false;
         });
       },
     );

@@ -1698,17 +1698,13 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
   }) async {
     final cartCubit = context.read<CartCubit>();
     final lang = context.locale.languageCode;
+    final messenger = ScaffoldMessenger.of(context);
 
     if (cartCubit.state.wouldClearCart(restaurantId)) {
       final confirmed = await _confirmClearCart(context);
       if (!confirmed) return;
       await cartCubit.clearCart();
     }
-
-    // Capture ScaffoldMessenger BEFORE the async gap.
-    // Calling ScaffoldMessenger.of(context) after an await is unsafe: the
-    // widget tree may have rebuilt and the reference could be stale.
-    final messenger = ScaffoldMessenger.of(context);
 
     final displayName = variation != null
         ? '${item.getName(lang)} ($variation)'

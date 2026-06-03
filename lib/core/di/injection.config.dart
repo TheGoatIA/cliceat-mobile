@@ -324,15 +324,18 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i902.PendingActionsDao>(),
       ),
     );
+    gh.lazySingleton<_i482.UserRepository>(
+      () => _i482.UserRepository(
+        gh<_i895.UserService>(),
+        gh<_i558.FlutterSecureStorage>(),
+      ),
+    );
     gh.factory<_i28.BannerCubit>(
       () => _i28.BannerCubit(gh<_i359.BannerRepository>()),
     );
     gh.factory<_i585.AiCubit>(() => _i585.AiCubit(gh<_i48.AiRepository>()));
     gh.lazySingleton<_i953.NotificationRepository>(
       () => _i953.NotificationRepository(gh<_i895.UserService>()),
-    );
-    gh.lazySingleton<_i482.UserRepository>(
-      () => _i482.UserRepository(gh<_i895.UserService>()),
     );
     gh.factory<_i787.ReviewCubit>(
       () => _i787.ReviewCubit(gh<_i656.ReviewRepository>()),

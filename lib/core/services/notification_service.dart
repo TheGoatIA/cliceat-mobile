@@ -8,7 +8,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
-import 'package:intl/intl.dart';
 
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/services/websocket_service.dart';
@@ -277,7 +276,7 @@ class NotificationService {
               context.push('/delivery/incoming', extra: mission);
             } else if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text('delivery.mission_load_error'.tr()),
                   backgroundColor: AppTheme.errorColor,
                 ),
