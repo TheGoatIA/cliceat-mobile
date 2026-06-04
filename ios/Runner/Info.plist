@@ -81,9 +81,6 @@
 	<string>ClicEat a besoin d'accéder à votre appareil photo pour mettre à jour votre photo de profil.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>ClicEat a besoin d'accéder à votre galerie pour mettre à jour votre photo de profil.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>ClicEat a besoin d'accéder à votre microphone pour envoyer des messages vocaux dans le chat.</string>
-
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>ClicEat utilise votre position pour afficher les restaurants près de vous et estimer les délais de livraison.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

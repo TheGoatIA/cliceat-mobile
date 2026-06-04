@@ -237,11 +237,15 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              if (isEnRoute) {
-                context.push('/delivery/dropoff', extra: mission);
-              } else {
-                context.push('/delivery/active-navigation', extra: mission);
-              }
+              final Future<dynamic> nav = isEnRoute
+                  ? context.push('/delivery/dropoff', extra: mission)
+                  : context.push('/delivery/active-navigation', extra: mission);
+              nav.then((_) {
+                if (!mounted) return;
+                _missionBloc.add(MissionEvent.loadActiveMissions());
+                _loadEarnings();
+                _hasPromptedResume = false;
+              });
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryRed,
@@ -831,11 +835,15 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 ElevatedButton(
                   onPressed: () {
                     HapticFeedback.mediumImpact();
-                    if (isEnRoute) {
-                      context.push('/delivery/dropoff', extra: mission);
-                    } else {
-                      context.push('/delivery/active-navigation', extra: mission);
-                    }
+                    final Future<dynamic> nav = isEnRoute
+                        ? context.push('/delivery/dropoff', extra: mission)
+                        : context.push('/delivery/active-navigation', extra: mission);
+                    nav.then((_) {
+                      if (!mounted) return;
+                      _missionBloc.add(MissionEvent.loadActiveMissions());
+                      _loadEarnings();
+                      _hasPromptedResume = false;
+                    });
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: statusColor,

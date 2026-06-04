@@ -78,10 +78,10 @@ class _RegisterPageState extends State<RegisterPage> {
             },
             driverRegistrationSuccess: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Inscription réussie ! Votre compte livreur est en attente de validation par un administrateur.'),
+                SnackBar(
+                  content: Text('auth.driver_pending_validation'.tr()),
                   backgroundColor: AppTheme.green,
-                  duration: Duration(seconds: 4),
+                  duration: const Duration(seconds: 4),
                 ),
               );
               context.go('/login');
@@ -269,7 +269,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     if (!passRegex.hasMatch(password)) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: const Text('Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.'),
+                                          content: Text('auth.password_complexity'.tr()),
                                           backgroundColor: AppTheme.primaryRed,
                                         ),
                                       );

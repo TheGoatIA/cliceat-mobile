@@ -93,7 +93,9 @@
     "vehicle_plate_label": "Matricule véhicule",
     "become_driver_title": "Devenir livreur ClicEat",
     "become_driver_subtitle": "Créez votre compte partenaire dès maintenant",
-    "upload_all_docs": "Veuillez uploader tous les documents"
+    "upload_all_docs": "Veuillez uploader tous les documents",
+    "driver_pending_validation": "Inscription réussie ! Votre compte livreur est en attente de validation par un administrateur.",
+    "password_complexity": "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre."
   },
   "client": {
     "home_title": "Découvrir",
@@ -256,7 +258,10 @@
     "explain_en_route": "Le livreur est en route avec votre repas. Suivez-le en direct !",
     "explain_delivered": "Votre commande a été livrée. Bon appétit !",
     "explain_cancelled": "Commande annulée. Si elle était payée, le remboursement est automatique.",
-    "explain_anomaly": "Un incident opérationnel est survenu. Notre service support intervient immédiatement !"
+    "explain_anomaly": "Un incident opérationnel est survenu. Notre service support intervient immédiatement !",
+    "history_title": "Historique des commandes",
+    "view": "Visualiser",
+    "share": "Partager"
   },
   "payment": {
     "title": "Paiement sécurisé",
@@ -269,7 +274,9 @@
     "failed_title": "Paiement échoué",
     "failed_message": "Une erreur est survenue lors de la vérification. Veuillez réessayer.",
     "verifying": "Vérification en cours...",
-    "waiting_confirmation": "En attente de confirmation de votre opérateur..."
+    "waiting_confirmation": "En attente de confirmation de votre opérateur...",
+    "cancelled": "Paiement annulé.",
+    "validation_failed": "La validation du paiement a échoué. Veuillez réessayer."
   },
   "tracking": {
     "title": "Suivi de commande",
@@ -414,7 +421,9 @@
     "estimated_gain": "Gain estimé",
     "payouts": "Portefeuille & Retraits",
     "accepting": "Acceptation en cours...",
-    "mission_taken_by_other": "Mission déjà prise par un autre livreur."
+    "mission_taken_by_other": "Mission déjà prise par un autre livreur.",
+    "mission_load_error": "Impossible de charger les détails de la mission.",
+    "mission_id_missing": "Erreur : ID de mission manquant"
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -474,7 +483,9 @@
     "report_issue_title": "Signaler un problème",
     "report_sent": "Signalement envoyé. Le support vous contactera.",
     "add": "Ajouter",
-    "understood": "J'ai compris"
+    "understood": "J'ai compris",
+    "lang_french": "Français",
+    "lang_english": "English"
   },
   "legal": {
     "terms_title": "Conditions Générales d'Utilisation",
@@ -518,7 +529,10 @@
     "method": "Méthode de paiement",
     "confirm": "Confirmer le rechargement",
     "recharge_error": "Impossible d'initier le rechargement.",
-    "history_error": "Impossible de charger l'historique des transactions."
+    "history_error": "Impossible de charger l'historique des transactions.",
+    "recharge_success": "Rechargement du portefeuille effectué avec succès !",
+    "orange_money": "Orange Money",
+    "mtn_momo": "MTN MoMo"
   },
   "dispute": {
     "history_title": "Mes Litiges",
@@ -593,7 +607,8 @@
   "notifications": {
     "title": "Notifications",
     "empty_title": "Aucune notification",
-    "empty_subtitle": "Vous retrouverez ici vos alertes de commandes et offres spéciales."
+    "empty_subtitle": "Vous retrouverez ici vos alertes de commandes et offres spéciales.",
+    "mission_load_error": "Impossible de charger les détails de la mission."
   },
   "payout": {
     "load_error": "Impossible de charger les retraits",
@@ -611,7 +626,9 @@
     "amount_to_withdraw": "Montant à retirer",
     "request_withdraw": "Demander le retrait",
     "edit_account": "Modifier le compte",
-    "insufficient_balance": "Solde insuffisant pour le retrait"
+    "insufficient_balance": "Solde insuffisant pour le retrait",
+    "mtn_mobile_money": "MTN Mobile Money",
+    "orange_money": "Orange Money"
   },
   "pending": "En attente",
   "processed": "Traité",

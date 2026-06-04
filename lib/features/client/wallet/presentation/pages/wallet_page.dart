@@ -604,12 +604,12 @@ class _WalletPageState extends State<WalletPage> {
               DropdownButtonFormField<String>(
                 initialValue: method,
                 decoration: InputDecoration(labelText: 'wallet.method'.tr()),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: 'orange_money',
-                    child: Text('Orange Money'),
+                    child: Text('wallet.orange_money'.tr()),
                   ),
-                  DropdownMenuItem(value: 'mtn_momo', child: Text('MTN MoMo')),
+                  DropdownMenuItem(value: 'mtn_momo', child: Text('wallet.mtn_momo'.tr())),
                 ],
                 onChanged: (v) => setDialogState(() => method = v!),
               ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
-import 'package:intl/intl.dart';
 
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/core/services/websocket_service.dart';
@@ -67,7 +67,15 @@ class NotificationService {
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
-    const initSettings = InitializationSettings(android: androidSettings);
+    const iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: false, // Already requested via FirebaseMessaging.requestPermission
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
 
     await _localNotifications.initialize(
       settings: initSettings,
@@ -268,10 +276,8 @@ class NotificationService {
               context.push('/delivery/incoming', extra: mission);
             } else if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Impossible de charger les détails de la mission.',
-                  ),
+                SnackBar(
+                  content: Text('delivery.mission_load_error'.tr()),
                   backgroundColor: AppTheme.errorColor,
                 ),
               );
@@ -284,7 +290,7 @@ class NotificationService {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Erreur lors du chargement de la mission: $e'),
+                  content: Text('notifications.mission_load_error'.tr()),
                   backgroundColor: AppTheme.errorColor,
                 ),
               );

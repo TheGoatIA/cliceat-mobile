@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/di/injection.dart';
@@ -12,7 +13,7 @@ class OrderHistoryPage extends StatelessWidget {
       create: (context) => getIt<OrderBloc>()..add(const LoadOrders()),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Historique des commandes'),
+          title: Text('order.history_title'.tr()),
         ),
         body: Center(
           child: ConstrainedBox(

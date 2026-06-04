@@ -75,3 +75,6 @@ notchpay_config.dart
 
 # Crashlytics & analytics keys
 fabric.properties
+
+# Firebase generated options (contains project keys)
+lib/firebase_options.dart

@@ -1,0 +1,32 @@
+version: 2
+updates:
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+      timezone: "Africa/Douala"
+    target-branch: "dev"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "thegoatia"
+    labels: ["dependabot", "flutter", "dependencies"]
+    commit-message:
+      prefix: "build(deps)"
+      include: "scope"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
+      timezone: "Africa/Douala"
+    target-branch: "dev"
+    labels: ["dependabot", "ci-cd"]
+    commit-message:
+      prefix: "ci(deps)"

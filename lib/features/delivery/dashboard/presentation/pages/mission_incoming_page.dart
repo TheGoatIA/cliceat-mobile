@@ -400,7 +400,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
                 _logger.e('[Mission] Impossible d\'accepter: ID vide');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Erreur: mission ID manquant'),
+                    content: Text('delivery.mission_id_missing'.tr()),
                     backgroundColor: Colors.red,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

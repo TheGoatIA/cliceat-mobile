@@ -1,0 +1,10 @@
+# Global
+* @thegoatia
+
+# CI/CD
+/.github/ @thegoatia
+
+# Platform-specific
+/ios/ @thegoatia
+/android/ @thegoatia
+/lib/ @thegoatia
