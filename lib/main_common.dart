@@ -131,7 +131,7 @@ Future<void> _bootstrap() async {
         )[0], // Extract domain e.g., https://api.cliceat.cm
         headerHttp: {},
         sha: SHA.SHA256,
-        allowedSHAFingerprints: [EnvConfig.sslFingerprint],
+        allowedSHAFingerprints: [EnvConfig.sslFingerprint.replaceAll(':', '')],
         timeout: 20,
       );
       if (kDebugMode) print('Cert Pinning OK: $secureResult');

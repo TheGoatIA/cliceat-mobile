@@ -19,7 +19,7 @@ class PinnedHttpClientProvider {
 
     // Build the secure HTTP client using the SHA-256 fingerprint(s)
     // SecureHttpClient from http_certificate_pinning implements http.Client
-    final client = SecureHttpClient.build([EnvConfig.sslFingerprint]);
+    final client = SecureHttpClient.build([EnvConfig.sslFingerprint.replaceAll(':', '')]);
 
     return client;
   }
