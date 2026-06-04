@@ -71,7 +71,7 @@ dependencies:
   url_launcher: ^6.3.2
   font_awesome_flutter: ^11.0.0
   flutter_svg: ^2.2.4
-  google_fonts: ^8.0.2
+  google_fonts: ^8.1.0
   logger: ^2.7.0
   flutter_localizations:
     sdk: flutter
