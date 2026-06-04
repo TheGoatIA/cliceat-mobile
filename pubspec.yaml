@@ -64,7 +64,7 @@ dependencies:
   share_plus: ^12.0.1
   webview_flutter: ^4.13.1
   easy_localization: ^3.0.8
-  image_picker: ^1.2.1
+  image_picker: ^1.2.2
   dartz: ^0.10.1
   equatable: ^2.0.8
   shared_preferences: ^2.5.4
