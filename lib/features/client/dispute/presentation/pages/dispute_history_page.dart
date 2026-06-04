@@ -34,7 +34,9 @@ class DisputeHistoryPage extends StatelessWidget {
             return state.maybeWhen(
               loading: () => const Center(
                 child: CircularProgressIndicator(
-                    color: AppTheme.primaryRed, strokeWidth: 2),
+                  color: AppTheme.primaryRed,
+                  strokeWidth: 2,
+                ),
               ),
               loaded: (disputes) {
                 if (disputes.isEmpty) {
@@ -49,8 +51,11 @@ class DisputeHistoryPage extends StatelessWidget {
                             color: AppTheme.bgWarm,
                             borderRadius: BorderRadius.circular(40),
                           ),
-                          child: const Icon(Icons.gavel_outlined,
-                              size: 36, color: AppTheme.muted),
+                          child: const Icon(
+                            Icons.gavel_outlined,
+                            size: 36,
+                            color: AppTheme.muted,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -73,7 +78,9 @@ class DisputeHistoryPage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final d = disputes[index];
                     final status = d['status'] as String? ?? 'pending';
-                    final date = DateTime.tryParse(d['createdAt'] ?? '') ?? DateTime.now();
+                    final date =
+                        DateTime.tryParse(d['createdAt'] ?? '') ??
+                        DateTime.now();
                     final rawReason = d['reason']?.toString() ?? 'other';
                     final reasonKey = switch (rawReason) {
                       'missing_item' => 'dispute.reason_missing_item',
@@ -85,11 +92,15 @@ class DisputeHistoryPage extends StatelessWidget {
                     final orderObj = d['orderId'];
                     String orderDisplayId = '';
                     if (orderObj is Map) {
-                      orderDisplayId = orderObj['orderNumber']?.toString() ?? 
-                                       orderObj['_id']?.toString().substring(0, 8) ?? '';
+                      orderDisplayId =
+                          orderObj['orderNumber']?.toString() ??
+                          orderObj['_id']?.toString().substring(0, 8) ??
+                          '';
                     } else if (orderObj != null) {
                       final str = orderObj.toString();
-                      orderDisplayId = str.length > 8 ? str.substring(0, 8) : str;
+                      orderDisplayId = str.length > 8
+                          ? str.substring(0, 8)
+                          : str;
                     }
 
                     return Container(
@@ -107,7 +118,9 @@ class DisputeHistoryPage extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'dispute.order_id_short'.tr(args: [orderDisplayId]),
+                                'dispute.order_id_short'.tr(
+                                  args: [orderDisplayId],
+                                ),
                                 style: GoogleFonts.inter(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
@@ -141,7 +154,9 @@ class DisputeHistoryPage extends StatelessWidget {
                           Text(
                             DateFormat('dd MMM yyyy, HH:mm').format(date),
                             style: GoogleFonts.inter(
-                                fontSize: 11, color: AppTheme.mutedLight),
+                              fontSize: 11,
+                              color: AppTheme.mutedLight,
+                            ),
                           ),
                         ],
                       ),
@@ -150,9 +165,13 @@ class DisputeHistoryPage extends StatelessWidget {
                 );
               },
               error: (msg) => Center(
-                child: Text(msg.tr(),
-                    style: GoogleFonts.inter(
-                        color: AppTheme.primaryRed, fontSize: 14)),
+                child: Text(
+                  msg.tr(),
+                  style: GoogleFonts.inter(
+                    color: AppTheme.primaryRed,
+                    fontSize: 14,
+                  ),
+                ),
               ),
               orElse: () => const SizedBox.shrink(),
             );
@@ -183,7 +202,10 @@ class DisputeHistoryPage extends StatelessWidget {
       child: Text(
         label.tr(),
         style: GoogleFonts.inter(
-            color: color, fontSize: 11, fontWeight: FontWeight.w700),
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

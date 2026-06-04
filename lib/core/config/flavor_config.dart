@@ -40,8 +40,8 @@ class FlavorConfig {
 
   /// Nom humain du flavor (pour les logs et l'UI de debug).
   static String get name => switch (_flavor) {
-        Flavor.dev => 'DEV',
-        Flavor.staging => 'STAGING',
-        Flavor.prod => 'PROD',
-      };
+    Flavor.dev => 'DEV',
+    Flavor.staging => 'STAGING',
+    Flavor.prod => 'PROD',
+  };
 }

@@ -15,10 +15,12 @@ class DailyEarningsModel {
         date: json['date'] != null
             ? DateTime.tryParse(json['date'].toString()) ?? DateTime.now()
             : DateTime.now(),
-        amount: (json['amount'] as num?)?.toDouble() ??
+        amount:
+            (json['amount'] as num?)?.toDouble() ??
             (json['earnings'] as num?)?.toDouble() ??
             0.0,
-        deliveries: (json['deliveries'] as num?)?.toInt() ??
+        deliveries:
+            (json['deliveries'] as num?)?.toInt() ??
             (json['count'] as num?)?.toInt() ??
             0,
       );
@@ -44,22 +46,23 @@ class EarningsModel {
 
   factory EarningsModel.fromJson(Map<String, dynamic> json) {
     final summary = json['summary'] as Map<String, dynamic>? ?? json;
-    final rawDaily = json['daily'] as List<dynamic>? ??
+    final rawDaily =
+        json['daily'] as List<dynamic>? ??
         json['dailyBreakdown'] as List<dynamic>? ??
         [];
 
     return EarningsModel(
       today: (summary['today'] as num?)?.toDouble() ?? 0.0,
-      thisWeek: (summary['thisWeek'] as num?)?.toDouble() ??
+      thisWeek:
+          (summary['thisWeek'] as num?)?.toDouble() ??
           (summary['week'] as num?)?.toDouble() ??
           0.0,
-      thisMonth: (summary['thisMonth'] as num?)?.toDouble() ??
+      thisMonth:
+          (summary['thisMonth'] as num?)?.toDouble() ??
           (summary['month'] as num?)?.toDouble() ??
           0.0,
-      todayDeliveries:
-          (summary['todayDeliveries'] as num?)?.toInt() ?? 0,
-      weekDeliveries:
-          (summary['weekDeliveries'] as num?)?.toInt() ?? 0,
+      todayDeliveries: (summary['todayDeliveries'] as num?)?.toInt() ?? 0,
+      weekDeliveries: (summary['weekDeliveries'] as num?)?.toInt() ?? 0,
       dailyBreakdown: rawDaily
           .whereType<Map<String, dynamic>>()
           .map(DailyEarningsModel.fromJson)

@@ -7,11 +7,14 @@ part 'pending_actions_dao.g.dart';
 
 @lazySingleton
 @DriftAccessor(tables: [PendingActionsTable])
-class PendingActionsDao extends DatabaseAccessor<AppDatabase> with _$PendingActionsDaoMixin {
+class PendingActionsDao extends DatabaseAccessor<AppDatabase>
+    with _$PendingActionsDaoMixin {
   PendingActionsDao(super.db);
 
   Future<List<PendingActionsTableData>> getAllPending() {
-    return (select(pendingActionsTable)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
+    return (select(
+      pendingActionsTable,
+    )..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
   }
 
   Future<void> addPending(String type, String payload) {
@@ -25,11 +28,13 @@ class PendingActionsDao extends DatabaseAccessor<AppDatabase> with _$PendingActi
   }
 
   Future<void> incrementRetry(String id) async {
-    final act = await (select(pendingActionsTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+    final act = await (select(
+      pendingActionsTable,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (act != null) {
-      await update(pendingActionsTable).replace(
-        act.copyWith(retryCount: act.retryCount + 1)
-      );
+      await update(
+        pendingActionsTable,
+      ).replace(act.copyWith(retryCount: act.retryCount + 1));
     }
   }
 
@@ -40,6 +45,8 @@ class PendingActionsDao extends DatabaseAccessor<AppDatabase> with _$PendingActi
 
 // simple uuid generator pour nos ids hors-ligne
 class Uuid {
-  String v4() => '${DateTime.now().millisecondsSinceEpoch}_${identityHashCode(this)}';
+  String v4() =>
+      '${DateTime.now().millisecondsSinceEpoch}_${identityHashCode(this)}';
 }
+
 final uuid = Uuid();

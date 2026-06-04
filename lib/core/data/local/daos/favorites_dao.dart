@@ -23,16 +23,16 @@ class FavoritesDao {
   }
 
   /// Adds [restaurantId] to favorites (no-op if already present).
-  Future<void> addFavorite(String restaurantId) =>
-      _db.into(_db.favoritesTable).insertOnConflictUpdate(
-            FavoritesTableCompanion.insert(restaurantId: restaurantId),
-          );
+  Future<void> addFavorite(String restaurantId) => _db
+      .into(_db.favoritesTable)
+      .insertOnConflictUpdate(
+        FavoritesTableCompanion.insert(restaurantId: restaurantId),
+      );
 
   /// Removes [restaurantId] from favorites.
-  Future<void> removeFavorite(String restaurantId) =>
-      (_db.delete(_db.favoritesTable)
-            ..where((t) => t.restaurantId.equals(restaurantId)))
-          .go();
+  Future<void> removeFavorite(String restaurantId) => (_db.delete(
+    _db.favoritesTable,
+  )..where((t) => t.restaurantId.equals(restaurantId))).go();
 
   /// Toggles favorite status. Returns the **new** status (true = liked).
   Future<bool> toggleFavorite(String restaurantId) async {

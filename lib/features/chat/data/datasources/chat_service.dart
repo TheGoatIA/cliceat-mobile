@@ -10,7 +10,8 @@ abstract class ChatService extends ChopperService {
   /// POST /chat/conversations — Create or get a conversation
   @POST(path: '/conversations')
   Future<Response<Map<String, dynamic>>> createConversation(
-      @Body() Map<String, dynamic> body);
+    @Body() Map<String, dynamic> body,
+  );
 
   /// GET /chat/conversations — List user conversations
   @GET(path: '/conversations')
@@ -47,12 +48,14 @@ abstract class ChatService extends ChopperService {
   /// PATCH /chat/conversations/{id}/read — Mark as read
   @PATCH(path: '/conversations/{id}/read')
   Future<Response<Map<String, dynamic>>> markAsRead(
-      @Path('id') String conversationId);
+    @Path('id') String conversationId,
+  );
 
   /// DELETE /chat/conversations/{id} — Close conversation
   @DELETE(path: '/conversations/{id}')
   Future<Response<Map<String, dynamic>>> closeConversation(
-      @Path('id') String conversationId);
+    @Path('id') String conversationId,
+  );
 
   /// GET /chat/unread — Get total unread count
   @GET(path: '/unread')

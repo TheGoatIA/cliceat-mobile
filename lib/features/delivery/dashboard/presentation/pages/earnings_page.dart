@@ -67,7 +67,10 @@ class _EarningsPageState extends State<EarningsPage> {
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2))
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
+            )
           : RefreshIndicator(
               color: AppTheme.primaryRed,
               onRefresh: () async {
@@ -133,7 +136,9 @@ class _EarningsPageState extends State<EarningsPage> {
               Text(
                 'delivery.todays_earnings'.tr(),
                 style: GoogleFonts.inter(
-                    color: Colors.white.withValues(alpha: 0.8), fontSize: 14),
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -149,8 +154,11 @@ class _EarningsPageState extends State<EarningsPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatChip(Icons.delivery_dining,
-                      '$totalDeliveries', 'delivery.deliveries'.tr()),
+                  _buildStatChip(
+                    Icons.delivery_dining,
+                    '$totalDeliveries',
+                    'delivery.deliveries'.tr(),
+                  ),
                 ],
               ),
             ],
@@ -244,12 +252,17 @@ class _EarningsPageState extends State<EarningsPage> {
         Text(
           value,
           style: GoogleFonts.bricolageGrotesque(
-              color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 20,
+          ),
         ),
         Text(
           label,
           style: GoogleFonts.inter(
-              color: Colors.white.withValues(alpha: 0.75), fontSize: 12),
+            color: Colors.white.withValues(alpha: 0.75),
+            fontSize: 12,
+          ),
         ),
       ],
     );
@@ -324,13 +337,18 @@ class _EarningsPageState extends State<EarningsPage> {
               padding: const EdgeInsets.all(32),
               child: Column(
                 children: [
-                  const Icon(Icons.bar_chart,
-                      size: 64, color: AppTheme.mutedLight),
+                  const Icon(
+                    Icons.bar_chart,
+                    size: 64,
+                    color: AppTheme.mutedLight,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'delivery.no_earnings_data'.tr(),
                     style: GoogleFonts.inter(
-                        fontSize: 14, color: AppTheme.muted),
+                      fontSize: 14,
+                      color: AppTheme.muted,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -359,8 +377,11 @@ class _EarningsPageState extends State<EarningsPage> {
                       color: AppTheme.redSoft,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.today,
-                        color: AppTheme.primaryRed, size: 20),
+                    child: const Icon(
+                      Icons.today,
+                      color: AppTheme.primaryRed,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -370,14 +391,17 @@ class _EarningsPageState extends State<EarningsPage> {
                         Text(
                           dateLabel,
                           style: GoogleFonts.inter(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: AppTheme.ink),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: AppTheme.ink,
+                          ),
                         ),
                         Text(
                           '${item.deliveries} ${'delivery.deliveries'.tr()}',
                           style: GoogleFonts.inter(
-                              fontSize: 12, color: AppTheme.muted),
+                            fontSize: 12,
+                            color: AppTheme.muted,
+                          ),
                         ),
                       ],
                     ),
@@ -457,12 +481,20 @@ class _EarningsBarChartPainter extends CustomPainter {
           text: TextSpan(
             text: labels[i],
             style: TextStyle(
-                color: labelColor, fontSize: 9, fontWeight: FontWeight.w500),
+              color: labelColor,
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           textDirection: TextDirection.ltr,
         )..layout(maxWidth: barWidth + gap);
-        tp.paint(canvas,
-            Offset(x + barWidth / 2 - tp.width / 2, size.height - labelHeight + 4));
+        tp.paint(
+          canvas,
+          Offset(
+            x + barWidth / 2 - tp.width / 2,
+            size.height - labelHeight + 4,
+          ),
+        );
       }
     }
   }

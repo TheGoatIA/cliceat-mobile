@@ -36,21 +36,18 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
       _controller.clear();
       final res = await cubit.sendMessage(widget.conversation.id, text);
       if (mounted) {
-        res.fold(
-          (err) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(err.message),
-                backgroundColor: AppTheme.primaryRed,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+        res.fold((err) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(err.message),
+              backgroundColor: AppTheme.primaryRed,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-            );
-          },
-          (_) {},
-        );
+            ),
+          );
+        }, (_) {});
       }
     }
   }
@@ -58,8 +55,12 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   @override
   Widget build(BuildContext context) {
     String title = 'chat.support'.tr();
-    if (widget.conversation.type == 'restaurant') title = 'chat.restaurant'.tr();
-    if (widget.conversation.type == 'delivery') title = 'chat.driver'.tr();
+    if (widget.conversation.type == 'restaurant') {
+      title = 'chat.restaurant'.tr();
+    }
+    if (widget.conversation.type == 'delivery') {
+      title = 'chat.driver'.tr();
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
@@ -82,7 +83,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
           return state.maybeWhen(
             loading: () => const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2),
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
             ),
             messagesLoaded: (conv, messages) {
               return Column(
@@ -91,7 +94,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                     child: ListView.builder(
                       reverse: true,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
                         final msg = messages[index];
@@ -104,27 +109,25 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 4),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 10),
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
                             constraints: BoxConstraints(
                               maxWidth:
                                   MediaQuery.of(context).size.width * 0.78,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  isMe ? AppTheme.primaryRed : Colors.white,
+                              color: isMe ? AppTheme.primaryRed : Colors.white,
                               borderRadius: BorderRadius.only(
                                 topLeft: const Radius.circular(16),
                                 topRight: const Radius.circular(16),
-                                bottomLeft:
-                                    Radius.circular(isMe ? 16 : 0),
-                                bottomRight:
-                                    Radius.circular(isMe ? 0 : 16),
+                                bottomLeft: Radius.circular(isMe ? 16 : 0),
+                                bottomRight: Radius.circular(isMe ? 0 : 16),
                               ),
                               border: isMe
                                   ? null
                                   : Border.all(color: AppTheme.lineSoft),
-                              boxShadow:
-                                  isMe ? [] : AppTheme.shadowSm,
+                              boxShadow: isMe ? [] : AppTheme.shadowSm,
                             ),
                             child: Column(
                               crossAxisAlignment: isMe
@@ -143,9 +146,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  timeago.format(msg.createdAt,
-                                      locale:
-                                          context.locale.languageCode),
+                                  timeago.format(
+                                    msg.createdAt,
+                                    locale: context.locale.languageCode,
+                                  ),
                                   style: GoogleFonts.inter(
                                     color: isMe
                                         ? Colors.white.withValues(alpha: 0.7)
@@ -168,12 +172,16 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
               child: Text(
                 msg,
                 style: GoogleFonts.inter(
-                    color: AppTheme.primaryRed, fontSize: 14),
+                  color: AppTheme.primaryRed,
+                  fontSize: 14,
+                ),
               ),
             ),
             orElse: () => const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2),
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
             ),
           );
         },
@@ -201,15 +209,18 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 ),
                 child: TextField(
                   controller: _controller,
-                  style: GoogleFonts.inter(
-                      fontSize: 14, color: AppTheme.ink),
+                  style: GoogleFonts.inter(fontSize: 14, color: AppTheme.ink),
                   decoration: InputDecoration(
                     hintText: 'chat.type_message'.tr(),
                     hintStyle: GoogleFonts.inter(
-                        fontSize: 14, color: AppTheme.mutedLight),
+                      fontSize: 14,
+                      color: AppTheme.mutedLight,
+                    ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                   ),
                   onSubmitted: (_) => _sendMessage(),
                 ),
@@ -225,8 +236,11 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                   color: AppTheme.primaryRed,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.send_rounded,
-                    color: Colors.white, size: 18),
+                child: const Icon(
+                  Icons.send_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
             ),
           ],

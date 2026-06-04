@@ -67,7 +67,8 @@ class _OrderRatingPageState extends State<OrderRatingPage>
             backgroundColor: AppTheme.errorColor,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       },
@@ -238,7 +239,9 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                   decoration: InputDecoration(
                     hintText: 'order.rate_comment_hint'.tr(),
                     hintStyle: GoogleFonts.inter(
-                        color: AppTheme.mutedLight, fontSize: 14),
+                      color: AppTheme.mutedLight,
+                      fontSize: 14,
+                    ),
                     border: InputBorder.none,
                     focusedBorder: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -267,14 +270,17 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     child: _isLoading
                         ? const SizedBox(
                             width: 22,
                             height: 22,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2.5, color: Colors.white),
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
                           )
                         : Text(
                             'order.submit_rating'.tr(),
@@ -292,7 +298,9 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                   child: Text(
                     'order.rating_required_hint'.tr(),
                     style: GoogleFonts.inter(
-                        fontSize: 12, color: AppTheme.muted),
+                      fontSize: 12,
+                      color: AppTheme.muted,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -350,7 +358,9 @@ class _OrderRatingPageState extends State<OrderRatingPage>
                     Text(
                       subtitle,
                       style: GoogleFonts.inter(
-                          fontSize: 12, color: AppTheme.muted),
+                        fontSize: 12,
+                        color: AppTheme.muted,
+                      ),
                     ),
                   ],
                 ),

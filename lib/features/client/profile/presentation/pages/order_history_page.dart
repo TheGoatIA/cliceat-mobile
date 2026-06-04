@@ -12,20 +12,23 @@ class OrderHistoryPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => getIt<OrderBloc>()..add(const LoadOrders()),
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('order.history_title'.tr()),
-        ),
+        appBar: AppBar(title: Text('order.history_title'.tr())),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: BlocBuilder<OrderBloc, OrderState>(
               builder: (context, state) {
                 return state.maybeWhen(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (msg) => Center(child: Text(msg, style: const TextStyle(color: Colors.red))),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (msg) => Center(
+                    child: Text(msg, style: const TextStyle(color: Colors.red)),
+                  ),
                   ordersLoaded: (orders) {
                     if (orders.isEmpty) {
-                      return const Center(child: Text("Vous n'avez passé aucune commande."));
+                      return const Center(
+                        child: Text("Vous n'avez passé aucune commande."),
+                      );
                     }
                     return ListView.builder(
                       padding: const EdgeInsets.all(16),
@@ -37,20 +40,34 @@ class OrderHistoryPage extends StatelessWidget {
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: Theme.of(context).dividerColor),
+                            side: BorderSide(
+                              color: Theme.of(context).dividerColor,
+                            ),
                           ),
                           child: ListTile(
                             leading: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primaryContainer,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(Icons.fastfood, color: Theme.of(context).colorScheme.primary),
+                              child: Icon(
+                                Icons.fastfood,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                             ),
-                            title: Text("Commande #${order['id']?.toString().substring(0, 8) ?? 'Unknown'}"),
-                            subtitle: Text("${order['total']} FCFA • ${order['status']}"),
-                            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                            title: Text(
+                              "Commande #${order['id']?.toString().substring(0, 8) ?? 'Unknown'}",
+                            ),
+                            subtitle: Text(
+                              "${order['total']} FCFA • ${order['status']}",
+                            ),
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                            ),
                             onTap: () {
                               // Navigate to order details
                             },

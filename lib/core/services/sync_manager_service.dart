@@ -14,7 +14,7 @@ import 'package:logger/logger.dart';
 class SyncManagerService {
   final PendingActionsDao _pendingActionsDao;
   final Logger _logger;
-  
+
   StreamSubscription? _connectivitySubscription;
   bool _isProcessing = false;
 
@@ -22,13 +22,15 @@ class SyncManagerService {
 
   void initialize() {
     _logger.i('SyncManagerService initialized');
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) {
       if (results.any((result) => result != ConnectivityResult.none)) {
         _logger.i('Back online, starting sync...');
         processQueue();
       }
     });
-    
+
     // Process queue on startup in case we are already online
     processQueue();
   }
@@ -57,7 +59,9 @@ class SyncManagerService {
           _logger.i('Action ${action.id} (${action.type}) synced successfully');
         } else {
           await _pendingActionsDao.incrementRetry(action.id);
-          _logger.w('Action ${action.id} (${action.type}) failed to sync, will retry later');
+          _logger.w(
+            'Action ${action.id} (${action.type}) failed to sync, will retry later',
+          );
           // If a sync fails, maybe we lost connection again? Stop processing for now.
           break;
         }
@@ -76,13 +80,13 @@ class SyncManagerService {
       if (type == 'send_chat') {
         final conversationId = payload['conversationId'];
         final content = payload['content'];
-        
+
         final repo = getIt<ChatRepository>();
         final result = await repo.sendMessage(
           conversationId: conversationId,
           content: content,
         );
-        
+
         return result.isRight();
       } else if (type == 'create_review') {
         final repo = getIt<ReviewRepository>();
@@ -103,7 +107,7 @@ class SyncManagerService {
         final result = await repo.toggleFavorite(payload['restaurantId']);
         return result.isRight();
       }
-      
+
       _logger.w('Unknown action type: $type');
       return true; // Mark as true so it gets deleted
     } catch (e) {

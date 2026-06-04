@@ -16,11 +16,9 @@ class LoyaltyModel {
     final data = json['data'] as Map<String, dynamic>? ?? json;
     return LoyaltyModel(
       points: (data['points'] as num?)?.toInt() ?? 0,
-      discountPercent:
-          (data['discountPercent'] as num?)?.toDouble() ?? 0.0,
+      discountPercent: (data['discountPercent'] as num?)?.toDouble() ?? 0.0,
       tier: data['tier']?.toString(),
-      pointsToNextTier:
-          (data['pointsToNextTier'] as num?)?.toInt(),
+      pointsToNextTier: (data['pointsToNextTier'] as num?)?.toInt(),
     );
   }
 }

@@ -8,9 +8,11 @@ abstract class AiService extends ChopperService {
 
   @POST(path: '/chat')
   Future<Response<Map<String, dynamic>>> sendMessage(
-      @Body() Map<String, dynamic> body);
+    @Body() Map<String, dynamic> body,
+  );
 
   @GET(path: '/suggestions')
-  Future<Response<Map<String, dynamic>>> getSuggestions(
-      {@Query('city') String? city});
+  Future<Response<Map<String, dynamic>>> getSuggestions({
+    @Query('city') String? city,
+  });
 }

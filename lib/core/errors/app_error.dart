@@ -15,24 +15,27 @@ class AppError {
   });
 
   factory AppError.network([String? msg]) => AppError(
-        message: msg ?? 'common.network_error',
-        type: AppErrorType.network,
-      );
+    message: msg ?? 'common.network_error',
+    type: AppErrorType.network,
+  );
 
   factory AppError.auth([String? msg]) => AppError(
-        message: msg ?? 'auth.error_invalid_credentials',
-        type: AppErrorType.auth,
-      );
+    message: msg ?? 'auth.error_invalid_credentials',
+    type: AppErrorType.auth,
+  );
 
   factory AppError.notFound([String? msg]) => AppError(
-        message: msg ?? 'common.error',
-        type: AppErrorType.notFound,
-        statusCode: 404,
-      );
+    message: msg ?? 'common.error',
+    type: AppErrorType.notFound,
+    statusCode: 404,
+  );
 
   /// Extracts the `message` field from an API error body, or uses [fallback].
-  factory AppError.fromResponse(dynamic body, String fallback,
-      {int? statusCode}) {
+  factory AppError.fromResponse(
+    dynamic body,
+    String fallback, {
+    int? statusCode,
+  }) {
     String msg = fallback;
     dynamic decoded;
 
@@ -47,17 +50,20 @@ class AppError {
     }
 
     if (decoded is Map) {
-      if (decoded['details'] is List && (decoded['details'] as List).isNotEmpty) {
+      if (decoded['details'] is List &&
+          (decoded['details'] as List).isNotEmpty) {
         final firstDetail = (decoded['details'] as List).first;
         if (firstDetail is Map && firstDetail['message'] != null) {
           msg = firstDetail['message'].toString();
         } else {
-          msg = decoded['message']?.toString() ??
+          msg =
+              decoded['message']?.toString() ??
               decoded['error']?.toString() ??
               fallback;
         }
       } else {
-        msg = decoded['message']?.toString() ??
+        msg =
+            decoded['message']?.toString() ??
             decoded['error']?.toString() ??
             fallback;
       }
@@ -69,11 +75,12 @@ class AppError {
       type: statusCode == 401
           ? AppErrorType.auth
           : statusCode == 404
-              ? AppErrorType.notFound
-              : AppErrorType.server,
+          ? AppErrorType.notFound
+          : AppErrorType.server,
     );
   }
 
   @override
-  String toString() => 'AppError(type: $type, message: $message, status: $statusCode)';
+  String toString() =>
+      'AppError(type: $type, message: $message, status: $statusCode)';
 }

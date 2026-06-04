@@ -11,7 +11,10 @@ class WalletRepository {
 
   WalletRepository(this._walletService, this._paymentService);
 
-  Future<Either<AppError, Map<String, String>>> recharge(double amount, String method) async {
+  Future<Either<AppError, Map<String, String>>> recharge(
+    double amount,
+    String method,
+  ) async {
     try {
       final res = await _walletService.recharge({
         'amount': amount,

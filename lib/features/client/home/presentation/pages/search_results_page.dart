@@ -105,8 +105,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                         children: [
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 12),
-                            child: Icon(Icons.search_rounded,
-                                color: AppTheme.muted, size: 20),
+                            child: Icon(
+                              Icons.search_rounded,
+                              color: AppTheme.muted,
+                              size: 20,
+                            ),
                           ),
                           Expanded(
                             child: TextField(
@@ -134,8 +137,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close_rounded,
-                                color: AppTheme.muted, size: 18),
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: AppTheme.muted,
+                              size: 18,
+                            ),
                             onPressed: () {
                               _controller.clear();
                               setState(() {
@@ -178,8 +184,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                               color: AppTheme.bgWarm,
                               borderRadius: BorderRadius.circular(40),
                             ),
-                            child: const Icon(Icons.search_off_rounded,
-                                size: 36, color: AppTheme.muted),
+                            child: const Icon(
+                              Icons.search_off_rounded,
+                              size: 36,
+                              color: AppTheme.muted,
+                            ),
                           ),
                           const SizedBox(height: 20),
                           Text(
@@ -229,8 +238,10 @@ class _RestaurantSearchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        getIt<AnalyticsService>()
-            .logRestaurantViewed(restaurant.id, restaurant.name);
+        getIt<AnalyticsService>().logRestaurantViewed(
+          restaurant.id,
+          restaurant.name,
+        );
         context.push('/restaurant/${restaurant.id}');
       },
       child: Container(
@@ -285,8 +296,11 @@ class _RestaurantSearchCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.star_rounded,
-                          size: 13, color: AppTheme.honey),
+                      const Icon(
+                        Icons.star_rounded,
+                        size: 13,
+                        color: AppTheme.honey,
+                      ),
                       const SizedBox(width: 3),
                       Text(
                         restaurant.rating?.toStringAsFixed(1) ?? 'N/A',
@@ -305,8 +319,11 @@ class _RestaurantSearchCard extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const Icon(Icons.access_time_rounded,
-                          size: 13, color: AppTheme.muted),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 13,
+                        color: AppTheme.muted,
+                      ),
                       const SizedBox(width: 3),
                       Text(
                         '${restaurant.deliveryTimeMinutes ?? 30} min',
@@ -340,8 +357,7 @@ class _RestaurantSearchCard extends StatelessWidget {
             ),
             if (!restaurant.isOpen)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppTheme.redSoft,
                   borderRadius: BorderRadius.circular(8),
@@ -356,8 +372,11 @@ class _RestaurantSearchCard extends StatelessWidget {
                 ),
               )
             else
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppTheme.mutedLight, size: 20),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppTheme.mutedLight,
+                size: 20,
+              ),
           ],
         ),
       ),
@@ -365,12 +384,12 @@ class _RestaurantSearchCard extends StatelessWidget {
   }
 
   Widget _placeholder() => Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          color: AppTheme.bgWarm,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(Icons.restaurant_rounded, color: AppTheme.muted),
-      );
+    width: 72,
+    height: 72,
+    decoration: BoxDecoration(
+      color: AppTheme.bgWarm,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: const Icon(Icons.restaurant_rounded, color: AppTheme.muted),
+  );
 }

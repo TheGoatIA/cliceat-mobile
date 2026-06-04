@@ -56,7 +56,9 @@ class PayoutRepository {
         'name': accountName,
       });
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(res.body, 'payout.update_account_error'));
+      return Left(
+        AppError.fromResponse(res.body, 'payout.update_account_error'),
+      );
     } catch (_) {
       return Left(AppError.network());
     }

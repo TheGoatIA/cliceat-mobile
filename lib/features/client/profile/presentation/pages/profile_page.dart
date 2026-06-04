@@ -607,7 +607,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 hintText: '+237 6XX XXX XXX',
                 prefixIcon: const Icon(Icons.phone_outlined),
                 helperText: 'Votre numéro est requis pour passer commande.',
-                helperStyle: GoogleFonts.inter(fontSize: 11, color: AppTheme.muted),
+                helperStyle: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: AppTheme.muted,
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -616,10 +619,14 @@ class _ProfilePageState extends State<ProfilePage> {
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  final payload = <String, dynamic>{'name': nameController.text.trim()};
+                  final payload = <String, dynamic>{
+                    'name': nameController.text.trim(),
+                  };
                   final phone = phoneController.text.trim();
                   if (phone.isNotEmpty) payload['phone'] = phone;
-                  final result = await getIt<UserRepository>().updateProfile(payload);
+                  final result = await getIt<UserRepository>().updateProfile(
+                    payload,
+                  );
                   result.fold(
                     (err) {
                       if (mounted) {

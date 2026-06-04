@@ -5,7 +5,8 @@ part 'dispute_service.chopper.dart';
 
 @ChopperApi(baseUrl: '/disputes')
 abstract class DisputeService extends ChopperService {
-  static DisputeService create([ChopperClient? client]) => _$DisputeService(client);
+  static DisputeService create([ChopperClient? client]) =>
+      _$DisputeService(client);
 
   @POST()
   @multipart

@@ -27,7 +27,9 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
   }
 
   Future<void> _onLoadActiveMissions(
-      _LoadActiveMissions event, Emitter<MissionState> emit) async {
+    _LoadActiveMissions event,
+    Emitter<MissionState> emit,
+  ) async {
     emit(const MissionState.loading());
     final result = await _driverRepository.getActiveMissions();
     result.fold(
@@ -44,10 +46,11 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
   }
 
   Future<void> _onAcceptMission(
-      _AcceptMission event, Emitter<MissionState> emit) async {
+    _AcceptMission event,
+    Emitter<MissionState> emit,
+  ) async {
     emit(const MissionState.loading());
-    final result =
-        await _driverRepository.acceptMission(event.missionId);
+    final result = await _driverRepository.acceptMission(event.missionId);
     result.fold(
       (err) {
         _logger.e('Error accepting mission: ${err.message}');
@@ -62,38 +65,35 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
   }
 
   Future<void> _onRejectMission(
-      _RejectMission event, Emitter<MissionState> emit) async {
+    _RejectMission event,
+    Emitter<MissionState> emit,
+  ) async {
     emit(const MissionState.loading());
-    final result =
-        await _driverRepository.rejectMission(event.missionId);
-    result.fold(
-      (err) {
-        _logger.e('Error rejecting mission: ${err.message}');
-        emit(MissionState.error(err.message));
-      },
-      (_) => emit(
-          const MissionState.actionSuccess('mission.rejected')),
-    );
+    final result = await _driverRepository.rejectMission(event.missionId);
+    result.fold((err) {
+      _logger.e('Error rejecting mission: ${err.message}');
+      emit(MissionState.error(err.message));
+    }, (_) => emit(const MissionState.actionSuccess('mission.rejected')));
     add(MissionEvent.loadActiveMissions());
   }
 
   Future<void> _onUpdateStatus(
-      _UpdateStatus event, Emitter<MissionState> emit) async {
+    _UpdateStatus event,
+    Emitter<MissionState> emit,
+  ) async {
     emit(const MissionState.loading());
 
     late final Either<AppError, void> result;
     switch (event.status) {
       case 'picked_up':
-        result =
-            await _driverRepository.confirmPickup(event.missionId);
+        result = await _driverRepository.confirmPickup(event.missionId);
         break;
       case 'delivered':
         result = await _driverRepository.confirmDelivery(
           event.missionId,
           metadata: event.metadata,
         );
-        getIt<AnalyticsService>()
-            .logDeliveryCompleted(event.missionId);
+        getIt<AnalyticsService>().logDeliveryCompleted(event.missionId);
         break;
       default:
         emit(MissionState.error('mission.error_unknown_status'));
@@ -106,8 +106,7 @@ class MissionBloc extends Bloc<MissionEvent, MissionState> {
         emit(const MissionState.error('mission.error_update_status'));
       },
       (_) {
-        emit(const MissionState.actionSuccess(
-            'mission.status_updated'));
+        emit(const MissionState.actionSuccess('mission.status_updated'));
         add(MissionEvent.loadActiveMissions());
       },
     );

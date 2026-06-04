@@ -12,17 +12,24 @@ class ChatDao extends DatabaseAccessor<AppDatabase> with _$ChatDaoMixin {
   ChatDao(super.db);
 
   Future<List<ConversationsTableData>> getConversations() {
-    return (select(conversationsTable)..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])).get();
+    return (select(
+      conversationsTable,
+    )..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])).get();
   }
 
-  Future<void> upsertConversations(List<ConversationsTableCompanion> items) async {
+  Future<void> upsertConversations(
+    List<ConversationsTableCompanion> items,
+  ) async {
     await batch((batch) {
       batch.insertAllOnConflictUpdate(conversationsTable, items);
     });
   }
 
   Future<List<MessagesTableData>> getMessages(String conversationId) {
-    return (select(messagesTable)..where((t) => t.conversationId.equals(conversationId))..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+    return (select(messagesTable)
+          ..where((t) => t.conversationId.equals(conversationId))
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
   }
 
   Future<void> upsertMessages(List<MessagesTableCompanion> items) async {

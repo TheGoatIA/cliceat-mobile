@@ -74,7 +74,7 @@ jobs:
             --build-number=${{ github.run_number }} \
             --build-name=${{ steps.version.outputs.name }} \
             --dart-define=ENV=staging \
-            --dart-define=API_URL=${{ secrets.STAGING_API_URL }}
+            --dart-define=API_BASE_URL=${{ secrets.STAGING_API_URL }}/api/v1
 
       - name: Find IPA
         id: find-ipa

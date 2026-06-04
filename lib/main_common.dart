@@ -49,7 +49,9 @@ Future<void> _bootstrap() async {
   } catch (e) {
     debugPrint('⚠️ Failed to load PackageInfo: $e');
   }
-  debugPrint('✅ Flutter Binding Initialized (App Version: ${AppConstants.appVersion})');
+  debugPrint(
+    '✅ Flutter Binding Initialized (App Version: ${AppConstants.appVersion})',
+  );
 
   // Limiter le cache image (appareils bas de gamme)
   PaintingBinding.instance.imageCache
@@ -59,7 +61,7 @@ Future<void> _bootstrap() async {
   // Mapbox token (injecté via --dart-define=MAPBOX_ACCESS_TOKEN=...)
   final mapboxToken = FlavorConfig.mapboxToken;
   debugPrint('📍 Mapbox Token length: ${mapboxToken.length}');
-  
+
   if (mapboxToken.isNotEmpty) {
     MapboxOptions.setAccessToken(mapboxToken);
   }
@@ -73,19 +75,14 @@ Future<void> _bootstrap() async {
   debugPrint('✅ EasyLocalization and Date Formatting Initialized');
 
   debugPrint('🔥 Initializing Firebase...');
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('✅ Firebase Initialized');
 
   if (!kDebugMode) {
-    await FirebaseCrashlytics.instance
-        .setCrashlyticsCollectionEnabled(true);
-    FlutterError.onError =
-        FirebaseCrashlytics.instance.recordFlutterFatalError;
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
     PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance
-          .recordError(error, stack, fatal: true);
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
   }
@@ -108,9 +105,20 @@ Future<void> _bootstrap() async {
   getIt<PrecacheService>().startPrecaching();
 
   debugPrint('⚙️ Fetching Platform Config...');
-  await getIt<ConfigBloc>().stream.firstWhere((state) => state.maybeWhen(loaded: (_) => true, error: (_) => true, orElse: () => false)).timeout(const Duration(seconds: 5), onTimeout: () => const ConfigState.error('timeout'));
+  await getIt<ConfigBloc>().stream
+      .firstWhere(
+        (state) => state.maybeWhen(
+          loaded: (_) => true,
+          error: (_) => true,
+          orElse: () => false,
+        ),
+      )
+      .timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => const ConfigState.error('timeout'),
+      );
   // Note: We don't block everything if config fails, but it's better to have it.
-  
+
   debugPrint('🏁 Bootstrap finished. Running App...');
 
   // ─── Certificate Pinning (Sécurité) ───────────────────────────────────────
@@ -118,7 +126,9 @@ Future<void> _bootstrap() async {
   if (FlavorConfig.isProd && EnvConfig.sslFingerprint.isNotEmpty) {
     try {
       final secureResult = await HttpCertificatePinning.check(
-        serverURL: FlavorConfig.apiBaseUrl.split('/api')[0], // Extract domain e.g., https://api.cliceat.cm
+        serverURL: FlavorConfig.apiBaseUrl.split(
+          '/api',
+        )[0], // Extract domain e.g., https://api.cliceat.cm
         headerHttp: {},
         sha: SHA.SHA256,
         allowedSHAFingerprints: [EnvConfig.sslFingerprint],
@@ -127,7 +137,12 @@ Future<void> _bootstrap() async {
       if (kDebugMode) print('Cert Pinning OK: $secureResult');
     } catch (e, stack) {
       if (!kDebugMode) {
-        FirebaseCrashlytics.instance.recordError(e, stack, fatal: true, reason: 'Certificate Pinning Failed');
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          stack,
+          fatal: true,
+          reason: 'Certificate Pinning Failed',
+        );
         // BLOQUER l'app — ne pas continuer avec un certificat invalide
         runApp(
           MaterialApp(
@@ -143,7 +158,10 @@ Future<void> _bootstrap() async {
                       const SizedBox(height: 24),
                       const Text(
                         'Connexion sécurisée impossible',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 12),
@@ -183,21 +201,15 @@ class ClicEatApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
+          create: (_) => getIt<AuthBloc>()..add(const AuthEvent.appStarted()),
+        ),
+        BlocProvider(
           create: (_) =>
-              getIt<AuthBloc>()..add(const AuthEvent.appStarted()),
+              getIt<ConfigBloc>()..add(const ConfigEvent.fetchConfig()),
         ),
-        BlocProvider(
-          create: (_) => getIt<ConfigBloc>()..add(const ConfigEvent.fetchConfig()),
-        ),
-        BlocProvider(
-          create: (_) => getIt<CartCubit>(),
-        ),
-        BlocProvider(
-          create: (_) => getIt<ThemeCubit>(),
-        ),
-        BlocProvider(
-          create: (_) => getIt<ProfileCubit>()..loadProfile(),
-        ),
+        BlocProvider(create: (_) => getIt<CartCubit>()),
+        BlocProvider(create: (_) => getIt<ThemeCubit>()),
+        BlocProvider(create: (_) => getIt<ProfileCubit>()..loadProfile()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, mode) {

@@ -19,14 +19,15 @@ class OrderState with _$OrderState {
     required String orderId,
     String? paymentUrl,
   }) = _Created;
-  const factory OrderState.ordersLoaded(
-      List<Map<String, dynamic>> orders) = _OrdersLoaded;
-  const factory OrderState.loadingMore(
-      List<Map<String, dynamic>> orders) = _LoadingMore;
+  const factory OrderState.ordersLoaded(List<Map<String, dynamic>> orders) =
+      _OrdersLoaded;
+  const factory OrderState.loadingMore(List<Map<String, dynamic>> orders) =
+      _LoadingMore;
   const factory OrderState.cancelled() = _Cancelled;
   const factory OrderState.rated() = _Rated;
   const factory OrderState.reorderSuccess(String newOrderId) = _ReorderSuccess;
-  const factory OrderState.invoiceDownloaded(String filePath) = _InvoiceDownloaded;
+  const factory OrderState.invoiceDownloaded(String filePath) =
+      _InvoiceDownloaded;
   const factory OrderState.error(String message) = _Error;
 }
 
@@ -44,7 +45,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   bool _hasMore = true;
   final List<Map<String, dynamic>> _accumulated = [];
 
-  OrderBloc(this._orderRepository, this._wsService) : super(const OrderState.initial()) {
+  OrderBloc(this._orderRepository, this._wsService)
+    : super(const OrderState.initial()) {
     on<CreateOrder>(_onCreateOrder);
     on<LoadOrders>(_onLoadOrders);
     on<LoadMoreOrders>(_onLoadMoreOrders);
@@ -73,7 +75,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
   Future<void> _onCreateOrder(
-      CreateOrder event, Emitter<OrderState> emit) async {
+    CreateOrder event,
+    Emitter<OrderState> emit,
+  ) async {
     emit(const OrderState.loading());
     final result = await _orderRepository.createOrder(event.payload);
     result.fold(
@@ -87,14 +91,14 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
           total: order.total,
           deliveryFee: order.deliveryFee,
         );
-        emit(OrderState.created(
-            orderId: order.id, paymentUrl: order.paymentUrl));
+        emit(
+          OrderState.created(orderId: order.id, paymentUrl: order.paymentUrl),
+        );
       },
     );
   }
 
-  Future<void> _onLoadOrders(
-      LoadOrders event, Emitter<OrderState> emit) async {
+  Future<void> _onLoadOrders(LoadOrders event, Emitter<OrderState> emit) async {
     // Réinitialiser la pagination
     _currentPage = 1;
     _hasMore = true;
@@ -121,7 +125,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onLoadMoreOrders(
-      LoadMoreOrders event, Emitter<OrderState> emit) async {
+    LoadMoreOrders event,
+    Emitter<OrderState> emit,
+  ) async {
     if (!_hasMore) return;
 
     // Émettre l'état de chargement de page supplémentaire
@@ -148,9 +154,14 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onCancelOrder(
-      CancelOrder event, Emitter<OrderState> emit) async {
+    CancelOrder event,
+    Emitter<OrderState> emit,
+  ) async {
     emit(const OrderState.loading());
-    final result = await _orderRepository.cancelOrder(event.orderId, event.reason);
+    final result = await _orderRepository.cancelOrder(
+      event.orderId,
+      event.reason,
+    );
     result.fold(
       (err) {
         _logger.e('Error cancelling order: ${err.message}');
@@ -164,42 +175,40 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onReorderOrder(
-      ReorderOrder event, Emitter<OrderState> emit) async {
+    ReorderOrder event,
+    Emitter<OrderState> emit,
+  ) async {
     emit(const OrderState.loading());
     final result = await _orderRepository.reorder(event.orderId);
-    result.fold(
-      (err) {
-        _logger.e('Error reordering: ${err.message}');
-        emit(OrderState.error(err.message));
-      },
-      (order) => emit(OrderState.reorderSuccess(order.id)),
-    );
+    result.fold((err) {
+      _logger.e('Error reordering: ${err.message}');
+      emit(OrderState.error(err.message));
+    }, (order) => emit(OrderState.reorderSuccess(order.id)));
   }
 
-  Future<void> _onRateOrder(
-      RateOrder event, Emitter<OrderState> emit) async {
+  Future<void> _onRateOrder(RateOrder event, Emitter<OrderState> emit) async {
     emit(const OrderState.loading());
     final result = await _orderRepository.rateOrder(
-        event.orderId, event.restaurantRating, event.deliveryRating, event.comment);
-    result.fold(
-      (err) {
-        _logger.e('Error rating order: ${err.message}');
-        emit(OrderState.error(err.message));
-      },
-      (_) => emit(const OrderState.rated()),
+      event.orderId,
+      event.restaurantRating,
+      event.deliveryRating,
+      event.comment,
     );
+    result.fold((err) {
+      _logger.e('Error rating order: ${err.message}');
+      emit(OrderState.error(err.message));
+    }, (_) => emit(const OrderState.rated()));
   }
 
   Future<void> _onDownloadInvoice(
-      DownloadInvoice event, Emitter<OrderState> emit) async {
+    DownloadInvoice event,
+    Emitter<OrderState> emit,
+  ) async {
     final result = await _orderRepository.downloadInvoice(event.orderId);
-    result.fold(
-      (err) {
-        _logger.e('Error downloading invoice: ${err.message}');
-        emit(OrderState.error(err.message));
-      },
-      (path) => emit(OrderState.invoiceDownloaded(path)),
-    );
+    result.fold((err) {
+      _logger.e('Error downloading invoice: ${err.message}');
+      emit(OrderState.error(err.message));
+    }, (path) => emit(OrderState.invoiceDownloaded(path)));
     // Restore the list state seamlessly
     if (_accumulated.isNotEmpty) {
       emit(OrderState.ordersLoaded(List.unmodifiable(_accumulated)));
@@ -212,13 +221,12 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     final id = data['orderId'] ?? data['_id'];
     if (id == null) return;
 
-    final index = _accumulated.indexWhere((o) => o['_id'] == id || o['id'] == id);
+    final index = _accumulated.indexWhere(
+      (o) => o['_id'] == id || o['id'] == id,
+    );
     if (index != -1) {
       _logger.d('Updating order $id in list from WS');
-      _accumulated[index] = {
-        ..._accumulated[index],
-        ...data,
-      };
+      _accumulated[index] = {..._accumulated[index], ...data};
       emit(OrderState.ordersLoaded(List.unmodifiable(_accumulated)));
     }
   }

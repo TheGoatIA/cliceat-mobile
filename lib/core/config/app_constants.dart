@@ -20,7 +20,7 @@ class AppConstants {
   // Flutter utilise PaintingBinding.instance.imageCache par défaut (1000 objets
   // / illimité en taille). On borne explicitement pour les appareils bas de
   // gamme répandus en Afrique subsaharienne.
-  static const int imageCacheMaxCount = 150;         // nb d'images en mémoire
+  static const int imageCacheMaxCount = 150; // nb d'images en mémoire
   static const int imageCacheMaxSizeBytes = 80 * 1024 * 1024; // 80 MiB
 
   // ── Current app version loaded at startup ─────────────────────────────────

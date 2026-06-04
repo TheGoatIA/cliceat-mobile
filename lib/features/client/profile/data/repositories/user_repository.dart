@@ -30,8 +30,7 @@ class UserRepository {
       final res = await _service.getMe();
       if (res.isSuccessful && res.body != null) {
         final body = res.body!;
-        final data =
-            body['data'] as Map<String, dynamic>? ?? body;
+        final data = body['data'] as Map<String, dynamic>? ?? body;
         final userData = data['user'] as Map<String, dynamic>? ?? data;
         final user = UserModel.fromJson(userData);
         await _cacheProfile(user);
@@ -39,9 +38,13 @@ class UserRepository {
       }
       final cached = await _loadCachedProfile();
       if (cached != null) return Right(cached);
-      return Left(AppError.fromResponse(
-          res.body, 'common.error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       final cached = await _loadCachedProfile();
       if (cached != null) return Right(cached);
@@ -50,7 +53,8 @@ class UserRepository {
   }
 
   Future<Either<AppError, UserModel>> updateProfile(
-      Map<String, dynamic> data) async {
+    Map<String, dynamic> data,
+  ) async {
     try {
       final res = await _service.updateMe(data);
       if (res.isSuccessful && res.body != null) {
@@ -61,9 +65,13 @@ class UserRepository {
         await _cacheProfile(updated);
         return Right(updated);
       }
-      return Left(AppError.fromResponse(
-          res.body, 'common.error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -92,9 +100,13 @@ class UserRepository {
         await _cacheProfile(updated);
         return Right(updated);
       }
-      return Left(AppError.fromResponse(
-          res.body, 'common.error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -122,9 +134,13 @@ class UserRepository {
       }
       final cached = await _loadCachedAddresses();
       if (cached.isNotEmpty) return Right(cached);
-      return Left(AppError.fromResponse(
-          res.body, 'common.error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       final cached = await _loadCachedAddresses();
       if (cached.isNotEmpty) return Right(cached);
@@ -133,7 +149,8 @@ class UserRepository {
   }
 
   Future<Either<AppError, AddressModel>> addAddress(
-      Map<String, dynamic> data) async {
+    Map<String, dynamic> data,
+  ) async {
     try {
       final res = await _service.addAddress(data);
       if (res.isSuccessful && res.body != null) {
@@ -153,16 +170,22 @@ class UserRepository {
         addr ??= AddressModel.fromJson(body);
         return Right(addr);
       }
-      return Left(AppError.fromResponse(
-          res.body, 'common.error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
   }
 
   Future<Either<AppError, List<AddressModel>>> updateAddress(
-      String id, Map<String, dynamic> data) async {
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final res = await _service.updateAddress(id, data);
       if (res.isSuccessful && res.body != null) {
@@ -181,9 +204,13 @@ class UserRepository {
         await _cacheAddresses(addresses);
         return Right(addresses);
       }
-      return Left(AppError.fromResponse(
-          res.body, 'common.error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -196,9 +223,13 @@ class UserRepository {
         await _removeAddressFromCache(id);
         return const Right(null);
       }
-      return Left(AppError.fromResponse(
-          res.body, 'common.error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -222,10 +253,7 @@ class UserRepository {
 
   Future<void> registerFcmToken(String token, {String? lang}) async {
     try {
-      await _service.registerFcmToken({
-        'token': token,
-        'language': lang,
-      });
+      await _service.registerFcmToken({'token': token, 'language': lang});
     } catch (_) {}
   }
 
@@ -240,7 +268,9 @@ class UserRepository {
   Future<void> _cacheProfile(UserModel user) async {
     try {
       await _secureStorage.write(
-          key: _profileCacheKey, value: jsonEncode(user.toJson()));
+        key: _profileCacheKey,
+        value: jsonEncode(user.toJson()),
+      );
     } catch (_) {}
   }
 
@@ -248,8 +278,7 @@ class UserRepository {
     try {
       final raw = await _secureStorage.read(key: _profileCacheKey);
       if (raw == null) return null;
-      return UserModel.fromJson(
-          jsonDecode(raw) as Map<String, dynamic>);
+      return UserModel.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {
       return null;
     }
@@ -258,8 +287,9 @@ class UserRepository {
   Future<void> _cacheAddresses(List<AddressModel> addresses) async {
     try {
       await _secureStorage.write(
-          key: _addressesCacheKey,
-          value: jsonEncode(addresses.map((a) => a.toJson()).toList()));
+        key: _addressesCacheKey,
+        value: jsonEncode(addresses.map((a) => a.toJson()).toList()),
+      );
     } catch (_) {}
   }
 

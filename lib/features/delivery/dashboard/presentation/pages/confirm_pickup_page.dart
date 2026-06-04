@@ -23,10 +23,9 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
     HapticFeedback.heavyImpact();
     setState(() => _isSubmitting = true);
 
-    context.read<MissionBloc>().add(MissionEvent.updateStatus(
-          widget.mission.id,
-          'picked_up',
-        ));
+    context.read<MissionBloc>().add(
+      MissionEvent.updateStatus(widget.mission.id, 'picked_up'),
+    );
   }
 
   @override
@@ -47,7 +46,8 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
                 backgroundColor: AppTheme.primaryRed,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           },
@@ -61,11 +61,13 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
           elevation: 0,
           surfaceTintColor: Colors.transparent,
           title: Text(
-            'delivery.confirm_pickup_title'.tr(args: [
-              widget.mission.id.length > 5
-                  ? widget.mission.id.substring(widget.mission.id.length - 5)
-                  : widget.mission.id
-            ]),
+            'delivery.confirm_pickup_title'.tr(
+              args: [
+                widget.mission.id.length > 5
+                    ? widget.mission.id.substring(widget.mission.id.length - 5)
+                    : widget.mission.id,
+              ],
+            ),
             style: GoogleFonts.bricolageGrotesque(
               fontWeight: FontWeight.w700,
               fontSize: 18,
@@ -85,7 +87,9 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
                   _buildRestaurantHeader(theme),
                   const SizedBox(height: 24),
                   Text(
-                    'delivery.items_count'.tr(args: [widget.mission.items.length.toString()]),
+                    'delivery.items_count'.tr(
+                      args: [widget.mission.items.length.toString()],
+                    ),
                     style: GoogleFonts.bricolageGrotesque(
                       fontWeight: FontWeight.w700,
                       fontSize: 18,
@@ -102,7 +106,10 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
                         final item = widget.mission.items[index];
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.check_box_outline_blank, color: AppTheme.statusPending),
+                          leading: const Icon(
+                            Icons.check_box_outline_blank,
+                            color: AppTheme.statusPending,
+                          ),
                           title: Text('${item.quantity}x ${item.name}'),
                         );
                       },
@@ -112,7 +119,9 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
                   if (_isSubmitting)
                     const Center(
                       child: CircularProgressIndicator(
-                          color: AppTheme.primaryRed, strokeWidth: 2),
+                        color: AppTheme.primaryRed,
+                        strokeWidth: 2,
+                      ),
                     )
                   else
                     _buildSlider(theme),
@@ -142,7 +151,11 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.restaurant, color: AppTheme.primaryRed, size: 22),
+            child: const Icon(
+              Icons.restaurant,
+              color: AppTheme.primaryRed,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -152,18 +165,18 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
                 Text(
                   widget.mission.restaurantName ?? 'Restaurant',
                   style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: AppTheme.ink),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: AppTheme.ink,
+                  ),
                 ),
                 Text(
                   'delivery.verify_items'.tr(),
-                  style:
-                      GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
+                  style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -179,8 +192,9 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
       },
       background: Container(
         decoration: BoxDecoration(
-            color: AppTheme.primaryRed,
-            borderRadius: BorderRadius.circular(30)),
+          color: AppTheme.primaryRed,
+          borderRadius: BorderRadius.circular(30),
+        ),
         alignment: Alignment.centerLeft,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(Icons.check_rounded, color: Colors.white, size: 32),
@@ -208,20 +222,26 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
               child: Container(
                 width: 52,
                 decoration: const BoxDecoration(
-                    color: Colors.white, shape: BoxShape.circle),
-                child: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppTheme.primaryRed, size: 18),
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: AppTheme.primaryRed,
+                  size: 18,
+                ),
               ),
             ),
             Center(
               child: Text(
                 'delivery.confirm_pickup'.tr(),
                 style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),

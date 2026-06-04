@@ -99,10 +99,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     super.initState();
     final ws = getIt<WebSocketService>();
     ws.connect();
-    
+
     // Rejoindre le salon de commande en temps réel
     ws.joinOrder(widget.orderId);
-    
+
     _loadTracking();
     _etaTimer = Timer.periodic(
       const Duration(seconds: 15),
@@ -141,8 +141,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                 : <String, dynamic>{}),
             ...event,
           };
-          if (mergedMap['status'] == null || mergedMap['status'].toString().isEmpty) {
-            mergedMap['status'] = _trackingData?.status ?? _order?.status ?? 'pending';
+          if (mergedMap['status'] == null ||
+              mergedMap['status'].toString().isEmpty) {
+            mergedMap['status'] =
+                _trackingData?.status ?? _order?.status ?? 'pending';
           }
           _trackingData = TrackingModel.fromJson(mergedMap);
         });
@@ -223,7 +225,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       ),
     );
     textPainter.layout();
-    
+
     textPainter.paint(
       canvas,
       Offset(32 - textPainter.width / 2, 32 - textPainter.height / 2),
@@ -269,7 +271,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       ),
     );
     textPainter.layout();
-    
+
     textPainter.paint(
       canvas,
       Offset(32 - textPainter.width / 2, 32 - textPainter.height / 2),
@@ -544,7 +546,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     const R = 6371000.0; // Earth radius in meters
     final dLat = (lat2 - lat1) * math.pi / 180.0;
     final dLon = (lon2 - lon1) * math.pi / 180.0;
-    final a = math.sin(dLat / 2.0) * math.sin(dLat / 2.0) +
+    final a =
+        math.sin(dLat / 2.0) * math.sin(dLat / 2.0) +
         math.cos(lat1 * math.pi / 180.0) *
             math.cos(lat2 * math.pi / 180.0) *
             math.sin(dLon / 2.0) *
@@ -559,28 +562,34 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     final driverLng = _trackingData!.driverLng;
     final dest = _order!.deliveryAddress;
     if (driverLat == null || driverLng == null || dest == null) return null;
-    
+
     final destLat = dest.lat;
     final destLng = dest.lng;
     if (destLat == null || destLng == null) return null;
 
-    final distanceInMeters = _getDistance(driverLat, driverLng, destLat, destLng);
-    
+    final distanceInMeters = _getDistance(
+      driverLat,
+      driverLng,
+      destLat,
+      destLng,
+    );
+
     // Average urban speed: 25 km/h (motorcycle delivery)
     const speedKmh = 25.0;
     final timeInSeconds = distanceInMeters / (speedKmh * 1000.0 / 3600.0);
     final timeInMinutes = (timeInSeconds / 60.0).round();
-    
+
     return timeInMinutes <= 0 ? 1 : timeInMinutes;
   }
 
   Widget _buildTrackingPanel(ThemeData theme) {
     final driverName = _trackingData?.driverName ?? 'tracking.driver'.tr();
     final driverPhoto = _trackingData?.driverAvatar;
-    
+
     // Dynamically calculate the driver-to-destination ETA in minutes
     final dynamicEtaMinutes = _calculateDynamicEta();
-    final etaMinutes = dynamicEtaMinutes ?? _etaData?.etaMinutes ?? _trackingData?.etaMinutes;
+    final etaMinutes =
+        dynamicEtaMinutes ?? _etaData?.etaMinutes ?? _trackingData?.etaMinutes;
 
     String etaDisplay = '--:--';
     if (etaMinutes != null) {
@@ -678,7 +687,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                   decoration: BoxDecoration(
                     color: AppTheme.honeySoft,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.honey.withValues(alpha: 0.2)),
+                    border: Border.all(
+                      color: AppTheme.honey.withValues(alpha: 0.2),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -727,7 +738,9 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppTheme.honey.withValues(alpha: 0.15)),
+                          border: Border.all(
+                            color: AppTheme.honey.withValues(alpha: 0.15),
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: AppTheme.honey.withValues(alpha: 0.05),

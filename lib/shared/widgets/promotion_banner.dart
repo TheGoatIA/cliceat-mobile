@@ -5,11 +5,7 @@ class PromotionBanner extends StatelessWidget {
   final List<Map<String, dynamic>> promotions;
   final Function(Map<String, dynamic>)? onTap;
 
-  const PromotionBanner({
-    super.key,
-    required this.promotions,
-    this.onTap,
-  });
+  const PromotionBanner({super.key, required this.promotions, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -44,16 +40,19 @@ class PromotionBanner extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                   if (imageUrl != null)
+                  if (imageUrl != null)
                     CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
-                      placeholder: (_, _) => Container(color: Colors.grey.shade200),
-                      errorWidget: (_, _, _) => Container(color: Theme.of(context).colorScheme.primary),
+                      placeholder: (_, _) =>
+                          Container(color: Colors.grey.shade200),
+                      errorWidget: (_, _, _) => Container(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     )
                   else
                     Container(color: Theme.of(context).colorScheme.primary),
-                  
+
                   // Gradient overlay
                   Container(
                     decoration: BoxDecoration(

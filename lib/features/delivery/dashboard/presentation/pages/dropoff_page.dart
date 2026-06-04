@@ -92,7 +92,7 @@ class _DropoffPageState extends State<DropoffPage> {
                             color: AppTheme.primaryRed.withValues(alpha: 0.15),
                             blurRadius: 8,
                             spreadRadius: 1,
-                          )
+                          ),
                         ]
                       : AppTheme.shadowSm,
                 ),

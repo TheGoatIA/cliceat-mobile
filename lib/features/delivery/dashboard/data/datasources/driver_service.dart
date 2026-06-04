@@ -19,12 +19,14 @@ abstract class DriverService extends ChopperService {
   /// PATCH /delivery/me/status  — { isOnline: bool }
   @PATCH(path: '/me/status')
   Future<Response<Map<String, dynamic>>> updateStatus(
-      @Body() Map<String, dynamic> statusData);
+    @Body() Map<String, dynamic> statusData,
+  );
 
   /// PATCH /delivery/me/location — { lat, lng }
   @PATCH(path: '/me/location')
   Future<Response<Map<String, dynamic>>> updateLocation(
-      @Body() Map<String, dynamic> locationData);
+    @Body() Map<String, dynamic> locationData,
+  );
 
   /// POST /delivery/register (Multipart)
   @POST(path: '/register')

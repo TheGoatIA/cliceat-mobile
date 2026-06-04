@@ -29,7 +29,9 @@ class NotificationModel extends Equatable {
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
-      data: json['data'] is Map ? Map<String, dynamic>.from(json['data'] as Map) : null,
+      data: json['data'] is Map
+          ? Map<String, dynamic>.from(json['data'] as Map)
+          : null,
     );
   }
 

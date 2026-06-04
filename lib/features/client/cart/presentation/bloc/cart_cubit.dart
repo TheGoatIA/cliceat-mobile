@@ -41,6 +41,7 @@ class CartItem {
 
 class CartState {
   final List<CartItem> items;
+
   /// Dynamic delivery fee from the restaurant (defaults to AppConstants).
   final double deliveryFee;
 
@@ -50,9 +51,9 @@ class CartState {
   });
 
   CartState copyWith({List<CartItem>? items, double? deliveryFee}) => CartState(
-        items: items ?? this.items,
-        deliveryFee: deliveryFee ?? this.deliveryFee,
-      );
+    items: items ?? this.items,
+    deliveryFee: deliveryFee ?? this.deliveryFee,
+  );
 
   double get subtotal =>
       items.fold(0, (sum, item) => sum + item.price * item.quantity);
@@ -79,16 +80,18 @@ class CartCubit extends Cubit<CartState> {
   Future<void> loadCart() async {
     final rows = await _db.select(_db.cartTable).get();
     final items = rows
-        .map((row) => CartItem(
-              id: row.id,
-              restaurantId: row.restaurantId,
-              itemId: row.itemId,
-              name: row.name,
-              price: row.price,
-              quantity: row.quantity,
-              variation: row.variationJson,
-              notes: row.notes,
-            ))
+        .map(
+          (row) => CartItem(
+            id: row.id,
+            restaurantId: row.restaurantId,
+            itemId: row.itemId,
+            name: row.name,
+            price: row.price,
+            quantity: row.quantity,
+            variation: row.variationJson,
+            notes: row.notes,
+          ),
+        )
         .toList();
     emit(state.copyWith(items: items));
     _analytics.logViewCart(state.subtotal);
@@ -113,8 +116,9 @@ class CartCubit extends Cubit<CartState> {
     }
 
     // Increment quantity if item already in cart (same itemId + variation)
-    final existing = state.items
-        .where((i) => i.itemId == itemId && i.variation == variation);
+    final existing = state.items.where(
+      (i) => i.itemId == itemId && i.variation == variation,
+    );
     if (existing.isNotEmpty) {
       await updateQuantity(existing.first.id, existing.first.quantity + 1);
       if (deliveryFee != null) {
@@ -123,16 +127,21 @@ class CartCubit extends Cubit<CartState> {
       return;
     }
 
-    final id = '${itemId}_${variation ?? ''}_${DateTime.now().millisecondsSinceEpoch}';
-    await _db.into(_db.cartTable).insert(CartTableCompanion.insert(
-          id: id,
-          restaurantId: restaurantId,
-          itemId: itemId,
-          name: name,
-          price: price,
-          variationJson: drift.Value(variation),
-          notes: drift.Value(notes),
-        ));
+    final id =
+        '${itemId}_${variation ?? ''}_${DateTime.now().millisecondsSinceEpoch}';
+    await _db
+        .into(_db.cartTable)
+        .insert(
+          CartTableCompanion.insert(
+            id: id,
+            restaurantId: restaurantId,
+            itemId: itemId,
+            name: name,
+            price: price,
+            variationJson: drift.Value(variation),
+            notes: drift.Value(notes),
+          ),
+        );
     await loadCart();
     if (deliveryFee != null) {
       emit(state.copyWith(deliveryFee: deliveryFee));
@@ -155,8 +164,9 @@ class CartCubit extends Cubit<CartState> {
       await removeItem(id);
       return;
     }
-    await (_db.update(_db.cartTable)..where((t) => t.id.equals(id)))
-        .write(CartTableCompanion(quantity: drift.Value(quantity)));
+    await (_db.update(_db.cartTable)..where((t) => t.id.equals(id))).write(
+      CartTableCompanion(quantity: drift.Value(quantity)),
+    );
     await loadCart();
   }
 

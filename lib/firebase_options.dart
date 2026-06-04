@@ -63,5 +63,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'cliceat-78a4d.firebasestorage.app',
     iosBundleId: 'com.tbg.cliceat',
   );
-
 }

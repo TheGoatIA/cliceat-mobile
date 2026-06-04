@@ -21,7 +21,8 @@ class AddressModel {
     final coords = loc?['coordinates'] as List<dynamic>?;
     return AddressModel(
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
-      address: json['address']?.toString() ??
+      address:
+          json['address']?.toString() ??
           json['formattedAddress']?.toString() ??
           '',
       label: json['label']?.toString(),
@@ -36,11 +37,11 @@ class AddressModel {
   }
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'address': address,
-        if (label != null) 'label': label,
-        if (lat != null) 'lat': lat,
-        if (lng != null) 'lng': lng,
-        if (city != null) 'city': city,
-      };
+    '_id': id,
+    'address': address,
+    if (label != null) 'label': label,
+    if (lat != null) 'lat': lat,
+    if (lng != null) 'lng': lng,
+    if (city != null) 'city': city,
+  };
 }

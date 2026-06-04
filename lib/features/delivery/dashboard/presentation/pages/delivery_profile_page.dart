@@ -68,7 +68,10 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2))
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
+            )
           : SingleChildScrollView(
               child: Column(
                 children: [
@@ -254,10 +257,15 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
         title: Text(
           title,
           style: GoogleFonts.inter(
-              fontWeight: FontWeight.w500, fontSize: 14, color: AppTheme.ink),
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+            color: AppTheme.ink,
+          ),
         ),
-        trailing: const Icon(Icons.chevron_right_rounded,
-            color: AppTheme.mutedLight),
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          color: AppTheme.mutedLight,
+        ),
         onTap: () {
           HapticFeedback.lightImpact();
           onTap();
@@ -279,20 +287,22 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
               title: Text(
                 'profile.logout_confirm_title'.tr(),
                 style: GoogleFonts.bricolageGrotesque(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: AppTheme.ink),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: AppTheme.ink,
+                ),
               ),
               content: Text(
                 'profile.logout_confirm_message'.tr(),
-                style: GoogleFonts.inter(
-                    fontSize: 14, color: AppTheme.inkSoft),
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('common.cancel'.tr(),
-                      style: GoogleFonts.inter(color: AppTheme.muted)),
+                  child: Text(
+                    'common.cancel'.tr(),
+                    style: GoogleFonts.inter(color: AppTheme.muted),
+                  ),
                 ),
                 TextButton(
                   onPressed: () {
@@ -302,8 +312,9 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
                   child: Text(
                     'profile.logout'.tr(),
                     style: GoogleFonts.inter(
-                        color: AppTheme.primaryRed,
-                        fontWeight: FontWeight.w600),
+                      color: AppTheme.primaryRed,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -314,9 +325,12 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
           foregroundColor: AppTheme.primaryRed,
           side: const BorderSide(color: AppTheme.primaryRed, width: 1.5),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16)),
-          textStyle:
-              GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         icon: const Icon(Icons.logout, size: 18),
         label: Text('profile.logout'.tr()),
@@ -328,7 +342,7 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
     final profileState = context.read<ProfileCubit>().state;
     String selectedVehicleType = 'motorcycle';
     String initialPlate = '';
-    
+
     profileState.maybeWhen(
       loaded: (user) {
         selectedVehicleType = user.vehicleType ?? 'motorcycle';
@@ -351,20 +365,30 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
           padding: EdgeInsets.only(
-              left: 24, right: 24, top: 24,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('delivery.my_vehicle'.tr(),
-                  style: GoogleFonts.bricolageGrotesque(fontWeight: FontWeight.w700, fontSize: 20, color: AppTheme.ink)),
+              Text(
+                'delivery.my_vehicle'.tr(),
+                style: GoogleFonts.bricolageGrotesque(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                  color: AppTheme.ink,
+                ),
+              ),
               const SizedBox(height: 16),
-              
+
               if (!isEditing) ...[
                 // Read-only view
                 Container(
@@ -377,18 +401,44 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('delivery.vehicle_type'.tr(), style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted)),
+                      Text(
+                        'delivery.vehicle_type'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppTheme.muted,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
-                        vehicleTypes.firstWhere((vt) => vt.$1 == selectedVehicleType, orElse: () => vehicleTypes.first).$2.tr(),
-                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.ink),
+                        vehicleTypes
+                            .firstWhere(
+                              (vt) => vt.$1 == selectedVehicleType,
+                              orElse: () => vehicleTypes.first,
+                            )
+                            .$2
+                            .tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.ink,
+                        ),
                       ),
                       const Divider(height: 24, color: AppTheme.lineSoft),
-                      Text('delivery.vehicle_plate'.tr(), style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted)),
+                      Text(
+                        'delivery.vehicle_plate'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppTheme.muted,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         initialPlate.isEmpty ? '-' : initialPlate,
-                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.ink),
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.ink,
+                        ),
                       ),
                     ],
                   ),
@@ -404,15 +454,29 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.primaryRed,
                       side: const BorderSide(color: AppTheme.primaryRed),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: Text('payout.edit_account'.tr(), style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                    child: Text(
+                      'payout.edit_account'.tr(),
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ] else ...[
                 // Edit view
-                Text('delivery.vehicle_type'.tr(),
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.inkSoft)),
+                Text(
+                  'delivery.vehicle_type'.tr(),
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: AppTheme.inkSoft,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -422,7 +486,8 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
                     return ChoiceChip(
                       label: Text(labelKey.tr()),
                       selected: selected,
-                      onSelected: (_) => setSheetState(() => selectedVehicleType = value),
+                      onSelected: (_) =>
+                          setSheetState(() => selectedVehicleType = value),
                     );
                   }).toList(),
                 ),
@@ -434,7 +499,9 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
                     labelText: 'delivery.vehicle_plate'.tr(),
                     hintText: 'LT 1234 CM',
                     prefixIcon: const Icon(Icons.pin_outlined),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -444,41 +511,45 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
                   child: ElevatedButton(
                     onPressed: () async {
                       Navigator.pop(ctx);
-                      final result = await getIt<UserRepository>().updateProfile({
-                        'deliveryman': {
-                          'vehicleType': selectedVehicleType,
-                          'vehiclePlate':
-                              plateCtrl.text.trim().toUpperCase(),
-                        }
-                      });
-
-                    result.fold(
-                      (err) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(err.message.tr())),
-                          );
-                        }
-                      },
-                      (user) {
-                        if (mounted) {
-                          setState(() {
-                            _user = user;
+                      final result = await getIt<UserRepository>()
+                          .updateProfile({
+                            'deliveryman': {
+                              'vehicleType': selectedVehicleType,
+                              'vehiclePlate': plateCtrl.text
+                                  .trim()
+                                  .toUpperCase(),
+                            },
                           });
-                          context.read<ProfileCubit>().emitLoaded(user);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Véhicule mis à jour avec succès"),
-                              backgroundColor: AppTheme.successColor,
-                            ),
-                          );
-                        }
-                      },
-                    );
-                  },
-                  child: Text('common.save'.tr()),
+
+                      result.fold(
+                        (err) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(err.message.tr())),
+                            );
+                          }
+                        },
+                        (user) {
+                          if (mounted) {
+                            setState(() {
+                              _user = user;
+                            });
+                            context.read<ProfileCubit>().emitLoaded(user);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Véhicule mis à jour avec succès",
+                                ),
+                                backgroundColor: AppTheme.successColor,
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    },
+                    child: Text('common.save'.tr()),
+                  ),
                 ),
-              ),
               ],
             ],
           ),
@@ -493,23 +564,35 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
-            left: 24, right: 24, top: 24,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('profile.edit_profile'.tr(),
-                style: GoogleFonts.bricolageGrotesque(fontWeight: FontWeight.w700, fontSize: 20, color: AppTheme.ink)),
+            Text(
+              'profile.edit_profile'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                color: AppTheme.ink,
+              ),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: nameController,
               decoration: InputDecoration(
                 labelText: 'profile.name'.tr(),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -518,9 +601,10 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  final result = await getIt<UserRepository>().updateProfile(
-                      {'name': nameController.text.trim()});
-                  
+                  final result = await getIt<UserRepository>().updateProfile({
+                    'name': nameController.text.trim(),
+                  });
+
                   result.fold(
                     (err) {
                       if (mounted) {
@@ -559,7 +643,8 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) => const NotificationSettingsSheet(),
     );
   }
@@ -568,18 +653,20 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('profile.language'.tr(),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'profile.language'.tr(),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             ListTile(
               leading: const Text('🇫🇷', style: TextStyle(fontSize: 24)),
@@ -613,27 +700,41 @@ class _DeliveryProfilePageState extends State<DeliveryProfilePage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.help_outline, size: 48, color: AppTheme.primaryRed),
+            const Icon(
+              Icons.help_outline,
+              size: 48,
+              color: AppTheme.primaryRed,
+            ),
             const SizedBox(height: 16),
             Text(
               'profile.help'.tr(),
               style: GoogleFonts.bricolageGrotesque(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 20,
-                  color: AppTheme.ink),
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                color: AppTheme.ink,
+              ),
             ),
             const SizedBox(height: 16),
-            Text(_supportEmail,
-                style: GoogleFonts.inter(fontSize: 16, color: AppTheme.ink, fontWeight: FontWeight.w600)),
+            Text(
+              _supportEmail,
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                color: AppTheme.ink,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text('WhatsApp: $_supportWhatsApp',
-                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted)),
+            Text(
+              'WhatsApp: $_supportWhatsApp',
+              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+            ),
           ],
         ),
       ),

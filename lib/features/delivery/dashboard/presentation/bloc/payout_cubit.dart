@@ -23,15 +23,22 @@ class PayoutCubit extends Cubit<PayoutState> {
     final payoutsRes = results[0] as Either;
     final accountRes = results[1] as Either;
 
-    payoutsRes.fold(
-      (err) => emit(PayoutState.error(err.message)),
-      (payouts) {
-        accountRes.fold(
-          (err) => emit(PayoutState.loaded(payouts: payouts.cast<Map<String, dynamic>>(), account: null)),
-          (account) => emit(PayoutState.loaded(payouts: payouts.cast<Map<String, dynamic>>(), account: account as Map<String, dynamic>)),
-        );
-      },
-    );
+    payoutsRes.fold((err) => emit(PayoutState.error(err.message)), (payouts) {
+      accountRes.fold(
+        (err) => emit(
+          PayoutState.loaded(
+            payouts: payouts.cast<Map<String, dynamic>>(),
+            account: null,
+          ),
+        ),
+        (account) => emit(
+          PayoutState.loaded(
+            payouts: payouts.cast<Map<String, dynamic>>(),
+            account: account as Map<String, dynamic>,
+          ),
+        ),
+      );
+    });
   }
 
   Future<void> requestPayout(double amount) async {

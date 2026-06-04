@@ -67,7 +67,8 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
               backgroundColor: AppTheme.primaryRed,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
         }
@@ -75,8 +76,9 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
       }
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       String addressStr = 'address.current_location'.tr();
@@ -84,14 +86,17 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
 
       try {
         final url = Uri.parse(
-            'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.latitude}&lon=${position.longitude}&zoom=18&addressdetails=1');
-        final response = await http.get(
-          url,
-          headers: {
-            'User-Agent': 'ClicEat-App-Mobile/1.0.0 (contact@cliceat.com)',
-            'Accept-Language': 'fr',
-          },
-        ).timeout(const Duration(seconds: 4));
+          'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.latitude}&lon=${position.longitude}&zoom=18&addressdetails=1',
+        );
+        final response = await http
+            .get(
+              url,
+              headers: {
+                'User-Agent': 'ClicEat-App-Mobile/1.0.0 (contact@cliceat.com)',
+                'Accept-Language': 'fr',
+              },
+            )
+            .timeout(const Duration(seconds: 4));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -102,7 +107,8 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
               addressStr = displayName;
             }
             if (addressObj != null) {
-              final neighborhood = addressObj['neighbourhood']?.toString() ??
+              final neighborhood =
+                  addressObj['neighbourhood']?.toString() ??
                   addressObj['suburb']?.toString() ??
                   addressObj['quarter']?.toString() ??
                   addressObj['city_district']?.toString() ??
@@ -133,7 +139,8 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
             backgroundColor: AppTheme.primaryRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -183,7 +190,11 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                 color: AppTheme.redSoft,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.add, color: AppTheme.primaryRed, size: 20),
+              child: const Icon(
+                Icons.add,
+                color: AppTheme.primaryRed,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -191,18 +202,24 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2))
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
+            )
           : Column(
               children: [
                 InkWell(
                   onTap: _gpsLoading ? null : _useCurrentLocation,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       border: Border(
-                          bottom: BorderSide(color: AppTheme.lineSoft)),
+                        bottom: BorderSide(color: AppTheme.lineSoft),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -219,11 +236,16 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                                   height: 20,
                                   child: Center(
                                     child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: AppTheme.primaryRed),
-                                  ))
-                              : const Icon(Icons.my_location,
-                                  color: AppTheme.primaryRed, size: 20),
+                                      strokeWidth: 2,
+                                      color: AppTheme.primaryRed,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.my_location,
+                                  color: AppTheme.primaryRed,
+                                  size: 20,
+                                ),
                         ),
                         const SizedBox(width: 14),
                         Text(
@@ -251,8 +273,11 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                                   color: AppTheme.bgWarm,
                                   borderRadius: BorderRadius.circular(40),
                                 ),
-                                child: const Icon(Icons.location_off_outlined,
-                                    size: 36, color: AppTheme.muted),
+                                child: const Icon(
+                                  Icons.location_off_outlined,
+                                  size: 36,
+                                  color: AppTheme.muted,
+                                ),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -268,7 +293,9 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                               Text(
                                 'address.add_first'.tr(),
                                 style: GoogleFonts.inter(
-                                    fontSize: 14, color: AppTheme.muted),
+                                  fontSize: 14,
+                                  color: AppTheme.muted,
+                                ),
                               ),
                               const SizedBox(height: 20),
                               SizedBox(
@@ -282,8 +309,8 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                                     foregroundColor: Colors.white,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(14)),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -304,8 +331,7 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(16),
-                                  border:
-                                      Border.all(color: AppTheme.lineSoft),
+                                  border: Border.all(color: AppTheme.lineSoft),
                                   boxShadow: AppTheme.shadowSm,
                                 ),
                                 child: Row(
@@ -315,12 +341,13 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                                       height: 44,
                                       decoration: BoxDecoration(
                                         color: AppTheme.redSoft,
-                                        borderRadius:
-                                            BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: const Icon(Icons.location_on,
-                                          color: AppTheme.primaryRed,
-                                          size: 20),
+                                      child: const Icon(
+                                        Icons.location_on,
+                                        color: AppTheme.primaryRed,
+                                        size: 20,
+                                      ),
                                     ),
                                     const SizedBox(width: 14),
                                     Expanded(
@@ -340,14 +367,17 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                                             Text(
                                               addr.address,
                                               style: GoogleFonts.inter(
-                                                  fontSize: 12,
-                                                  color: AppTheme.muted),
+                                                fontSize: 12,
+                                                color: AppTheme.muted,
+                                              ),
                                             ),
                                         ],
                                       ),
                                     ),
-                                    const Icon(Icons.chevron_right_rounded,
-                                        color: AppTheme.mutedLight),
+                                    const Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: AppTheme.mutedLight,
+                                    ),
                                   ],
                                 ),
                               ),

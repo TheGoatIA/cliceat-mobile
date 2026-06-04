@@ -52,27 +52,28 @@ class OrderRepository extends BaseRepository {
     try {
       final res = await _orderService.estimateOrder(payload);
       if (!res.isSuccessful) {
-        return Left(AppError.fromResponse(
-          res.body ?? res.error,
-          'order.estimate_failed',
-          statusCode: res.statusCode,
-        ));
+        return Left(
+          AppError.fromResponse(
+            res.body ?? res.error,
+            'order.estimate_failed',
+            statusCode: res.statusCode,
+          ),
+        );
       }
 
       if (res.body == null) {
-        return Left(const AppError(
-          message: 'common.error_empty_response',
-          type: AppErrorType.server,
-        ));
+        return Left(
+          const AppError(
+            message: 'common.error_empty_response',
+            type: AppErrorType.server,
+          ),
+        );
       }
 
       final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
       return Right(data);
     } catch (e) {
-      return Left(AppError(
-        message: e.toString(),
-        type: AppErrorType.unknown,
-      ));
+      return Left(AppError(message: e.toString(), type: AppErrorType.unknown));
     }
   }
 
@@ -84,18 +85,22 @@ class OrderRepository extends BaseRepository {
     try {
       final res = await _orderService.createOrder(payload);
       if (!res.isSuccessful) {
-        return Left(AppError.fromResponse(
-          res.body ?? res.error,
-          'order.error_create',
-          statusCode: res.statusCode,
-        ));
+        return Left(
+          AppError.fromResponse(
+            res.body ?? res.error,
+            'order.error_create',
+            statusCode: res.statusCode,
+          ),
+        );
       }
 
       if (res.body == null) {
-        return Left(const AppError(
-          message: 'common.error_empty_response',
-          type: AppErrorType.server,
-        ));
+        return Left(
+          const AppError(
+            message: 'common.error_empty_response',
+            type: AppErrorType.server,
+          ),
+        );
       }
 
       final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
@@ -107,11 +112,13 @@ class OrderRepository extends BaseRepository {
         if (method == 'wallet') {
           final payRes = await _walletService.payOrder({'orderId': order.id});
           if (!payRes.isSuccessful) {
-            return Left(AppError.fromResponse(
-              payRes.body ?? payRes.error,
-              'payment.failed',
-              statusCode: payRes.statusCode,
-            ));
+            return Left(
+              AppError.fromResponse(
+                payRes.body ?? payRes.error,
+                'payment.failed',
+                statusCode: payRes.statusCode,
+              ),
+            );
           }
           order = OrderModel(
             id: order.id,
@@ -130,7 +137,9 @@ class OrderRepository extends BaseRepository {
             rating: order.rating,
             invoiceUrl: order.invoiceUrl,
           );
-        } else if (method == 'orange_money' || method == 'mtn_momo' || method == 'wave') {
+        } else if (method == 'orange_money' ||
+            method == 'mtn_momo' ||
+            method == 'wave') {
           final initRes = await _paymentService.initializePayment({
             'orderId': order.id,
             'method': method,
@@ -138,13 +147,16 @@ class OrderRepository extends BaseRepository {
             'cancelUrl': 'cliceat://payment/cancel',
           });
           if (!initRes.isSuccessful) {
-            return Left(AppError.fromResponse(
-              initRes.body ?? initRes.error,
-              'payment.failed',
-              statusCode: initRes.statusCode,
-            ));
+            return Left(
+              AppError.fromResponse(
+                initRes.body ?? initRes.error,
+                'payment.failed',
+                statusCode: initRes.statusCode,
+              ),
+            );
           }
-          final initData = initRes.body!['data'] as Map<String, dynamic>? ?? initRes.body!;
+          final initData =
+              initRes.body!['data'] as Map<String, dynamic>? ?? initRes.body!;
           final paymentUrl = initData['paymentUrl'] as String?;
           order = OrderModel(
             id: order.id,
@@ -184,7 +196,8 @@ class OrderRepository extends BaseRepository {
         final data = res.body!['data'];
         List<dynamic> raw = [];
         if (data is Map<String, dynamic>) {
-          raw = (data['items'] as List<dynamic>?) ??
+          raw =
+              (data['items'] as List<dynamic>?) ??
               (data['orders'] as List<dynamic>?) ??
               [];
         } else if (data is List) {
@@ -228,7 +241,10 @@ class OrderRepository extends BaseRepository {
 
   // ─── Cancel ───────────────────────────────────────────────────────────────
 
-  Future<Either<AppError, void>> cancelOrder(String id, [String? reason]) async {
+  Future<Either<AppError, void>> cancelOrder(
+    String id, [
+    String? reason,
+  ]) async {
     try {
       final res = await _orderService.cancelOrder(id, {
         'reason': reason ?? 'Annulation par le client',

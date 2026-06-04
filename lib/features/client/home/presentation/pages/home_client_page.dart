@@ -316,7 +316,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
     // Apply quick strip filter
     if (_selectedFilter.startsWith('Top') || _selectedFilter == 'Premium') {
-      final filteredByRating = filteredList.where((r) => (r.rating ?? 0.0) >= 4.0).toList();
+      final filteredByRating = filteredList
+          .where((r) => (r.rating ?? 0.0) >= 4.0)
+          .toList();
       if (filteredByRating.isNotEmpty) {
         filteredList = filteredByRating;
       } else {
@@ -334,7 +336,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
     } else if (_selectedFilter == 'Ouvert maintenant') {
       filteredList = filteredList.where((r) => r.isOpen == true).toList();
     } else if (_selectedFilter == '⭐ 4.5+') {
-      final filteredByRating = filteredList.where((r) => (r.rating ?? 0.0) >= 4.5).toList();
+      final filteredByRating = filteredList
+          .where((r) => (r.rating ?? 0.0) >= 4.5)
+          .toList();
       if (filteredByRating.isNotEmpty) {
         filteredList = filteredByRating;
       } else {

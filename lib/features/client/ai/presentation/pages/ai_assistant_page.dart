@@ -53,8 +53,11 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 color: AppTheme.primaryRed,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.psychology_rounded,
-                  color: Colors.white, size: 18),
+              child: const Icon(
+                Icons.psychology_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 10),
             Text(
@@ -93,7 +96,9 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                         controller: _scrollController,
                         reverse: true,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         itemCount: messages.length + (isTyping ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (isTyping && index == 0) {
@@ -102,7 +107,9 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                               child: Container(
                                 margin: const EdgeInsets.symmetric(vertical: 4),
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: const BorderRadius.only(
@@ -127,8 +134,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                           }
 
                           final msgIndex = isTyping ? index - 1 : index;
-                          final msg =
-                              messages[messages.length - 1 - msgIndex];
+                          final msg = messages[messages.length - 1 - msgIndex];
                           final isUser = msg.role == 'user';
 
                           return Align(
@@ -138,13 +144,17 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                             child: Container(
                               margin: const EdgeInsets.symmetric(vertical: 4),
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 12),
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
                               constraints: BoxConstraints(
                                 maxWidth:
                                     MediaQuery.of(context).size.width * 0.78,
                               ),
                               decoration: BoxDecoration(
-                                color: isUser ? AppTheme.primaryRed : Colors.white,
+                                color: isUser
+                                    ? AppTheme.primaryRed
+                                    : Colors.white,
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(16),
                                   topRight: const Radius.circular(16),
@@ -160,7 +170,9 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                                 msg.content,
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
-                                  color: isUser ? Colors.white : AppTheme.inkSoft,
+                                  color: isUser
+                                      ? Colors.white
+                                      : AppTheme.inkSoft,
                                   height: 1.5,
                                 ),
                               ),
@@ -172,7 +184,9 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
               if (state.maybeWhen(error: (e) => true, orElse: () => false))
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -182,7 +196,9 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                     child: Text(
                       state.maybeWhen(error: (e) => e, orElse: () => ''),
                       style: GoogleFonts.inter(
-                          color: AppTheme.primaryRed, fontSize: 13),
+                        color: AppTheme.primaryRed,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ),
@@ -208,8 +224,11 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 color: AppTheme.redSoft,
                 borderRadius: BorderRadius.circular(40),
               ),
-              child: const Icon(Icons.psychology_rounded,
-                  size: 40, color: AppTheme.primaryRed),
+              child: const Icon(
+                Icons.psychology_rounded,
+                size: 40,
+                color: AppTheme.primaryRed,
+              ),
             ),
             const SizedBox(height: 20),
             Text(
@@ -228,7 +247,10 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
               'Pose-moi une question sur les restaurants,\ntes commandes ou les livraisons.',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
-                  fontSize: 14, color: AppTheme.muted, height: 1.5),
+                fontSize: 14,
+                color: AppTheme.muted,
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -267,15 +289,18 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 ),
                 child: TextField(
                   controller: _controller,
-                  style: GoogleFonts.inter(
-                      fontSize: 14, color: AppTheme.ink),
+                  style: GoogleFonts.inter(fontSize: 14, color: AppTheme.ink),
                   decoration: InputDecoration(
                     hintText: 'ai.ask_hint'.tr(),
                     hintStyle: GoogleFonts.inter(
-                        fontSize: 14, color: AppTheme.mutedLight),
+                      fontSize: 14,
+                      color: AppTheme.mutedLight,
+                    ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                   ),
                   onSubmitted: (_) => _sendMessage(),
                 ),
@@ -291,8 +316,11 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                   color: AppTheme.primaryRed,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.send_rounded,
-                    color: Colors.white, size: 18),
+                child: const Icon(
+                  Icons.send_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
             ),
           ],

@@ -16,7 +16,9 @@ class FeatureGateSliver extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ConfigBloc, ConfigState>(
       builder: (context, state) {
-        final isEnabled = context.read<ConfigBloc>().isFeatureEnabled(featureKey);
+        final isEnabled = context.read<ConfigBloc>().isFeatureEnabled(
+          featureKey,
+        );
         if (isEnabled) {
           return child;
         }

@@ -40,29 +40,29 @@ class MessageModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'conversationId': conversationId,
-        'senderId': senderId,
-        'senderRole': senderRole,
-        'content': content,
-        'type': type,
-        if (fileUrl != null) 'fileUrl': fileUrl,
-        'isRead': isRead,
-        'createdAt': createdAt.toIso8601String(),
-      };
+    '_id': id,
+    'conversationId': conversationId,
+    'senderId': senderId,
+    'senderRole': senderRole,
+    'content': content,
+    'type': type,
+    if (fileUrl != null) 'fileUrl': fileUrl,
+    'isRead': isRead,
+    'createdAt': createdAt.toIso8601String(),
+  };
 
   @override
   List<Object?> get props => [
-        id,
-        conversationId,
-        senderId,
-        senderRole,
-        content,
-        type,
-        fileUrl,
-        isRead,
-        createdAt
-      ];
+    id,
+    conversationId,
+    senderId,
+    senderRole,
+    content,
+    type,
+    fileUrl,
+    isRead,
+    createdAt,
+  ];
 }
 
 class ConversationModel extends Equatable {
@@ -107,27 +107,27 @@ class ConversationModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'type': type,
-        if (participantName != null) 'participantName': participantName,
-        if (participantAvatar != null) 'participantAvatar': participantAvatar,
-        if (restaurantId != null) 'restaurantId': restaurantId,
-        if (orderId != null) 'orderId': orderId,
-        'unreadCount': unreadCount,
-        if (lastMessage != null) 'lastMessage': lastMessage!.toJson(),
-        'updatedAt': updatedAt.toIso8601String(),
-      };
+    '_id': id,
+    'type': type,
+    if (participantName != null) 'participantName': participantName,
+    if (participantAvatar != null) 'participantAvatar': participantAvatar,
+    if (restaurantId != null) 'restaurantId': restaurantId,
+    if (orderId != null) 'orderId': orderId,
+    'unreadCount': unreadCount,
+    if (lastMessage != null) 'lastMessage': lastMessage!.toJson(),
+    'updatedAt': updatedAt.toIso8601String(),
+  };
 
   @override
   List<Object?> get props => [
-        id,
-        type,
-        participantName,
-        participantAvatar,
-        restaurantId,
-        orderId,
-        unreadCount,
-        lastMessage,
-        updatedAt
-      ];
+    id,
+    type,
+    participantName,
+    participantAvatar,
+    restaurantId,
+    orderId,
+    unreadCount,
+    lastMessage,
+    updatedAt,
+  ];
 }

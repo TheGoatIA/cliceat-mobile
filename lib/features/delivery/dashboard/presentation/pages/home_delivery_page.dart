@@ -54,8 +54,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    _missionBloc = getIt<MissionBloc>()
-      ..add(MissionEvent.loadActiveMissions());
+    _missionBloc = getIt<MissionBloc>()..add(MissionEvent.loadActiveMissions());
 
     _wsSubscription = getIt<WebSocketService>().missionEvents.listen((data) {
       _missionBloc.add(MissionEvent.loadActiveMissions());
@@ -114,8 +113,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
 
     setState(() => _isTogglingStatus = true);
 
-    final result =
-        await getIt<DriverRepository>().updateOnlineStatus(newValue);
+    final result = await getIt<DriverRepository>().updateOnlineStatus(newValue);
 
     if (!mounted) return;
     result.fold(
@@ -149,12 +147,13 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                   ? 'delivery.now_online'.tr()
                   : 'delivery.now_offline'.tr(),
             ),
-            backgroundColor:
-                _isOnline ? AppTheme.successColor : AppTheme.statusDefault,
+            backgroundColor: _isOnline
+                ? AppTheme.successColor
+                : AppTheme.statusDefault,
             duration: const Duration(seconds: 2),
           ),
         );
-        
+
         // Analytics
         if (_isOnline) {
           getIt<AnalyticsService>().logDriverOnline(true);
@@ -172,23 +171,30 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     // sans attendre un déplacement de 30m. Sinon le backend n'a jamais
     // les coordonnées du livreur et le dispatch échoue ("no drivers available").
     Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-    ).then((pos) {
-      getIt<DriverRepository>().updateLocation(pos.latitude, pos.longitude);
-      _logger.i('[GPS] Position initiale envoyée: ${pos.latitude}, ${pos.longitude}');
-    }).catchError((e) {
-      _logger.e('[GPS] Erreur position initiale: $e');
-    });
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+          ),
+        )
+        .then((pos) {
+          getIt<DriverRepository>().updateLocation(pos.latitude, pos.longitude);
+          _logger.i(
+            '[GPS] Position initiale envoyée: ${pos.latitude}, ${pos.longitude}',
+          );
+        })
+        .catchError((e) {
+          _logger.e('[GPS] Erreur position initiale: $e');
+        });
 
     // Puis continuer le suivi en continu
-    _locationSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // Réduit à 10m pour meilleure réactivité
-      ),
-    ).listen((pos) {
-      getIt<DriverRepository>().updateLocation(pos.latitude, pos.longitude);
-    });
+    _locationSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10, // Réduit à 10m pour meilleure réactivité
+          ),
+        ).listen((pos) {
+          getIt<DriverRepository>().updateLocation(pos.latitude, pos.longitude);
+        });
   }
 
   void _stopLocationTracking() {
@@ -197,8 +203,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
   }
 
   void _promptResumeDelivery(MissionModel mission) {
-    final isEnRoute = mission.status == 'picked_up' || mission.status == 'en_route';
-    
+    final isEnRoute =
+        mission.status == 'picked_up' || mission.status == 'en_route';
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -207,7 +214,11 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
         backgroundColor: Colors.white,
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: AppTheme.primaryRed, size: 28),
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: AppTheme.primaryRed,
+              size: 28,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -231,7 +242,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Plus tard',
-              style: GoogleFonts.inter(color: AppTheme.muted, fontWeight: FontWeight.w500),
+              style: GoogleFonts.inter(
+                color: AppTheme.muted,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           ElevatedButton(
@@ -249,12 +263,17 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryRed,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             child: Text(
               'Reprendre',
-              style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600),
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -277,10 +296,12 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 .toList();
 
             final activeMissions = allMissions
-                .where((m) =>
-                    m.status != 'delivered' &&
-                    m.status != 'cancelled' &&
-                    m.status != 'anomaly')
+                .where(
+                  (m) =>
+                      m.status != 'delivered' &&
+                      m.status != 'cancelled' &&
+                      m.status != 'anomaly',
+                )
                 .toList();
 
             if (activeMissions.isNotEmpty && !_hasPromptedResume) {
@@ -304,10 +325,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
           backgroundColor: Colors.white,
           onRefresh: () async {
             HapticFeedback.mediumImpact();
-            await Future.wait([
-              _loadEarnings(),
-              _loadInitialStatus(),
-            ]);
+            await Future.wait([_loadEarnings(), _loadInitialStatus()]);
             _missionBloc.add(MissionEvent.loadActiveMissions());
           },
           child: CustomScrollView(
@@ -354,8 +372,11 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               color: AppTheme.primaryRed,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.delivery_dining,
-                color: Colors.white, size: 20),
+            child: const Icon(
+              Icons.delivery_dining,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 10),
           Text(
@@ -471,9 +492,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 ),
                 child: Icon(
                   _isOnline ? Icons.wifi_tethering : Icons.wifi_tethering_off,
-                  color: _isOnline
-                      ? AppTheme.successColor
-                      : AppTheme.muted,
+                  color: _isOnline ? AppTheme.successColor : AppTheme.muted,
                   size: 26,
                 ),
               ),
@@ -486,10 +505,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               children: [
                 Text(
                   'delivery.status_label'.tr(),
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppTheme.muted,
-                  ),
+                  style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
                 ),
                 const SizedBox(height: 2),
                 AnimatedSwitcher(
@@ -502,9 +518,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                     style: GoogleFonts.bricolageGrotesque(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: _isOnline
-                          ? AppTheme.green
-                          : AppTheme.muted,
+                      color: _isOnline ? AppTheme.green : AppTheme.muted,
                       letterSpacing: -0.4,
                     ),
                   ),
@@ -516,18 +530,14 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
             const SizedBox(
               width: 40,
               height: 24,
-              child: Center(
-                child:
-                    CircularProgressIndicator(strokeWidth: 2.5),
-              ),
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2.5)),
             )
           else
             Transform.scale(
               scale: 1.1,
               child: Switch(
                 value: _isOnline,
-                activeTrackColor:
-                    AppTheme.successColor.withValues(alpha: 0.4),
+                activeTrackColor: AppTheme.successColor.withValues(alpha: 0.4),
                 activeThumbColor: AppTheme.successColor,
                 inactiveTrackColor: AppTheme.bgWarm,
                 onChanged: _toggleOnlineStatus,
@@ -558,7 +568,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                   color: AppTheme.primaryRed.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
-                )
+                ),
               ]
             : null,
       ),
@@ -641,9 +651,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
         ? mission.id.substring(mission.id.length - 6)
         : mission.id;
 
-    final isEnRoute = mission.status == 'picked_up' || mission.status == 'en_route';
+    final isEnRoute =
+        mission.status == 'picked_up' || mission.status == 'en_route';
     final statusColor = isEnRoute ? AppTheme.primaryRed : AppTheme.honey;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -669,7 +680,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -709,16 +723,20 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               ],
             ),
           ),
-          
+
           const Divider(height: 1, color: AppTheme.lineSoft),
-          
+
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.storefront_outlined, color: AppTheme.muted, size: 20),
+                    const Icon(
+                      Icons.storefront_outlined,
+                      color: AppTheme.muted,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -757,7 +775,11 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 ),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, color: AppTheme.muted, size: 20),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      color: AppTheme.muted,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -783,10 +805,14 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                         ],
                       ),
                     ),
-                    if (mission.clientPhone != null && mission.clientPhone!.isNotEmpty) ...[
+                    if (mission.clientPhone != null &&
+                        mission.clientPhone!.isNotEmpty) ...[
                       const SizedBox(width: 8),
                       IconButton(
-                        icon: const Icon(Icons.phone_in_talk_rounded, color: AppTheme.green),
+                        icon: const Icon(
+                          Icons.phone_in_talk_rounded,
+                          color: AppTheme.green,
+                        ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () async {
@@ -806,7 +832,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               ],
             ),
           ),
-          
+
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Row(
@@ -837,7 +863,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                     HapticFeedback.mediumImpact();
                     final Future<dynamic> nav = isEnRoute
                         ? context.push('/delivery/dropoff', extra: mission)
-                        : context.push('/delivery/active-navigation', extra: mission);
+                        : context.push(
+                            '/delivery/active-navigation',
+                            extra: mission,
+                          );
                     nav.then((_) {
                       if (!mounted) return;
                       _missionBloc.add(MissionEvent.loadActiveMissions());
@@ -852,7 +881,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -887,10 +919,12 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 .toList();
 
             final activeMissions = allMissions
-                .where((m) =>
-                    m.status != 'delivered' &&
-                    m.status != 'cancelled' &&
-                    m.status != 'anomaly')
+                .where(
+                  (m) =>
+                      m.status != 'delivered' &&
+                      m.status != 'cancelled' &&
+                      m.status != 'anomaly',
+                )
                 .toList();
 
             final recentMissions = allMissions
@@ -912,7 +946,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ...activeMissions.map((m) => _buildActiveMissionCard(m, theme)),
+                  ...activeMissions.map(
+                    (m) => _buildActiveMissionCard(m, theme),
+                  ),
                   const SizedBox(height: 24),
                 ],
                 Text(
@@ -969,10 +1005,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
           const SizedBox(height: 12),
           Text(
             'delivery.no_recent_deliveries'.tr(),
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppTheme.muted,
-            ),
+            style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
             textAlign: TextAlign.center,
           ),
         ],
@@ -1023,11 +1056,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 const SizedBox(height: 2),
                 Text(
                   'delivery.delivered_to'.tr(
-                      args: [mission.clientName ?? 'Client']),
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppTheme.muted,
+                    args: [mission.clientName ?? 'Client'],
                   ),
+                  style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
                 ),
               ],
             ),

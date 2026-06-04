@@ -7,13 +7,10 @@ import 'package:chopper/chopper.dart';
 class TimeoutInterceptor implements Interceptor {
   final Duration receiveTimeout;
 
-  const TimeoutInterceptor({
-    this.receiveTimeout = const Duration(seconds: 30),
-  });
+  const TimeoutInterceptor({this.receiveTimeout = const Duration(seconds: 30)});
 
   @override
-  Future<Response<BodyType>> intercept<BodyType>(
-      Chain<BodyType> chain) async {
+  Future<Response<BodyType>> intercept<BodyType>(Chain<BodyType> chain) async {
     final future = chain.proceed(chain.request);
     return (future as Future<Response<BodyType>>).timeout(
       receiveTimeout,

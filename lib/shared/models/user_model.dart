@@ -39,7 +39,13 @@ class UserModel {
           json['photoUrl']?.toString(),
       city: json['city']?.toString(),
       role: json['role']?.toString(),
-      balance: ((json['balance'] ?? json['walletBalance'] ?? json['wallet']?['balance'] ?? 0) as num).toDouble(),
+      balance:
+          ((json['balance'] ??
+                      json['walletBalance'] ??
+                      json['wallet']?['balance'] ??
+                      0)
+                  as num)
+              .toDouble(),
       vehicleType: json['vehicleType']?.toString(),
       vehiclePlate: json['vehiclePlate']?.toString(),
       notificationPreferences:

@@ -57,9 +57,14 @@ class EmptyState extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryRed,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                child: Text(actionLabel!, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                child: Text(
+                  actionLabel!,
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ],
@@ -70,8 +75,11 @@ class EmptyState extends StatelessWidget {
 
   Widget _buildIllustration() {
     if (imagePath != null) {
-      return Image.asset(imagePath!, height: 160,
-          errorBuilder: (_, _, _) => _iconFallback());
+      return Image.asset(
+        imagePath!,
+        height: 160,
+        errorBuilder: (_, _, _) => _iconFallback(),
+      );
     }
     return _iconFallback();
   }

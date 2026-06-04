@@ -63,7 +63,8 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
         child: SingleChildScrollView(
           child: Container(
             constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height -
+              minHeight:
+                  MediaQuery.of(context).size.height -
                   MediaQuery.of(context).padding.top -
                   MediaQuery.of(context).padding.bottom,
             ),
@@ -93,8 +94,8 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   _loading
                       ? 'order.success_title'.tr()
                       : (_order?.paymentMethod?.toLowerCase() == 'cash'
-                          ? 'Commande enregistrée !'
-                          : 'order.success_title'.tr()),
+                            ? 'Commande enregistrée !'
+                            : 'order.success_title'.tr()),
                   style: GoogleFonts.bricolageGrotesque(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
@@ -109,8 +110,8 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   _loading
                       ? 'order.success_message'.tr()
                       : (_order?.paymentMethod?.toLowerCase() == 'cash'
-                          ? 'Votre commande avec paiement à la livraison a été enregistrée. Elle sera traitée dès qu\'un administrateur l\'aura confirmée.'
-                          : 'order.success_message'.tr()),
+                            ? 'Votre commande avec paiement à la livraison a été enregistrée. Elle sera traitée dès qu\'un administrateur l\'aura confirmée.'
+                            : 'order.success_message'.tr()),
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     color: AppTheme.muted,
@@ -123,7 +124,9 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                 // Order ID box
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 14),
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -157,8 +160,10 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
 
                 // ETA badge
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.honeySoft,
                     borderRadius: BorderRadius.circular(14),
@@ -166,8 +171,11 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.timer_outlined,
-                          color: AppTheme.honey, size: 18),
+                      const Icon(
+                        Icons.timer_outlined,
+                        color: AppTheme.honey,
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'order.estimated_delivery'.tr(),
@@ -188,7 +196,8 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton.icon(
-                    onPressed: () => context.go('/client/tracking/${widget.orderId}'),
+                    onPressed: () =>
+                        context.go('/client/tracking/${widget.orderId}'),
                     icon: const Icon(Icons.location_on_rounded, size: 18),
                     label: Text(
                       'order.track_order'.tr(),
@@ -202,7 +211,8 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ),
@@ -218,7 +228,8 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                       foregroundColor: AppTheme.inkSoft,
                       side: const BorderSide(color: AppTheme.line),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     child: Text(
                       'order.back_to_home'.tr(),

@@ -303,8 +303,11 @@ class _WalletPageState extends State<WalletPage> {
                 final type = tx['type']?.toString() ?? '';
                 final status = tx['status']?.toString() ?? 'initiated';
                 final amount = (tx['amount'] as num? ?? 0).toDouble();
-                final date = DateTime.tryParse(tx['createdAt']?.toString() ?? '') ?? DateTime.now();
-                final description = tx['description']?.toString() ?? _fallbackDescription(type);
+                final date =
+                    DateTime.tryParse(tx['createdAt']?.toString() ?? '') ??
+                    DateTime.now();
+                final description =
+                    tx['description']?.toString() ?? _fallbackDescription(type);
                 final method = tx['method']?.toString() ?? '';
 
                 // Config visuelle selon le type
@@ -360,7 +363,8 @@ class _WalletPageState extends State<WalletPage> {
                                     color: AppTheme.muted,
                                   ),
                                 ),
-                                if (method.isNotEmpty && type != 'recharge') ...[
+                                if (method.isNotEmpty &&
+                                    type != 'recharge') ...[
                                   const SizedBox(width: 6),
                                   Container(
                                     width: 3,
@@ -421,7 +425,11 @@ class _WalletPageState extends State<WalletPage> {
               padding: const EdgeInsets.all(32),
               child: Column(
                 children: [
-                  const Icon(Icons.error_outline, color: AppTheme.primaryRed, size: 36),
+                  const Icon(
+                    Icons.error_outline,
+                    color: AppTheme.primaryRed,
+                    size: 36,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     msg,
@@ -609,7 +617,10 @@ class _WalletPageState extends State<WalletPage> {
                     value: 'orange_money',
                     child: Text('wallet.orange_money'.tr()),
                   ),
-                  DropdownMenuItem(value: 'mtn_momo', child: Text('wallet.mtn_momo'.tr())),
+                  DropdownMenuItem(
+                    value: 'mtn_momo',
+                    child: Text('wallet.mtn_momo'.tr()),
+                  ),
                 ],
                 onChanged: (v) => setDialogState(() => method = v!),
               ),

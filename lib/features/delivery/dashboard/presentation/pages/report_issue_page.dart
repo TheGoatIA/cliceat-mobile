@@ -28,9 +28,9 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
     'Adresse incorrecte ou introuvable',
     'Problème avec la commande (Restaurant)',
     'Accident / Panne mécanique',
-    'Autre urgence'
+    'Autre urgence',
   ];
-  
+
   bool _isLoading = false;
 
   @override
@@ -75,14 +75,18 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.warning_amber_rounded,
-                          color: AppTheme.primaryRed),
+                      const Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppTheme.primaryRed,
+                      ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
                           'Les signalements sont traités par notre service client en priorité.',
                           style: GoogleFonts.inter(
-                              fontSize: 13, color: AppTheme.inkSoft),
+                            fontSize: 13,
+                            color: AppTheme.inkSoft,
+                          ),
                         ),
                       ),
                     ],
@@ -104,15 +108,21 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                     setState(() => _selectedReason = value);
                   },
                   child: Column(
-                    children: _reasons.map((reason) => RadioListTile<String>(
-                      title: Text(
-                        reason,
-                        style: GoogleFonts.inter(
-                            fontSize: 14, color: AppTheme.ink),
-                      ),
-                      value: reason,
-                      activeColor: AppTheme.primaryRed,
-                    )).toList(),
+                    children: _reasons
+                        .map(
+                          (reason) => RadioListTile<String>(
+                            title: Text(
+                              reason,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: AppTheme.ink,
+                              ),
+                            ),
+                            value: reason,
+                            activeColor: AppTheme.primaryRed,
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -125,12 +135,13 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                   child: TextField(
                     controller: _detailsController,
                     maxLines: 4,
-                    style:
-                        GoogleFonts.inter(fontSize: 14, color: AppTheme.ink),
+                    style: GoogleFonts.inter(fontSize: 14, color: AppTheme.ink),
                     decoration: InputDecoration(
                       hintText: 'Détails supplémentaires...',
                       hintStyle: GoogleFonts.inter(
-                          fontSize: 14, color: AppTheme.mutedLight),
+                        fontSize: 14,
+                        color: AppTheme.mutedLight,
+                      ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.all(16),
                     ),
@@ -140,36 +151,40 @@ class _ReportIssuePageState extends State<ReportIssuePage> {
                 PrimaryButton(
                   text: 'Envoyer l\'alerte',
                   isLoading: _isLoading,
-                  onPressed: _selectedReason != null ? () async {
-                    HapticFeedback.heavyImpact();
-                    setState(() => _isLoading = true);
-                    try {
-                      await getIt<MissionService>().reportMission(
-                        widget.missionId,
-                        {
-                          'reason': _selectedReason,
-                          'details': _detailsController.text,
-                        },
-                      );
-                      if(mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('common.report_sent'.tr())),
-                        );
-                        context.pop();
-                      }
-                    } catch (e) {
-                      _logger.e('Error reporting mission: $e');
-                      if(mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('common.network_error'.tr())),
-                        );
-                      }
-                    } finally {
-                      if(mounted) {
-                        setState(() => _isLoading = false);
-                      }
-                    }
-                  } : () {},
+                  onPressed: _selectedReason != null
+                      ? () async {
+                          HapticFeedback.heavyImpact();
+                          setState(() => _isLoading = true);
+                          try {
+                            await getIt<MissionService>()
+                                .reportMission(widget.missionId, {
+                                  'reason': _selectedReason,
+                                  'details': _detailsController.text,
+                                });
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('common.report_sent'.tr()),
+                                ),
+                              );
+                              context.pop();
+                            }
+                          } catch (e) {
+                            _logger.e('Error reporting mission: $e');
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('common.network_error'.tr()),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() => _isLoading = false);
+                            }
+                          }
+                        }
+                      : () {},
                 ),
               ],
             ),

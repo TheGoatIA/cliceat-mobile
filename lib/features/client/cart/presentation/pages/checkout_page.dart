@@ -46,7 +46,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void initState() {
     super.initState();
     ScreenProtector.preventScreenshotOn();
-    
+
     // Select first enabled payment method based on platform configuration
     final configState = context.read<ConfigBloc>().state;
     final paymentConfig = configState.maybeWhen(
@@ -126,10 +126,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     });
 
     final items = cartState.items
-        .map((item) => {
-              'menuItemId': item.itemId,
-              'quantity': item.quantity,
-            })
+        .map((item) => {'menuItemId': item.itemId, 'quantity': item.quantity})
         .toList();
 
     final payload = {
@@ -137,8 +134,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
       'paymentMethod': _selectedPaymentMethod,
       'deliveryAddress': {
         'address': _selectedAddress?['address'] ?? AppConstants.defaultCity,
-        'lat': (_selectedAddress?['lat'] as num?)?.toDouble() ?? AppConstants.defaultLat,
-        'lng': (_selectedAddress?['lng'] as num?)?.toDouble() ?? AppConstants.defaultLng,
+        'lat':
+            (_selectedAddress?['lat'] as num?)?.toDouble() ??
+            AppConstants.defaultLat,
+        'lng':
+            (_selectedAddress?['lng'] as num?)?.toDouble() ??
+            AppConstants.defaultLng,
       },
       'items': items,
       if (_appliedCoupon != null) 'couponCode': _appliedCoupon!.code,
@@ -155,7 +156,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
       },
       (data) {
         setState(() {
-          _estimatedDeliveryFee = (data['deliveryFee'] as num?)?.toDouble() ?? 2000.0;
+          _estimatedDeliveryFee =
+              (data['deliveryFee'] as num?)?.toDouble() ?? 2000.0;
           _estimatedTotal = (data['total'] as num?)?.toDouble();
           _couponDiscount = (data['discount'] as num?)?.toDouble() ?? 0.0;
           _estimating = false;
@@ -188,8 +190,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           border: Border.all(color: AppTheme.line),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 18, color: AppTheme.ink),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 18,
+                          color: AppTheme.ink,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -240,14 +245,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       paymentUrl.isNotEmpty) {
                                     // S'il y a un paiement en ligne à effectuer, on ne vide pas encore le panier.
                                     // Il sera vidé par le DeepLinkService lors du retour avec paiement validé.
-                                    context.push('/client/payment', extra: {
-                                      'paymentUrl': paymentUrl,
-                                      'orderId': orderId,
-                                    });
+                                    context.push(
+                                      '/client/payment',
+                                      extra: {
+                                        'paymentUrl': paymentUrl,
+                                        'orderId': orderId,
+                                      },
+                                    );
                                   } else {
                                     // Pour le paiement à la livraison (Cash on Delivery) ou portefeuille, on vide de suite.
                                     context.read<CartCubit>().clearCart();
-                                    context.go('/client/order-success/$orderId');
+                                    context.go(
+                                      '/client/order-success/$orderId',
+                                    );
                                   }
                                 },
                                 error: (message) {
@@ -257,8 +267,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       backgroundColor: AppTheme.primaryRed,
                                       behavior: SnackBarBehavior.floating,
                                       shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12)),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                   );
                                 },
@@ -267,20 +277,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             },
                             builder: (context, orderState) {
                               final isLoading = orderState.maybeWhen(
-                                  loading: () => true, orElse: () => false);
+                                loading: () => true,
+                                orElse: () => false,
+                              );
                               return SizedBox(
                                 width: double.infinity,
                                 height: 52,
                                 child: ElevatedButton(
-                                  onPressed:
-                                      isLoading ? null : () => _onConfirm(context),
+                                  onPressed: isLoading
+                                      ? null
+                                      : () => _onConfirm(context),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.primaryRed,
                                     foregroundColor: Colors.white,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(16)),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
                                   ),
                                   child: isLoading
                                       ? const SizedBox(
@@ -320,9 +333,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final cartState = context.read<CartCubit>().state;
     final restaurantId = cartState.restaurantId ?? '';
     if (restaurantId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('cart.empty'.tr())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('cart.empty'.tr())));
       return;
     }
 
@@ -338,10 +351,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
 
     final items = cartState.items
-        .map((item) => {
-              'menuItemId': item.itemId,
-              'quantity': item.quantity,
-            })
+        .map((item) => {'menuItemId': item.itemId, 'quantity': item.quantity})
         .toList();
 
     final notes = _notesController.text.trim();
@@ -349,11 +359,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
       'restaurantId': restaurantId,
       'paymentMethod': _selectedPaymentMethod,
       'deliveryAddress': {
-        'address':
-            _selectedAddress?['address'] ?? AppConstants.defaultCity,
-        'lat': (_selectedAddress?['lat'] as num?)?.toDouble() ??
+        'address': _selectedAddress?['address'] ?? AppConstants.defaultCity,
+        'lat':
+            (_selectedAddress?['lat'] as num?)?.toDouble() ??
             AppConstants.defaultLat,
-        'lng': (_selectedAddress?['lng'] as num?)?.toDouble() ??
+        'lng':
+            (_selectedAddress?['lng'] as num?)?.toDouble() ??
             AppConstants.defaultLng,
       },
       'items': items,
@@ -379,7 +390,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 color: AppTheme.redSoft,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.phone_outlined, color: AppTheme.primaryRed, size: 20),
+              child: const Icon(
+                Icons.phone_outlined,
+                color: AppTheme.primaryRed,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -400,7 +415,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
           children: [
             Text(
               'Veuillez renseigner votre numéro de téléphone pour que le livreur puisse vous contacter.',
-              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted, height: 1.5),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppTheme.muted,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -410,11 +429,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
               decoration: InputDecoration(
                 labelText: 'Téléphone',
                 hintText: '+237 6XX XXX XXX',
-                prefixIcon: const Icon(Icons.phone_outlined, color: AppTheme.primaryRed),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(
+                  Icons.phone_outlined,
+                  color: AppTheme.primaryRed,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppTheme.primaryRed, width: 2),
+                  borderSide: const BorderSide(
+                    color: AppTheme.primaryRed,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -423,7 +450,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('common.cancel'.tr(), style: GoogleFonts.inter(color: AppTheme.muted)),
+            child: Text(
+              'common.cancel'.tr(),
+              style: GoogleFonts.inter(color: AppTheme.muted),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -434,9 +464,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
               backgroundColor: AppTheme.primaryRed,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: Text('common.save'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+            child: Text(
+              'common.save'.tr(),
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -444,11 +479,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     if (result != null && result.isNotEmpty && mounted) {
       // Save phone number
-      final saved = await getIt<UserRepository>().updateProfile({'phone': result});
+      final saved = await getIt<UserRepository>().updateProfile({
+        'phone': result,
+      });
       if (!mounted) return;
       saved.fold(
         (err) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(err.message), backgroundColor: AppTheme.primaryRed),
+          SnackBar(
+            content: Text(err.message),
+            backgroundColor: AppTheme.primaryRed,
+          ),
         ),
         (updatedUser) {
           context.read<ProfileCubit>().emitLoaded(updatedUser);
@@ -498,26 +538,26 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 color: AppTheme.redSoft,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.location_on_rounded,
-                  color: AppTheme.primaryRed, size: 20),
+              child: const Icon(
+                Icons.location_on_rounded,
+                color: AppTheme.primaryRed,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 _selectedAddress?['address'] as String? ??
                     AppConstants.defaultCity,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppTheme.inkSoft,
-                ),
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
               ),
             ),
             GestureDetector(
               onTap: () async {
                 HapticFeedback.lightImpact();
-                final addr =
-                    await context.push<Map<String, dynamic>>(
-                        '/client/address-selection');
+                final addr = await context.push<Map<String, dynamic>>(
+                  '/client/address-selection',
+                );
                 if (addr != null && mounted) {
                   setState(() => _selectedAddress = addr);
                   _fetchOrderEstimation();
@@ -542,9 +582,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, cartState) {
         final deliveryFee = _estimatedDeliveryFee ?? cartState.deliveryFee;
-        final total = _estimatedTotal ??
-            (cartState.subtotal + deliveryFee - _couponDiscount)
-                .clamp(0.0, double.infinity);
+        final total =
+            _estimatedTotal ??
+            (cartState.subtotal + deliveryFee - _couponDiscount).clamp(
+              0.0,
+              double.infinity,
+            );
         return _buildSection(
           title: 'checkout.summary'.tr(),
           child: Container(
@@ -711,7 +754,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
       orElse: () => null,
     );
 
-    final showOrange = paymentConfig?.enabledMethods.contains('cm.orange') ?? true;
+    final showOrange =
+        paymentConfig?.enabledMethods.contains('cm.orange') ?? true;
     final showMtn = paymentConfig?.enabledMethods.contains('cm.mtn') ?? true;
     final showWallet = paymentConfig?.walletEnabled ?? true;
     final showCash = paymentConfig?.enabledMethods.contains('cash') ?? true;
@@ -721,11 +765,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
       child: Column(
         children: [
           if (showOrange) ...[
-            _buildPaymentOption(context, 'orange_money', 'checkout.orange_money'.tr(), '🟠'),
+            _buildPaymentOption(
+              context,
+              'orange_money',
+              'checkout.orange_money'.tr(),
+              '🟠',
+            ),
             if (showMtn || showWallet || showCash) const SizedBox(height: 8),
           ],
           if (showMtn) ...[
-            _buildPaymentOption(context, 'mtn_momo', 'checkout.mtn_momo'.tr(), '🟡'),
+            _buildPaymentOption(
+              context,
+              'mtn_momo',
+              'checkout.mtn_momo'.tr(),
+              '🟡',
+            ),
             if (showWallet || showCash) const SizedBox(height: 8),
           ],
           if (showWallet) ...[
@@ -733,7 +787,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
             if (showCash) const SizedBox(height: 8),
           ],
           if (showCash)
-            _buildPaymentOption(context, 'cash', 'checkout.cash_on_delivery'.tr(), '💵'),
+            _buildPaymentOption(
+              context,
+              'cash',
+              'checkout.cash_on_delivery'.tr(),
+              '💵',
+            ),
         ],
       ),
     );
@@ -773,15 +832,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 title,
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected ? AppTheme.primaryRed : AppTheme.inkSoft,
                 ),
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle_rounded,
-                  color: AppTheme.primaryRed, size: 20),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: AppTheme.primaryRed,
+                size: 20,
+              ),
           ],
         ),
       ),
@@ -803,8 +864,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
           style: GoogleFonts.inter(fontSize: 14, color: AppTheme.ink),
           decoration: InputDecoration(
             hintText: 'checkout.notes_hint'.tr(),
-            hintStyle:
-                GoogleFonts.inter(fontSize: 14, color: AppTheme.mutedLight),
+            hintStyle: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppTheme.mutedLight,
+            ),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.all(14),
           ),
@@ -845,7 +908,8 @@ class _SummaryRow extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: bold ? 15 : 13,
             fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: valueColor ?? (bold ? AppTheme.primaryRed : AppTheme.inkSoft),
+            color:
+                valueColor ?? (bold ? AppTheme.primaryRed : AppTheme.inkSoft),
           ),
         ),
       ],

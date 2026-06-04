@@ -46,8 +46,10 @@ class MenuItemModel {
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
       nameFr: json['name_fr']?.toString() ?? json['name']?.toString() ?? '',
       nameEn: json['name_en']?.toString() ?? json['name']?.toString() ?? '',
-      descriptionFr: json['description_fr']?.toString() ?? json['description']?.toString(),
-      descriptionEn: json['description_en']?.toString() ?? json['description']?.toString(),
+      descriptionFr:
+          json['description_fr']?.toString() ?? json['description']?.toString(),
+      descriptionEn:
+          json['description_en']?.toString() ?? json['description']?.toString(),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       image: json['image']?.toString() ?? json['imageUrl']?.toString(),
       category: json['category']?.toString(),
@@ -60,18 +62,19 @@ class MenuItemModel {
   }
 
   String getName(String lang) => lang == 'en' ? nameEn : nameFr;
-  String? getDescription(String lang) => lang == 'en' ? descriptionEn : descriptionFr;
+  String? getDescription(String lang) =>
+      lang == 'en' ? descriptionEn : descriptionFr;
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'name_fr': nameFr,
-        'name_en': nameEn,
-        if (descriptionFr != null) 'description_fr': descriptionFr,
-        if (descriptionEn != null) 'description_en': descriptionEn,
-        'price': price,
-        if (image != null) 'image': image,
-        if (category != null) 'category': category,
-        'variations': variations.map((v) => v.toJson()).toList(),
-        'isAvailable': isAvailable,
-      };
+    '_id': id,
+    'name_fr': nameFr,
+    'name_en': nameEn,
+    if (descriptionFr != null) 'description_fr': descriptionFr,
+    if (descriptionEn != null) 'description_en': descriptionEn,
+    'price': price,
+    if (image != null) 'image': image,
+    if (category != null) 'category': category,
+    'variations': variations.map((v) => v.toJson()).toList(),
+    'isAvailable': isAvailable,
+  };
 }

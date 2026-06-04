@@ -26,17 +26,17 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final bg = switch (variant) {
       PrimaryButtonVariant.primary => AppTheme.primaryRed,
-      PrimaryButtonVariant.ghost   => Colors.transparent,
-      PrimaryButtonVariant.honey   => AppTheme.honey,
-      PrimaryButtonVariant.dark    => AppTheme.ink,
-      PrimaryButtonVariant.white   => Colors.white,
+      PrimaryButtonVariant.ghost => Colors.transparent,
+      PrimaryButtonVariant.honey => AppTheme.honey,
+      PrimaryButtonVariant.dark => AppTheme.ink,
+      PrimaryButtonVariant.white => Colors.white,
     };
     final fg = switch (variant) {
       PrimaryButtonVariant.primary => Colors.white,
-      PrimaryButtonVariant.ghost   => AppTheme.primaryRed,
-      PrimaryButtonVariant.honey   => AppTheme.ink,
-      PrimaryButtonVariant.dark    => Colors.white,
-      PrimaryButtonVariant.white   => AppTheme.ink,
+      PrimaryButtonVariant.ghost => AppTheme.primaryRed,
+      PrimaryButtonVariant.honey => AppTheme.ink,
+      PrimaryButtonVariant.dark => Colors.white,
+      PrimaryButtonVariant.white => AppTheme.ink,
     };
     final border = variant == PrimaryButtonVariant.ghost
         ? BorderSide(color: AppTheme.primaryRed, width: 1.5)
@@ -53,8 +53,13 @@ class PrimaryButton extends StatelessWidget {
           elevation: 0,
           side: border,
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         child: isLoading
             ? SizedBox(
