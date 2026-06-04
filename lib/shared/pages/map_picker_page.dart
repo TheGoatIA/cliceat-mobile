@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart' hide Position;
 import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:cliceat_app/core/config/app_constants.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/core/config/flavor_config.dart';
+import 'package:cliceat_app/core/services/location_service.dart';
+import 'package:cliceat_app/core/di/injection.dart';
 
 class MapPickerPage extends StatefulWidget {
   final double? initialLat;
@@ -38,14 +39,23 @@ class _MapPickerPageState extends State<MapPickerPage> {
 
   Future<void> _centerOnUser() async {
     try {
-      final pos = await Geolocator.getCurrentPosition();
-      _mapboxMap?.flyTo(
-        CameraOptions(
-          center: Point(coordinates: Position(pos.longitude, pos.latitude)),
-          zoom: 15,
-        ),
-        MapAnimationOptions(duration: 800),
-      );
+      final locationService = getIt<LocationService>();
+      final pos = await locationService.getCurrentPosition();
+      if (pos != null) {
+        _mapboxMap?.flyTo(
+          CameraOptions(
+            center: Point(coordinates: Position(pos.longitude, pos.latitude)),
+            zoom: 15,
+          ),
+          MapAnimationOptions(duration: 800),
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('client.location_error'.tr())),
+          );
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(

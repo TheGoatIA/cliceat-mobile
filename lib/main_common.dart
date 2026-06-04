@@ -125,17 +125,23 @@ Future<void> _bootstrap() async {
   // Validation du certificat SHA-256 aux lancements (Anti MITM)
   if (FlavorConfig.isProd && EnvConfig.sslFingerprint.isNotEmpty) {
     try {
+      final cleanFingerprint = EnvConfig.sslFingerprint.replaceAll(':', '').trim();
+      final parsedUri = Uri.parse(FlavorConfig.apiBaseUrl);
+      final baseUrl = '${parsedUri.scheme}://${parsedUri.host}';
       final secureResult = await HttpCertificatePinning.check(
-        serverURL: FlavorConfig.apiBaseUrl.split(
-          '/api',
-        )[0], // Extract domain e.g., https://api.cliceat.cm
+        serverURL: baseUrl,
         headerHttp: {},
         sha: SHA.SHA256,
-        allowedSHAFingerprints: [EnvConfig.sslFingerprint.replaceAll(':', '')],
+        allowedSHAFingerprints: [
+          cleanFingerprint.toLowerCase(),
+          cleanFingerprint.toUpperCase(),
+        ],
         timeout: 20,
       );
       if (kDebugMode) print('Cert Pinning OK: $secureResult');
     } catch (e, stack) {
+      debugPrint('🚨 Certificate Pinning Exception: $e');
+      debugPrint('Stacktrace: $stack');
       if (!kDebugMode) {
         FirebaseCrashlytics.instance.recordError(
           e,
@@ -233,7 +239,7 @@ class ClicEatApp extends StatelessWidget {
               locale: context.locale,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-              themeMode: mode,
+              themeMode: ThemeMode.light,
               routerConfig: appRouter,
               debugShowCheckedModeBanner: false,
               builder: (context, child) {

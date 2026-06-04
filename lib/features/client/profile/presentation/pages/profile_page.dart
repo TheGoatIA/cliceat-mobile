@@ -349,6 +349,7 @@ class _ProfilePageState extends State<ProfilePage> {
         _buildSectionHeader('profile.settings'.tr(), theme),
         const SizedBox(height: 8),
         _buildMenuGroup([
+          // Dark Mode toggle is hidden for now, keeping only light theme
           _buildMenuItem(
             icon: Icons.notifications_outlined,
             title: 'profile.notifications'.tr(),
@@ -361,23 +362,6 @@ class _ProfilePageState extends State<ProfilePage> {
             title: 'profile.language'.tr(),
             color: AppTheme.green,
             onTap: () => _showLanguagePicker(context),
-          ),
-          _buildDivider(theme),
-          BlocBuilder<ThemeCubit, ThemeMode>(
-            builder: (context, mode) {
-              return _buildSwitchTile(
-                icon: mode == ThemeMode.dark
-                    ? Icons.dark_mode
-                    : Icons.light_mode,
-                title: 'profile.dark_mode'.tr(),
-                value: mode == ThemeMode.dark,
-                onChanged: (v) {
-                  context.read<ThemeCubit>().setThemeMode(
-                    v ? ThemeMode.dark : ThemeMode.light,
-                  );
-                },
-              );
-            },
           ),
           _buildDivider(theme),
           _buildMenuItem(
