@@ -8,15 +8,16 @@ class AuthInterceptor implements Interceptor {
   AuthInterceptor(this._secureStorage);
 
   @override
-  FutureOr<Response<BodyType>> intercept<BodyType>(Chain<BodyType> chain) async {
+  FutureOr<Response<BodyType>> intercept<BodyType>(
+    Chain<BodyType> chain,
+  ) async {
     final request = chain.request;
     final token = await _secureStorage.read(key: 'jwt_token');
 
     if (token != null && token.isNotEmpty) {
-      final newRequest = request.copyWith(headers: {
-        ...request.headers,
-        'Authorization': 'Bearer $token',
-      });
+      final newRequest = request.copyWith(
+        headers: {...request.headers, 'Authorization': 'Bearer $token'},
+      );
       return chain.proceed(newRequest);
     }
     return chain.proceed(request);

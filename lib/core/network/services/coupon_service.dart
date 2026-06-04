@@ -10,7 +10,8 @@ abstract class CouponService extends ChopperService {
   /// GET /coupons/validate?code=...
   @GET(path: '/validate')
   Future<Response<Map<String, dynamic>>> validateCoupon(
-      @Query('code') String code);
+    @Query('code') String code,
+  );
 
   /// GET /coupons/banners — active marketing banners
   @GET(path: '/banners')

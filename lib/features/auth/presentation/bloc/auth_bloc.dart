@@ -67,7 +67,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     // Écouter les événements de session expirée venant du TokenService
     _subscriptions.add(
-      _tokenService.onSessionExpired.listen((_) => add(const AuthEvent.sessionExpired())),
+      _tokenService.onSessionExpired.listen(
+        (_) => add(const AuthEvent.sessionExpired()),
+      ),
     );
   }
 
@@ -90,8 +92,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
         await _postAuthSetup(token);
         _startSessionTimer(token);
-        emit(AuthState.authenticated(
-            token: token, userId: userId, currentMode: currentMode));
+        emit(
+          AuthState.authenticated(
+            token: token,
+            userId: userId,
+            currentMode: currentMode,
+          ),
+        );
       } else {
         emit(const AuthState.unauthenticated());
       }
@@ -135,8 +142,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           _startSessionTimer(parsed.$1);
           getIt<AnalyticsService>().logLogin('otp');
           getIt<AnalyticsService>().setUserId(parsed.$2);
-          emit(AuthState.authenticated(
-              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+          emit(
+            AuthState.authenticated(
+              token: parsed.$1,
+              userId: parsed.$2,
+              currentMode: 'client',
+            ),
+          );
         } else {
           emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
@@ -151,7 +163,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLoginWithEmail(
-      _LoginWithEmail event, Emitter<AuthState> emit) async {
+    _LoginWithEmail event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.login({
@@ -166,8 +180,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           _startSessionTimer(parsed.$1);
           getIt<AnalyticsService>().logLogin('email');
           getIt<AnalyticsService>().setUserId(parsed.$2);
-          emit(AuthState.authenticated(
-              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+          emit(
+            AuthState.authenticated(
+              token: parsed.$1,
+              userId: parsed.$2,
+              currentMode: 'client',
+            ),
+          );
         } else {
           emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
@@ -182,7 +201,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLoginDelivery(
-      _LoginDelivery event, Emitter<AuthState> emit) async {
+    _LoginDelivery event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.loginDelivery({
@@ -197,8 +218,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           _startSessionTimer(parsed.$1);
           getIt<AnalyticsService>().logLogin('delivery_phone');
           getIt<AnalyticsService>().setUserId(parsed.$2);
-          emit(AuthState.authenticated(
-              token: parsed.$1, userId: parsed.$2, currentMode: 'delivery'));
+          emit(
+            AuthState.authenticated(
+              token: parsed.$1,
+              userId: parsed.$2,
+              currentMode: 'delivery',
+            ),
+          );
         } else {
           emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
@@ -213,7 +239,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLoginWithGoogle(
-      _LoginWithGoogle event, Emitter<AuthState> emit) async {
+    _LoginWithGoogle event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.loginWithFirebase({
@@ -227,8 +255,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           _startSessionTimer(parsed.$1);
           getIt<AnalyticsService>().logLogin('google');
           getIt<AnalyticsService>().setUserId(parsed.$2);
-          emit(AuthState.authenticated(
-              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+          emit(
+            AuthState.authenticated(
+              token: parsed.$1,
+              userId: parsed.$2,
+              currentMode: 'client',
+            ),
+          );
         } else {
           emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
@@ -242,7 +275,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLoginWithApple(
-      _LoginWithApple event, Emitter<AuthState> emit) async {
+    _LoginWithApple event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.loginWithFirebase({
@@ -256,8 +291,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           _startSessionTimer(parsed.$1);
           getIt<AnalyticsService>().logLogin('apple');
           getIt<AnalyticsService>().setUserId(parsed.$2);
-          emit(AuthState.authenticated(
-              token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+          emit(
+            AuthState.authenticated(
+              token: parsed.$1,
+              userId: parsed.$2,
+              currentMode: 'client',
+            ),
+          );
         } else {
           emit(const AuthState.error(message: 'auth.error_invalid_response'));
         }
@@ -287,10 +327,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final requiresVerification =
             body?['requiresEmailVerification'] as bool? ??
             (!hasTokens &&
-                (body?['message']
-                        ?.toString()
-                        .toLowerCase()
-                        .contains('verify') ??
+                (body?['message']?.toString().toLowerCase().contains(
+                      'verify',
+                    ) ??
                     false));
 
         if (requiresVerification || !hasTokens) {
@@ -304,8 +343,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         _startSessionTimer(parsed.$1);
         getIt<AnalyticsService>().logSignUp('email');
         getIt<AnalyticsService>().setUserId(parsed.$2);
-        emit(AuthState.authenticated(
-            token: parsed.$1, userId: parsed.$2, currentMode: 'client'));
+        emit(
+          AuthState.authenticated(
+            token: parsed.$1,
+            userId: parsed.$2,
+            currentMode: 'client',
+          ),
+        );
       } else {
         final msg = _extractError(res.body, 'auth.error_register');
         emit(AuthState.error(message: msg));
@@ -315,8 +359,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthState.error(message: 'common.network_error'));
     }
   }
+
   Future<void> _onRegisterDriver(
-      _RegisterDriver event, Emitter<AuthState> emit) async {
+    _RegisterDriver event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthState.loading());
     try {
       final res = await _driverService.registerDriver(
@@ -333,7 +380,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
 
       if (res.isSuccessful) {
-        emit(const AuthState.driverRegistrationSuccess()); 
+        emit(const AuthState.driverRegistrationSuccess());
       } else {
         final msg = _extractError(res.body, 'auth.error_register');
         emit(AuthState.error(message: msg));
@@ -345,7 +392,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onForgotPassword(
-      _ForgotPassword event, Emitter<AuthState> emit) async {
+    _ForgotPassword event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.forgotPassword({'email': event.email});
@@ -362,7 +411,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onResetPassword(
-      _ResetPassword event, Emitter<AuthState> emit) async {
+    _ResetPassword event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.resetPassword({
@@ -382,7 +433,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onVerifyEmail(
-      _VerifyEmail event, Emitter<AuthState> emit) async {
+    _VerifyEmail event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthState.loading());
     try {
       final res = await _authService.verifyEmail(event.token);
@@ -399,16 +452,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onResendVerificationEmail(
-      _ResendVerificationEmail event, Emitter<AuthState> emit) async {
+    _ResendVerificationEmail event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthState.loading());
     try {
-      final res = await _authService
-          .resendVerificationEmail({'email': event.email});
+      final res = await _authService.resendVerificationEmail({
+        'email': event.email,
+      });
       if (res.isSuccessful) {
         emit(AuthState.emailVerificationRequired(email: event.email));
       } else {
-        final msg =
-            _extractError(res.body, 'auth.error_resend_verification');
+        final msg = _extractError(res.body, 'auth.error_resend_verification');
         emit(AuthState.error(message: msg));
       }
     } catch (e) {
@@ -417,17 +472,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onSwitchMode(
-      _SwitchMode event, Emitter<AuthState> emit) async {
+  Future<void> _onSwitchMode(_SwitchMode event, Emitter<AuthState> emit) async {
     final s = state.mapOrNull(authenticated: (s) => s);
     if (s != null) {
       await _secureStorage.write(key: 'current_mode', value: event.mode);
       getIt<AnalyticsService>().setUserMode(event.mode);
-      emit(AuthState.authenticated(
-        token: s.token,
-        userId: s.userId,
-        currentMode: event.mode,
-      ));
+      emit(
+        AuthState.authenticated(
+          token: s.token,
+          userId: s.userId,
+          currentMode: event.mode,
+        ),
+      );
     }
   }
 
@@ -442,11 +498,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       getIt<WebSocketService>().disconnect();
       getIt<AnalyticsService>().logLogout();
       getIt<AnalyticsService>().clearUser();
-      
+
       // Attempt background logout and FCM revocation
-      unawaited(_authService.logout().timeout(const Duration(seconds: 2)).catchError((_) => null as dynamic));
-      unawaited(_revokeFcmToken().timeout(const Duration(seconds: 3)).catchError((_) => null));
-      
+      unawaited(
+        _authService
+            .logout()
+            .timeout(const Duration(seconds: 2))
+            .catchError((_) => null as dynamic),
+      );
+      unawaited(
+        _revokeFcmToken()
+            .timeout(const Duration(seconds: 3))
+            .catchError((_) => null),
+      );
+
       await _clearCredentials();
     } catch (e) {
       _logger.e('[Auth] Error during background logout: $e');
@@ -454,7 +519,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onSessionExpired(
-      _SessionExpired event, Emitter<AuthState> emit) async {
+    _SessionExpired event,
+    Emitter<AuthState> emit,
+  ) async {
     _logger.w('[Auth] Session expirée — déconnexion automatique.');
     _stopSessionTimer();
     await _cancelSubscriptions();
@@ -469,8 +536,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// Démarre un timer périodique qui vérifie l'expiration du JWT.
   void _startSessionTimer(String token) {
     _stopSessionTimer();
-    _sessionTimer =
-        Timer.periodic(_kSessionCheckInterval, (_) {
+    _sessionTimer = Timer.periodic(_kSessionCheckInterval, (_) {
       if (_tokenService.isTokenExpired(token)) {
         add(const AuthEvent.sessionExpired());
       }
@@ -530,11 +596,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final tokens = map['tokens'] as Map<String, dynamic>?;
       final token = tokens?['accessToken'] as String?;
       final data = map['data'] as Map<String, dynamic>?;
-      final user = data?['user'] as Map<String, dynamic>? ?? 
-                   data?['driver'] as Map<String, dynamic>?;
-                   
-      final userId =
-          user?['_id']?.toString() ?? user?['id']?.toString();
+      final user =
+          data?['user'] as Map<String, dynamic>? ??
+          data?['driver'] as Map<String, dynamic>?;
+
+      final userId = user?['_id']?.toString() ?? user?['id']?.toString();
       if (token != null && userId != null) return (token, userId);
       return null;
     } catch (_) {
@@ -545,9 +611,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   String _extractError(dynamic body, String fallback) {
     try {
       final map = body as Map<String, dynamic>;
-      if (map['details'] != null && map['details'] is List && (map['details'] as List).isNotEmpty) {
+      if (map['details'] != null &&
+          map['details'] is List &&
+          (map['details'] as List).isNotEmpty) {
         final firstDetail = (map['details'] as List).first;
-        if (firstDetail is Map<String, dynamic> && firstDetail['message'] != null) {
+        if (firstDetail is Map<String, dynamic> &&
+            firstDetail['message'] != null) {
           return firstDetail['message'].toString();
         }
       }
@@ -568,7 +637,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final fcmToken = await getIt<NotificationService>().getFcmToken();
       if (fcmToken != null) {
-        await getIt<UserRepository>().unregisterFcmToken(fcmToken).catchError((_) {});
+        await getIt<UserRepository>()
+            .unregisterFcmToken(fcmToken)
+            .catchError((_) {});
       }
       await FirebaseMessaging.instance.deleteToken();
     } catch (e) {

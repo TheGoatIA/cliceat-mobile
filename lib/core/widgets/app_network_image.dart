@@ -53,10 +53,7 @@ class AppNetworkImage extends StatelessWidget {
         height: height,
         fit: fit,
         placeholder: (context, url) => blurHash != null
-            ? BlurHash(
-                hash: blurHash!,
-                imageFit: fit,
-              )
+            ? BlurHash(hash: blurHash!, imageFit: fit)
             : _buildPlaceholder(context),
         errorWidget: (context, url, error) => _buildError(context),
       );
@@ -87,7 +84,9 @@ class AppNetworkImage extends StatelessWidget {
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Icon(
         errorIcon,
-        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
         size: (width ?? 48) * 0.4,
       ),
     );

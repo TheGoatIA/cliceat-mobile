@@ -19,19 +19,28 @@ class CouponRepository {
         final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
         final isValid = data['isValid'] as bool? ?? true;
         if (!isValid) {
-          final reason = data['reason']?.toString() ?? 'checkout.coupon_invalid';
-          return Left(AppError(
-            message: reason,
-            statusCode: res.statusCode,
-            type: AppErrorType.validation,
-          ));
+          final reason =
+              data['reason']?.toString() ?? 'checkout.coupon_invalid';
+          return Left(
+            AppError(
+              message: reason,
+              statusCode: res.statusCode,
+              type: AppErrorType.validation,
+            ),
+          );
         }
         final coupon = CouponModel.fromJson(res.body!);
-        return Right(coupon.code.isEmpty ? coupon.copyWith(code: code) : coupon);
+        return Right(
+          coupon.code.isEmpty ? coupon.copyWith(code: code) : coupon,
+        );
       }
-      return Left(AppError.fromResponse(
-          res.body ?? res.error, 'checkout.coupon_invalid',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body ?? res.error,
+          'checkout.coupon_invalid',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -42,10 +51,12 @@ class CouponRepository {
       final res = await _service.getBanners();
       if (res.isSuccessful && res.body != null) {
         final raw = res.body!['data'] as List<dynamic>? ?? [];
-        return Right(raw
-            .whereType<Map<String, dynamic>>()
-            .map(BannerModel.fromJson)
-            .toList());
+        return Right(
+          raw
+              .whereType<Map<String, dynamic>>()
+              .map(BannerModel.fromJson)
+              .toList(),
+        );
       }
       return Left(AppError.fromResponse(res.body ?? res.error, 'common.error'));
     } catch (_) {
@@ -53,16 +64,17 @@ class CouponRepository {
     }
   }
 
-  Future<Either<AppError, List<CouponModel>>>
-      getAvailableCoupons() async {
+  Future<Either<AppError, List<CouponModel>>> getAvailableCoupons() async {
     try {
       final res = await _service.getAvailableCoupons();
       if (res.isSuccessful && res.body != null) {
         final raw = res.body!['data'] as List<dynamic>? ?? [];
-        return Right(raw
-            .whereType<Map<String, dynamic>>()
-            .map(CouponModel.fromJson)
-            .toList());
+        return Right(
+          raw
+              .whereType<Map<String, dynamic>>()
+              .map(CouponModel.fromJson)
+              .toList(),
+        );
       }
       return Left(AppError.fromResponse(res.body ?? res.error, 'common.error'));
     } catch (_) {

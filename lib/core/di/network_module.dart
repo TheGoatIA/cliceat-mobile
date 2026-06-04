@@ -8,7 +8,7 @@ import '../network/interceptors/retry_interceptor.dart';
 import '../network/interceptors/timeout_interceptor.dart';
 import '../network/interceptors/logging_interceptor.dart';
 import '../services/token_service.dart';
-import '../config/env_config.dart';
+import '../config/flavor_config.dart';
 import '../../features/auth/data/datasources/auth_service.dart';
 import '../../features/client/home/data/datasources/restaurant_service.dart';
 import '../../features/client/cart/data/datasources/order_service.dart';
@@ -35,10 +35,13 @@ import '../network/safe_json_converter.dart';
 abstract class NetworkModule {
   @lazySingleton
   @preResolve
-  Future<ChopperClient> chopperClient(FlutterSecureStorage secureStorage, TokenService tokenService) async {
+  Future<ChopperClient> chopperClient(
+    FlutterSecureStorage secureStorage,
+    TokenService tokenService,
+  ) async {
     final httpClient = await PinnedHttpClientProvider.getClient();
     return ChopperClient(
-      baseUrl: Uri.parse(EnvConfig.apiBaseUrl),
+      baseUrl: Uri.parse(FlavorConfig.apiBaseUrl),
       client: httpClient,
       services: [
         AuthService.create(),
@@ -73,56 +76,74 @@ abstract class NetworkModule {
   }
 
   @lazySingleton
-  AuthService getAuthService(ChopperClient client) => client.getService<AuthService>();
+  AuthService getAuthService(ChopperClient client) =>
+      client.getService<AuthService>();
 
   @lazySingleton
-  RestaurantService getRestaurantService(ChopperClient client) => client.getService<RestaurantService>();
+  RestaurantService getRestaurantService(ChopperClient client) =>
+      client.getService<RestaurantService>();
 
   @lazySingleton
-  OrderService getOrderService(ChopperClient client) => client.getService<OrderService>();
+  OrderService getOrderService(ChopperClient client) =>
+      client.getService<OrderService>();
 
   @lazySingleton
-  PaymentService getPaymentService(ChopperClient client) => client.getService<PaymentService>();
-  
-  @lazySingleton
-  MissionService getMissionService(ChopperClient client) => client.getService<MissionService>();
+  PaymentService getPaymentService(ChopperClient client) =>
+      client.getService<PaymentService>();
 
   @lazySingleton
-  DriverService getDriverService(ChopperClient client) => client.getService<DriverService>();
+  MissionService getMissionService(ChopperClient client) =>
+      client.getService<MissionService>();
 
   @lazySingleton
-  UserService getUserService(ChopperClient client) => client.getService<UserService>();
+  DriverService getDriverService(ChopperClient client) =>
+      client.getService<DriverService>();
 
   @lazySingleton
-  CouponService getCouponService(ChopperClient client) => client.getService<CouponService>();
+  UserService getUserService(ChopperClient client) =>
+      client.getService<UserService>();
 
   @lazySingleton
-  TrackingService getTrackingService(ChopperClient client) => client.getService<TrackingService>();
+  CouponService getCouponService(ChopperClient client) =>
+      client.getService<CouponService>();
 
   @lazySingleton
-  ReferralService getReferralService(ChopperClient client) => client.getService<ReferralService>();
+  TrackingService getTrackingService(ChopperClient client) =>
+      client.getService<TrackingService>();
 
   @lazySingleton
-  AiService getAiService(ChopperClient client) => client.getService<AiService>();
+  ReferralService getReferralService(ChopperClient client) =>
+      client.getService<ReferralService>();
 
   @lazySingleton
-  ReviewService getReviewService(ChopperClient client) => client.getService<ReviewService>();
+  AiService getAiService(ChopperClient client) =>
+      client.getService<AiService>();
 
   @lazySingleton
-  PlatformService getPlatformService(ChopperClient client) => client.getService<PlatformService>();
+  ReviewService getReviewService(ChopperClient client) =>
+      client.getService<ReviewService>();
 
   @lazySingleton
-  ChatService getChatService(ChopperClient client) => client.getService<ChatService>();
+  PlatformService getPlatformService(ChopperClient client) =>
+      client.getService<PlatformService>();
 
   @lazySingleton
-  WalletService getWalletService(ChopperClient client) => client.getService<WalletService>();
+  ChatService getChatService(ChopperClient client) =>
+      client.getService<ChatService>();
 
   @lazySingleton
-  DisputeService getDisputeService(ChopperClient client) => client.getService<DisputeService>();
+  WalletService getWalletService(ChopperClient client) =>
+      client.getService<WalletService>();
 
   @lazySingleton
-  PromotionService getPromotionService(ChopperClient client) => client.getService<PromotionService>();
+  DisputeService getDisputeService(ChopperClient client) =>
+      client.getService<DisputeService>();
 
   @lazySingleton
-  PayoutService getPayoutService(ChopperClient client) => client.getService<PayoutService>();
+  PromotionService getPromotionService(ChopperClient client) =>
+      client.getService<PromotionService>();
+
+  @lazySingleton
+  PayoutService getPayoutService(ChopperClient client) =>
+      client.getService<PayoutService>();
 }

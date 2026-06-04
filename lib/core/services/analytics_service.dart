@@ -9,8 +9,7 @@ class AnalyticsService {
   final FirebaseAnalytics _analytics;
   final Logger _logger;
 
-  AnalyticsService(this._logger)
-      : _analytics = FirebaseAnalytics.instance;
+  AnalyticsService(this._logger) : _analytics = FirebaseAnalytics.instance;
 
   // ─── Auth ─────────────────────────────────────────────────────────────────
 
@@ -40,8 +39,7 @@ class AnalyticsService {
 
   // ─── Restaurant discovery ─────────────────────────────────────────────────
 
-  Future<void> logRestaurantViewed(
-      String restaurantId, String name) async {
+  Future<void> logRestaurantViewed(String restaurantId, String name) async {
     try {
       await _analytics.logViewItem(
         currency: 'XAF',
@@ -79,11 +77,7 @@ class AnalyticsService {
         currency: 'XAF',
         value: price,
         items: [
-          AnalyticsEventItem(
-            itemId: itemId,
-            itemName: itemName,
-            price: price,
-          ),
+          AnalyticsEventItem(itemId: itemId, itemName: itemName, price: price),
         ],
       );
     } catch (e) {
@@ -109,15 +103,11 @@ class AnalyticsService {
     }
   }
 
-  Future<void> logPaymentInitiated(
-      String orderId, String method) async {
+  Future<void> logPaymentInitiated(String orderId, String method) async {
     try {
       await _analytics.logEvent(
         name: 'payment_initiated',
-        parameters: {
-          'order_id': orderId,
-          'payment_method': method,
-        },
+        parameters: {'order_id': orderId, 'payment_method': method},
       );
     } catch (e) {
       _logger.w('Analytics logPaymentInitiated failed: $e');
@@ -145,10 +135,7 @@ class AnalyticsService {
 
   Future<void> logOrderCancelled(String orderId) async {
     try {
-      await _analytics.logRefund(
-        transactionId: orderId,
-        currency: 'XAF',
-      );
+      await _analytics.logRefund(transactionId: orderId, currency: 'XAF');
     } catch (e) {
       _logger.w('Analytics logOrderCancelled failed: $e');
     }

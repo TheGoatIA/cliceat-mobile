@@ -50,7 +50,9 @@ class AppNetworkImage extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest,
+      color:
+          backgroundColor ??
+          Theme.of(context).colorScheme.surfaceContainerHighest,
     );
   }
 
@@ -63,10 +65,14 @@ class AppNetworkImage extends StatelessWidget {
       errorBuilder: (_, _, _) => Container(
         width: width,
         height: height,
-        color: backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest,
+        color:
+            backgroundColor ??
+            Theme.of(context).colorScheme.surfaceContainerHighest,
         child: Icon(
           Icons.restaurant,
-          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
           size: 40,
         ),
       ),

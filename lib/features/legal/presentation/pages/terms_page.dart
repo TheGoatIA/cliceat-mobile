@@ -55,12 +55,30 @@ class _TermsContent extends StatelessWidget {
           style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
         ),
         const SizedBox(height: 24),
-        _Section(title: 'legal.terms_s1_title'.tr(), body: 'legal.terms_s1_body'.tr()),
-        _Section(title: 'legal.terms_s2_title'.tr(), body: 'legal.terms_s2_body'.tr()),
-        _Section(title: 'legal.terms_s3_title'.tr(), body: 'legal.terms_s3_body'.tr()),
-        _Section(title: 'legal.terms_s4_title'.tr(), body: 'legal.terms_s4_body'.tr()),
-        _Section(title: 'legal.terms_s5_title'.tr(), body: 'legal.terms_s5_body'.tr()),
-        _Section(title: 'legal.terms_s6_title'.tr(), body: 'legal.terms_s6_body'.tr()),
+        _Section(
+          title: 'legal.terms_s1_title'.tr(),
+          body: 'legal.terms_s1_body'.tr(),
+        ),
+        _Section(
+          title: 'legal.terms_s2_title'.tr(),
+          body: 'legal.terms_s2_body'.tr(),
+        ),
+        _Section(
+          title: 'legal.terms_s3_title'.tr(),
+          body: 'legal.terms_s3_body'.tr(),
+        ),
+        _Section(
+          title: 'legal.terms_s4_title'.tr(),
+          body: 'legal.terms_s4_body'.tr(),
+        ),
+        _Section(
+          title: 'legal.terms_s5_title'.tr(),
+          body: 'legal.terms_s5_body'.tr(),
+        ),
+        _Section(
+          title: 'legal.terms_s6_title'.tr(),
+          body: 'legal.terms_s6_body'.tr(),
+        ),
         const SizedBox(height: 40),
       ],
     );

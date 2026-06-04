@@ -14,23 +14,27 @@ abstract class UserService extends ChopperService {
   /// PUT /users/me
   @PUT(path: '/me')
   Future<Response<Map<String, dynamic>>> updateMe(
-      @Body() Map<String, dynamic> body);
+    @Body() Map<String, dynamic> body,
+  );
 
   /// PATCH /users/me (Multipart)
   @PATCH(path: '/me')
   @multipart
   Future<Response<Map<String, dynamic>>> updateProfilePhoto(
-      @PartFile('photo') MultipartFile photo);
+    @PartFile('photo') MultipartFile photo,
+  );
 
   /// POST /users/me/device-token — register FCM token with locale
   @POST(path: '/me/device-token')
   Future<Response<Map<String, dynamic>>> registerFcmToken(
-      @Body() Map<String, dynamic> body);
+    @Body() Map<String, dynamic> body,
+  );
 
   /// DELETE /users/me/device-token — unregister FCM token on logout
   @DELETE(path: '/me/device-token')
   Future<Response<Map<String, dynamic>>> unregisterFcmToken(
-      @Body() Map<String, dynamic> body);
+    @Body() Map<String, dynamic> body,
+  );
 
   /// GET /users/me/addresses
   @GET(path: '/me/addresses')
@@ -39,17 +43,19 @@ abstract class UserService extends ChopperService {
   /// POST /users/me/addresses
   @POST(path: '/me/addresses')
   Future<Response<Map<String, dynamic>>> addAddress(
-      @Body() Map<String, dynamic> body);
+    @Body() Map<String, dynamic> body,
+  );
 
   /// DELETE /users/me/addresses/{id}
   @DELETE(path: '/me/addresses/{id}')
-  Future<Response<Map<String, dynamic>>> deleteAddress(
-      @Path('id') String id);
+  Future<Response<Map<String, dynamic>>> deleteAddress(@Path('id') String id);
 
   /// PUT /users/me/addresses/{id}
   @PUT(path: '/me/addresses/{id}')
   Future<Response<Map<String, dynamic>>> updateAddress(
-      @Path('id') String id, @Body() Map<String, dynamic> body);
+    @Path('id') String id,
+    @Body() Map<String, dynamic> body,
+  );
 
   /// GET /users/me/loyalty
   @GET(path: '/me/loyalty')

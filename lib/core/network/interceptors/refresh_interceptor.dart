@@ -41,7 +41,10 @@ class RefreshInterceptor implements Interceptor {
     if (response.statusCode != 401) return response;
 
     final path = chain.request.url.path;
-    if (path.contains('/login') || path.contains('/register') || path.contains('/refresh') || path.contains('/firebase')) {
+    if (path.contains('/login') ||
+        path.contains('/register') ||
+        path.contains('/refresh') ||
+        path.contains('/firebase')) {
       return response;
     }
 

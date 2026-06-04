@@ -14,8 +14,8 @@ class ForceUpdatePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final isEn = context.locale.languageCode == 'en';
     final title = isEn ? 'Update Required' : 'Mise à jour requise';
-    final defaultMsg = isEn 
-        ? 'An important update is available. Please update the app to continue using ClicEat.' 
+    final defaultMsg = isEn
+        ? 'An important update is available. Please update the app to continue using ClicEat.'
         : 'Une mise à jour importante est disponible. Veuillez mettre à jour l\'application pour continuer à utiliser ClicEat.';
     final buttonText = isEn ? 'Update Now' : 'Mettre à jour';
 
@@ -68,7 +68,10 @@ class ForceUpdatePage extends StatelessWidget {
                     onPressed: () async {
                       final uri = Uri.parse(updateUrl!);
                       if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        await launchUrl(
+                          uri,
+                          mode: LaunchMode.externalApplication,
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(

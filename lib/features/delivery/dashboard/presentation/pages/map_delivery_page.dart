@@ -39,7 +39,7 @@ class _MapDeliveryPageState extends State<MapDeliveryPage> {
         enabled: true,
         pulsingEnabled: true,
         pulsingMaxRadius: 50.0,
-      )
+      ),
     );
     mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
     mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
@@ -58,8 +58,13 @@ class _MapDeliveryPageState extends State<MapDeliveryPage> {
         key: const ValueKey("mapDeliveryWidget"),
         styleUri: MapboxStyles.MAPBOX_STREETS,
         cameraOptions: CameraOptions(
-          center: currentPosition != null 
-              ? Point(coordinates: Position(currentPosition!.longitude, currentPosition!.latitude))
+          center: currentPosition != null
+              ? Point(
+                  coordinates: Position(
+                    currentPosition!.longitude,
+                    currentPosition!.latitude,
+                  ),
+                )
               : Point(coordinates: Position(9.7093, 4.0511)),
           zoom: 16.0, // Closer zoom for delivery
           pitch: 45.0, // Tilted perspective
@@ -71,10 +76,15 @@ class _MapDeliveryPageState extends State<MapDeliveryPage> {
           if (currentPosition != null && mapboxMap != null) {
             mapboxMap?.setCamera(
               CameraOptions(
-                center: Point(coordinates: Position(currentPosition!.longitude, currentPosition!.latitude)),
+                center: Point(
+                  coordinates: Position(
+                    currentPosition!.longitude,
+                    currentPosition!.latitude,
+                  ),
+                ),
                 zoom: 16.0,
                 pitch: 45.0,
-              )
+              ),
             );
           }
         },

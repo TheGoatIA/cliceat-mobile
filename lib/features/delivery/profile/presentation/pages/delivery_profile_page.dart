@@ -41,8 +41,11 @@ class DeliveryProfilePage extends StatelessWidget {
                 color: AppTheme.redSoft,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.logout,
-                  color: AppTheme.primaryRed, size: 18),
+              child: const Icon(
+                Icons.logout,
+                color: AppTheme.primaryRed,
+                size: 18,
+              ),
             ),
           ),
         ],
@@ -60,8 +63,11 @@ class DeliveryProfilePage extends StatelessWidget {
                   color: AppTheme.redSoft,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.two_wheeler,
-                    size: 40, color: AppTheme.primaryRed),
+                child: const Icon(
+                  Icons.two_wheeler,
+                  size: 40,
+                  color: AppTheme.primaryRed,
+                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -78,13 +84,18 @@ class DeliveryProfilePage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.star_rounded,
-                      color: AppTheme.honey, size: 18),
+                  const Icon(
+                    Icons.star_rounded,
+                    color: AppTheme.honey,
+                    size: 18,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     '4.8 (124 notes)',
                     style: GoogleFonts.inter(
-                        fontSize: 14, color: AppTheme.muted),
+                      fontSize: 14,
+                      color: AppTheme.muted,
+                    ),
                   ),
                 ],
               ),
@@ -139,17 +150,22 @@ class DeliveryProfilePage extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.primaryRed,
                     side: const BorderSide(
-                        color: AppTheme.primaryRed, width: 1.5),
+                      color: AppTheme.primaryRed,
+                      width: 1.5,
+                    ),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     textStyle: GoogleFonts.inter(
-                        fontSize: 15, fontWeight: FontWeight.w600),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   onPressed: () {
                     HapticFeedback.mediumImpact();
-                    context
-                        .read<AuthBloc>()
-                        .add(const AuthEvent.switchMode(mode: 'client'));
+                    context.read<AuthBloc>().add(
+                      const AuthEvent.switchMode(mode: 'client'),
+                    );
                     context.go('/client');
                   },
                 ),
@@ -176,10 +192,12 @@ class DeliveryProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildListTile(BuildContext context,
-      {required IconData icon,
-      required String title,
-      required VoidCallback onTap}) {
+  Widget _buildListTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -201,22 +219,27 @@ class DeliveryProfilePage extends StatelessWidget {
         title: Text(
           title,
           style: GoogleFonts.inter(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-              color: AppTheme.ink),
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+            color: AppTheme.ink,
+          ),
         ),
-        trailing: const Icon(Icons.chevron_right_rounded,
-            color: AppTheme.mutedLight),
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          color: AppTheme.mutedLight,
+        ),
         onTap: onTap,
       ),
     );
   }
 
-  Widget _buildSwitchTile(BuildContext context,
-      {required IconData icon,
-      required String title,
-      required bool value,
-      required Function(bool) onChanged}) {
+  Widget _buildSwitchTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required bool value,
+    required Function(bool) onChanged,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -238,9 +261,10 @@ class DeliveryProfilePage extends StatelessWidget {
         title: Text(
           title,
           style: GoogleFonts.inter(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-              color: AppTheme.ink),
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+            color: AppTheme.ink,
+          ),
         ),
         value: value,
         onChanged: onChanged,

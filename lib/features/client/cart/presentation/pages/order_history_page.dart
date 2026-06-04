@@ -130,7 +130,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   context: context,
                   backgroundColor: Colors.white,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
                   ),
                   builder: (ctx) => SafeArea(
                     child: Padding(
@@ -178,7 +180,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                     Navigator.pop(ctx);
                                     OpenFilex.open(path);
                                   },
-                                  icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
+                                  icon: const Icon(
+                                    Icons.remove_red_eye_outlined,
+                                    size: 18,
+                                  ),
                                   label: Text('order.view'.tr()),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppTheme.ink,
@@ -186,7 +191,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -202,7 +209,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                       ),
                                     );
                                   },
-                                  icon: const Icon(Icons.share_outlined, size: 18),
+                                  icon: const Icon(
+                                    Icons.share_outlined,
+                                    size: 18,
+                                  ),
                                   label: Text('order.share'.tr()),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.primaryRed,
@@ -211,7 +221,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -411,7 +423,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     }
 
     final rawRestaurant = order['restaurant'] ?? order['restaurantId'];
-    final restaurant = rawRestaurant is Map<String, dynamic> ? rawRestaurant : null;
+    final restaurant = rawRestaurant is Map<String, dynamic>
+        ? rawRestaurant
+        : null;
     final restaurantName =
         restaurant?['name'] as String? ??
         order['restaurantName'] as String? ??
@@ -571,7 +585,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       runSpacing: 4,
                       children: [
                         TextButton.icon(
-                          onPressed: () => _showOrderDetailsBottomSheet(context, order),
+                          onPressed: () =>
+                              _showOrderDetailsBottomSheet(context, order),
                           icon: const Icon(
                             Icons.receipt_long_rounded,
                             size: 16,
@@ -585,9 +600,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             ),
                           ),
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
                         ),
                         if (status == 'pending' || status == 'pending_payment')
@@ -602,8 +615,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             label: Text(
                               'order.cancel'.tr(),
                               style: const TextStyle(
-                                  color: AppTheme.primaryRed,
-                                  fontWeight: FontWeight.w600),
+                                color: AppTheme.primaryRed,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
@@ -700,9 +714,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'order.cancel_dialog_title'.tr(),
           style: GoogleFonts.bricolageGrotesque(
@@ -742,8 +754,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: AppTheme.primaryRed, width: 1.5),
+                  borderSide: const BorderSide(
+                    color: AppTheme.primaryRed,
+                    width: 1.5,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -775,8 +789,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             child: Text(
               'order.cancel_confirm'.tr(),
@@ -789,9 +802,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
     if (confirmed == true && context.mounted) {
       final reason = reasonController.text.trim();
-      _orderBloc.add(
-        CancelOrder(orderId, reason.isEmpty ? null : reason),
-      );
+      _orderBloc.add(CancelOrder(orderId, reason.isEmpty ? null : reason));
     }
     reasonController.dispose();
   }
@@ -812,15 +823,60 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           expand: false,
           builder: (context, scrollController) {
             final statuses = [
-              ('pending_payment', 'order.status_pending_payment'.tr(), 'order.explain_pending_payment'.tr(), AppTheme.statusPending),
-              ('pending', 'order.status_pending'.tr(), 'order.explain_pending'.tr(), AppTheme.statusPending),
-              ('confirmed', 'order.status_confirmed'.tr(), 'order.explain_confirmed'.tr(), AppTheme.statusConfirmed),
-              ('preparing', 'order.status_preparing'.tr(), 'order.explain_preparing'.tr(), AppTheme.statusPreparing),
-              ('ready', 'order.status_ready'.tr(), 'order.explain_ready'.tr(), AppTheme.statusReady),
-              ('en_route', 'order.status_en_route'.tr(), 'order.explain_en_route'.tr(), AppTheme.statusEnRoute),
-              ('delivered', 'order.status_delivered'.tr(), 'order.explain_delivered'.tr(), AppTheme.statusDelivered),
-              ('cancelled', 'order.status_cancelled'.tr(), 'order.explain_cancelled'.tr(), AppTheme.statusCancelled),
-              ('anomaly', 'order.status_anomaly'.tr(), 'order.explain_anomaly'.tr(), AppTheme.statusAnomaly),
+              (
+                'pending_payment',
+                'order.status_pending_payment'.tr(),
+                'order.explain_pending_payment'.tr(),
+                AppTheme.statusPending,
+              ),
+              (
+                'pending',
+                'order.status_pending'.tr(),
+                'order.explain_pending'.tr(),
+                AppTheme.statusPending,
+              ),
+              (
+                'confirmed',
+                'order.status_confirmed'.tr(),
+                'order.explain_confirmed'.tr(),
+                AppTheme.statusConfirmed,
+              ),
+              (
+                'preparing',
+                'order.status_preparing'.tr(),
+                'order.explain_preparing'.tr(),
+                AppTheme.statusPreparing,
+              ),
+              (
+                'ready',
+                'order.status_ready'.tr(),
+                'order.explain_ready'.tr(),
+                AppTheme.statusReady,
+              ),
+              (
+                'en_route',
+                'order.status_en_route'.tr(),
+                'order.explain_en_route'.tr(),
+                AppTheme.statusEnRoute,
+              ),
+              (
+                'delivered',
+                'order.status_delivered'.tr(),
+                'order.explain_delivered'.tr(),
+                AppTheme.statusDelivered,
+              ),
+              (
+                'cancelled',
+                'order.status_cancelled'.tr(),
+                'order.explain_cancelled'.tr(),
+                AppTheme.statusCancelled,
+              ),
+              (
+                'anomaly',
+                'order.status_anomaly'.tr(),
+                'order.explain_anomaly'.tr(),
+                AppTheme.statusAnomaly,
+              ),
             ];
 
             return SafeArea(
@@ -838,7 +894,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -862,14 +921,18 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       controller: scrollController,
                       padding: const EdgeInsets.all(20),
                       itemCount: statuses.length,
-                      separatorBuilder: (_, _) => const Divider(color: AppTheme.lineSoft, height: 24),
+                      separatorBuilder: (_, _) =>
+                          const Divider(color: AppTheme.lineSoft, height: 24),
                       itemBuilder: (context, index) {
                         final (_, label, explanation, color) = statuses[index];
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: color.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(20),
@@ -908,20 +971,33 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     );
   }
 
-  void _showOrderDetailsBottomSheet(BuildContext context, Map<String, dynamic> order) {
+  void _showOrderDetailsBottomSheet(
+    BuildContext context,
+    Map<String, dynamic> order,
+  ) {
     final rawRestaurant = order['restaurant'] ?? order['restaurantId'];
-    final restaurant = rawRestaurant is Map<String, dynamic> ? rawRestaurant : null;
-    final restaurantName = restaurant?['name'] as String? ?? order['restaurantName'] as String? ?? 'order.unknown_restaurant'.tr();
-    final restaurantLogo = restaurant?['logo'] as String? ?? restaurant?['logoUrl'] as String? ?? order['restaurantLogo'] as String?;
+    final restaurant = rawRestaurant is Map<String, dynamic>
+        ? rawRestaurant
+        : null;
+    final restaurantName =
+        restaurant?['name'] as String? ??
+        order['restaurantName'] as String? ??
+        'order.unknown_restaurant'.tr();
+    final restaurantLogo =
+        restaurant?['logo'] as String? ??
+        restaurant?['logoUrl'] as String? ??
+        order['restaurantLogo'] as String?;
     final orderId = order['_id']?.toString() ?? '';
-    final shortId = orderId.length >= 8 ? orderId.substring(0, 8).toUpperCase() : orderId.toUpperCase();
+    final shortId = orderId.length >= 8
+        ? orderId.substring(0, 8).toUpperCase()
+        : orderId.toUpperCase();
     final locale = context.locale.languageCode;
     final createdAt = formatDate(order['createdAt'], locale: locale);
     final status = order['status'] as String? ?? 'pending';
-    
+
     // Items
     final items = order['items'] as List<dynamic>? ?? [];
-    
+
     // Totals
     final total = (order['total'] as num?)?.toDouble() ?? 0.0;
     final deliveryFee = (order['deliveryFee'] as num?)?.toDouble() ?? 2000.0;
@@ -940,7 +1016,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     final addrRaw = order['deliveryAddress'] as Map<String, dynamic>?;
     final addressText = addrRaw?['address']?.toString() ?? '';
     final addressLabel = addrRaw?['label']?.toString() ?? 'Adresse';
-    final notesText = order['notes']?.toString() ?? order['deliveryNotes']?.toString() ?? '';
+    final notesText =
+        order['notes']?.toString() ?? order['deliveryNotes']?.toString() ?? '';
 
     // Payment method
     final paymentMethod = order['paymentMethod']?.toString() ?? '';
@@ -982,10 +1059,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       ),
                     ),
                   ),
-                  
+
                   // Header
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -1004,7 +1084,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       ],
                     ),
                   ),
-                  
+
                   Expanded(
                     child: ListView(
                       controller: scrollController,
@@ -1029,7 +1109,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                   border: Border.all(color: AppTheme.lineSoft),
                                 ),
                                 clipBehavior: Clip.antiAlias,
-                                child: restaurantLogo != null && restaurantLogo.isNotEmpty
+                                child:
+                                    restaurantLogo != null &&
+                                        restaurantLogo.isNotEmpty
                                     ? Image.network(
                                         restaurantLogo,
                                         fit: BoxFit.cover,
@@ -1072,9 +1154,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             ],
                           ),
                         ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Items list header
                         Text(
                           'Plats commandés',
@@ -1085,25 +1167,31 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        
+
                         // Items items
                         ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: items.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 12),
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final item = items[index] as Map<String, dynamic>;
                             final name = item['name']?.toString() ?? '';
-                            final qty = (item['quantity'] as num?)?.toInt() ?? 1;
-                            final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+                            final qty =
+                                (item['quantity'] as num?)?.toInt() ?? 1;
+                            final price =
+                                (item['price'] as num?)?.toDouble() ?? 0.0;
                             final variation = item['variation']?.toString();
-                            
+
                             return Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: AppTheme.redSoft,
                                     borderRadius: BorderRadius.circular(8),
@@ -1120,7 +1208,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         name,
@@ -1130,7 +1219,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                           color: AppTheme.ink,
                                         ),
                                       ),
-                                      if (variation != null && variation.isNotEmpty) ...[
+                                      if (variation != null &&
+                                          variation.isNotEmpty) ...[
                                         const SizedBox(height: 2),
                                         Text(
                                           variation,
@@ -1155,21 +1245,28 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             );
                           },
                         ),
-                        
+
                         const SizedBox(height: 16),
                         const Divider(color: AppTheme.lineSoft, height: 24),
-                        
+
                         // Payment summary (Receipt breakdown)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               'Sous-total',
-                              style: GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
+                              style: GoogleFonts.inter(
+                                color: AppTheme.muted,
+                                fontSize: 14,
+                              ),
                             ),
                             Text(
                               '${subtotal.toStringAsFixed(0)} FCFA',
-                              style: GoogleFonts.inter(color: AppTheme.ink, fontWeight: FontWeight.w500, fontSize: 14),
+                              style: GoogleFonts.inter(
+                                color: AppTheme.ink,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
                             ),
                           ],
                         ),
@@ -1179,11 +1276,18 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           children: [
                             Text(
                               'Frais de livraison',
-                              style: GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
+                              style: GoogleFonts.inter(
+                                color: AppTheme.muted,
+                                fontSize: 14,
+                              ),
                             ),
                             Text(
                               '${deliveryFee.toStringAsFixed(0)} FCFA',
-                              style: GoogleFonts.inter(color: AppTheme.ink, fontWeight: FontWeight.w500, fontSize: 14),
+                              style: GoogleFonts.inter(
+                                color: AppTheme.ink,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
                             ),
                           ],
                         ),
@@ -1194,11 +1298,18 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             children: [
                               Text(
                                 'Réduction',
-                                style: GoogleFonts.inter(color: AppTheme.successColor, fontSize: 14),
+                                style: GoogleFonts.inter(
+                                  color: AppTheme.successColor,
+                                  fontSize: 14,
+                                ),
                               ),
                               Text(
                                 '-${finalDiscount.toStringAsFixed(0)} FCFA',
-                                style: GoogleFonts.inter(color: AppTheme.successColor, fontWeight: FontWeight.w600, fontSize: 14),
+                                style: GoogleFonts.inter(
+                                  color: AppTheme.successColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
                               ),
                             ],
                           ),
@@ -1209,21 +1320,33 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           children: [
                             Text(
                               'Total',
-                              style: GoogleFonts.bricolageGrotesque(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.ink),
+                              style: GoogleFonts.bricolageGrotesque(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                                color: AppTheme.ink,
+                              ),
                             ),
                             Text(
                               '${total.toStringAsFixed(0)} FCFA',
-                              style: GoogleFonts.bricolageGrotesque(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.primaryRed),
+                              style: GoogleFonts.bricolageGrotesque(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                                color: AppTheme.primaryRed,
+                              ),
                             ),
                           ],
                         ),
-                        
+
                         const Divider(color: AppTheme.lineSoft, height: 32),
-                        
+
                         // Delivery Address
                         Row(
                           children: [
-                            const Icon(Icons.location_on_outlined, size: 20, color: AppTheme.muted),
+                            const Icon(
+                              Icons.location_on_outlined,
+                              size: 20,
+                              color: AppTheme.muted,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Adresse de livraison',
@@ -1253,7 +1376,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                 const SizedBox(height: 4),
                               ],
                               Text(
-                                addressText.isNotEmpty ? addressText : 'Aucune adresse renseignée',
+                                addressText.isNotEmpty
+                                    ? addressText
+                                    : 'Aucune adresse renseignée',
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   color: AppTheme.muted,
@@ -1268,7 +1393,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                   decoration: BoxDecoration(
                                     color: AppTheme.bgWarm,
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: AppTheme.lineSoft),
+                                    border: Border.all(
+                                      color: AppTheme.lineSoft,
+                                    ),
                                   ),
                                   child: Text(
                                     '" $notesText "',
@@ -1283,13 +1410,17 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             ],
                           ),
                         ),
-                        
+
                         const Divider(color: AppTheme.lineSoft, height: 32),
-                        
+
                         // Payment Method
                         Row(
                           children: [
-                            const Icon(Icons.payment_rounded, size: 20, color: AppTheme.muted),
+                            const Icon(
+                              Icons.payment_rounded,
+                              size: 20,
+                              color: AppTheme.muted,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Mode de paiement',
@@ -1307,7 +1438,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppTheme.bgWarm,
                                 borderRadius: BorderRadius.circular(10),
@@ -1324,7 +1458,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 24),
                       ],
                     ),

@@ -22,18 +22,26 @@ class RestaurantReviewsList extends StatelessWidget {
         builder: (context, state) {
           return state.maybeWhen(
             loading: () => const Center(
-                child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(
-                        color: AppTheme.primaryRed, strokeWidth: 2))),
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(
+                  color: AppTheme.primaryRed,
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
             loaded: (reviews) {
               if (reviews.isEmpty) {
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(32.0),
-                    child: Text('review.no_reviews_yet'.tr(),
-                        style:
-                            GoogleFonts.inter(color: AppTheme.muted, fontSize: 14)),
+                    child: Text(
+                      'review.no_reviews_yet'.tr(),
+                      style: GoogleFonts.inter(
+                        color: AppTheme.muted,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                 );
               }
@@ -54,16 +62,23 @@ class RestaurantReviewsList extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(review.clientName,
-                                style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                    color: AppTheme.ink)),
                             Text(
-                              timeago.format(review.createdAt,
-                                  locale: context.locale.languageCode),
+                              review.clientName,
                               style: GoogleFonts.inter(
-                                  color: AppTheme.muted, fontSize: 12),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: AppTheme.ink,
+                              ),
+                            ),
+                            Text(
+                              timeago.format(
+                                review.createdAt,
+                                locale: context.locale.languageCode,
+                              ),
+                              style: GoogleFonts.inter(
+                                color: AppTheme.muted,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -84,10 +99,14 @@ class RestaurantReviewsList extends StatelessWidget {
                         if (review.comment != null &&
                             review.comment!.isNotEmpty) ...[
                           const SizedBox(height: 8),
-                          Text(review.comment!,
-                              style: GoogleFonts.inter(
-                                  fontSize: 13, color: AppTheme.inkSoft)),
-                        ]
+                          Text(
+                            review.comment!,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: AppTheme.inkSoft,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   );
@@ -95,9 +114,14 @@ class RestaurantReviewsList extends StatelessWidget {
               );
             },
             error: (msg) => Center(
-                child: Text(msg.tr(),
-                    style: GoogleFonts.inter(
-                        color: AppTheme.errorColor, fontSize: 14))),
+              child: Text(
+                msg.tr(),
+                style: GoogleFonts.inter(
+                  color: AppTheme.errorColor,
+                  fontSize: 14,
+                ),
+              ),
+            ),
             orElse: () => const SizedBox.shrink(),
           );
         },

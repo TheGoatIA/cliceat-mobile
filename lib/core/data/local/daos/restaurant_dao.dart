@@ -35,16 +35,14 @@ class RestaurantDao {
       });
 
   Future<void> deleteById(String id) =>
-      (_db.delete(_db.restaurantsTable)..where((t) => t.id.equals(id)))
-          .go();
+      (_db.delete(_db.restaurantsTable)..where((t) => t.id.equals(id))).go();
 
   /// Remove restaurants cached more than [maxAgeHours] hours ago.
   Future<void> evictStale({int maxAgeHours = 24}) async {
-    final cutoff =
-        DateTime.now().subtract(Duration(hours: maxAgeHours));
-    await (_db.delete(_db.restaurantsTable)
-          ..where((t) => t.cachedAt.isSmallerThanValue(cutoff)))
-        .go();
+    final cutoff = DateTime.now().subtract(Duration(hours: maxAgeHours));
+    await (_db.delete(
+      _db.restaurantsTable,
+    )..where((t) => t.cachedAt.isSmallerThanValue(cutoff))).go();
   }
 
   Stream<List<RestaurantsTableData>> watchAll() =>

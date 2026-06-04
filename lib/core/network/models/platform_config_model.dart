@@ -1,6 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-
 part 'platform_config_model.freezed.dart';
 part 'platform_config_model.g.dart';
 
@@ -38,8 +37,12 @@ abstract class PlatformConfigModel with _$PlatformConfigModel {
 @freezed
 abstract class PaymentConfig with _$PaymentConfig {
   const factory PaymentConfig({
-    @JsonKey(name: 'enabled_methods') @Default(['cm.mtn', 'cm.orange']) List<String> enabledMethods,
-    @JsonKey(name: 'minimum_order_amount') @Default(1000) int minimumOrderAmount,
+    @JsonKey(name: 'enabled_methods')
+    @Default(['cm.mtn', 'cm.orange'])
+    List<String> enabledMethods,
+    @JsonKey(name: 'minimum_order_amount')
+    @Default(1000)
+    int minimumOrderAmount,
     @JsonKey(name: 'wallet_enabled') @Default(true) bool walletEnabled,
   }) = _PaymentConfig;
 

@@ -5,10 +5,15 @@ abstract class MissionEvent {
 
   static MissionEvent started() => const _Started();
   static MissionEvent loadActiveMissions() => const _LoadActiveMissions();
-  static MissionEvent acceptMission(String missionId) => _AcceptMission(missionId);
-  static MissionEvent rejectMission(String missionId) => _RejectMission(missionId);
-  static MissionEvent updateStatus(String missionId, String status, {Map<String, dynamic> metadata = const {}}) 
-      => _UpdateStatus(missionId, status, metadata: metadata);
+  static MissionEvent acceptMission(String missionId) =>
+      _AcceptMission(missionId);
+  static MissionEvent rejectMission(String missionId) =>
+      _RejectMission(missionId);
+  static MissionEvent updateStatus(
+    String missionId,
+    String status, {
+    Map<String, dynamic> metadata = const {},
+  }) => _UpdateStatus(missionId, status, metadata: metadata);
 }
 
 class _Started extends MissionEvent {

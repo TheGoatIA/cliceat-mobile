@@ -38,14 +38,17 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
           content: Text('dispute.max_images'.tr()),
           backgroundColor: AppTheme.primaryRed,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
     }
     final pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 70);
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
     if (pickedFile != null) {
       setState(() => _images.add(File(pickedFile.path)));
     }
@@ -81,7 +84,8 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
                     backgroundColor: AppTheme.green,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
                 Navigator.pop(context);
@@ -93,7 +97,8 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
                     backgroundColor: AppTheme.primaryRed,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
               },
@@ -101,8 +106,10 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
             );
           },
           builder: (context, state) {
-            final isLoading =
-                state.maybeWhen(loading: () => true, orElse: () => false);
+            final isLoading = state.maybeWhen(
+              loading: () => true,
+              orElse: () => false,
+            );
 
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -131,14 +138,18 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
                       items: _reasons
-                          .map((r) => DropdownMenuItem(
-                                value: r['value'],
-                                child: Text(
-                                  r['label']!.tr(),
-                                  style: GoogleFonts.inter(
-                                      fontSize: 14, color: AppTheme.ink),
+                          .map(
+                            (r) => DropdownMenuItem(
+                              value: r['value'],
+                              child: Text(
+                                r['label']!.tr(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: AppTheme.ink,
                                 ),
-                              ))
+                              ),
+                            ),
+                          )
                           .toList(),
                       onChanged: (v) => setState(() => _reason = v!),
                     ),
@@ -163,11 +174,15 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
                       controller: _descriptionController,
                       maxLines: 5,
                       style: GoogleFonts.inter(
-                          fontSize: 14, color: AppTheme.ink),
+                        fontSize: 14,
+                        color: AppTheme.ink,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'dispute.description_hint'.tr(),
                         hintStyle: GoogleFonts.inter(
-                            fontSize: 14, color: AppTheme.mutedLight),
+                          fontSize: 14,
+                          color: AppTheme.mutedLight,
+                        ),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.all(16),
                       ),
@@ -186,7 +201,9 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
                   Text(
                     'dispute.evidence_hint'.tr(),
                     style: GoogleFonts.inter(
-                        color: AppTheme.muted, fontSize: 13),
+                      color: AppTheme.muted,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 14),
                   _buildImageSelection(),
@@ -194,27 +211,30 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
                   SizedBox(
                     height: 52,
                     child: ElevatedButton(
-                      onPressed:
-                          isLoading ? null : () => _submit(context),
+                      onPressed: isLoading ? null : () => _submit(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryRed,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       child: isLoading
                           ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : Text(
                               'dispute.submit'.tr(),
                               style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                     ),
                   ),
@@ -239,15 +259,18 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.file(file,
-                      width: 80, height: 80, fit: BoxFit.cover),
+                  child: Image.file(
+                    file,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 Positioned(
                   top: -4,
                   right: -4,
                   child: GestureDetector(
-                    onTap: () =>
-                        setState(() => _images.removeAt(idx)),
+                    onTap: () => setState(() => _images.removeAt(idx)),
                     child: Container(
                       width: 24,
                       height: 24,
@@ -255,8 +278,11 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
                         color: AppTheme.primaryRed,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close,
-                          color: Colors.white, size: 14),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -275,8 +301,11 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
                 border: Border.all(color: AppTheme.line),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.add_a_photo,
-                  color: AppTheme.muted, size: 24),
+              child: const Icon(
+                Icons.add_a_photo,
+                color: AppTheme.muted,
+                size: 24,
+              ),
             ),
           ),
       ],
@@ -290,8 +319,9 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
           content: Text('dispute.description_required'.tr()),
           backgroundColor: AppTheme.primaryRed,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
@@ -307,10 +337,10 @@ class _CreateDisputePageState extends State<CreateDisputePage> {
     };
 
     context.read<DisputeCubit>().submitDispute(
-          orderId: widget.orderId,
-          reason: backendReason,
-          description: _descriptionController.text.trim(),
-          images: _images,
-        );
+      orderId: widget.orderId,
+      reason: backendReason,
+      description: _descriptionController.text.trim(),
+      images: _images,
+    );
   }
 }

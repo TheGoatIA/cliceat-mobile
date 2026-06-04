@@ -68,7 +68,8 @@ class NotificationService {
       '@mipmap/ic_launcher',
     );
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: false, // Already requested via FirebaseMessaging.requestPermission
+      requestAlertPermission:
+          false, // Already requested via FirebaseMessaging.requestPermission
       requestBadgePermission: true,
       requestSoundPermission: true,
     );

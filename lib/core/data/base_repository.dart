@@ -16,11 +16,13 @@ abstract class BaseRepository {
         if (response.body != null) {
           return Right(response.body as T);
         }
-        return Left(AppError.fromResponse(
-          response.body,
-          fallbackMessage ?? 'common.error_empty_response',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          AppError.fromResponse(
+            response.body,
+            fallbackMessage ?? 'common.error_empty_response',
+            statusCode: response.statusCode,
+          ),
+        );
       }
 
       // Map HTTP status codes to AppError
@@ -28,11 +30,13 @@ abstract class BaseRepository {
         case 401:
           return Left(AppError.auth());
         case 403:
-          return Left(AppError.fromResponse(
-            response.body,
-            'common.error_forbidden',
-            statusCode: 403,
-          ));
+          return Left(
+            AppError.fromResponse(
+              response.body,
+              'common.error_forbidden',
+              statusCode: 403,
+            ),
+          );
         case 404:
           String? errorMsg;
           if (response.body != null && response.body is Map) {
@@ -40,17 +44,21 @@ abstract class BaseRepository {
           }
           return Left(AppError.notFound(errorMsg));
         case 500:
-          return Left(AppError.fromResponse(
-            response.body,
-            'common.error_server',
-            statusCode: 500,
-          ));
+          return Left(
+            AppError.fromResponse(
+              response.body,
+              'common.error_server',
+              statusCode: 500,
+            ),
+          );
         default:
-          return Left(AppError.fromResponse(
-            response.body,
-            fallbackMessage ?? 'common.error',
-            statusCode: response.statusCode,
-          ));
+          return Left(
+            AppError.fromResponse(
+              response.body,
+              fallbackMessage ?? 'common.error',
+              statusCode: response.statusCode,
+            ),
+          );
       }
     } catch (e) {
       return Left(AppError.network(e.toString()));

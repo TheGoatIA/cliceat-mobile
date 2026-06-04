@@ -23,5 +23,10 @@ class ReferralStatsModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [totalReferrals, totalEarned, pendingBonus, referralCode];
+  List<Object?> get props => [
+    totalReferrals,
+    totalEarned,
+    pendingBonus,
+    referralCode,
+  ];
 }

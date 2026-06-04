@@ -32,7 +32,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.ink, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppTheme.ink,
+            size: 20,
+          ),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -62,7 +66,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 subtitle: message,
                 icon: Icons.error_outline_rounded,
                 actionLabel: 'common.retry'.tr(),
-                onAction: () => context.read<NotificationCubit>().loadNotifications(),
+                onAction: () =>
+                    context.read<NotificationCubit>().loadNotifications(),
               ),
             ),
             loaded: (notifications) {
@@ -77,11 +82,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
               }
               return RefreshIndicator(
                 color: AppTheme.primaryRed,
-                onRefresh: () => context.read<NotificationCubit>().loadNotifications(),
+                onRefresh: () =>
+                    context.read<NotificationCubit>().loadNotifications(),
                 child: ListView.separated(
                   padding: const EdgeInsets.all(20),
                   itemCount: notifications.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final item = notifications[index];
                     return _buildNotificationItem(context, item);
@@ -97,7 +104,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Widget _buildNotificationItem(BuildContext context, NotificationModel item) {
     final cubit = context.read<NotificationCubit>();
-    final dateStr = DateFormat('dd MMM, HH:mm', context.locale.toString()).format(item.createdAt);
+    final dateStr = DateFormat(
+      'dd MMM, HH:mm',
+      context.locale.toString(),
+    ).format(item.createdAt);
 
     return Dismissible(
       key: Key(item.id),
@@ -110,7 +120,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
           color: AppTheme.primaryRed,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 24),
+        child: const Icon(
+          Icons.delete_outline_rounded,
+          color: Colors.white,
+          size: 24,
+        ),
       ),
       child: GestureDetector(
         onTap: () {
@@ -124,7 +138,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
             if (orderId != null && orderId.isNotEmpty) {
               final authState = context.read<AuthBloc>().state;
               final isDriverMode = authState.maybeWhen(
-                authenticated: (token, userId, currentMode) => currentMode == 'delivery',
+                authenticated: (token, userId, currentMode) =>
+                    currentMode == 'delivery',
                 orElse: () => false,
               );
 
@@ -132,7 +147,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 // Pour le livreur, on redirige vers le dashboard principal qui recharge
                 context.go('/delivery');
               } else {
-                if (type == 'new_mission' || type == 'order_status' || type == 'delivery') {
+                if (type == 'new_mission' ||
+                    type == 'order_status' ||
+                    type == 'delivery') {
                   context.push('/client/tracking/$orderId');
                 }
               }
@@ -147,10 +164,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: item.isRead ? Colors.white : AppTheme.bgWarm.withValues(alpha: 0.4),
+            color: item.isRead
+                ? Colors.white
+                : AppTheme.bgWarm.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: item.isRead ? AppTheme.lineSoft : AppTheme.primaryRed.withValues(alpha: 0.15),
+              color: item.isRead
+                  ? AppTheme.lineSoft
+                  : AppTheme.primaryRed.withValues(alpha: 0.15),
               width: 1,
             ),
             boxShadow: item.isRead ? null : AppTheme.shadowSm,
@@ -163,7 +184,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: item.isRead ? AppTheme.bgWarm : AppTheme.primaryRed.withValues(alpha: 0.1),
+                  color: item.isRead
+                      ? AppTheme.bgWarm
+                      : AppTheme.primaryRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -185,7 +208,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                             item.title,
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w700,
+                              fontWeight: item.isRead
+                                  ? FontWeight.w600
+                                  : FontWeight.w700,
                               color: AppTheme.ink,
                             ),
                           ),
@@ -207,20 +232,28 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       item.body,
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: item.isRead ? AppTheme.muted : AppTheme.ink.withValues(alpha: 0.8),
-                        fontWeight: item.isRead ? FontWeight.normal : FontWeight.w500,
+                        color: item.isRead
+                            ? AppTheme.muted
+                            : AppTheme.ink.withValues(alpha: 0.8),
+                        fontWeight: item.isRead
+                            ? FontWeight.normal
+                            : FontWeight.w500,
                       ),
                     ),
-                    if (item.data != null && (item.data!['imageUrl'] != null || item.data!['image'] != null)) ...[
+                    if (item.data != null &&
+                        (item.data!['imageUrl'] != null ||
+                            item.data!['image'] != null)) ...[
                       const SizedBox(height: 8),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
-                          (item.data!['imageUrl'] ?? item.data!['image']).toString(),
+                          (item.data!['imageUrl'] ?? item.data!['image'])
+                              .toString(),
                           fit: BoxFit.cover,
                           width: double.infinity,
                           height: 150,
-                          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const SizedBox.shrink(),
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return Container(
@@ -303,7 +336,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 children: [
                   Container(height: 12, width: 120, color: AppTheme.bgWarm),
                   const SizedBox(height: 8),
-                  Container(height: 10, width: double.infinity, color: AppTheme.bgWarm),
+                  Container(
+                    height: 10,
+                    width: double.infinity,
+                    color: AppTheme.bgWarm,
+                  ),
                   const SizedBox(height: 6),
                   Container(height: 8, width: 60, color: AppTheme.bgWarm),
                 ],
@@ -315,9 +352,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 
-  void _showPromotionDetailDialog(BuildContext context, NotificationModel item) {
-    final imageUrl = item.data?['imageUrl']?.toString() ?? item.data?['image']?.toString() ?? '';
-    final linkUrl = item.data?['linkUrl']?.toString() ?? item.data?['link']?.toString() ?? item.data?['url']?.toString() ?? '';
+  void _showPromotionDetailDialog(
+    BuildContext context,
+    NotificationModel item,
+  ) {
+    final imageUrl =
+        item.data?['imageUrl']?.toString() ??
+        item.data?['image']?.toString() ??
+        '';
+    final linkUrl =
+        item.data?['linkUrl']?.toString() ??
+        item.data?['link']?.toString() ??
+        item.data?['url']?.toString() ??
+        '';
 
     showDialog(
       context: context,
@@ -335,12 +382,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 // Upper Image Header
                 if (imageUrl.isNotEmpty)
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                     child: Image.network(
                       imageUrl,
                       fit: BoxFit.cover,
                       height: 180,
-                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                      errorBuilder: (context, error, stackTrace) =>
+                          const SizedBox.shrink(),
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Container(
@@ -372,7 +422,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        DateFormat('dd MMMM yyyy, HH:mm', context.locale.toString()).format(item.createdAt),
+                        DateFormat(
+                          'dd MMMM yyyy, HH:mm',
+                          context.locale.toString(),
+                        ).format(item.createdAt),
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: AppTheme.muted,
@@ -416,14 +469,20 @@ class _NotificationsPageState extends State<NotificationsPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             elevation: 0,
                           ),
                           onPressed: () async {
                             Navigator.of(ctx).pop();
                             final uri = Uri.tryParse(linkUrl);
                             if (uri != null && await canLaunchUrl(uri)) {
-                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
                             }
                           },
                           child: Row(

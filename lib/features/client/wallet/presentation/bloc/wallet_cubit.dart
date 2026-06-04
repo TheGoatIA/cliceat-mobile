@@ -23,7 +23,10 @@ class WalletCubit extends Cubit<WalletState> {
     );
   }
 
-  Future<Either<AppError, Map<String, String>>> recharge(double amount, String method) async {
+  Future<Either<AppError, Map<String, String>>> recharge(
+    double amount,
+    String method,
+  ) async {
     return await _repository.recharge(amount, method);
   }
 }

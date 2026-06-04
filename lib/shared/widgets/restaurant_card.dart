@@ -54,7 +54,10 @@ class RestaurantCard extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         stops: const [0.5, 1.0],
-                        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.45)],
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.45),
+                        ],
                       ),
                     ),
                   ),
@@ -65,7 +68,10 @@ class RestaurantCard extends StatelessWidget {
                       color: Colors.black45,
                       child: Center(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.75),
                             borderRadius: BorderRadius.circular(100),
@@ -103,31 +109,37 @@ class RestaurantCard extends StatelessWidget {
                           HapticFeedback.mediumImpact();
                           try {
                             if (!isFav) {
-                              await getIt<FavoritesDao>().addFavorite(restaurant.id);
+                              await getIt<FavoritesDao>().addFavorite(
+                                restaurant.id,
+                              );
                             } else {
-                              await getIt<FavoritesDao>().removeFavorite(restaurant.id);
+                              await getIt<FavoritesDao>().removeFavorite(
+                                restaurant.id,
+                              );
                             }
                           } catch (_) {}
-                          
-                          final result = await getIt<RestaurantRepository>().toggleFavorite(restaurant.id);
-                          result.fold(
-                            (err) async {
-                              // Rollback
-                              try {
-                                if (!isFav) {
-                                  await getIt<FavoritesDao>().removeFavorite(restaurant.id);
-                                } else {
-                                  await getIt<FavoritesDao>().addFavorite(restaurant.id);
-                                }
-                              } catch (_) {}
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(err.message.tr())),
+
+                          final result = await getIt<RestaurantRepository>()
+                              .toggleFavorite(restaurant.id);
+                          result.fold((err) async {
+                            // Rollback
+                            try {
+                              if (!isFav) {
+                                await getIt<FavoritesDao>().removeFavorite(
+                                  restaurant.id,
+                                );
+                              } else {
+                                await getIt<FavoritesDao>().addFavorite(
+                                  restaurant.id,
                                 );
                               }
-                            },
-                            (_) {},
-                          );
+                            } catch (_) {}
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(err.message.tr())),
+                              );
+                            }
+                          }, (_) {});
                         },
                         child: Container(
                           width: 32,
@@ -136,7 +148,9 @@ class RestaurantCard extends StatelessWidget {
                             color: Colors.white.withValues(alpha: 0.95),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: isFav ? AppTheme.primaryRed.withValues(alpha: 0.2) : AppTheme.lineSoft,
+                              color: isFav
+                                  ? AppTheme.primaryRed.withValues(alpha: 0.2)
+                                  : AppTheme.lineSoft,
                               width: 1,
                             ),
                             boxShadow: [
@@ -148,13 +162,15 @@ class RestaurantCard extends StatelessWidget {
                             ],
                           ),
                           child: Icon(
-                            isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                            isFav
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
                             size: 16,
                             color: isFav ? AppTheme.primaryRed : AppTheme.ink,
                           ),
                         ),
                       );
-                    }
+                    },
                   ),
                 ),
               ],
@@ -179,10 +195,15 @@ class RestaurantCard extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     [
-                      if ((restaurant.cuisineType ?? '').isNotEmpty) restaurant.cuisineType!,
-                      if (restaurant.cuisines.isNotEmpty) restaurant.cuisines.take(2).join(' · '),
+                      if ((restaurant.cuisineType ?? '').isNotEmpty)
+                        restaurant.cuisineType!,
+                      if (restaurant.cuisines.isNotEmpty)
+                        restaurant.cuisines.take(2).join(' · '),
                     ].where((s) => s.isNotEmpty).join(' · '),
-                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.muted,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 10),
@@ -238,31 +259,42 @@ class _MetaRow extends StatelessWidget {
 
     void addItem(IconData icon, String label) {
       if (items.isNotEmpty) {
-        items.add(Container(
-          width: 3,
-          height: 3,
-          margin: const EdgeInsets.symmetric(horizontal: 6),
-          decoration: BoxDecoration(
-            color: AppTheme.mutedLight,
-            borderRadius: BorderRadius.circular(2),
+        items.add(
+          Container(
+            width: 3,
+            height: 3,
+            margin: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(
+              color: AppTheme.mutedLight,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
-        ));
+        );
       }
-      items.add(Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: AppTheme.muted),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.inkSoft, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ));
+      items.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: AppTheme.muted),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: AppTheme.inkSoft,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     if (restaurant.deliveryTimeMinutes != null) {
-      addItem(Icons.access_time_rounded, '${restaurant.deliveryTimeMinutes} min');
+      addItem(
+        Icons.access_time_rounded,
+        '${restaurant.deliveryTimeMinutes} min',
+      );
     }
     addItem(
       Icons.delivery_dining_rounded,

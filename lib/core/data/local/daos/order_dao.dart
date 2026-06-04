@@ -20,8 +20,9 @@ class OrderDao extends DatabaseAccessor<AppDatabase> with _$OrderDaoMixin {
     await into(ordersTable).insertOnConflictUpdate(comp);
   }
 
-  Future<List<OrdersTableData>> getAll() =>
-      (select(ordersTable)..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+  Future<List<OrdersTableData>> getAll() => (select(
+    ordersTable,
+  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
 
   Future<OrdersTableData?> getById(String id) =>
       (select(ordersTable)..where((t) => t.id.equals(id))).getSingleOrNull();

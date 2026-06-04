@@ -7,7 +7,8 @@ part 'referral_state.freezed.dart';
 class ReferralState with _$ReferralState {
   const factory ReferralState.initial() = _Initial;
   const factory ReferralState.loading() = _Loading;
-  const factory ReferralState.loaded({required ReferralStatsModel stats}) = _Loaded;
+  const factory ReferralState.loaded({required ReferralStatsModel stats}) =
+      _Loaded;
   const factory ReferralState.codeApplied() = _CodeApplied;
   const factory ReferralState.error(String message) = _Error;
 }

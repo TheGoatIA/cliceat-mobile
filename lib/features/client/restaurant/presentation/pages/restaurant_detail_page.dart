@@ -83,7 +83,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
         );
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            context.read<CartCubit>().setDeliveryFee(AppConstants.defaultDeliveryFee);
+            context.read<CartCubit>().setDeliveryFee(
+              AppConstants.defaultDeliveryFee,
+            );
           }
         });
       },
@@ -139,9 +141,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(err.message.tr())),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(err.message.tr())));
         }
       },
       (_) {
@@ -745,7 +747,10 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeInOutCubic,
-                  left: _activeTab * (MediaQuery.of(context).size.width - 32 - 8) / 3,
+                  left:
+                      _activeTab *
+                      (MediaQuery.of(context).size.width - 32 - 8) /
+                      3,
                   top: 0,
                   bottom: 0,
                   width: (MediaQuery.of(context).size.width - 32 - 8) / 3,
@@ -819,10 +824,17 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
     final currentDay = now.weekday % 7;
     final todayHours = hours.firstWhere(
       (h) => h.dayOfWeek == currentDay,
-      orElse: () => const OpeningHoursModel(dayOfWeek: 0, openTime: '', closeTime: '', isClosed: true),
+      orElse: () => const OpeningHoursModel(
+        dayOfWeek: 0,
+        openTime: '',
+        closeTime: '',
+        isClosed: true,
+      ),
     );
 
-    if (todayHours.isClosed || todayHours.openTime.isEmpty || todayHours.closeTime.isEmpty) {
+    if (todayHours.isClosed ||
+        todayHours.openTime.isEmpty ||
+        todayHours.closeTime.isEmpty) {
       return false;
     }
 
@@ -832,7 +844,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
       final openMin = int.parse(openParts[0]) * 60 + int.parse(openParts[1]);
       final closeMin = int.parse(closeParts[0]) * 60 + int.parse(closeParts[1]);
       final currentMin = now.hour * 60 + now.minute;
-      
+
       return currentMin >= openMin && currentMin <= closeMin;
     } catch (_) {
       return true;
@@ -841,14 +853,22 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
 
   String _getLocalizedDayName(int day) {
     switch (day) {
-      case 0: return 'restaurant.sun'.tr();
-      case 1: return 'restaurant.mon'.tr();
-      case 2: return 'restaurant.tue'.tr();
-      case 3: return 'restaurant.wed'.tr();
-      case 4: return 'restaurant.thu'.tr();
-      case 5: return 'restaurant.fri'.tr();
-      case 6: return 'restaurant.sat'.tr();
-      default: return '';
+      case 0:
+        return 'restaurant.sun'.tr();
+      case 1:
+        return 'restaurant.mon'.tr();
+      case 2:
+        return 'restaurant.tue'.tr();
+      case 3:
+        return 'restaurant.wed'.tr();
+      case 4:
+        return 'restaurant.thu'.tr();
+      case 5:
+        return 'restaurant.fri'.tr();
+      case 6:
+        return 'restaurant.sat'.tr();
+      default:
+        return '';
     }
   }
 
@@ -866,7 +886,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            
+
             // Open status glassmorphic card
             Container(
               padding: const EdgeInsets.all(16),
@@ -882,11 +902,15 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: isOpen ? AppTheme.green.withValues(alpha: 0.1) : AppTheme.primaryRed.withValues(alpha: 0.1),
+                      color: isOpen
+                          ? AppTheme.green.withValues(alpha: 0.1)
+                          : AppTheme.primaryRed.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      isOpen ? Icons.check_circle_outline_rounded : Icons.cancel_outlined,
+                      isOpen
+                          ? Icons.check_circle_outline_rounded
+                          : Icons.cancel_outlined,
                       color: isOpen ? AppTheme.green : AppTheme.primaryRed,
                       size: 24,
                     ),
@@ -897,11 +921,15 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isOpen ? 'restaurant.open'.tr() : 'restaurant.closed'.tr(),
+                          isOpen
+                              ? 'restaurant.open'.tr()
+                              : 'restaurant.closed'.tr(),
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: isOpen ? AppTheme.green : AppTheme.primaryRed,
+                            color: isOpen
+                                ? AppTheme.green
+                                : AppTheme.primaryRed,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -918,9 +946,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Address & Phone Section
             if (address.isNotEmpty || phone.isNotEmpty) ...[
               Text(
@@ -933,7 +961,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               if (address.isNotEmpty) ...[
                 GestureDetector(
                   onTap: () {
@@ -943,7 +971,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                       SnackBar(
                         content: Text('${'restaurant.address'.tr()} copié !'),
                         behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         duration: const Duration(seconds: 2),
                       ),
                     );
@@ -958,7 +988,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.location_on_rounded, color: AppTheme.primaryRed, size: 20),
+                        const Icon(
+                          Icons.location_on_rounded,
+                          color: AppTheme.primaryRed,
+                          size: 20,
+                        ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
@@ -984,7 +1018,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                             ],
                           ),
                         ),
-                        const Icon(Icons.copy_rounded, color: AppTheme.muted, size: 16),
+                        const Icon(
+                          Icons.copy_rounded,
+                          color: AppTheme.muted,
+                          size: 16,
+                        ),
                       ],
                     ),
                   ),
@@ -1001,7 +1039,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                       SnackBar(
                         content: Text('${'restaurant.phone'.tr()} copié !'),
                         behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         duration: const Duration(seconds: 2),
                       ),
                     );
@@ -1016,7 +1056,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.phone_rounded, color: AppTheme.green, size: 20),
+                        const Icon(
+                          Icons.phone_rounded,
+                          color: AppTheme.green,
+                          size: 20,
+                        ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
@@ -1042,7 +1086,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                             ],
                           ),
                         ),
-                        const Icon(Icons.copy_rounded, color: AppTheme.muted, size: 16),
+                        const Icon(
+                          Icons.copy_rounded,
+                          color: AppTheme.muted,
+                          size: 16,
+                        ),
                       ],
                     ),
                   ),
@@ -1062,7 +1110,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
               ),
             ),
             const SizedBox(height: 12),
-            
+
             if (hours.isEmpty)
               Container(
                 padding: const EdgeInsets.all(20),
@@ -1090,19 +1138,27 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                   physics: const NeverScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),
                   itemCount: 7,
-                  separatorBuilder: (context, index) => const Divider(height: 16, color: AppTheme.lineSoft),
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 16, color: AppTheme.lineSoft),
                   itemBuilder: (context, index) {
                     // Mongoose starts with 0 = Sunday, 1 = Monday...
                     // In our list, let's display Monday through Sunday logically (index 0 = Monday (1), index 5 = Saturday (6), index 6 = Sunday (0))
                     final displayDayOfWeek = (index + 1) % 7;
                     final dayHours = hours.firstWhere(
                       (h) => h.dayOfWeek == displayDayOfWeek,
-                      orElse: () => OpeningHoursModel(dayOfWeek: displayDayOfWeek, openTime: '', closeTime: '', isClosed: true),
+                      orElse: () => OpeningHoursModel(
+                        dayOfWeek: displayDayOfWeek,
+                        openTime: '',
+                        closeTime: '',
+                        isClosed: true,
+                      ),
                     );
 
-                    final isToday = DateTime.now().weekday % 7 == displayDayOfWeek;
+                    final isToday =
+                        DateTime.now().weekday % 7 == displayDayOfWeek;
                     final dayName = _getLocalizedDayName(displayDayOfWeek);
-                    final hoursText = dayHours.isClosed || dayHours.openTime.isEmpty
+                    final hoursText =
+                        dayHours.isClosed || dayHours.openTime.isEmpty
                         ? 'restaurant.closed'.tr()
                         : '${dayHours.openTime} - ${dayHours.closeTime}';
 
@@ -1123,11 +1179,17 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                               const SizedBox(width: 8),
                             ],
                             Text(
-                              isToday ? '$dayName (${'restaurant.today'.tr()})' : dayName,
+                              isToday
+                                  ? '$dayName (${'restaurant.today'.tr()})'
+                                  : dayName,
                               style: GoogleFonts.inter(
                                 fontSize: 14,
-                                fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                                color: isToday ? AppTheme.ink : AppTheme.inkSoft,
+                                fontWeight: isToday
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: isToday
+                                    ? AppTheme.ink
+                                    : AppTheme.inkSoft,
                               ),
                             ),
                           ],
@@ -1136,8 +1198,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                           hoursText,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                            color: dayHours.isClosed || dayHours.openTime.isEmpty
+                            fontWeight: isToday
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color:
+                                dayHours.isClosed || dayHours.openTime.isEmpty
                                 ? AppTheme.primaryRed
                                 : (isToday ? AppTheme.green : AppTheme.inkSoft),
                           ),
@@ -1147,7 +1212,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                   },
                 ),
               ),
-              const SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -1306,10 +1371,20 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
   ) {
     if (_isGridView) {
       return _buildMenuGrid(
-        context, categoryEntries, restaurantId, deliveryFee, lang);
+        context,
+        categoryEntries,
+        restaurantId,
+        deliveryFee,
+        lang,
+      );
     }
     return _buildMenuList(
-      context, categoryEntries, restaurantId, deliveryFee, lang);
+      context,
+      categoryEntries,
+      restaurantId,
+      deliveryFee,
+      lang,
+    );
   }
 
   // ── List mode ──────────────────────────────────────────────────────────────
@@ -1351,7 +1426,12 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
 
           return GestureDetector(
             onTap: () => _showItemDetailModal(
-              context, item, restaurantId, deliveryFee, lang),
+              context,
+              item,
+              restaurantId,
+              deliveryFee,
+              lang,
+            ),
             child: Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(12),
@@ -1371,8 +1451,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                       width: 70,
                       height: 70,
                       fit: BoxFit.cover,
-                      fallbackAsset:
-                          'assets/images/restaurant_placeholder.jpg',
+                      fallbackAsset: 'assets/images/restaurant_placeholder.jpg',
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1418,7 +1497,12 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                       HapticFeedback.lightImpact();
                       if (hasVariations) {
                         _showItemDetailModal(
-                            context, item, restaurantId, deliveryFee, lang);
+                          context,
+                          item,
+                          restaurantId,
+                          deliveryFee,
+                          lang,
+                        );
                       } else {
                         _addToCartWithConfirmation(
                           context: context,
@@ -1488,7 +1572,12 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
             ),
             delegate: SliverChildBuilderDelegate(
               (context, i) => _buildGridMenuCard(
-                context, items[i], restaurantId, deliveryFee, lang),
+                context,
+                items[i],
+                restaurantId,
+                deliveryFee,
+                lang,
+              ),
               childCount: items.length,
             ),
           ),
@@ -1548,8 +1637,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
           children: [
             // Image
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               child: AppNetworkImage(
                 url: item.image,
                 width: double.infinity,
@@ -1607,8 +1697,13 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
                           onTap: () {
                             HapticFeedback.lightImpact();
                             if (hasVariations) {
-                              _showItemDetailModal(context, item,
-                                  restaurantId, deliveryFee, lang);
+                              _showItemDetailModal(
+                                context,
+                                item,
+                                restaurantId,
+                                deliveryFee,
+                                lang,
+                              );
                             } else {
                               _addToCartWithConfirmation(
                                 context: context,
@@ -1727,22 +1822,22 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             const SizedBox(width: 10),
             Text('restaurant.added_to_cart'.tr()),
           ],
         ),
         backgroundColor: AppTheme.ink,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 3),
       ),
     );
   }
-
-
 
   void _showItemDetailModal(
     BuildContext context,

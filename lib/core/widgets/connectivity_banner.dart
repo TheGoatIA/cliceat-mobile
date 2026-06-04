@@ -44,9 +44,9 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     // Écouter les changements de connectivité
-    _subscription = Connectivity()
-        .onConnectivityChanged
-        .listen(_onConnectivityChanged);
+    _subscription = Connectivity().onConnectivityChanged.listen(
+      _onConnectivityChanged,
+    );
 
     // Vérifier l'état initial
     Connectivity().checkConnectivity().then(_onConnectivityChanged);
@@ -122,9 +122,7 @@ class _OfflineBanner extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            isOffline
-                ? 'common.offline_mode'.tr()
-                : 'common.back_online'.tr(),
+            isOffline ? 'common.offline_mode'.tr() : 'common.back_online'.tr(),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 13,

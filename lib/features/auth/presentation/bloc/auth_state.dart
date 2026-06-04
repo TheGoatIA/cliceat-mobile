@@ -11,10 +11,13 @@ class AuthState with _$AuthState {
     required String userId,
     required String currentMode, // 'client' or 'delivery'
   }) = _Authenticated;
-  const factory AuthState.emailVerificationRequired({required String email}) = _EmailVerificationRequired;
+  const factory AuthState.emailVerificationRequired({required String email}) =
+      _EmailVerificationRequired;
   const factory AuthState.emailVerified() = _EmailVerified;
-  const factory AuthState.forgotPasswordEmailSent({required String email}) = _ForgotPasswordEmailSent;
+  const factory AuthState.forgotPasswordEmailSent({required String email}) =
+      _ForgotPasswordEmailSent;
   const factory AuthState.resetPasswordSuccess() = _ResetPasswordSuccess;
-  const factory AuthState.driverRegistrationSuccess() = _DriverRegistrationSuccess;
+  const factory AuthState.driverRegistrationSuccess() =
+      _DriverRegistrationSuccess;
   const factory AuthState.error({required String message}) = _Error;
 }

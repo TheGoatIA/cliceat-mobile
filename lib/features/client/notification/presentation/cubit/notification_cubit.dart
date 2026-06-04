@@ -11,7 +11,8 @@ part 'notification_cubit.freezed.dart';
 class NotificationCubit extends Cubit<NotificationState> {
   final NotificationRepository _repository;
 
-  NotificationCubit(this._repository) : super(const NotificationState.initial());
+  NotificationCubit(this._repository)
+    : super(const NotificationState.initial());
 
   Future<void> loadNotifications() async {
     emit(const NotificationState.loading());
@@ -42,28 +43,24 @@ class NotificationCubit extends Cubit<NotificationState> {
       emit(NotificationState.loaded(updatedList));
 
       final result = await _repository.markAsRead(id);
-      result.fold(
-        (err) {
-          // Fallback en cas d'erreur de réseau (facultatif car l'optimistic UI est plus fluide)
-        },
-        (_) {},
-      );
+      result.fold((err) {
+        // Fallback en cas d'erreur de réseau (facultatif car l'optimistic UI est plus fluide)
+      }, (_) {});
     }
   }
 
   Future<void> delete(String id) async {
     final currentState = state;
     if (currentState is _Loaded) {
-      final updatedList = currentState.notifications.where((n) => n.id != id).toList();
+      final updatedList = currentState.notifications
+          .where((n) => n.id != id)
+          .toList();
       emit(NotificationState.loaded(updatedList));
 
       final result = await _repository.deleteNotification(id);
-      result.fold(
-        (err) {
-          // Fallback en cas d'erreur
-        },
-        (_) {},
-      );
+      result.fold((err) {
+        // Fallback en cas d'erreur
+      }, (_) {});
     }
   }
 }

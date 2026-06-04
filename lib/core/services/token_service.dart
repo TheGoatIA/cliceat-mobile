@@ -10,7 +10,7 @@ import 'package:logger/logger.dart';
 class TokenService {
   final FlutterSecureStorage _secureStorage;
   final Logger _logger;
-  
+
   final _sessionExpiredController = StreamController<void>.broadcast();
   Stream<void> get onSessionExpired => _sessionExpiredController.stream;
   Completer<String?>? _pendingRefresh;
@@ -22,7 +22,9 @@ class TokenService {
     if (token == null) return null;
 
     if (isTokenExpired(token)) {
-      _logger.i('[TokenService] Token expiré, tentative de rafraîchissement...');
+      _logger.i(
+        '[TokenService] Token expiré, tentative de rafraîchissement...',
+      );
       return refreshToken();
     }
 
@@ -39,17 +41,18 @@ class TokenService {
       if (parts.length != 3) return true;
       final payload = parts[1].replaceAll('-', '+').replaceAll('_', '/');
       final decoded = utf8.decode(
-        base64Decode(payload.padRight(
-          payload.length + (4 - payload.length % 4) % 4,
-          '=',
-        )),
+        base64Decode(
+          payload.padRight(payload.length + (4 - payload.length % 4) % 4, '='),
+        ),
       );
       final map = jsonDecode(decoded) as Map<String, dynamic>;
       final exp = map['exp'] as int?;
       if (exp == null) return false;
       final expiry = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
       // Prise de marge de 1 minute
-      return DateTime.now().isAfter(expiry.subtract(const Duration(minutes: 1)));
+      return DateTime.now().isAfter(
+        expiry.subtract(const Duration(minutes: 1)),
+      );
     } catch (_) {
       return true;
     }
@@ -63,7 +66,9 @@ class TokenService {
     _pendingRefresh = Completer<String?>();
     try {
       final authService = getIt<AuthService>();
-      final res = await authService.refreshToken().timeout(const Duration(seconds: 15));
+      final res = await authService.refreshToken().timeout(
+        const Duration(seconds: 15),
+      );
 
       if (res.isSuccessful && res.body != null) {
         final body = res.body as Map<String, dynamic>?;
@@ -77,7 +82,9 @@ class TokenService {
         }
       }
 
-      _logger.w('[TokenService] Refresh non fructueux — signal de session expirée.');
+      _logger.w(
+        '[TokenService] Refresh non fructueux — signal de session expirée.',
+      );
       _sessionExpiredController.add(null);
       _pendingRefresh!.complete(null);
       return null;

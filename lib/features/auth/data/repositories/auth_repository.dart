@@ -30,11 +30,9 @@ class AuthRepository {
 
   Future<String?> getToken() => _secureStorage.read(key: 'jwt_token');
   Future<String?> getUserId() => _secureStorage.read(key: 'user_id');
-  Future<String?> getCurrentMode() =>
-      _secureStorage.read(key: 'current_mode');
+  Future<String?> getCurrentMode() => _secureStorage.read(key: 'current_mode');
 
-  Future<void> persistAuth(
-      String token, String userId, String mode) async {
+  Future<void> persistAuth(String token, String userId, String mode) async {
     await _secureStorage.write(key: 'jwt_token', value: token);
     await _secureStorage.write(key: 'user_id', value: userId);
     await _secureStorage.write(key: 'current_mode', value: mode);
@@ -55,23 +53,33 @@ class AuthRepository {
   // ─── Email / password ─────────────────────────────────────────────────────
 
   Future<Either<AppError, (String, String)>> loginWithEmail(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
       final deviceInfo = await _deviceService.getDeviceInfo();
-      final res =
-          await _authService.login({'email': email, 'password': password, ...deviceInfo});
+      final res = await _authService.login({
+        'email': email,
+        'password': password,
+        ...deviceInfo,
+      });
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseTokenAndUserId(res.body);
         if (parsed != null) {
           _syncFcmToken();
           return Right(parsed);
         }
-        return Left(AppError.fromResponse(
-            res.body, 'auth.error_invalid_response'));
+        return Left(
+          AppError.fromResponse(res.body, 'auth.error_invalid_response'),
+        );
       }
-      return Left(AppError.fromResponse(
-          res.body, 'auth.error_invalid_credentials',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'auth.error_invalid_credentials',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -93,9 +101,13 @@ class AuthRepository {
         ...deviceInfo,
       });
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(
-          res.body, 'auth.error_register',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'auth.error_register',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -105,34 +117,51 @@ class AuthRepository {
 
   Future<Either<AppError, void>> sendOtp(String phone) async {
     try {
-      final res = await _authService
-          .sendOtp({'phone': phone, 'countryCode': '237'});
+      final res = await _authService.sendOtp({
+        'phone': phone,
+        'countryCode': '237',
+      });
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(res.body, 'auth.error_send_otp',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'auth.error_send_otp',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
   }
 
   Future<Either<AppError, (String, String)>> verifyOtp(
-      String phone, String otp) async {
+    String phone,
+    String otp,
+  ) async {
     try {
       final deviceInfo = await _deviceService.getDeviceInfo();
-      final res =
-          await _authService.verifyOtp({'phone': phone, 'otp': otp, ...deviceInfo});
+      final res = await _authService.verifyOtp({
+        'phone': phone,
+        'otp': otp,
+        ...deviceInfo,
+      });
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseTokenAndUserId(res.body);
         if (parsed != null) {
           _syncFcmToken();
           return Right(parsed);
         }
-        return Left(AppError.fromResponse(
-            res.body, 'auth.error_invalid_response'));
+        return Left(
+          AppError.fromResponse(res.body, 'auth.error_invalid_response'),
+        );
       }
-      return Left(AppError.fromResponse(
-          res.body, 'auth.error_invalid_otp',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'auth.error_invalid_otp',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -141,23 +170,31 @@ class AuthRepository {
   // ─── Social ───────────────────────────────────────────────────────────────
 
   Future<Either<AppError, (String, String)>> loginWithFirebase(
-      String idToken) async {
+    String idToken,
+  ) async {
     try {
       final deviceInfo = await _deviceService.getDeviceInfo();
-      final res =
-          await _authService.loginWithFirebase({'idToken': idToken, ...deviceInfo});
+      final res = await _authService.loginWithFirebase({
+        'idToken': idToken,
+        ...deviceInfo,
+      });
       if (res.isSuccessful && res.body != null) {
         final parsed = _parseTokenAndUserId(res.body);
         if (parsed != null) {
           _syncFcmToken();
           return Right(parsed);
         }
-        return Left(AppError.fromResponse(
-            res.body, 'auth.error_invalid_response'));
+        return Left(
+          AppError.fromResponse(res.body, 'auth.error_invalid_response'),
+        );
       }
-      return Left(AppError.fromResponse(
-          res.body, 'auth.error_google',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'auth.error_google',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -167,24 +204,27 @@ class AuthRepository {
 
   Future<Either<AppError, void>> forgotPassword(String email) async {
     try {
-      final res =
-          await _authService.forgotPassword({'email': email});
+      final res = await _authService.forgotPassword({'email': email});
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(
-          res.body, 'auth.error_forgot_password'));
+      return Left(
+        AppError.fromResponse(res.body, 'auth.error_forgot_password'),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
   }
 
   Future<Either<AppError, void>> resetPassword(
-      String token, String newPassword) async {
+    String token,
+    String newPassword,
+  ) async {
     try {
-      final res = await _authService
-          .resetPassword({'token': token, 'password': newPassword});
+      final res = await _authService.resetPassword({
+        'token': token,
+        'password': newPassword,
+      });
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(
-          res.body, 'auth.error_reset_password'));
+      return Left(AppError.fromResponse(res.body, 'auth.error_reset_password'));
     } catch (_) {
       return Left(AppError.network());
     }
@@ -196,21 +236,19 @@ class AuthRepository {
     try {
       final res = await _authService.verifyEmail(token);
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(
-          res.body, 'auth.error_verify_email'));
+      return Left(AppError.fromResponse(res.body, 'auth.error_verify_email'));
     } catch (_) {
       return Left(AppError.network());
     }
   }
 
-  Future<Either<AppError, void>> resendVerificationEmail(
-      String email) async {
+  Future<Either<AppError, void>> resendVerificationEmail(String email) async {
     try {
-      final res = await _authService
-          .resendVerificationEmail({'email': email});
+      final res = await _authService.resendVerificationEmail({'email': email});
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(
-          res.body, 'auth.error_resend_verification'));
+      return Left(
+        AppError.fromResponse(res.body, 'auth.error_resend_verification'),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -236,8 +274,7 @@ class AuthRepository {
       final token = tokens?['accessToken'] as String?;
       final data = map['data'] as Map<String, dynamic>?;
       final user = data?['user'] as Map<String, dynamic>?;
-      final userId =
-          user?['_id']?.toString() ?? user?['id']?.toString();
+      final userId = user?['_id']?.toString() ?? user?['id']?.toString();
       if (token != null && userId != null) return (token, userId);
       return null;
     } catch (_) {
@@ -265,11 +302,8 @@ class AuthRepository {
         // Simple mapping to 'fr' or 'en'
         final systemLocale = PlatformDispatcher.instance.locale.languageCode;
         final locale = systemLocale.startsWith('en') ? 'en' : 'fr';
-        
-        await _userService.registerFcmToken({
-          'token': token,
-          'locale': locale,
-        });
+
+        await _userService.registerFcmToken({'token': token, 'locale': locale});
       }
     } catch (_) {
       // Non-critical failure

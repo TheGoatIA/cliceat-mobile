@@ -33,8 +33,7 @@ class WebSocketService {
 
   // ─── Streams ──────────────────────────────────────────────────────────────
 
-  final _statusController =
-      StreamController<WsStatus>.broadcast();
+  final _statusController = StreamController<WsStatus>.broadcast();
   Stream<WsStatus> get statusStream => _statusController.stream;
 
   final _missionEventController =
@@ -83,7 +82,6 @@ class WebSocketService {
   int _retryCount = 0;
   Timer? _reconnectTimer;
 
-
   // ─── Public API ───────────────────────────────────────────────────────────
 
   bool get isConnected => _socket?.connected == true;
@@ -125,7 +123,6 @@ class WebSocketService {
   }
 
   // ─── Connection logic ─────────────────────────────────────────────────────
-
 
   /// Declenche localement un evenement de rafraichissement du dashboard livreur.
   /// Utilise apres confirmation de livraison pour forcer le rechargement
@@ -252,7 +249,9 @@ class WebSocketService {
     if (_manualDisconnect) return;
     if (_reconnectTimer?.isActive == true) return;
     if (_retryCount >= _maxRetries) {
-      _logger.e('[WS] Nombre max de tentatives atteint ($_maxRetries). Abandon.');
+      _logger.e(
+        '[WS] Nombre max de tentatives atteint ($_maxRetries). Abandon.',
+      );
       return;
     }
 

@@ -26,11 +26,13 @@ class NotificationRepository {
             .toList();
         return Right(notifications);
       }
-      return Left(AppError.fromResponse(
-        res.body,
-        'common.error',
-        statusCode: res.statusCode,
-      ));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -42,11 +44,13 @@ class NotificationRepository {
       if (res.isSuccessful) {
         return const Right(null);
       }
-      return Left(AppError.fromResponse(
-        res.body,
-        'common.error',
-        statusCode: res.statusCode,
-      ));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }
@@ -58,11 +62,13 @@ class NotificationRepository {
       if (res.isSuccessful) {
         return const Right(null);
       }
-      return Left(AppError.fromResponse(
-        res.body,
-        'common.error',
-        statusCode: res.statusCode,
-      ));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'common.error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (_) {
       return Left(AppError.network());
     }

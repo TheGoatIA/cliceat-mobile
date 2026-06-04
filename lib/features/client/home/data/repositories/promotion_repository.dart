@@ -9,13 +9,14 @@ class PromotionRepository {
 
   PromotionRepository(this._promotionService);
 
-  Future<Either<AppError, List<Map<String, dynamic>>>> getActivePromotions() async {
+  Future<Either<AppError, List<Map<String, dynamic>>>>
+  getActivePromotions() async {
     try {
       final res = await _promotionService.getActivePromotions();
       if (res.isSuccessful && res.body != null) {
         final bodyData = res.body!['data'];
-        final List<dynamic> listData = bodyData is List 
-            ? bodyData 
+        final List<dynamic> listData = bodyData is List
+            ? bodyData
             : (bodyData is Map ? (bodyData['promotions'] ?? []) : []);
         return Right(listData.cast<Map<String, dynamic>>());
       }
@@ -25,7 +26,9 @@ class PromotionRepository {
     }
   }
 
-  Future<Either<AppError, List<Map<String, dynamic>>>> getRestaurantPromotions(String restaurantId) async {
+  Future<Either<AppError, List<Map<String, dynamic>>>> getRestaurantPromotions(
+    String restaurantId,
+  ) async {
     try {
       final res = await _promotionService.getRestaurantPromotions(restaurantId);
       if (res.isSuccessful && res.body != null) {

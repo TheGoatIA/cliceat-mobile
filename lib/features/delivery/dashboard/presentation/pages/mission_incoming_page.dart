@@ -55,10 +55,14 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
     });
 
     // Écouter si un autre driver prend la mission avant nous
-    _missionTakenSub = getIt<WebSocketService>().missionTakenEvents.listen((data) {
+    _missionTakenSub = getIt<WebSocketService>().missionTakenEvents.listen((
+      data,
+    ) {
       final takenOrderId = data['orderId']?.toString();
       if (takenOrderId == widget.mission.id && mounted) {
-        _logger.i('[Mission] Mission ${widget.mission.id} prise par un autre driver');
+        _logger.i(
+          '[Mission] Mission ${widget.mission.id} prise par un autre driver',
+        );
         _timer?.cancel();
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -66,7 +70,9 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
             content: Text('delivery.mission_taken_by_other'.tr()),
             backgroundColor: AppTheme.honey,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -75,15 +81,18 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
 
   void _onTimeout() {
     if (mounted) {
-      context.read<MissionBloc>().add(MissionEvent.rejectMission(widget.mission.id));
+      context.read<MissionBloc>().add(
+        MissionEvent.rejectMission(widget.mission.id),
+      );
       context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('delivery.mission_expired'.tr()),
           backgroundColor: AppTheme.ink,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -104,7 +113,10 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
         state.maybeWhen(
           actionSuccess: (message) {
             if (message == 'mission.accepted' && _accepted) {
-              context.pushReplacement('/delivery/active-navigation', extra: widget.mission);
+              context.pushReplacement(
+                '/delivery/active-navigation',
+                extra: widget.mission,
+              );
             }
           },
           error: (errorMsg) {
@@ -115,7 +127,9 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
                   content: Text(errorMsg.tr()),
                   backgroundColor: Colors.red,
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             }
@@ -230,17 +244,26 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
                     doubleTouchToZoomOutEnabled: false,
                   ),
                 );
-                mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
-                mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
-                mapboxMap.attribution.updateSettings(AttributionSettings(enabled: false));
+                mapboxMap.scaleBar.updateSettings(
+                  ScaleBarSettings(enabled: false),
+                );
+                mapboxMap.compass.updateSettings(
+                  CompassSettings(enabled: false),
+                );
+                mapboxMap.attribution.updateSettings(
+                  AttributionSettings(enabled: false),
+                );
                 mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
               },
             ),
             const Center(
               child: Padding(
                 padding: EdgeInsets.only(bottom: 24),
-                child: Icon(Icons.location_on_rounded,
-                    color: AppTheme.honey, size: 40),
+                child: Icon(
+                  Icons.location_on_rounded,
+                  color: AppTheme.honey,
+                  size: 40,
+                ),
               ),
             ),
             Align(
@@ -253,12 +276,14 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      AppTheme.ink.withValues(alpha: 0.8)
+                      AppTheme.ink.withValues(alpha: 0.8),
                     ],
                   ),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -266,16 +291,18 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
                     Text(
                       'delivery.waiting'.tr(),
                       style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13),
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                      ),
                     ),
                     Text(
                       'delivery.restaurant_view'.tr(),
                       style: GoogleFonts.inter(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -301,9 +328,11 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
             icon: Icons.storefront_rounded,
             iconBg: AppTheme.honeySoft,
             iconColor: AppTheme.honey,
-            title: widget.mission.restaurantName ??
+            title:
+                widget.mission.restaurantName ??
                 'delivery.unknown_restaurant'.tr(),
-            subtitle: widget.mission.restaurantAddress ??
+            subtitle:
+                widget.mission.restaurantAddress ??
                 'delivery.unknown_address'.tr(),
           ),
           Padding(
@@ -315,7 +344,8 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
             iconBg: AppTheme.greenSoft,
             iconColor: AppTheme.green,
             title: 'Client: ${widget.mission.clientName ?? "Anonyme"}',
-            subtitle: widget.mission.deliveryAddress?.address ??
+            subtitle:
+                widget.mission.deliveryAddress?.address ??
                 'delivery.unknown_delivery_address'.tr(),
           ),
           Padding(
@@ -327,8 +357,7 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
             children: [
               Text(
                 'delivery.estimated_gain'.tr(),
-                style: GoogleFonts.inter(
-                    fontSize: 14, color: AppTheme.muted),
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
               ),
               Text(
                 '+${widget.mission.earnings.toStringAsFixed(0)} FCFA',
@@ -369,15 +398,15 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
               Text(
                 title,
                 style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: AppTheme.ink),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: AppTheme.ink,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: GoogleFonts.inter(
-                    color: AppTheme.muted, fontSize: 13),
+                style: GoogleFonts.inter(color: AppTheme.muted, fontSize: 13),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -403,7 +432,9 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
                     content: Text('delivery.mission_id_missing'.tr()),
                     backgroundColor: Colors.red,
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
                 return;
@@ -414,14 +445,18 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
               HapticFeedback.heavyImpact();
               _logger.i('[Mission] Acceptation orderId: ${widget.mission.id}');
 
-              context.read<MissionBloc>().add(MissionEvent.acceptMission(widget.mission.id));
+              context.read<MissionBloc>().add(
+                MissionEvent.acceptMission(widget.mission.id),
+              );
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               width: double.infinity,
               height: 60,
               decoration: BoxDecoration(
-                color: _accepted ? AppTheme.green.withValues(alpha: 0.6) : AppTheme.green,
+                color: _accepted
+                    ? AppTheme.green.withValues(alpha: 0.6)
+                    : AppTheme.green,
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: _accepted
                     ? []
@@ -453,8 +488,11 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
                                 color: AppTheme.green,
                               ),
                             )
-                          : const Icon(Icons.check_rounded,
-                              color: AppTheme.green, size: 24),
+                          : const Icon(
+                              Icons.check_rounded,
+                              color: AppTheme.green,
+                              size: 24,
+                            ),
                     ),
                   ),
                   Center(
@@ -478,8 +516,9 @@ class _MissionIncomingPageState extends State<MissionIncomingPage>
             onPressed: () {
               HapticFeedback.mediumImpact();
               _timer?.cancel();
-              context.read<MissionBloc>()
-                  .add(MissionEvent.rejectMission(widget.mission.id));
+              context.read<MissionBloc>().add(
+                MissionEvent.rejectMission(widget.mission.id),
+              );
               context.pop();
             },
             child: Text(

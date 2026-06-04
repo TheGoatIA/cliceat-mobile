@@ -31,12 +31,18 @@ class ChatCubit extends Cubit<ChatState> {
     if (event['type'] == 'new_message') {
       final msgJson = event['message'] as Map<String, dynamic>;
       final newMessage = MessageModel.fromJson(msgJson);
-      
+
       state.maybeWhen(
         messagesLoaded: (conversation, messages) {
           if (conversation.id == newMessage.conversationId) {
-            final updated = List<MessageModel>.from(messages)..insert(0, newMessage);
-            emit(ChatState.messagesLoaded(conversation: conversation, messages: updated));
+            final updated = List<MessageModel>.from(messages)
+              ..insert(0, newMessage);
+            emit(
+              ChatState.messagesLoaded(
+                conversation: conversation,
+                messages: updated,
+              ),
+            );
           } else {
             // Un message est reçu mais on n'est pas sur la même conversation. On actualise les conversations
             loadConversations();
@@ -61,23 +67,25 @@ class ChatCubit extends Cubit<ChatState> {
     emit(const ChatState.loading());
     final res = await _repository.getConversations();
     final unreadRes = await _repository.getUnreadCount();
-    
+
     int unread = 0;
     unreadRes.fold((_) {}, (c) => unread = c);
 
     res.fold(
       (err) => emit(ChatState.error(err.message)),
-      (conversations) => emit(ChatState.conversationsLoaded(
-        conversations: _sortConversations(conversations),
-        unreadCount: unread,
-      )),
+      (conversations) => emit(
+        ChatState.conversationsLoaded(
+          conversations: _sortConversations(conversations),
+          unreadCount: unread,
+        ),
+      ),
     );
   }
 
   Future<void> loadMessages(ConversationModel conversation) async {
     emit(const ChatState.loading());
     final res = await _repository.getMessages(conversation.id);
-    
+
     // Mark as read asynchronously
     if (conversation.unreadCount > 0) {
       _repository.markAsRead(conversation.id);
@@ -85,14 +93,20 @@ class ChatCubit extends Cubit<ChatState> {
 
     res.fold(
       (err) => emit(ChatState.error(err.message)),
-      (messages) => emit(ChatState.messagesLoaded(
-        conversation: conversation,
-        messages: _sortMessages(messages),
-      )),
+      (messages) => emit(
+        ChatState.messagesLoaded(
+          conversation: conversation,
+          messages: _sortMessages(messages),
+        ),
+      ),
     );
   }
 
-  Future<Either<AppError, MessageModel>> sendMessage(String conversationId, String content, {File? file}) async {
+  Future<Either<AppError, MessageModel>> sendMessage(
+    String conversationId,
+    String content, {
+    File? file,
+  }) async {
     // Optimistic UI could be implemented here
     final res = await _repository.sendMessage(
       conversationId: conversationId,
@@ -100,18 +114,21 @@ class ChatCubit extends Cubit<ChatState> {
       file: file,
     );
 
-    res.fold(
-      (err) {},
-      (newMessage) {
-        state.maybeWhen(
-          messagesLoaded: (conversation, messages) {
-            final updated = List<MessageModel>.from(messages)..insert(0, newMessage);
-            emit(ChatState.messagesLoaded(conversation: conversation, messages: updated));
-          },
-          orElse: () {},
-        );
-      },
-    );
+    res.fold((err) {}, (newMessage) {
+      state.maybeWhen(
+        messagesLoaded: (conversation, messages) {
+          final updated = List<MessageModel>.from(messages)
+            ..insert(0, newMessage);
+          emit(
+            ChatState.messagesLoaded(
+              conversation: conversation,
+              messages: updated,
+            ),
+          );
+        },
+        orElse: () {},
+      );
+    });
     return res;
   }
 

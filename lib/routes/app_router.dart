@@ -123,14 +123,16 @@ const _kPublicRoutes = {
 
 bool _isVersionBelow(String current, String? minRequired) {
   if (minRequired == null || minRequired.isEmpty) return false;
-  
+
   final currentParts = current.split('+')[0].split('.');
   final minParts = minRequired.split('+')[0].split('.');
-  
+
   for (int i = 0; i < 3; i++) {
-    final currentPart = i < currentParts.length ? int.tryParse(currentParts[i]) ?? 0 : 0;
+    final currentPart = i < currentParts.length
+        ? int.tryParse(currentParts[i]) ?? 0
+        : 0;
     final minPart = i < minParts.length ? int.tryParse(minParts[i]) ?? 0 : 0;
-    
+
     if (currentPart < minPart) return true;
     if (currentPart > minPart) return false;
   }
@@ -493,7 +495,9 @@ final GoRouter appRouter = GoRouter(
         final msg = locale == 'en'
             ? config?.updateMessageEn
             : config?.updateMessageFr;
-        final updateUrl = Platform.isIOS ? config?.iosUpdateUrl : config?.updateUrl;
+        final updateUrl = Platform.isIOS
+            ? config?.iosUpdateUrl
+            : config?.updateUrl;
         return ForceUpdatePage(message: msg, updateUrl: updateUrl);
       },
     ),

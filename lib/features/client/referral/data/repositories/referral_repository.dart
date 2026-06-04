@@ -4,7 +4,6 @@ import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/core/network/services/referral_service.dart';
 import '../models/referral_model.dart';
 
-
 @injectable
 class ReferralRepository {
   final ReferralService _service;

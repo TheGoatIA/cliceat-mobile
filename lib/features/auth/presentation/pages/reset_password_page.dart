@@ -39,7 +39,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 backgroundColor: AppTheme.green,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
             context.go('/auth/login?mode=client');
@@ -51,7 +52,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 backgroundColor: AppTheme.primaryRed,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           },
@@ -59,8 +61,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         );
       },
       builder: (context, state) {
-        final isLoading =
-            state.maybeWhen(loading: () => true, orElse: () => false);
+        final isLoading = state.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
         return Scaffold(
           backgroundColor: AppTheme.bg,
           body: SafeArea(
@@ -79,8 +83,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                         border: Border.all(color: AppTheme.line),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 18, color: AppTheme.ink),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: AppTheme.ink,
+                      ),
                     ),
                   ),
                 ),
@@ -90,7 +97,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                       constraints: const BoxConstraints(maxWidth: 480),
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 24),
+                          horizontal: 24,
+                          vertical: 24,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -101,8 +110,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                 color: AppTheme.redSoft,
                                 borderRadius: BorderRadius.circular(32),
                               ),
-                              child: const Icon(Icons.lock_reset_outlined,
-                                  size: 30, color: AppTheme.primaryRed),
+                              child: const Icon(
+                                Icons.lock_reset_outlined,
+                                size: 30,
+                                color: AppTheme.primaryRed,
+                              ),
                             ),
                             const SizedBox(height: 24),
                             Text(
@@ -119,9 +131,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                             Text(
                               'Choisissez un nouveau mot de passe sécurisé.',
                               style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  color: AppTheme.muted,
-                                  height: 1.5),
+                                fontSize: 14,
+                                color: AppTheme.muted,
+                                height: 1.5,
+                              ),
                             ),
                             const SizedBox(height: 32),
                             _buildPasswordField(
@@ -129,7 +142,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                               label: 'auth.new_password'.tr(),
                               visible: _passwordVisible,
                               onToggle: () => setState(
-                                  () => _passwordVisible = !_passwordVisible),
+                                () => _passwordVisible = !_passwordVisible,
+                              ),
                             ),
                             const SizedBox(height: 14),
                             _buildPasswordField(
@@ -137,7 +151,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                               label: 'auth.confirm_password'.tr(),
                               visible: _confirmVisible,
                               onToggle: () => setState(
-                                  () => _confirmVisible = !_confirmVisible),
+                                () => _confirmVisible = !_confirmVisible,
+                              ),
                             ),
                             const SizedBox(height: 28),
                             SizedBox(
@@ -148,54 +163,68 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                     : () {
                                         final password = _passwordCtrl.text;
                                         final confirm = _confirmCtrl.text;
-                                        if (password.isEmpty || confirm.isEmpty) {
+                                        if (password.isEmpty ||
+                                            confirm.isEmpty) {
                                           return;
                                         }
                                         if (password != confirm) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(SnackBar(
-                                            content: Text(
-                                                'auth.password_mismatch'.tr()),
-                                            backgroundColor:
-                                                AppTheme.primaryRed,
-                                          ));
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'auth.password_mismatch'.tr(),
+                                              ),
+                                              backgroundColor:
+                                                  AppTheme.primaryRed,
+                                            ),
+                                          );
                                           return;
                                         }
                                         if (password.length < 8) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(SnackBar(
-                                            content: Text(
-                                                'auth.password_too_short'.tr()),
-                                            backgroundColor:
-                                                AppTheme.primaryRed,
-                                          ));
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'auth.password_too_short'.tr(),
+                                              ),
+                                              backgroundColor:
+                                                  AppTheme.primaryRed,
+                                            ),
+                                          );
                                           return;
                                         }
                                         context.read<AuthBloc>().add(
-                                            AuthEvent.resetPassword(
-                                                token: widget.token,
-                                                newPassword: password));
+                                          AuthEvent.resetPassword(
+                                            token: widget.token,
+                                            newPassword: password,
+                                          ),
+                                        );
                                       },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppTheme.primaryRed,
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(16)),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                                 ),
                                 child: isLoading
                                     ? const SizedBox(
                                         width: 20,
                                         height: 20,
                                         child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white))
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
                                     : Text(
                                         'auth.reset_password_btn'.tr(),
                                         style: GoogleFonts.inter(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                               ),
                             ),
@@ -232,8 +261,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
-          prefixIcon: const Icon(Icons.lock_outline_rounded,
-              color: AppTheme.muted, size: 20),
+          prefixIcon: const Icon(
+            Icons.lock_outline_rounded,
+            color: AppTheme.muted,
+            size: 20,
+          ),
           suffixIcon: IconButton(
             icon: Icon(
               visible
@@ -245,8 +277,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             onPressed: onToggle,
           ),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
       ),
     );

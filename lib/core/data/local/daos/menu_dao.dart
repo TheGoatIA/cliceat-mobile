@@ -11,12 +11,19 @@ class MenuDao extends DatabaseAccessor<AppDatabase> with _$MenuDaoMixin {
   MenuDao(super.db);
 
   Future<List<MenuItemsTableData>> getByRestaurant(String restaurantId) {
-    return (select(menuItemsTable)..where((t) => t.restaurantId.equals(restaurantId))).get();
+    return (select(
+      menuItemsTable,
+    )..where((t) => t.restaurantId.equals(restaurantId))).get();
   }
 
-  Future<void> replaceItemsForRestaurant(String restaurantId, List<MenuItemsTableCompanion> items) async {
+  Future<void> replaceItemsForRestaurant(
+    String restaurantId,
+    List<MenuItemsTableCompanion> items,
+  ) async {
     return transaction(() async {
-      await (delete(menuItemsTable)..where((t) => t.restaurantId.equals(restaurantId))).go();
+      await (delete(
+        menuItemsTable,
+      )..where((t) => t.restaurantId.equals(restaurantId))).go();
       await batch((batch) {
         batch.insertAll(menuItemsTable, items);
       });

@@ -58,7 +58,10 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2))
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
+            )
           : RefreshIndicator(
               color: AppTheme.primaryRed,
               onRefresh: () async {
@@ -77,8 +80,11 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                               color: AppTheme.bgWarm,
                               borderRadius: BorderRadius.circular(40),
                             ),
-                            child: const Icon(Icons.history,
-                                size: 36, color: AppTheme.muted),
+                            child: const Icon(
+                              Icons.history,
+                              size: 36,
+                              color: AppTheme.muted,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -108,8 +114,8 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
   Widget _buildMissionCard(MissionModel mission) {
     final formattedDate = mission.createdAt != null
         ? '${mission.createdAt!.day.toString().padLeft(2, '0')}/'
-            '${mission.createdAt!.month.toString().padLeft(2, '0')}/'
-            '${mission.createdAt!.year}'
+              '${mission.createdAt!.month.toString().padLeft(2, '0')}/'
+              '${mission.createdAt!.year}'
         : '';
 
     final statusColor = _statusColor(mission.status);
@@ -149,7 +155,10 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -157,9 +166,10 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                   child: Text(
                     statusLabel,
                     style: GoogleFonts.inter(
-                        color: statusColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700),
+                      color: statusColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -168,17 +178,26 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
             Row(
               children: [
                 if (formattedDate.isNotEmpty) ...[
-                  const Icon(Icons.calendar_today,
-                      size: 14, color: AppTheme.mutedLight),
+                  const Icon(
+                    Icons.calendar_today,
+                    size: 14,
+                    color: AppTheme.mutedLight,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     formattedDate,
-                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.muted,
+                    ),
                   ),
                   const SizedBox(width: 16),
                 ],
-                const Icon(Icons.delivery_dining,
-                    size: 14, color: AppTheme.primaryRed),
+                const Icon(
+                  Icons.delivery_dining,
+                  size: 14,
+                  color: AppTheme.primaryRed,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   '${'delivery.your_earnings'.tr()}: '
@@ -197,12 +216,15 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
     );
   }
 
-  void _showMissionDetailsBottomSheet(BuildContext context, MissionModel mission) {
+  void _showMissionDetailsBottomSheet(
+    BuildContext context,
+    MissionModel mission,
+  ) {
     final formattedDate = mission.createdAt != null
         ? '${mission.createdAt!.day.toString().padLeft(2, '0')}/'
-            '${mission.createdAt!.month.toString().padLeft(2, '0')}/'
-            '${mission.createdAt!.year} à ${mission.createdAt!.hour.toString().padLeft(2, '0')}:'
-            '${mission.createdAt!.minute.toString().padLeft(2, '0')}'
+              '${mission.createdAt!.month.toString().padLeft(2, '0')}/'
+              '${mission.createdAt!.year} à ${mission.createdAt!.hour.toString().padLeft(2, '0')}:'
+              '${mission.createdAt!.minute.toString().padLeft(2, '0')}'
         : 'Indisponible';
 
     final shortId = mission.id.length > 8
@@ -238,7 +260,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Header
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -246,7 +268,9 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                       children: [
                         CircleAvatar(
                           radius: 20,
-                          backgroundColor: _statusColor(mission.status).withValues(alpha: 0.1),
+                          backgroundColor: _statusColor(
+                            mission.status,
+                          ).withValues(alpha: 0.1),
                           child: Icon(
                             mission.status.toLowerCase() == 'delivered'
                                 ? Icons.check_circle_outline
@@ -280,9 +304,14 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: _statusColor(mission.status).withValues(alpha: 0.1),
+                            color: _statusColor(
+                              mission.status,
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -299,7 +328,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                   ),
                   const SizedBox(height: 16),
                   const Divider(height: 1, color: AppTheme.lineSoft),
-                  
+
                   // Content
                   Expanded(
                     child: ListView(
@@ -311,7 +340,8 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                         _buildDetailTile(
                           icon: Icons.storefront_rounded,
                           title: mission.restaurantName ?? 'Restaurant inconnu',
-                          subtitle: mission.restaurantAddress ?? 'Adresse inconnue',
+                          subtitle:
+                              mission.restaurantAddress ?? 'Adresse inconnue',
                         ),
                         const SizedBox(height: 20),
 
@@ -320,9 +350,12 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                         _buildDetailTile(
                           icon: Icons.person_rounded,
                           title: mission.clientName ?? 'Client anonyme',
-                          subtitle: mission.deliveryAddress?.address ?? 'Adresse de livraison inconnue',
+                          subtitle:
+                              mission.deliveryAddress?.address ??
+                              'Adresse de livraison inconnue',
                         ),
-                        if (mission.clientPhone != null && mission.clientPhone!.isNotEmpty) ...[
+                        if (mission.clientPhone != null &&
+                            mission.clientPhone!.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           _buildDetailTile(
                             icon: Icons.phone_android_rounded,
@@ -345,9 +378,12 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                             child: Column(
                               children: mission.items.map((item) {
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: Text(
@@ -392,12 +428,12 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                               mission.paymentMethod == 'cash'
                                   ? 'Espèces à la livraison'
                                   : mission.paymentMethod == 'orange_money'
-                                      ? 'Orange Money'
-                                      : mission.paymentMethod == 'mtn_momo'
-                                          ? 'MTN Mobile Money'
-                                          : mission.paymentMethod == 'wallet'
-                                              ? 'Portefeuille ClicEat'
-                                              : 'Paiement en ligne',
+                                  ? 'Orange Money'
+                                  : mission.paymentMethod == 'mtn_momo'
+                                  ? 'MTN Mobile Money'
+                                  : mission.paymentMethod == 'wallet'
+                                  ? 'Portefeuille ClicEat'
+                                  : 'Paiement en ligne',
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -487,10 +523,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppTheme.muted,
-                ),
+                style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
               ),
             ],
           ),

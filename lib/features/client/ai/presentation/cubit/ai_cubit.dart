@@ -16,9 +16,9 @@ class AiCubit extends Cubit<AiState> {
       _messages.add(
         AiMessageModel(
           role: 'model',
-          content: locale == 'fr' 
-            ? "Bonjour ! Je suis ClicEat AI, votre assistant culinaire. Que désirez-vous manger aujourd'hui ?"
-            : "Hello! I am ClicEat AI, your food assistant. What would you like to eat today?",
+          content: locale == 'fr'
+              ? "Bonjour ! Je suis ClicEat AI, votre assistant culinaire. Que désirez-vous manger aujourd'hui ?"
+              : "Hello! I am ClicEat AI, your food assistant. What would you like to eat today?",
         ),
       );
     }
@@ -32,16 +32,15 @@ class AiCubit extends Cubit<AiState> {
     emit(const AiState.typing());
 
     // Send only up to last 10 messages for context
-    final history = _messages.length > 10 ? _messages.sublist(_messages.length - 10) : _messages;
-    
+    final history = _messages.length > 10
+        ? _messages.sublist(_messages.length - 10)
+        : _messages;
+
     final res = await _repository.sendMessage(text, history);
-    
-    res.fold(
-      (err) => emit(AiState.error(err.message)),
-      (reply) {
-        _messages.add(AiMessageModel(role: 'model', content: reply));
-        emit(AiState.idle(messages: List.from(_messages)));
-      },
-    );
+
+    res.fold((err) => emit(AiState.error(err.message)), (reply) {
+      _messages.add(AiMessageModel(role: 'model', content: reply));
+      emit(AiState.idle(messages: List.from(_messages)));
+    });
   }
 }

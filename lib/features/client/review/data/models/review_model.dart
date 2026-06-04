@@ -40,13 +40,15 @@ class ReviewModel extends Equatable {
       restaurantId: restaurant != null
           ? restaurant['_id']?.toString() ?? restaurant['id']?.toString() ?? ''
           : json['restaurantId']?.toString() ?? '',
-      restaurantName: json['restaurantName']?.toString() ?? restaurant?['name']?.toString(),
+      restaurantName:
+          json['restaurantName']?.toString() ?? restaurant?['name']?.toString(),
       clientId: json['clientId']?.toString() ?? '',
       clientName: json['clientName']?.toString() ?? 'Utilisateur',
       restaurantRating: (json['restaurantRating'] as num?)?.toInt() ?? 5,
       deliveryRating: (json['deliveryRating'] as num?)?.toInt(),
       comment: json['comment']?.toString(),
-      photos: (json['photos'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      photos:
+          (json['photos'] as List?)?.map((e) => e.toString()).toList() ?? [],
       restaurantResponse: json['restaurantResponse']?.toString(),
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
@@ -56,17 +58,17 @@ class ReviewModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        orderId,
-        restaurantId,
-        restaurantName,
-        clientId,
-        clientName,
-        restaurantRating,
-        deliveryRating,
-        comment,
-        photos,
-        restaurantResponse,
-        createdAt
-      ];
+    id,
+    orderId,
+    restaurantId,
+    restaurantName,
+    clientId,
+    clientName,
+    restaurantRating,
+    deliveryRating,
+    comment,
+    photos,
+    restaurantResponse,
+    createdAt,
+  ];
 }

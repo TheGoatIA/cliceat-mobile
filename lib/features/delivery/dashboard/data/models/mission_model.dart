@@ -42,7 +42,8 @@ class MissionModel {
     //    { _id, status, restaurantId: { name, address, location }, clientId: { name }, ... }
 
     // === ID ===
-    final id = json['orderId']?.toString() ??
+    final id =
+        json['orderId']?.toString() ??
         json['_id']?.toString() ??
         json['id']?.toString() ??
         '';
@@ -61,55 +62,59 @@ class MissionModel {
     final restaurant = json['restaurant'] is Map
         ? (json['restaurant'] as Map).cast<String, dynamic>()
         : json['restaurantId'] is Map
-            ? (json['restaurantId'] as Map).cast<String, dynamic>()
-            : null;
+        ? (json['restaurantId'] as Map).cast<String, dynamic>()
+        : null;
     final restaurantLoc = restaurant?['location'] is Map
         ? (restaurant!['location'] as Map).cast<String, dynamic>()
         : null;
     final restCoords = restaurantLoc?['coordinates'] as List<dynamic>?;
- 
+
     final effectiveCoords = wsCoords ?? restCoords;
     final resolvedRestaurantName =
         restaurantName ?? restaurant?['name']?.toString();
     final resolvedRestaurantAddress =
         restaurantAddress ?? restaurant?['address']?.toString();
- 
+
     // === Delivery address ===
     final deliveryAddrRaw = json['deliveryAddress'] is Map
         ? (json['deliveryAddress'] as Map).cast<String, dynamic>()
         : null;
- 
+
     // === Client ===
     final client = json['client'] is Map
         ? (json['client'] as Map).cast<String, dynamic>()
         : json['clientId'] is Map
-            ? (json['clientId'] as Map).cast<String, dynamic>()
-            : null;
- 
+        ? (json['clientId'] as Map).cast<String, dynamic>()
+        : null;
+
     // === Items ===
     final dynamic itemsField = json['items'];
     final List<dynamic> rawItems = itemsField is List ? itemsField : [];
- 
+
     // === Earnings : le payload WS envoie 'deliveryFee', l'API envoie 'deliveryEarnings' ===
-    final earnings = (json['deliveryFee'] as num?)?.toDouble() ??
+    final earnings =
+        (json['deliveryFee'] as num?)?.toDouble() ??
         (json['deliveryEarnings'] as num?)?.toDouble() ??
         (json['earnings'] as num?)?.toDouble() ??
         0.0;
 
-    final total = (json['total'] as num?)?.toDouble() ??
+    final total =
+        (json['total'] as num?)?.toDouble() ??
         (json['totalAmount'] as num?)?.toDouble() ??
         0.0;
- 
+
     return MissionModel(
       id: id,
       status: json['status']?.toString() ?? 'pending',
       restaurantName: resolvedRestaurantName,
       restaurantAddress: resolvedRestaurantAddress,
-      restaurantLat: (json['restaurantLat'] as num?)?.toDouble() ??
+      restaurantLat:
+          (json['restaurantLat'] as num?)?.toDouble() ??
           (effectiveCoords != null && effectiveCoords.length >= 2
               ? (effectiveCoords[1] as num?)?.toDouble()
               : null),
-      restaurantLng: (json['restaurantLng'] as num?)?.toDouble() ??
+      restaurantLng:
+          (json['restaurantLng'] as num?)?.toDouble() ??
           (effectiveCoords != null && effectiveCoords.length >= 2
               ? (effectiveCoords[0] as num?)?.toDouble()
               : null),
@@ -133,23 +138,23 @@ class MissionModel {
   }
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'status': status,
-        if (restaurantName != null) 'restaurantName': restaurantName,
-        if (restaurantAddress != null) 'restaurantAddress': restaurantAddress,
-        if (restaurantLat != null) 'restaurantLat': restaurantLat,
-        if (restaurantLng != null) 'restaurantLng': restaurantLng,
-        if (deliveryAddress != null) 'deliveryAddress': deliveryAddress!.toJson(),
-        'earnings': earnings,
-        'total': total,
-        if (clientName != null || clientPhone != null) 'client': {
-          'name': clientName,
-          'phone': clientPhone,
-        },
-        if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
-        'items': items.map((i) => {'name': i.name, 'quantity': i.quantity}).toList(),
-        if (paymentMethod != null) 'paymentMethod': paymentMethod,
-      };
+    '_id': id,
+    'status': status,
+    if (restaurantName != null) 'restaurantName': restaurantName,
+    if (restaurantAddress != null) 'restaurantAddress': restaurantAddress,
+    if (restaurantLat != null) 'restaurantLat': restaurantLat,
+    if (restaurantLng != null) 'restaurantLng': restaurantLng,
+    if (deliveryAddress != null) 'deliveryAddress': deliveryAddress!.toJson(),
+    'earnings': earnings,
+    'total': total,
+    if (clientName != null || clientPhone != null)
+      'client': {'name': clientName, 'phone': clientPhone},
+    if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+    'items': items
+        .map((i) => {'name': i.name, 'quantity': i.quantity})
+        .toList(),
+    if (paymentMethod != null) 'paymentMethod': paymentMethod,
+  };
 }
 
 class MissionItemModel {

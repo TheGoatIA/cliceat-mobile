@@ -20,7 +20,7 @@ class DeviceService {
           'brand': androidInfo.brand,
           'model': androidInfo.model,
           'appVersion': appVersion,
-        }
+        },
       };
     } else if (Platform.isIOS) {
       final IosDeviceInfo iosInfo = await _deviceInfo.iosInfo;
@@ -31,7 +31,7 @@ class DeviceService {
           'brand': 'Apple',
           'model': iosInfo.utsname.machine,
           'appVersion': appVersion,
-        }
+        },
       };
     }
     return {};

@@ -22,7 +22,8 @@ class _ReferralPageState extends State<ReferralPage> {
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
           left: 24,
@@ -98,12 +99,15 @@ class _ReferralPageState extends State<ReferralPage> {
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: Text(
                   'common.confirm'.tr(),
                   style: GoogleFonts.inter(
-                      fontSize: 16, fontWeight: FontWeight.w600),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -141,7 +145,8 @@ class _ReferralPageState extends State<ReferralPage> {
                   backgroundColor: AppTheme.primaryRed,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             },
@@ -152,7 +157,8 @@ class _ReferralPageState extends State<ReferralPage> {
                   backgroundColor: AppTheme.green,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             },
@@ -163,15 +169,20 @@ class _ReferralPageState extends State<ReferralPage> {
           return state.maybeWhen(
             loading: () => const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2),
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
             ),
             loaded: (stats) => SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildHeroCard(stats.totalEarned, stats.pendingBonus,
-                      stats.totalReferrals),
+                  _buildHeroCard(
+                    stats.totalEarned,
+                    stats.pendingBonus,
+                    stats.totalReferrals,
+                  ),
                   const SizedBox(height: 20),
                   _buildCodeCard(context, stats.referralCode),
                   const SizedBox(height: 16),
@@ -194,8 +205,11 @@ class _ReferralPageState extends State<ReferralPage> {
                               color: AppTheme.honeySoft,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.card_giftcard_rounded,
-                                color: AppTheme.honey, size: 22),
+                            child: const Icon(
+                              Icons.card_giftcard_rounded,
+                              color: AppTheme.honey,
+                              size: 22,
+                            ),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -208,8 +222,10 @@ class _ReferralPageState extends State<ReferralPage> {
                               ),
                             ),
                           ),
-                          const Icon(Icons.chevron_right_rounded,
-                              color: AppTheme.mutedLight),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppTheme.mutedLight,
+                          ),
                         ],
                       ),
                     ),
@@ -219,7 +235,9 @@ class _ReferralPageState extends State<ReferralPage> {
             ),
             orElse: () => const Center(
               child: CircularProgressIndicator(
-                  color: AppTheme.primaryRed, strokeWidth: 2),
+                color: AppTheme.primaryRed,
+                strokeWidth: 2,
+              ),
             ),
           );
         },
@@ -269,11 +287,19 @@ class _ReferralPageState extends State<ReferralPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildSmallStat('referral.pending'.tr(),
-                  '${pending.toStringAsFixed(0)} FCFA'),
-              Container(width: 1, height: 32, color: Colors.white.withValues(alpha: 0.3)),
               _buildSmallStat(
-                  'referral.friends_invited'.tr(), count.toString()),
+                'referral.pending'.tr(),
+                '${pending.toStringAsFixed(0)} FCFA',
+              ),
+              Container(
+                width: 1,
+                height: 32,
+                color: Colors.white.withValues(alpha: 0.3),
+              ),
+              _buildSmallStat(
+                'referral.friends_invited'.tr(),
+                count.toString(),
+              ),
             ],
           ),
         ],
@@ -287,7 +313,9 @@ class _ReferralPageState extends State<ReferralPage> {
         Text(
           label,
           style: GoogleFonts.inter(
-              color: Colors.white.withValues(alpha: 0.75), fontSize: 12),
+            color: Colors.white.withValues(alpha: 0.75),
+            fontSize: 12,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
@@ -330,8 +358,7 @@ class _ReferralPageState extends State<ReferralPage> {
           ),
           const SizedBox(height: 20),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
               color: AppTheme.bg,
               borderRadius: BorderRadius.circular(14),
@@ -359,7 +386,8 @@ class _ReferralPageState extends State<ReferralPage> {
                         backgroundColor: AppTheme.ink,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         duration: const Duration(seconds: 1),
                       ),
                     );
@@ -371,8 +399,11 @@ class _ReferralPageState extends State<ReferralPage> {
                       color: AppTheme.redSoft,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.copy_rounded,
-                        color: AppTheme.primaryRed, size: 18),
+                    child: const Icon(
+                      Icons.copy_rounded,
+                      color: AppTheme.primaryRed,
+                      size: 18,
+                    ),
                   ),
                 ),
               ],

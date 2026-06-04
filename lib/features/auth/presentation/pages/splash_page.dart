@@ -12,7 +12,8 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateMixin {
+class _SplashPageState extends State<SplashPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _motoAnimation;
 
@@ -24,9 +25,10 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       vsync: this,
     )..repeat();
 
-    _motoAnimation = Tween<double>(begin: -100, end: 400).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _motoAnimation = Tween<double>(
+      begin: -100,
+      end: 400,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -81,7 +83,14 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                         shape: BoxShape.circle,
                       ),
                       child: const Center(
-                        child: Text('C', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: AppTheme.primaryRed)),
+                        child: Text(
+                          'C',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryRed,
+                          ),
+                        ),
                       ),
                     ),
                   ),

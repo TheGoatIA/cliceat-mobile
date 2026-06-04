@@ -20,17 +20,20 @@ class _OnboardingPageState extends State<OnboardingPage> {
     _Slide(
       image: 'assets/images/onboarding_1.png',
       title: 'Le meilleur de la cuisine locale',
-      subtitle: 'Découvrez les meilleurs restaurants de Douala et Yaoundé livrés directement chez vous.',
+      subtitle:
+          'Découvrez les meilleurs restaurants de Douala et Yaoundé livrés directement chez vous.',
     ),
     _Slide(
       image: 'assets/images/onboarding_2.png',
       title: 'Livraison ultra-rapide',
-      subtitle: 'Nos livreurs partenaires sillonnent la ville pour vous garantir un repas chaud en moins de 30 minutes.',
+      subtitle:
+          'Nos livreurs partenaires sillonnent la ville pour vous garantir un repas chaud en moins de 30 minutes.',
     ),
     _Slide(
       image: 'assets/images/onboarding_3.png',
       title: 'Gagnez du temps et de l\'argent',
-      subtitle: 'Profitez de nos offres exclusives et d\'un service de qualité sans quitter votre canapé.',
+      subtitle:
+          'Profitez de nos offres exclusives et d\'un service de qualité sans quitter votre canapé.',
     ),
   ];
 
@@ -101,7 +104,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         width: active ? 24 : 6,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: active ? Colors.white : Colors.white.withValues(alpha: 0.3),
+                          color: active
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(3),
                         ),
                       );
@@ -139,13 +144,20 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         width: double.infinity,
                         height: 52,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            width: 1.5,
+                          ),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.delivery_dining_outlined, color: Colors.white, size: 20),
+                            const Icon(
+                              Icons.delivery_dining_outlined,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'onboarding.mode_delivery'.tr(),
@@ -199,10 +211,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: Image.asset(
-                      slide.image,
-                      fit: BoxFit.contain,
-                    ),
+                    child: Image.asset(slide.image, fit: BoxFit.contain),
                   ),
                 ),
                 // Status badge
@@ -210,7 +219,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   bottom: 20,
                   left: 20,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.ink,
                       borderRadius: BorderRadius.circular(100),
@@ -273,7 +285,11 @@ class _Slide {
   final String image;
   final String title;
   final String subtitle;
-  const _Slide({required this.image, required this.title, required this.subtitle});
+  const _Slide({
+    required this.image,
+    required this.title,
+    required this.subtitle,
+  });
 }
 
 class _WhiteButton extends StatelessWidget {
@@ -323,7 +339,11 @@ class _DiagonalPatternPainter extends CustomPainter {
       ..strokeWidth = 1.5;
     const step = 14.0;
     for (double i = -size.height; i < size.width + size.height; i += step) {
-      canvas.drawLine(Offset(i, 0), Offset(i + size.height, size.height), paint);
+      canvas.drawLine(
+        Offset(i, 0),
+        Offset(i + size.height, size.height),
+        paint,
+      );
     }
   }
 

@@ -116,8 +116,9 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
 
   Future<void> _attemptVerification() async {
     try {
-      final result =
-          await getIt<OrderRepository>().verifyPayment(widget.orderId);
+      final result = await getIt<OrderRepository>().verifyPayment(
+        widget.orderId,
+      );
       if (!mounted) return;
 
       result.fold(
@@ -213,7 +214,9 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const CircularProgressIndicator(
-                        color: AppTheme.primaryRed, strokeWidth: 2),
+                      color: AppTheme.primaryRed,
+                      strokeWidth: 2,
+                    ),
                     if (_verifying) ...[
                       const SizedBox(height: 16),
                       Text(
@@ -221,7 +224,9 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
                             ? 'payment.verifying'.tr()
                             : 'common.loading'.tr(),
                         style: GoogleFonts.inter(
-                            color: Colors.white, fontSize: 14),
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                       ),
                       if (_pollCount > 0) ...[
                         const SizedBox(height: 6),
@@ -255,8 +260,11 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
                           color: AppTheme.primaryRed.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(40),
                         ),
-                        child: const Icon(Icons.error_outline,
-                            color: AppTheme.primaryRed, size: 40),
+                        child: const Icon(
+                          Icons.error_outline,
+                          color: AppTheme.primaryRed,
+                          size: 40,
+                        ),
                       ),
                       const SizedBox(height: 20),
                       Text(
@@ -273,8 +281,9 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
                         'payment.failed_message'.tr(),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
-                            color: Colors.white.withValues(alpha: 0.75),
-                            fontSize: 14),
+                          color: Colors.white.withValues(alpha: 0.75),
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(height: 28),
                       SizedBox(
@@ -289,7 +298,8 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                       ),
@@ -302,14 +312,18 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
                             side: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.5)),
+                              color: Colors.white.withValues(alpha: 0.5),
+                            ),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                           child: Text(
                             'common.cancel'.tr(),
                             style: GoogleFonts.inter(
-                                fontSize: 16, fontWeight: FontWeight.w600),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
@@ -330,18 +344,22 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
         title: Text(
           'payment.cancel_title'.tr(),
           style: GoogleFonts.bricolageGrotesque(
-              fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.ink),
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+          ),
         ),
         content: Text(
           'payment.cancel_message'.tr(),
-          style:
-              GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+          style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('common.no'.tr(),
-                style: GoogleFonts.inter(color: AppTheme.muted)),
+            child: Text(
+              'common.no'.tr(),
+              style: GoogleFonts.inter(color: AppTheme.muted),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -352,7 +370,9 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
             child: Text(
               'common.yes'.tr(),
               style: GoogleFonts.inter(
-                  color: AppTheme.primaryRed, fontWeight: FontWeight.w600),
+                color: AppTheme.primaryRed,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

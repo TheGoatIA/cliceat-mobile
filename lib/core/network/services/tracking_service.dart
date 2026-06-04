@@ -10,10 +10,12 @@ abstract class TrackingService extends ChopperService {
   /// GET /tracking/{orderId}
   @GET(path: '/{orderId}')
   Future<Response<Map<String, dynamic>>> getTracking(
-      @Path('orderId') String orderId);
+    @Path('orderId') String orderId,
+  );
 
   /// GET /tracking/{orderId}/eta
   @GET(path: '/{orderId}/eta')
   Future<Response<Map<String, dynamic>>> getEta(
-      @Path('orderId') String orderId);
+    @Path('orderId') String orderId,
+  );
 }

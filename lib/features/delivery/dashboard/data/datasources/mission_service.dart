@@ -14,18 +14,15 @@ abstract class MissionService extends ChopperService {
 
   /// PATCH /delivery/orders/{id}/accept
   @PATCH(path: '/orders/{id}/accept')
-  Future<Response<Map<String, dynamic>>> acceptMission(
-      @Path('id') String id);
+  Future<Response<Map<String, dynamic>>> acceptMission(@Path('id') String id);
 
   /// PATCH /delivery/orders/{id}/reject
   @PATCH(path: '/orders/{id}/reject')
-  Future<Response<Map<String, dynamic>>> rejectMission(
-      @Path('id') String id);
+  Future<Response<Map<String, dynamic>>> rejectMission(@Path('id') String id);
 
   /// POST /delivery/orders/{id}/pickup
   @POST(path: '/orders/{id}/pickup')
-  Future<Response<Map<String, dynamic>>> confirmPickup(
-      @Path('id') String id);
+  Future<Response<Map<String, dynamic>>> confirmPickup(@Path('id') String id);
 
   /// POST /delivery/orders/{id}/delivered (confirm delivery)
   @POST(path: '/orders/{id}/delivered')

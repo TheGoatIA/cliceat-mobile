@@ -21,8 +21,7 @@ class PendingActionsTable extends Table {
   IntColumn get retryCount => integer().withDefault(const Constant(0))();
 
   /// Date de création de l'action (pour trier / expirer les vieilles actions).
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {id};

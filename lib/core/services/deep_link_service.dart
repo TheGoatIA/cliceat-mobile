@@ -43,13 +43,10 @@ class DeepLinkService {
     }
 
     // Listen to all subsequent links (app already running)
-    _sub = _appLinks.uriLinkStream.listen(
-      (uri) {
-        _logger.i('Incoming deep link: $uri');
-        _handleUri(uri, navigatorKey);
-      },
-      onError: (e) => _logger.e('Deep link stream error: $e'),
-    );
+    _sub = _appLinks.uriLinkStream.listen((uri) {
+      _logger.i('Incoming deep link: $uri');
+      _handleUri(uri, navigatorKey);
+    }, onError: (e) => _logger.e('Deep link stream error: $e'));
   }
 
   void _handleUri(Uri uri, GlobalKey<NavigatorState> navigatorKey) {
@@ -162,9 +159,7 @@ class DeepLinkService {
       builder: (ctx) => const PopScope(
         canPop: false,
         child: Center(
-          child: CircularProgressIndicator(
-            color: AppTheme.primaryRed,
-          ),
+          child: CircularProgressIndicator(color: AppTheme.primaryRed),
         ),
       ),
     );
@@ -201,9 +196,7 @@ class DeepLinkService {
         content: Text('payment.validation_failed'.tr()),
         backgroundColor: AppTheme.primaryRed,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

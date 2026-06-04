@@ -75,7 +75,9 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
                       Text(
                         'Commandez et notez vos restaurants',
                         style: GoogleFonts.inter(
-                            fontSize: 14, color: AppTheme.muted),
+                          fontSize: 14,
+                          color: AppTheme.muted,
+                        ),
                       ),
                     ],
                   ),
@@ -197,7 +199,9 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
               child: Text(
                 msg,
                 style: GoogleFonts.inter(
-                    color: AppTheme.primaryRed, fontSize: 14),
+                  color: AppTheme.primaryRed,
+                  fontSize: 14,
+                ),
               ),
             ),
             orElse: () => const Center(

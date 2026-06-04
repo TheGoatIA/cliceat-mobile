@@ -10,7 +10,10 @@ class AiRepository {
 
   AiRepository(this._service);
 
-  Future<Either<AppError, String>> sendMessage(String message, List<AiMessageModel> history) async {
+  Future<Either<AppError, String>> sendMessage(
+    String message,
+    List<AiMessageModel> history,
+  ) async {
     try {
       final res = await _service.sendMessage({
         'message': message,
@@ -26,12 +29,18 @@ class AiRepository {
     }
   }
 
-  Future<Either<AppError, List<AiSuggestionModel>>> getSuggestions(String city) async {
+  Future<Either<AppError, List<AiSuggestionModel>>> getSuggestions(
+    String city,
+  ) async {
     try {
       final res = await _service.getSuggestions(city: city);
       if (res.isSuccessful && res.body != null) {
         final data = res.body!['data'] as List;
-        return Right(data.map((e) => AiSuggestionModel.fromJson(e as Map<String, dynamic>)).toList());
+        return Right(
+          data
+              .map((e) => AiSuggestionModel.fromJson(e as Map<String, dynamic>))
+              .toList(),
+        );
       }
       return Left(AppError.fromResponse(res.body, 'ai.error_suggestions'));
     } catch (_) {

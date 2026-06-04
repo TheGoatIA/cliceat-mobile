@@ -3,25 +3,27 @@ part of 'order_bloc.dart';
 abstract class OrderEvent {
   const OrderEvent();
 
-  static OrderEvent createOrder(Map<String, dynamic> payload) => CreateOrder(payload);
+  static OrderEvent createOrder(Map<String, dynamic> payload) =>
+      CreateOrder(payload);
   static OrderEvent loadOrders() => const LoadOrders();
   static OrderEvent loadMoreOrders() => const LoadMoreOrders();
-  static OrderEvent cancelOrder(String orderId, [String? reason]) => CancelOrder(orderId, reason);
+  static OrderEvent cancelOrder(String orderId, [String? reason]) =>
+      CancelOrder(orderId, reason);
   static OrderEvent reorderOrder(String orderId) => ReorderOrder(orderId);
   static OrderEvent rateOrder({
     required String orderId,
     required int restaurantRating,
     required int deliveryRating,
     String? comment,
-  }) => 
-      RateOrder(
-        orderId: orderId,
-        restaurantRating: restaurantRating,
-        deliveryRating: deliveryRating,
-        comment: comment,
-      );
+  }) => RateOrder(
+    orderId: orderId,
+    restaurantRating: restaurantRating,
+    deliveryRating: deliveryRating,
+    comment: comment,
+  );
   static OrderEvent downloadInvoice(String orderId) => DownloadInvoice(orderId);
-  static OrderEvent statusUpdate(Map<String, dynamic> payload) => StatusUpdate(payload);
+  static OrderEvent statusUpdate(Map<String, dynamic> payload) =>
+      StatusUpdate(payload);
 }
 
 class CreateOrder extends OrderEvent {

@@ -66,27 +66,28 @@ class _LoginPageState extends State<LoginPage>
   Future<void> _handleGoogleSignIn(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      
+
       await GoogleSignIn.instance.initialize(
-        serverClientId: '224830319268-kh67cce091ssp3lse84lgo4jok2q1210.apps.googleusercontent.com',
+        serverClientId:
+            '224830319268-kh67cce091ssp3lse84lgo4jok2q1210.apps.googleusercontent.com',
       );
-      
+
       final account = await GoogleSignIn.instance.authenticate();
       final auth = account.authentication;
-      
-      final credential = GoogleAuthProvider.credential(
-        idToken: auth.idToken,
+
+      final credential = GoogleAuthProvider.credential(idToken: auth.idToken);
+
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
       );
-      
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       final idToken = await userCredential.user?.getIdToken();
-      
+
       if (idToken == null) {
         getIt<Logger>().e("Firebase Auth Google failed: idToken is null");
         if (context.mounted) _showError(context, 'auth.error_google'.tr());
         return;
       }
-      
+
       if (context.mounted) {
         context.read<AuthBloc>().add(AuthEvent.loginWithGoogle(token: idToken));
       }
@@ -99,9 +100,13 @@ class _LoginPageState extends State<LoginPage>
   /// Generates a cryptographically secure random nonce, to be included in a
   /// credential request.
   String _generateNonce([int length = 32]) {
-    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
   }
 
   /// Returns the sha256 hash of [input] in hex notation.
@@ -114,7 +119,7 @@ class _LoginPageState extends State<LoginPage>
   Future<void> _handleAppleSignIn(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      
+
       final rawNonce = _generateNonce();
       final nonce = _sha256ofString(rawNonce);
 
@@ -125,13 +130,14 @@ class _LoginPageState extends State<LoginPage>
         ],
         nonce: nonce,
       );
-      
-      final AuthCredential credential = OAuthProvider('apple.com').credential(
-        idToken: appleCredential.identityToken,
-        rawNonce: rawNonce,
+
+      final AuthCredential credential = OAuthProvider(
+        'apple.com',
+      ).credential(idToken: appleCredential.identityToken, rawNonce: rawNonce);
+
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
       );
-      
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       final idToken = await userCredential.user?.getIdToken();
 
       if (idToken == null) {
@@ -139,7 +145,7 @@ class _LoginPageState extends State<LoginPage>
         if (context.mounted) _showError(context, 'auth.error_apple'.tr());
         return;
       }
-      
+
       if (context.mounted) {
         context.read<AuthBloc>().add(AuthEvent.loginWithApple(token: idToken));
       }

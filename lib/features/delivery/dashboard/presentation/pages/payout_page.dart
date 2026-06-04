@@ -27,18 +27,16 @@ class _PayoutPageState extends State<PayoutPage> {
   Future<void> _loadWalletBalance() async {
     final result = await getIt<DriverRepository>().getProfile();
     if (!mounted) return;
-    result.fold(
-      (_) {},
-      (profile) {
-        final balance = (profile['wallet']?['balance'] as num?)?.toDouble() ??
-            (profile['walletBalance'] as num?)?.toDouble() ??
-            (profile['balance'] as num?)?.toDouble() ??
-            0.0;
-        setState(() {
-          _walletBalance = balance;
-        });
-      },
-    );
+    result.fold((_) {}, (profile) {
+      final balance =
+          (profile['wallet']?['balance'] as num?)?.toDouble() ??
+          (profile['walletBalance'] as num?)?.toDouble() ??
+          (profile['balance'] as num?)?.toDouble() ??
+          0.0;
+      setState(() {
+        _walletBalance = balance;
+      });
+    });
   }
 
   @override
@@ -72,13 +70,20 @@ class _PayoutPageState extends State<PayoutPage> {
             return state.maybeWhen(
               loading: () => const Center(
                 child: CircularProgressIndicator(
-                    color: AppTheme.primaryRed, strokeWidth: 2),
+                  color: AppTheme.primaryRed,
+                  strokeWidth: 2,
+                ),
               ),
-              loaded: (payouts, account) => _buildContent(context, payouts, account),
+              loaded: (payouts, account) =>
+                  _buildContent(context, payouts, account),
               error: (msg) => Center(
-                child: Text(msg,
-                    style: GoogleFonts.inter(
-                        color: AppTheme.primaryRed, fontSize: 14)),
+                child: Text(
+                  msg,
+                  style: GoogleFonts.inter(
+                    color: AppTheme.primaryRed,
+                    fontSize: 14,
+                  ),
+                ),
               ),
               orElse: () => const SizedBox.shrink(),
             );
@@ -88,8 +93,11 @@ class _PayoutPageState extends State<PayoutPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, List<Map<String, dynamic>> payouts,
-      Map<String, dynamic>? account) {
+  Widget _buildContent(
+    BuildContext context,
+    List<Map<String, dynamic>> payouts,
+    Map<String, dynamic>? account,
+  ) {
     final double balance = _walletBalance;
 
     return SingleChildScrollView(
@@ -112,7 +120,7 @@ class _PayoutPageState extends State<PayoutPage> {
                   blurRadius: 16,
                   spreadRadius: 2,
                   offset: const Offset(0, 8),
-                )
+                ),
               ],
             ),
             child: Column(
@@ -182,7 +190,10 @@ class _PayoutPageState extends State<PayoutPage> {
     );
   }
 
-  Widget _buildAccountCard(BuildContext context, Map<String, dynamic>? account) {
+  Widget _buildAccountCard(
+    BuildContext context,
+    Map<String, dynamic>? account,
+  ) {
     final hasAccount = account != null;
 
     return Container(
@@ -202,9 +213,10 @@ class _PayoutPageState extends State<PayoutPage> {
               Text(
                 'payout.linked_account'.tr(),
                 style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: AppTheme.ink),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: AppTheme.ink,
+                ),
               ),
               GestureDetector(
                 onTap: () => _showAccountDialog(context, account),
@@ -215,8 +227,11 @@ class _PayoutPageState extends State<PayoutPage> {
                     color: AppTheme.redSoft,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.edit,
-                      size: 16, color: AppTheme.primaryRed),
+                  child: const Icon(
+                    Icons.edit,
+                    size: 16,
+                    color: AppTheme.primaryRed,
+                  ),
                 ),
               ),
             ],
@@ -246,9 +261,7 @@ class _PayoutPageState extends State<PayoutPage> {
                     text: '${'payout.number'.tr()}: ',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  TextSpan(
-                    text: account['accountNumber'] ?? '',
-                  ),
+                  TextSpan(text: account['accountNumber'] ?? ''),
                 ],
               ),
             ),
@@ -261,9 +274,7 @@ class _PayoutPageState extends State<PayoutPage> {
                     text: '${'payout.name'.tr()}: ',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  TextSpan(
-                    text: account['name'] ?? '',
-                  ),
+                  TextSpan(text: account['name'] ?? ''),
                 ],
               ),
             ),
@@ -271,9 +282,10 @@ class _PayoutPageState extends State<PayoutPage> {
             Text(
               'payout.no_account_linked'.tr(),
               style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppTheme.muted,
-                  fontStyle: FontStyle.italic),
+                fontSize: 14,
+                color: AppTheme.muted,
+                fontStyle: FontStyle.italic,
+              ),
             ),
         ],
       ),
@@ -295,12 +307,16 @@ class _PayoutPageState extends State<PayoutPage> {
             style: GoogleFonts.inter(fontSize: 15, color: AppTheme.ink),
             decoration: InputDecoration(
               labelText: 'payout.amount_to_withdraw'.tr(),
-              labelStyle:
-                  GoogleFonts.inter(color: AppTheme.muted, fontSize: 14),
+              labelStyle: GoogleFonts.inter(
+                color: AppTheme.muted,
+                fontSize: 14,
+              ),
               suffixText: 'FCFA',
               border: InputBorder.none,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
           ),
         ),
@@ -321,7 +337,7 @@ class _PayoutPageState extends State<PayoutPage> {
                   );
                   return;
                 }
-                
+
                 context.read<PayoutCubit>().requestPayout(amt);
                 _amountController.clear();
               }
@@ -331,12 +347,15 @@ class _PayoutPageState extends State<PayoutPage> {
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             child: Text(
               'payout.request_withdraw'.tr(),
               style: GoogleFonts.inter(
-                  fontSize: 16, fontWeight: FontWeight.w600),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ),
@@ -398,18 +417,27 @@ class _PayoutPageState extends State<PayoutPage> {
       child: Text(
         status.tr(),
         style: GoogleFonts.inter(
-            color: color, fontSize: 11, fontWeight: FontWeight.w700),
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
 
-  void _showAccountDialog(BuildContext context, Map<String, dynamic>? currentAccount) {
-    final methodController =
-        TextEditingController(text: currentAccount?['method'] ?? 'momo');
-    final phoneController =
-        TextEditingController(text: currentAccount?['phoneNumber'] ?? '');
-    final nameController =
-        TextEditingController(text: currentAccount?['accountName'] ?? '');
+  void _showAccountDialog(
+    BuildContext context,
+    Map<String, dynamic>? currentAccount,
+  ) {
+    final methodController = TextEditingController(
+      text: currentAccount?['method'] ?? 'momo',
+    );
+    final phoneController = TextEditingController(
+      text: currentAccount?['phoneNumber'] ?? '',
+    );
+    final nameController = TextEditingController(
+      text: currentAccount?['accountName'] ?? '',
+    );
     final cubit = context.read<PayoutCubit>();
 
     showDialog(
@@ -418,7 +446,10 @@ class _PayoutPageState extends State<PayoutPage> {
         title: Text(
           'payout.edit_account'.tr(),
           style: GoogleFonts.bricolageGrotesque(
-              fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.ink),
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -427,18 +458,20 @@ class _PayoutPageState extends State<PayoutPage> {
               initialValue: methodController.text,
               items: [
                 DropdownMenuItem(
-                    value: 'momo', child: Text('payout.mtn_mobile_money'.tr())),
+                  value: 'momo',
+                  child: Text('payout.mtn_mobile_money'.tr()),
+                ),
                 DropdownMenuItem(
-                    value: 'om', child: Text('payout.orange_money'.tr())),
+                  value: 'om',
+                  child: Text('payout.orange_money'.tr()),
+                ),
               ],
               onChanged: (v) => methodController.text = v!,
-              decoration:
-                  InputDecoration(labelText: 'payout.method'.tr()),
+              decoration: InputDecoration(labelText: 'payout.method'.tr()),
             ),
             TextField(
               controller: phoneController,
-              decoration:
-                  InputDecoration(labelText: 'payout.number'.tr()),
+              decoration: InputDecoration(labelText: 'payout.number'.tr()),
             ),
             TextField(
               controller: nameController,
@@ -449,8 +482,10 @@ class _PayoutPageState extends State<PayoutPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('common.cancel'.tr(),
-                style: GoogleFonts.inter(color: AppTheme.muted)),
+            child: Text(
+              'common.cancel'.tr(),
+              style: GoogleFonts.inter(color: AppTheme.muted),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -466,7 +501,8 @@ class _PayoutPageState extends State<PayoutPage> {
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: Text('common.save'.tr()),
           ),

@@ -12,7 +12,8 @@ abstract class ReferralService extends ChopperService {
 
   @POST(path: '/apply')
   Future<Response<Map<String, dynamic>>> applyCode(
-      @Body() Map<String, dynamic> body);
+    @Body() Map<String, dynamic> body,
+  );
 
   @GET(path: '/stats')
   Future<Response<Map<String, dynamic>>> getStats();

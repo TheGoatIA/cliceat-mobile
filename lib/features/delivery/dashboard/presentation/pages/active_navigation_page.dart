@@ -45,7 +45,8 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
     try {
       final response = await getIt<OrderService>().getOrderById(_mission.id);
       if (response.isSuccessful && response.body != null && mounted) {
-        final data = response.body!['data'] as Map<String, dynamic>? ?? response.body!;
+        final data =
+            response.body!['data'] as Map<String, dynamic>? ?? response.body!;
         final orderData = data['order'] as Map<String, dynamic>? ?? data;
         setState(() {
           _mission = MissionModel.fromJson(orderData);
@@ -69,32 +70,33 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
     });
 
     // 2. Écouter les mises à jour de position en temps réel
-    _positionSubscription = geo.Geolocator.getPositionStream(
-      locationSettings: const geo.LocationSettings(
-        accuracy: geo.LocationAccuracy.high,
-        distanceFilter: 10, // Actualise tous les 10 mètres de déplacement
-      ),
-    ).listen((geo.Position position) {
-      if (mounted) {
-        _updateDistanceAndEta(position);
-        // Émettre la position au serveur pour le suivi client en temps réel
-        getIt<WebSocketService>().emitLocationUpdate(
-          position.latitude,
-          position.longitude,
-        );
-      }
-    });
+    _positionSubscription =
+        geo.Geolocator.getPositionStream(
+          locationSettings: const geo.LocationSettings(
+            accuracy: geo.LocationAccuracy.high,
+            distanceFilter: 10, // Actualise tous les 10 mètres de déplacement
+          ),
+        ).listen((geo.Position position) {
+          if (mounted) {
+            _updateDistanceAndEta(position);
+            // Émettre la position au serveur pour le suivi client en temps réel
+            getIt<WebSocketService>().emitLocationUpdate(
+              position.latitude,
+              position.longitude,
+            );
+          }
+        });
   }
 
   void _updateDistanceAndEta(geo.Position currentPos) {
-    final isRestaurantPhase = _mission.status != 'picked_up' &&
-        _mission.status != 'en_route';
+    final isRestaurantPhase =
+        _mission.status != 'picked_up' && _mission.status != 'en_route';
 
-    final destLat = isRestaurantPhase 
-        ? _mission.restaurantLat 
+    final destLat = isRestaurantPhase
+        ? _mission.restaurantLat
         : _mission.deliveryAddress?.lat;
-    final destLng = isRestaurantPhase 
-        ? _mission.restaurantLng 
+    final destLng = isRestaurantPhase
+        ? _mission.restaurantLng
         : _mission.deliveryAddress?.lng;
 
     if (destLat == null || destLng == null) {
@@ -129,10 +131,15 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
     _drawRoutePolyline(currentPos, destLat, destLng);
   }
 
-  Future<void> _drawRoutePolyline(geo.Position currentPos, double destLat, double destLng) async {
+  Future<void> _drawRoutePolyline(
+    geo.Position currentPos,
+    double destLat,
+    double destLng,
+  ) async {
     if (mapboxMap == null) return;
     try {
-      _polylineAnnotationManager ??= await mapboxMap!.annotations.createPolylineAnnotationManager();
+      _polylineAnnotationManager ??= await mapboxMap!.annotations
+          .createPolylineAnnotationManager();
 
       final points = [
         Position(currentPos.longitude, currentPos.latitude),
@@ -175,8 +182,8 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isRestaurantPhase = _mission.status != 'picked_up' &&
-        _mission.status != 'en_route';
+    final isRestaurantPhase =
+        _mission.status != 'picked_up' && _mission.status != 'en_route';
 
     return Scaffold(
       body: Stack(
@@ -203,7 +210,7 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
               onPressed: () {},
               child: const Icon(Icons.gps_fixed, color: AppTheme.primaryRed),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -226,8 +233,9 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
             ),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius:
-                  const BorderRadius.vertical(bottom: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(24),
+              ),
               boxShadow: AppTheme.shadowMd,
             ),
             child: Row(
@@ -239,8 +247,11 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                     color: AppTheme.redSoft,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.turn_right,
-                      size: 36, color: AppTheme.primaryRed),
+                  child: const Icon(
+                    Icons.turn_right,
+                    size: 36,
+                    color: AppTheme.primaryRed,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -259,7 +270,9 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                       Text(
                         _currentInstruction,
                         style: GoogleFonts.inter(
-                            fontSize: 14, color: AppTheme.inkSoft),
+                          fontSize: 14,
+                          color: AppTheme.inkSoft,
+                        ),
                       ),
                     ],
                   ),
@@ -285,8 +298,9 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
               boxShadow: AppTheme.shadowLg,
             ),
             child: SafeArea(
@@ -313,7 +327,9 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                                 ? 'Destination: ${_mission.restaurantName}'
                                 : 'Destination: ${_mission.clientName}',
                             style: GoogleFonts.inter(
-                                fontSize: 13, color: AppTheme.muted),
+                              fontSize: 13,
+                              color: AppTheme.muted,
+                            ),
                           ),
                         ],
                       ),
@@ -329,16 +345,23 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                             color: AppTheme.redSoft,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.close,
-                              color: AppTheme.primaryRed, size: 20),
+                          child: const Icon(
+                            Icons.close,
+                            color: AppTheme.primaryRed,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  if (_mission.clientPhone != null && _mission.clientPhone!.isNotEmpty) ...[
+                  if (_mission.clientPhone != null &&
+                      _mission.clientPhone!.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.lineSoft.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
@@ -348,7 +371,11 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                           const CircleAvatar(
                             radius: 18,
                             backgroundColor: AppTheme.honeySoft,
-                            child: Icon(Icons.person, color: AppTheme.honey, size: 18),
+                            child: Icon(
+                              Icons.person,
+                              color: AppTheme.honey,
+                              size: 18,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -374,12 +401,18 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.phone_in_talk_rounded, color: AppTheme.green),
+                            icon: const Icon(
+                              Icons.phone_in_talk_rounded,
+                              color: AppTheme.green,
+                            ),
                             onPressed: () async {
                               final phone = _mission.clientPhone;
                               if (phone == null || phone.isEmpty) return;
                               HapticFeedback.mediumImpact();
-                              final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+                              final cleaned = phone.replaceAll(
+                                RegExp(r'\s+'),
+                                '',
+                              );
                               final uri = Uri.parse('tel:$cleaned');
                               if (await canLaunchUrl(uri)) {
                                 await launchUrl(uri);
@@ -402,16 +435,18 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       onPressed: () {
                         HapticFeedback.mediumImpact();
                         if (isRestaurantPhase) {
-                          context.push('/delivery/confirm-pickup',
-                              extra: _mission);
+                          context.push(
+                            '/delivery/confirm-pickup',
+                            extra: _mission,
+                          );
                         } else {
-                          context.push('/delivery/dropoff',
-                              extra: _mission);
+                          context.push('/delivery/dropoff', extra: _mission);
                         }
                       },
                       child: Text(
@@ -419,10 +454,12 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
                             ? 'delivery.arrived_at_restaurant'.tr()
                             : 'delivery.arrived_at_client'.tr(),
                         style: GoogleFonts.inter(
-                            fontSize: 16, fontWeight: FontWeight.w700),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -439,7 +476,10 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
         title: Text(
           'delivery.quit_navigation'.tr(),
           style: GoogleFonts.bricolageGrotesque(
-              fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.ink),
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+          ),
         ),
         content: Text(
           'delivery.quit_warning'.tr(),
@@ -448,8 +488,10 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
         actions: [
           TextButton(
             onPressed: () => context.pop(),
-            child: Text('common.cancel'.tr(),
-                style: GoogleFonts.inter(color: AppTheme.muted)),
+            child: Text(
+              'common.cancel'.tr(),
+              style: GoogleFonts.inter(color: AppTheme.muted),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -459,7 +501,9 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
             child: Text(
               'delivery.quit'.tr(),
               style: GoogleFonts.inter(
-                  color: AppTheme.primaryRed, fontWeight: FontWeight.w600),
+                color: AppTheme.primaryRed,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

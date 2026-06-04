@@ -14,7 +14,7 @@ class PrecacheService {
   /// Charge les images critiques en cache au démarrage pour une expérience offline fluide.
   Future<void> startPrecaching() async {
     _logger.i('Starting assets precaching...');
-    
+
     try {
       // 1. Pré-charger les bannières
       final bannerRepo = getIt<BannerRepository>();
@@ -40,7 +40,7 @@ class PrecacheService {
           }
         },
       );
-      
+
       _logger.i('Precaching finished');
     } catch (e) {
       _logger.e('Error during precaching: $e');

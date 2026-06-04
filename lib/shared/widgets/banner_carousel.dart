@@ -9,11 +9,7 @@ class BannerCarousel extends StatefulWidget {
   final List<BannerModel> banners;
   final double height;
 
-  const BannerCarousel({
-    super.key,
-    required this.banners,
-    this.height = 160,
-  });
+  const BannerCarousel({super.key, required this.banners, this.height = 160});
 
   @override
   State<BannerCarousel> createState() => _BannerCarouselState();
@@ -101,10 +97,8 @@ class _BannerCarouselState extends State<BannerCarousel> {
               setState(() => _currentPage = i);
               _startAutoPlay(); // Restart timer to reset the 4-second delay after manual swipe
             },
-            itemBuilder: (_, i) => _BannerItem(
-              banner: _banners[i],
-              height: widget.height,
-            ),
+            itemBuilder: (_, i) =>
+                _BannerItem(banner: _banners[i], height: widget.height),
           ),
         ),
         if (_banners.length > 1) ...[
@@ -121,10 +115,9 @@ class _BannerCarouselState extends State<BannerCarousel> {
                 decoration: BoxDecoration(
                   color: i == _currentPage
                       ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.25),
+                      : Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.25),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),

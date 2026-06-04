@@ -3,6 +3,7 @@ class CouponModel {
   final String id;
   final String code;
   final double discount;
+
   /// 'percentage' or 'fixed'
   final String discountType;
   final double? maxDiscount;
@@ -40,16 +41,19 @@ class CouponModel {
   }
 
   factory CouponModel.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>? ??
+    final data =
+        json['data'] as Map<String, dynamic>? ??
         json['coupon'] as Map<String, dynamic>? ??
         json;
     return CouponModel(
       id: data['_id']?.toString() ?? data['id']?.toString() ?? '',
       code: data['code']?.toString() ?? '',
-      discount: (data['discount'] as num?)?.toDouble() ??
+      discount:
+          (data['discount'] as num?)?.toDouble() ??
           (data['value'] as num?)?.toDouble() ??
           0.0,
-      discountType: data['discountType']?.toString() ??
+      discountType:
+          data['discountType']?.toString() ??
           data['type']?.toString() ??
           'fixed',
       maxDiscount: (data['maxDiscount'] as num?)?.toDouble(),
@@ -64,12 +68,8 @@ class CouponModel {
   double computeDiscount(double subtotal) {
     if (discountType == 'percentage') {
       final pct = subtotal * discount / 100;
-      return maxDiscount != null && pct > maxDiscount!
-          ? maxDiscount!
-          : pct;
+      return maxDiscount != null && pct > maxDiscount! ? maxDiscount! : pct;
     }
     return discount;
   }
 }
-
-

@@ -22,7 +22,8 @@ class EmailVerificationPage extends StatelessWidget {
                 backgroundColor: AppTheme.green,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
             context.go('/auth/login?mode=client');
@@ -34,7 +35,8 @@ class EmailVerificationPage extends StatelessWidget {
                 backgroundColor: AppTheme.ink,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           },
@@ -45,7 +47,8 @@ class EmailVerificationPage extends StatelessWidget {
                 backgroundColor: AppTheme.primaryRed,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           },
@@ -53,8 +56,10 @@ class EmailVerificationPage extends StatelessWidget {
         );
       },
       builder: (context, state) {
-        final isLoading =
-            state.maybeWhen(loading: () => true, orElse: () => false);
+        final isLoading = state.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
         return Scaffold(
           backgroundColor: AppTheme.bg,
           body: SafeArea(
@@ -72,8 +77,11 @@ class EmailVerificationPage extends StatelessWidget {
                         border: Border.all(color: AppTheme.line),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 18, color: AppTheme.ink),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: AppTheme.ink,
+                      ),
                     ),
                   ),
                 ),
@@ -83,7 +91,9 @@ class EmailVerificationPage extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 480),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 24),
+                          horizontal: 24,
+                          vertical: 24,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,18 +148,24 @@ class EmailVerificationPage extends StatelessWidget {
                                     ? null
                                     : () {
                                         context.read<AuthBloc>().add(
-                                            AuthEvent.resendVerificationEmail(
-                                                email: email));
+                                          AuthEvent.resendVerificationEmail(
+                                            email: email,
+                                          ),
+                                        );
                                       },
                                 icon: isLoading
                                     ? const SizedBox(
                                         width: 16,
                                         height: 16,
                                         child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white))
-                                    : const Icon(Icons.refresh_rounded,
-                                        size: 18),
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.refresh_rounded,
+                                        size: 18,
+                                      ),
                                 label: Text(
                                   'auth.resend_verification'.tr(),
                                   style: GoogleFonts.inter(
@@ -162,8 +178,8 @@ class EmailVerificationPage extends StatelessWidget {
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(16)),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                                 ),
                               ),
                             ),

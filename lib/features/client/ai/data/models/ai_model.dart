@@ -26,10 +26,7 @@ class AiMessageModel extends Equatable {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'role': role,
-        'content': content,
-      };
+  Map<String, dynamic> toJson() => {'role': role, 'content': content};
 
   @override
   List<Object?> get props => [role, content];

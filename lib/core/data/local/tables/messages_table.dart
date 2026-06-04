@@ -8,7 +8,8 @@ class MessagesTable extends Table {
   TextColumn get content => text()();
   TextColumn get fileUrl => text().nullable()();
   TextColumn get messageType => text().withDefault(const Constant('text'))();
-  TextColumn get status => text().withDefault(const Constant('sent'))(); // sent, pending, error
+  TextColumn get status =>
+      text().withDefault(const Constant('sent'))(); // sent, pending, error
   BoolColumn get isRead => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
