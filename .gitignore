@@ -44,4 +44,37 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Environment & secrets — NEVER commit these
 .env
+.env.*
+!.env.example
+
+# Firebase credentials (contain private keys)
+google-services.json
+GoogleService-Info.plist
+
+# Android signing
+android/key.properties
+android/*.jks
+android/*.keystore
+*.jks
+*.keystore
+*.pem
+*.p12
+*.cer
+
+# iOS signing
+ios/Runner/GoogleService-Info.plist
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots
+ios/fastlane/test_output
+
+# NotchPay / payment secrets
+notchpay_config.dart
+
+# Crashlytics & analytics keys
+fabric.properties
+
+# Firebase generated options (contains project keys)
+lib/firebase_options.dart

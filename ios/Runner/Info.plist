@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Cliceat App</string>
+	<string>ClicEat</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>cliceat_app</string>
+	<string>ClicEat</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -45,5 +45,48 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Push Notifications background delivery -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>location</string>
+	</array>
+
+	<!-- Custom URI scheme: cliceat:// -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>cm.cliceat.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cliceat</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.224830319268-nvcvkvc2djntae2hn9h8emvj3p0ob02t</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Permissions descriptions -->
+	<key>NSCameraUsageDescription</key>
+	<string>ClicEat a besoin d'accéder à votre appareil photo pour mettre à jour votre photo de profil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ClicEat a besoin d'accéder à votre galerie pour mettre à jour votre photo de profil.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>ClicEat utilise votre position pour afficher les restaurants près de vous et estimer les délais de livraison.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>ClicEat utilise votre position en arrière-plan pour le suivi des livraisons en temps réel.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>En mode Livreur, ClicEat a besoin de votre position en arrière-plan pour le suivi temps réel.</string>
+
 </dict>
 </plist>

@@ -1,0 +1,14 @@
+import 'package:equatable/equatable.dart';
+import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
+import 'package:cliceat_app/core/error/app_error.dart';
+import 'package:cliceat_app/core/network/services/referral_service.dart';
+
+part 'referral_model.dart';
+part 'referral_repository.dart';
+part 'referral_state.dart';
+part 'referral_cubit.dart';
+part 'referral_state.freezed.dart';

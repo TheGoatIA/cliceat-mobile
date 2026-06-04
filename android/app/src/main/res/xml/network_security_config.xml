@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Configuration de sécurité réseau — ClicEat
+  - HTTPS uniquement en production (usesCleartextTraffic = false)
+  - Autorisation localhost uniquement pour le debug Flutter/Metro bundler
+-->
+<network-security-config>
+    <!-- Domaines de production : HTTPS obligatoire, certificate pinning recommandé -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">cliceat.cm</domain>
+        <domain includeSubdomains="true">api.cliceat.cm</domain>
+        <domain includeSubdomains="true">notchpay.co</domain>
+        <domain includeSubdomains="true">mapbox.com</domain>
+        <domain includeSubdomains="true">events.mapbox.com</domain>
+    </domain-config>
+
+    <!-- Localhost uniquement autorisé en cleartext pour Flutter debug tooling -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+
+    <!-- En local/développement, on permet le cleartext sur les adresses IP locales de test -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+</network-security-config>
