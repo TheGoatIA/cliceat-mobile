@@ -73,6 +73,13 @@ jobs:
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1 | tr -d ' ')
           echo "name=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Configure Manual Code Signing
+        run: |
+          echo "CODE_SIGN_STYLE = Manual" >> ios/Flutter/Release.xcconfig
+          echo "CODE_SIGN_IDENTITY = Apple Distribution" >> ios/Flutter/Release.xcconfig
+          echo "DEVELOPMENT_TEAM = 738JXF4C4C" >> ios/Flutter/Release.xcconfig
+          echo "PROVISIONING_PROFILE_SPECIFIER = ClicEat AppStore Production" >> ios/Flutter/Release.xcconfig
+
       - name: Build iOS IPA
         run: |
           flutter build ipa \
@@ -81,11 +88,7 @@ jobs:
             --export-options-plist=ios/ExportOptions-production.plist \
             --build-number=${{ github.run_number }} \
             --build-name=${{ steps.version.outputs.name }} \
-            --dart-define-from-file=.env.prod \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            DEVELOPMENT_TEAM=738JXF4C4C \
-            PROVISIONING_PROFILE_SPECIFIER="ClicEat AppStore Production"
+            --dart-define-from-file=.env.prod
 
       - name: Find IPA
         id: find-ipa
