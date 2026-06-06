@@ -109,14 +109,20 @@ jobs:
           echo "path=$IPA" >> $GITHUB_OUTPUT
           echo "Found IPA: $IPA"
 
-      - name: Upload to Firebase (iOS)
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          groups: internal-testers
-          releaseNotes: "iOS Staging #${{ github.run_number }} — ${{ github.event.head_commit.message }}"
-          file: ${{ steps.find-ipa.outputs.path }}
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Upload to Firebase App Distribution (iOS)
+        env:
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_IOS_APP_ID }}
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$FIREBASE_CREDENTIALS" > /tmp/firebase_credentials.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase_credentials.json
+          firebase appdistribution:distribute "${{ steps.find-ipa.outputs.path }}" \
+            --app "$FIREBASE_APP_ID" \
+            --groups "internal-testers" \
+            --release-notes "iOS Staging #${{ github.run_number }} — ${{ github.event.head_commit.message }}"
 
       - name: Upload dSYMs to Firebase Crashlytics
         run: |
@@ -166,4 +172,4 @@ jobs:
         if: always()
         run: |
           security delete-keychain build.keychain 2>/dev/null || true
-          rm -f /tmp/distribution.p12 /tmp/staging.mobileprovision .env.staging
+          rm -f /tmp/distribution.p12 /tmp/staging.mobileprovision .env.staging /tmp/firebase_credentials.json
