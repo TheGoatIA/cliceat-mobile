@@ -80,7 +80,10 @@ jobs:
             --export-options-plist=ios/ExportOptions-production.plist \
             --build-number=${{ github.run_number }} \
             --build-name=${{ steps.version.outputs.name }} \
-            --dart-define-from-file=.env.prod
+            --dart-define-from-file=.env.prod \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=738JXF4C4C \
+            PROVISIONING_PROFILE_SPECIFIER="ClicEat AppStore Production"
 
       - name: Find IPA
         id: find-ipa
