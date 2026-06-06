@@ -82,6 +82,7 @@ jobs:
             --build-name=${{ steps.version.outputs.name }} \
             --dart-define-from-file=.env.prod \
             CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM=738JXF4C4C \
             PROVISIONING_PROFILE_SPECIFIER="ClicEat AppStore Production"
 
