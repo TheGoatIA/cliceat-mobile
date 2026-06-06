@@ -88,7 +88,7 @@ jobs:
           echo "Found IPA: $IPA"
 
       - name: Upload to TestFlight (App Store)
-        uses: apple-actions/upload-testflight-build@v1
+        uses: apple-actions/upload-testflight-build@v5
         with:
           app-path: ${{ steps.find-ipa.outputs.path }}
           issuer-id: ${{ secrets.ASC_ISSUER_ID }}
