@@ -6,10 +6,10 @@ import 'package:cliceat_app/core/services/token_service.dart';
 
 @lazySingleton
 class ThemeCubit extends Cubit<ThemeMode> {
-  final UserPrefsDao _userPrefsDao;
-  final TokenService _tokenService;
-
-  ThemeCubit(this._userPrefsDao, this._tokenService) : super(ThemeMode.light) {
+  ThemeCubit(
+    UserPrefsDao userPrefsDao,
+    TokenService tokenService,
+  ) : super(ThemeMode.light) {
     _loadTheme();
   }
 

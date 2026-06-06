@@ -21,7 +21,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.41.9'
           channel: 'stable'
           cache: true
 
@@ -59,6 +59,10 @@ jobs:
           cp /tmp/production.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${UUID}.mobileprovision
           echo "Installed profile UUID: $UUID"
 
+      - name: Restore .env.prod
+        run: |
+          echo "${{ secrets.ENV_PROD_BASE64 }}" | base64 --decode > .env.prod
+
       - name: Get version
         id: version
         run: |
@@ -74,8 +78,7 @@ jobs:
             --export-options-plist=ios/ExportOptions-production.plist \
             --build-number=${{ github.run_number }} \
             --build-name=${{ steps.version.outputs.name }} \
-            --dart-define=ENV=production \
-            --dart-define=API_BASE_URL=${{ secrets.PRODUCTION_API_URL }}/api/v1
+            --dart-define-from-file=.env.prod
 
       - name: Find IPA
         id: find-ipa
@@ -92,12 +95,46 @@ jobs:
           api-key-id: ${{ secrets.ASC_KEY_ID }}
           api-private-key: ${{ secrets.ASC_PRIVATE_KEY }}
 
+      - name: Upload dSYMs to Firebase Crashlytics
+        run: |
+          UPLOAD_SYMBOLS=$(find ios/Pods -name "upload-symbols" | head -1)
+          if [ -n "$UPLOAD_SYMBOLS" ]; then
+            echo "Uploading dSYMs..."
+            $UPLOAD_SYMBOLS -gsp ios/Runner/GoogleService-Info.plist -p ios build/ios/archive/Runner.xcarchive/dSYMs
+          else
+            echo "Warning: upload-symbols script not found. Skipping dSYMs upload to Crashlytics."
+          fi
+
+      - name: Upload Files to Slack (IPA & dSYMs)
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          if [ -n "$SLACK_BOT_TOKEN" ] && [ -n "$SLACK_CHANNEL_ID" ]; then
+            echo "Uploading IPA to Slack..."
+            curl -F file=@${{ steps.find-ipa.outputs.path }} \
+                 -F "initial_comment=🍏 iOS Production IPA — Build #${{ github.run_number }}" \
+                 -F channels="$SLACK_CHANNEL_ID" \
+                 -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+                 https://slack.com/api/files.upload
+
+            echo "Zipping and uploading dSYMs..."
+            zip -r build/ios/ipa/dsyms.zip build/ios/archive/Runner.xcarchive/dSYMs
+            curl -F file=@build/ios/ipa/dsyms.zip \
+                 -F "initial_comment=🗜️ iOS Production dSYMs (Crashlytics) — Build #${{ github.run_number }}" \
+                 -F channels="$SLACK_CHANNEL_ID" \
+                 -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+                 https://slack.com/api/files.upload
+          else
+            echo "Slack Bot Token or Channel ID not set. Skipping Slack files upload."
+          fi
+
       - name: Notify Slack
         if: always()
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: >
-            {"text":"${{ job.status == 'success' && '🍎 iOS v${{ steps.version.outputs.name }} soumis à l\'App Store Review' || '❌ iOS production build échoué' }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs>"}
+            {"text":"${{ job.status == 'success' && '🍎 iOS build soumis pour validation App Store' || '❌ iOS production build échoué' }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs>"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
@@ -106,4 +143,4 @@ jobs:
         if: always()
         run: |
           security delete-keychain build.keychain 2>/dev/null || true
-          rm -f /tmp/distribution.p12 /tmp/production.mobileprovision
+          rm -f /tmp/distribution.p12 /tmp/production.mobileprovision .env.prod

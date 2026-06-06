@@ -14,7 +14,6 @@ import 'package:cliceat_app/features/client/profile/data/models/loyalty_model.da
 import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
-import 'package:cliceat_app/core/theme/presentation/bloc/theme_cubit.dart';
 import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
@@ -959,32 +958,6 @@ class _ProfilePageState extends State<ProfilePage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => const NotificationSettingsSheet(),
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String title,
-    required bool value,
-    required Function(bool) onChanged,
-  }) {
-    return SwitchListTile(
-      value: value,
-      onChanged: onChanged,
-      secondary: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppTheme.bgWarm,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: AppTheme.inkSoft, size: 22),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
 }

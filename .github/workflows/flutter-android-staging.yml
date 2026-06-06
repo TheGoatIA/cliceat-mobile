@@ -26,7 +26,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.41.9'
           channel: 'stable'
           cache: true
 
@@ -46,29 +46,32 @@ jobs:
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
           KEYEOF
 
+      - name: Restore .env.staging
+        run: |
+          echo "${{ secrets.ENV_STAGING_BASE64 }}" | base64 --decode > .env.staging
+
       - name: Get version from pubspec
         id: version
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1 | tr -d ' ')
-          echo "name=${VERSION}-staging" >> $GITHUB_OUTPUT
+          echo "name=${VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Build App Bundle
+      - name: Build APK
         run: |
-          flutter build appbundle \
+          flutter build apk \
             --release \
             --flavor staging \
             --target lib/main_staging.dart \
             --build-number=${{ github.run_number }} \
             --build-name=${{ steps.version.outputs.name }} \
-            --dart-define=ENV=staging \
-            --dart-define=API_BASE_URL=${{ secrets.STAGING_API_URL }}/api/v1
+            --dart-define-from-file=.env.staging
 
-      - name: Find AAB file
-        id: find-aab
+      - name: Find APK file
+        id: find-apk
         run: |
-          AAB=$(find build/app/outputs/bundle -name "*.aab" | head -1)
-          echo "path=$AAB" >> $GITHUB_OUTPUT
-          echo "Found AAB: $AAB"
+          APK=$(find build/app/outputs/flutter-apk -name "*.apk" | head -1)
+          echo "path=$APK" >> $GITHUB_OUTPUT
+          echo "Found APK: $APK"
 
       - name: Upload to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -81,7 +84,23 @@ jobs:
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             ${{ github.event.head_commit.message }}
-          file: ${{ steps.find-aab.outputs.path }}
+          file: ${{ steps.find-apk.outputs.path }}
+
+      - name: Upload APK to Slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          if [ -n "$SLACK_BOT_TOKEN" ] && [ -n "$SLACK_CHANNEL_ID" ]; then
+            echo "Uploading APK to Slack..."
+            curl -F file=@${{ steps.find-apk.outputs.path }} \
+                 -F "initial_comment=🤖 Android Staging APK — Build #${{ github.run_number }}" \
+                 -F channels="$SLACK_CHANNEL_ID" \
+                 -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+                 https://slack.com/api/files.upload
+          else
+            echo "Slack Bot Token or Channel ID not set. Skipping APK upload to Slack."
+          fi
 
       - name: Notify Slack
         if: always()
@@ -95,4 +114,4 @@ jobs:
 
       - name: Cleanup secrets
         if: always()
-        run: rm -f android/app/cliceat-release.keystore android/key.properties
+        run: rm -f android/app/cliceat-release.keystore android/key.properties .env.staging
