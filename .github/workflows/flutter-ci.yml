@@ -43,6 +43,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Restore firebase_options.dart
         run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+      - name: Restore google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -50,7 +52,7 @@ jobs:
           cache: 'gradle'
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.41.9'
           channel: 'stable'
           cache: true
       - run: flutter pub get
@@ -64,11 +66,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Restore firebase_options.dart
         run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+      - name: Restore GoogleService-Info.plist
+        run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/Runner/GoogleService-Info.plist
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.41.9'
           channel: 'stable'
           cache: true
       - run: flutter pub get
       - name: Build iOS (no codesign)
-        run: flutter build ios --no-codesign --debug --flavor staging --target lib/main_staging.dart --dart-define=ENV=staging --dart-define=API_BASE_URL=https://api-staging.cliceat.cm/api/v1
+        run: flutter build ios --no-codesign --debug --target lib/main_staging.dart --dart-define=ENV=staging --dart-define=API_BASE_URL=https://api-staging.cliceat.cm/api/v1
