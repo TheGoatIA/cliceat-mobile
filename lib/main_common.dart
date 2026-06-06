@@ -125,7 +125,9 @@ Future<void> _bootstrap() async {
   // Validation du certificat SHA-256 aux lancements (Anti MITM)
   if (FlavorConfig.isProd && EnvConfig.sslFingerprint.isNotEmpty) {
     try {
-      final cleanFingerprint = EnvConfig.sslFingerprint.replaceAll(':', '').trim();
+      final cleanFingerprint = EnvConfig.sslFingerprint
+          .replaceAll(':', '')
+          .trim();
       final parsedUri = Uri.parse(FlavorConfig.apiBaseUrl);
       final baseUrl = '${parsedUri.scheme}://${parsedUri.host}';
       final secureResult = await HttpCertificatePinning.check(

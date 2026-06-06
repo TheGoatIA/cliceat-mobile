@@ -51,9 +51,9 @@ class _MapPickerPageState extends State<MapPickerPage> {
         );
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('client.location_error'.tr())),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('client.location_error'.tr())));
         }
       }
     } catch (e) {
