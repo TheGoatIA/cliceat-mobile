@@ -78,12 +78,12 @@ jobs:
           MAPPING=$(find build/app/outputs/mapping -name "mapping.txt" 2>/dev/null | head -1 || echo "")
           echo "mapping=$MAPPING" >> $GITHUB_OUTPUT
 
-      - name: Upload to Firebase (beta-users)
+      - name: Upload to Firebase (android-production)
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          groups: beta-users
+          groups: android-production
           releaseNotes: "🚀 Production v${{ steps.version.outputs.name }} #${{ github.run_number }}"
           file: ${{ steps.find-aab.outputs.path }}
 

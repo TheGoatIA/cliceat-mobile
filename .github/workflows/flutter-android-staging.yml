@@ -81,7 +81,7 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          groups: internal-testers,qa-team
+          groups: android-staging
           releaseNotes: |
             🔧 Staging Build #${{ github.run_number }}
             Branch: ${{ github.ref_name }}
@@ -95,12 +95,9 @@ jobs:
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
           if [ -n "$SLACK_BOT_TOKEN" ] && [ -n "$SLACK_CHANNEL_ID" ]; then
-            echo "Uploading APK to Slack..."
-            curl -F file=@${{ steps.find-apk.outputs.path }} \
-                 -F "initial_comment=🤖 Android Staging APK — Build #${{ github.run_number }}" \
-                 -F channels="$SLACK_CHANNEL_ID" \
-                 -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-                 https://slack.com/api/files.upload
+            node .github/scripts/upload_to_slack.js \
+              "${{ steps.find-apk.outputs.path }}" \
+              "🤖 Android Staging APK — Build #${{ github.run_number }}"
           else
             echo "Slack Bot Token or Channel ID not set. Skipping APK upload to Slack."
           fi
