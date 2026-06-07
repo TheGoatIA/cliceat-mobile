@@ -16,7 +16,26 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Restore firebase_options.dart
-        run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+        run: |
+          if [ -z "${{ secrets.FIREBASE_OPTIONS_DART }}" ]; then
+            echo "Secret FIREBASE_OPTIONS_DART is empty. Creating mock lib/firebase_options.dart..."
+            echo "import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;" > lib/firebase_options.dart
+            echo "import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;" >> lib/firebase_options.dart
+            echo "class DefaultFirebaseOptions {" >> lib/firebase_options.dart
+            echo "  static FirebaseOptions get currentPlatform {" >> lib/firebase_options.dart
+            echo "    return const FirebaseOptions(" >> lib/firebase_options.dart
+            echo "      apiKey: 'mock-key'," >> lib/firebase_options.dart
+            echo "      appId: 'mock-app-id'," >> lib/firebase_options.dart
+            echo "      messagingSenderId: 'mock-sender'," >> lib/firebase_options.dart
+            echo "      projectId: 'mock-project'," >> lib/firebase_options.dart
+            echo "      storageBucket: 'mock-bucket'," >> lib/firebase_options.dart
+            echo "    );" >> lib/firebase_options.dart
+            echo "  }" >> lib/firebase_options.dart
+            echo "}" >> lib/firebase_options.dart
+          else
+            echo "Restoring lib/firebase_options.dart from secret..."
+            echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+          fi
 
       - uses: subosito/flutter-action@v2
         with:
@@ -44,9 +63,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Restore firebase_options.dart
-        run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+        run: |
+          if [ -z "${{ secrets.FIREBASE_OPTIONS_DART }}" ]; then
+            echo "Secret FIREBASE_OPTIONS_DART is empty. Creating mock lib/firebase_options.dart..."
+            echo "import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;" > lib/firebase_options.dart
+            echo "import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;" >> lib/firebase_options.dart
+            echo "class DefaultFirebaseOptions {" >> lib/firebase_options.dart
+            echo "  static FirebaseOptions get currentPlatform {" >> lib/firebase_options.dart
+            echo "    return const FirebaseOptions(" >> lib/firebase_options.dart
+            echo "      apiKey: 'mock-key'," >> lib/firebase_options.dart
+            echo "      appId: 'mock-app-id'," >> lib/firebase_options.dart
+            echo "      messagingSenderId: 'mock-sender'," >> lib/firebase_options.dart
+            echo "      projectId: 'mock-project'," >> lib/firebase_options.dart
+            echo "      storageBucket: 'mock-bucket'," >> lib/firebase_options.dart
+            echo "    );" >> lib/firebase_options.dart
+            echo "  }" >> lib/firebase_options.dart
+            echo "}" >> lib/firebase_options.dart
+          else
+            echo "Restoring lib/firebase_options.dart from secret..."
+            echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+          fi
+
       - name: Restore google-services.json
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+        run: |
+          if [ -z "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" ]; then
+            echo "Secret GOOGLE_SERVICES_JSON_BASE64 is empty. Creating mock google-services.json..."
+            echo '{"project_info":{"project_number":"123","project_id":"mock","storage_bucket":"mock"},"client":[{"client_info":{"mobilesdk_app_id":"mock"},"api_key":[{"current_key":"mock"}]}]}' > android/app/google-services.json
+          else
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+          fi
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -67,9 +112,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Restore firebase_options.dart
-        run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+        run: |
+          if [ -z "${{ secrets.FIREBASE_OPTIONS_DART }}" ]; then
+            echo "Secret FIREBASE_OPTIONS_DART is empty. Creating mock lib/firebase_options.dart..."
+            echo "import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;" > lib/firebase_options.dart
+            echo "import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;" >> lib/firebase_options.dart
+            echo "class DefaultFirebaseOptions {" >> lib/firebase_options.dart
+            echo "  static FirebaseOptions get currentPlatform {" >> lib/firebase_options.dart
+            echo "    return const FirebaseOptions(" >> lib/firebase_options.dart
+            echo "      apiKey: 'mock-key'," >> lib/firebase_options.dart
+            echo "      appId: 'mock-app-id'," >> lib/firebase_options.dart
+            echo "      messagingSenderId: 'mock-sender'," >> lib/firebase_options.dart
+            echo "      projectId: 'mock-project'," >> lib/firebase_options.dart
+            echo "      storageBucket: 'mock-bucket'," >> lib/firebase_options.dart
+            echo "    );" >> lib/firebase_options.dart
+            echo "  }" >> lib/firebase_options.dart
+            echo "}" >> lib/firebase_options.dart
+          else
+            echo "Restoring lib/firebase_options.dart from secret..."
+            echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+          fi
+
       - name: Restore GoogleService-Info.plist
-        run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/Runner/GoogleService-Info.plist
+        run: |
+          if [ -z "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" ]; then
+            echo "Secret GOOGLE_SERVICE_INFO_PLIST_BASE64 is empty. Creating mock GoogleService-Info.plist..."
+            echo '<?xml version="1.0" encoding="UTF-8"?>' > ios/Runner/GoogleService-Info.plist
+            echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> ios/Runner/GoogleService-Info.plist
+            echo '<plist version="1.0">' >> ios/Runner/GoogleService-Info.plist
+            echo '<dict>' >> ios/Runner/GoogleService-Info.plist
+            echo '	<key>API_KEY</key>' >> ios/Runner/GoogleService-Info.plist
+            echo '	<string>mock-key</string>' >> ios/Runner/GoogleService-Info.plist
+            echo '	<key>GOOGLE_APP_ID</key>' >> ios/Runner/GoogleService-Info.plist
+            echo '	<string>mock-id</string>' >> ios/Runner/GoogleService-Info.plist
+            echo '</dict>' >> ios/Runner/GoogleService-Info.plist
+            echo '</plist>' >> ios/Runner/GoogleService-Info.plist
+          else
+            echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/Runner/GoogleService-Info.plist
+          fi
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.41.9'
