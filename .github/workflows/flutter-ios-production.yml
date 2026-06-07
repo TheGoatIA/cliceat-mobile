@@ -39,14 +39,14 @@ jobs:
 
       - name: Set Xcode Version
         run: |
-          if [ -d "/Applications/Xcode_15.4.app" ]; then
+          if [ -d "/Applications/Xcode_16.4.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+          elif [ -d "/Applications/Xcode_15.4.app" ]; then
             sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
           elif [ -d "/Applications/Xcode_15.2.app" ]; then
             sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
-          elif [ -d "/Applications/Xcode_15.0.1.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_15.0.1.app/Contents/Developer
           else
-            echo "No specific Xcode 15 found. Using default."
+            echo "Using default Xcode"
           fi
           xcodebuild -version
 
@@ -95,6 +95,7 @@ jobs:
           UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i /tmp/production.mobileprovision))
           cp /tmp/production.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${UUID}.mobileprovision
           echo "Installed profile UUID: $UUID"
+          echo "Profile name: $(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< $(security cms -D -i /tmp/production.mobileprovision))"
 
       - name: Restore .env.prod
         run: |
@@ -126,9 +127,19 @@ jobs:
       - name: Find IPA
         id: find-ipa
         run: |
-          IPA=$(find build/ios/ipa -name "*.ipa" | head -1)
+          echo "=== Contenu de build/ios ==="
+          find build/ios -type f -name "*.ipa" 2>/dev/null || echo "Aucun .ipa trouvé"
+          find build/ios -type f 2>/dev/null | grep -v '.o$' | head -30 || true
+
+          IPA=$(find build/ios -name "*.ipa" | head -1)
+          if [ -z "$IPA" ]; then
+            echo "ERREUR: Aucun fichier .ipa trouvé. L'export a échoué."
+            echo "=== Contenu de build/ios/archive ==="
+            ls -la build/ios/archive/ 2>/dev/null || echo "Pas d'archive"
+            exit 1
+          fi
           echo "path=$IPA" >> $GITHUB_OUTPUT
-          echo "Found IPA: $IPA"
+          echo "IPA trouvé : $IPA"
 
       - name: Upload to TestFlight (App Store)
         uses: apple-actions/upload-testflight-build@v1
