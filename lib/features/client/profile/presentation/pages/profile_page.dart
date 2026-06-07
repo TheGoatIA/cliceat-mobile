@@ -14,7 +14,6 @@ import 'package:cliceat_app/features/client/profile/data/models/loyalty_model.da
 import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
-import 'package:cliceat_app/core/theme/presentation/bloc/theme_cubit.dart';
 import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
@@ -349,6 +348,7 @@ class _ProfilePageState extends State<ProfilePage> {
         _buildSectionHeader('profile.settings'.tr(), theme),
         const SizedBox(height: 8),
         _buildMenuGroup([
+          // Dark Mode toggle is hidden for now, keeping only light theme
           _buildMenuItem(
             icon: Icons.notifications_outlined,
             title: 'profile.notifications'.tr(),
@@ -361,23 +361,6 @@ class _ProfilePageState extends State<ProfilePage> {
             title: 'profile.language'.tr(),
             color: AppTheme.green,
             onTap: () => _showLanguagePicker(context),
-          ),
-          _buildDivider(theme),
-          BlocBuilder<ThemeCubit, ThemeMode>(
-            builder: (context, mode) {
-              return _buildSwitchTile(
-                icon: mode == ThemeMode.dark
-                    ? Icons.dark_mode
-                    : Icons.light_mode,
-                title: 'profile.dark_mode'.tr(),
-                value: mode == ThemeMode.dark,
-                onChanged: (v) {
-                  context.read<ThemeCubit>().setThemeMode(
-                    v ? ThemeMode.dark : ThemeMode.light,
-                  );
-                },
-              );
-            },
           ),
           _buildDivider(theme),
           _buildMenuItem(
@@ -975,32 +958,6 @@ class _ProfilePageState extends State<ProfilePage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => const NotificationSettingsSheet(),
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String title,
-    required bool value,
-    required Function(bool) onChanged,
-  }) {
-    return SwitchListTile(
-      value: value,
-      onChanged: onChanged,
-      secondary: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppTheme.bgWarm,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: AppTheme.inkSoft, size: 22),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
 }

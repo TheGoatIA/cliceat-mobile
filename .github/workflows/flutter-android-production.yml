@@ -16,8 +16,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Notifier Slack — Build démarré
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: >
+            {"text":"🔄 *Build Android Production démarré* — Build #${{ github.run_number }}\n• *Branche :* `${{ github.ref_name }}`\n• *Commit :* `${{ github.sha }}`\n• *Message :* ${{ github.event.head_commit.message }}\n• *Auteur :* ${{ github.actor }}\n• <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
       - name: Restore firebase_options.dart
         run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
+
+      - name: Restore google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
 
       - uses: actions/setup-java@v4
         with:
@@ -27,7 +39,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.41.9'
           channel: 'stable'
           cache: true
 
@@ -45,6 +57,10 @@ jobs:
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
           KEYEOF
 
+      - name: Restore .env.prod
+        run: |
+          echo "${{ secrets.ENV_PROD_BASE64 }}" | base64 --decode > .env.prod
+
       - name: Get version
         id: version
         run: |
@@ -59,8 +75,7 @@ jobs:
             --target lib/main_prod.dart \
             --build-number=${{ github.run_number }} \
             --build-name=${{ steps.version.outputs.name }} \
-            --dart-define=ENV=production \
-            --dart-define=API_BASE_URL=${{ secrets.PRODUCTION_API_URL }}/api/v1
+            --dart-define-from-file=.env.prod
 
       - name: Find AAB file
         id: find-aab
@@ -72,13 +87,13 @@ jobs:
           MAPPING=$(find build/app/outputs/mapping -name "mapping.txt" 2>/dev/null | head -1 || echo "")
           echo "mapping=$MAPPING" >> $GITHUB_OUTPUT
 
-      - name: Upload to Firebase (beta-users)
+      - name: Upload to Firebase (android-production)
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          groups: beta-users
-          releaseNotes: "🚀 Production v${{ steps.version.outputs.name }} #${{ github.run_number }}"
+          groups: android-production
+          releaseNotes: "🚀 Build Production v${{ steps.version.outputs.name }} #${{ github.run_number }}\nBranche : ${{ github.ref_name }}\nCommit : ${{ github.sha }}\n${{ github.event.head_commit.message }}"
           file: ${{ steps.find-aab.outputs.path }}
 
       - name: Upload to Google Play Beta
@@ -97,11 +112,11 @@ jobs:
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: >
-            {"text":"${{ job.status == 'success' && '🚀 Android v${{ steps.version.outputs.name }} soumis au Play Store Beta' || '❌ Android production build échoué' }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs>"}
+            {"text":"${{ job.status == 'success' && format('✅ Android Production v{0} soumis sur le Play Store (Beta)', steps.version.outputs.name) || '❌ Android Production build échoué' }} — Build #${{ github.run_number }} | Commit : `${{ github.sha }}` | ${{ github.event.head_commit.message }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
       - name: Cleanup secrets
         if: always()
-        run: rm -f android/app/cliceat-release.keystore android/key.properties
+        run: rm -f android/app/cliceat-release.keystore android/key.properties .env.prod

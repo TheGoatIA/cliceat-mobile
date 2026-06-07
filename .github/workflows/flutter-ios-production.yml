@@ -16,12 +16,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Notifier Slack — Build démarré
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: >
+            {"text":"🔄 *Build iOS Production démarré* — Build #${{ github.run_number }}\n• *Branche :* `${{ github.ref_name }}`\n• *Commit :* `${{ github.sha }}`\n• *Message :* ${{ github.event.head_commit.message }}\n• *Auteur :* ${{ github.actor }}\n• <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Set Xcode Version
+        run: |
+          if [ -d "/Applications/Xcode_15.4.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+          elif [ -d "/Applications/Xcode_15.2.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+          elif [ -d "/Applications/Xcode_15.0.1.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_15.0.1.app/Contents/Developer
+          else
+            echo "No specific Xcode 15 found. Using default."
+          fi
+          xcodebuild -version
+
       - name: Restore firebase_options.dart
         run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
 
+      - name: Restore GoogleService-Info.plist
+        run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/Runner/GoogleService-Info.plist
+
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.41.9'
           channel: 'stable'
           cache: true
 
@@ -38,6 +63,7 @@ jobs:
           security default-keychain -s build.keychain
           security unlock-keychain -p "cliceat-ci-build" build.keychain
           security set-keychain-settings -t 3600 -u build.keychain
+          security list-keychains -d user -s build.keychain login.keychain
 
           security import /tmp/distribution.p12 \
             -k build.keychain \
@@ -59,23 +85,32 @@ jobs:
           cp /tmp/production.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${UUID}.mobileprovision
           echo "Installed profile UUID: $UUID"
 
+      - name: Restore .env.prod
+        run: |
+          echo "${{ secrets.ENV_PROD_BASE64 }}" | base64 --decode > .env.prod
+
       - name: Get version
         id: version
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1 | tr -d ' ')
           echo "name=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Configure Manual Code Signing
+        run: |
+          echo "CODE_SIGN_STYLE = Manual" >> ios/Flutter/Release.xcconfig
+          echo "CODE_SIGN_IDENTITY = Apple Distribution" >> ios/Flutter/Release.xcconfig
+          echo "DEVELOPMENT_TEAM = 738JXF4C4C" >> ios/Flutter/Release.xcconfig
+          echo "PROVISIONING_PROFILE_SPECIFIER = ClicEat AppStore Production" >> ios/Flutter/Release.xcconfig
+
       - name: Build iOS IPA
         run: |
           flutter build ipa \
             --release \
-            --flavor prod \
             --target lib/main_prod.dart \
             --export-options-plist=ios/ExportOptions-production.plist \
             --build-number=${{ github.run_number }} \
             --build-name=${{ steps.version.outputs.name }} \
-            --dart-define=ENV=production \
-            --dart-define=API_BASE_URL=${{ secrets.PRODUCTION_API_URL }}/api/v1
+            --dart-define-from-file=.env.prod
 
       - name: Find IPA
         id: find-ipa
@@ -92,12 +127,41 @@ jobs:
           api-key-id: ${{ secrets.ASC_KEY_ID }}
           api-private-key: ${{ secrets.ASC_PRIVATE_KEY }}
 
+      - name: Upload dSYMs to Firebase Crashlytics
+        run: |
+          UPLOAD_SYMBOLS=$(find ios/Pods -name "upload-symbols" | head -1)
+          if [ -n "$UPLOAD_SYMBOLS" ]; then
+            echo "Uploading dSYMs..."
+            $UPLOAD_SYMBOLS -gsp ios/Runner/GoogleService-Info.plist -p ios build/ios/archive/Runner.xcarchive/dSYMs
+          else
+            echo "Warning: upload-symbols script not found. Skipping dSYMs upload to Crashlytics."
+          fi
+
+      - name: Upload Files to Slack (IPA & dSYMs)
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          if [ -n "$SLACK_BOT_TOKEN" ] && [ -n "$SLACK_CHANNEL_ID" ]; then
+            node .github/scripts/upload_to_slack.js \
+              "${{ steps.find-ipa.outputs.path }}" \
+              "🍎 iOS Production — IPA Build #${{ github.run_number }} (commit: ${{ github.sha }})"
+
+            echo "Zipping and uploading dSYMs..."
+            zip -r build/ios/ipa/dsyms.zip build/ios/archive/Runner.xcarchive/dSYMs
+            node .github/scripts/upload_to_slack.js \
+              build/ios/ipa/dsyms.zip \
+              "🗜️ iOS Production — Symboles dSYMs (Crashlytics) — Build #${{ github.run_number }}"
+          else
+            echo "Slack Bot Token or Channel ID not set. Skipping Slack files upload."
+          fi
+
       - name: Notify Slack
         if: always()
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: >
-            {"text":"${{ job.status == 'success' && '🍎 iOS v${{ steps.version.outputs.name }} soumis à l\'App Store Review' || '❌ iOS production build échoué' }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs>"}
+            {"text":"${{ job.status == 'success' && format('✅ iOS Production v{0} soumis sur TestFlight (App Store)', steps.version.outputs.name) || '❌ iOS Production build échoué' }} — Build #${{ github.run_number }} | Commit : `${{ github.sha }}` | ${{ github.event.head_commit.message }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
@@ -106,4 +170,4 @@ jobs:
         if: always()
         run: |
           security delete-keychain build.keychain 2>/dev/null || true
-          rm -f /tmp/distribution.p12 /tmp/production.mobileprovision
+          rm -f /tmp/distribution.p12 /tmp/production.mobileprovision .env.prod

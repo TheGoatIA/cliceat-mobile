@@ -7,7 +7,7 @@
 -keep class io.flutter.plugins.**  { *; }
 
 # Cliceat
--keep class cm.cliceat.app.** { *; }
+-keep class com.tbg.cliceat.** { *; }
 
 # Drift
 -keep class androidx.room.db.** { *; }

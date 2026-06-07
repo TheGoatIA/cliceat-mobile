@@ -78,3 +78,7 @@ fabric.properties
 
 # Firebase generated options (contains project keys)
 lib/firebase_options.dart
+ios_distribution.key
+ClicEat_Staging_AdHoc.mobileprovision
+ClicEat_Production_AppStore.mobileprovision
+CertificateSigningRequest.certSigningRequest

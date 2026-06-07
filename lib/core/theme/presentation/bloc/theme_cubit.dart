@@ -6,40 +6,20 @@ import 'package:cliceat_app/core/services/token_service.dart';
 
 @lazySingleton
 class ThemeCubit extends Cubit<ThemeMode> {
-  final UserPrefsDao _userPrefsDao;
-  final TokenService _tokenService;
-
-  ThemeCubit(this._userPrefsDao, this._tokenService) : super(ThemeMode.system) {
+  ThemeCubit(UserPrefsDao userPrefsDao, TokenService tokenService)
+    : super(ThemeMode.light) {
     _loadTheme();
   }
 
   Future<void> _loadTheme() async {
-    final userId = await _tokenService.getUserId();
-    if (userId == null) return;
-
-    final prefs = await _userPrefsDao.getPrefs(userId);
-    if (prefs?.isDarkMode != null) {
-      emit(prefs!.isDarkMode! ? ThemeMode.dark : ThemeMode.light);
-    }
+    emit(ThemeMode.light);
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
-    final userId = await _tokenService.getUserId();
-    if (userId == null) return;
-
-    bool? isDark;
-    if (mode == ThemeMode.dark) isDark = true;
-    if (mode == ThemeMode.light) isDark = false;
-
-    await _userPrefsDao.setDarkMode(userId, isDark);
-    emit(mode);
+    emit(ThemeMode.light);
   }
 
   Future<void> toggleTheme() async {
-    if (state == ThemeMode.dark) {
-      setThemeMode(ThemeMode.light);
-    } else {
-      setThemeMode(ThemeMode.dark);
-    }
+    emit(ThemeMode.light);
   }
 }

@@ -6,10 +6,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
-import 'package:geolocator/geolocator.dart' hide Position;
 import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
+import 'package:cliceat_app/core/services/location_service.dart';
 import '../../../../../core/config/app_constants.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
@@ -432,13 +432,22 @@ class _MapClientPageState extends State<MapClientPage> {
 
   Future<void> _centerOnUser() async {
     try {
-      final pos = await Geolocator.getCurrentPosition();
-      _mapboxMap?.setCamera(
-        CameraOptions(
-          center: Point(coordinates: Position(pos.longitude, pos.latitude)),
-          zoom: 14,
-        ),
-      );
+      final locationService = getIt<LocationService>();
+      final pos = await locationService.getCurrentPosition();
+      if (pos != null) {
+        _mapboxMap?.setCamera(
+          CameraOptions(
+            center: Point(coordinates: Position(pos.longitude, pos.latitude)),
+            zoom: 14,
+          ),
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('client.location_error'.tr())));
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
