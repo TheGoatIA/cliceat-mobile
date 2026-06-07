@@ -39,12 +39,12 @@ jobs:
 
       - name: Set Xcode Version
         run: |
-          if [ -d "/Applications/Xcode_16.4.app" ]; then
+          if [ -d "/Applications/Xcode_26.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+          elif [ -d "/Applications/Xcode_16.4.app" ]; then
             sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
-          elif [ -d "/Applications/Xcode_15.4.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
-          elif [ -d "/Applications/Xcode_15.2.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+          elif [ -d "/Applications/Xcode_16.2.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
           else
             echo "Using default Xcode"
           fi
@@ -127,15 +127,10 @@ jobs:
       - name: Find IPA
         id: find-ipa
         run: |
-          echo "=== Contenu de build/ios ==="
-          find build/ios -type f -name "*.ipa" 2>/dev/null || echo "Aucun .ipa trouvé"
-          find build/ios -type f 2>/dev/null | grep -v '.o$' | head -30 || true
-
           IPA=$(find build/ios -name "*.ipa" | head -1)
           if [ -z "$IPA" ]; then
             echo "ERREUR: Aucun fichier .ipa trouvé. L'export a échoué."
-            echo "=== Contenu de build/ios/archive ==="
-            ls -la build/ios/archive/ 2>/dev/null || echo "Pas d'archive"
+            find build/ios -type f 2>/dev/null | grep -v '.o$' | head -30 || true
             exit 1
           fi
           echo "path=$IPA" >> $GITHUB_OUTPUT
