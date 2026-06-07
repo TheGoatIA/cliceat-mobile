@@ -15,6 +15,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Notifier Slack — Build démarré
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: >
+            {"text":"🔄 *Build Android Staging démarré* — Build #${{ github.run_number }}\n• *Branche :* `${{ github.ref_name }}`\n• *Commit :* `${{ github.sha }}`\n• *Message :* ${{ github.event.head_commit.message }}\n• *Auteur :* ${{ github.actor }}\n• <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
       - name: Restore firebase_options.dart
         run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
 
@@ -83,9 +92,9 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: android-staging
           releaseNotes: |
-            🔧 Staging Build #${{ github.run_number }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
+            🔧 Build Staging #${{ github.run_number }}
+            Branche : ${{ github.ref_name }}
+            Commit : ${{ github.sha }}
             ${{ github.event.head_commit.message }}
           file: ${{ steps.find-apk.outputs.path }}
 
@@ -107,7 +116,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: >
-            {"text":"${{ job.status == 'success' && '📱 Android staging dispo sur Firebase App Distribution' || '❌ Android staging build échoué' }} — Build #${{ github.run_number }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs>"}
+            {"text":"${{ job.status == 'success' && '✅ Android Staging disponible sur Firebase App Distribution' || '❌ Android Staging build échoué' }} — Build #${{ github.run_number }} | Commit : `${{ github.sha }}` | ${{ github.event.head_commit.message }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

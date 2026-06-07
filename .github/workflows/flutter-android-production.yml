@@ -16,6 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Notifier Slack — Build démarré
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: >
+            {"text":"🔄 *Build Android Production démarré* — Build #${{ github.run_number }}\n• *Branche :* `${{ github.ref_name }}`\n• *Commit :* `${{ github.sha }}`\n• *Message :* ${{ github.event.head_commit.message }}\n• *Auteur :* ${{ github.actor }}\n• <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
       - name: Restore firebase_options.dart
         run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
 
@@ -84,7 +93,7 @@ jobs:
           appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: android-production
-          releaseNotes: "🚀 Production v${{ steps.version.outputs.name }} #${{ github.run_number }}"
+          releaseNotes: "🚀 Build Production v${{ steps.version.outputs.name }} #${{ github.run_number }}\nBranche : ${{ github.ref_name }}\nCommit : ${{ github.sha }}\n${{ github.event.head_commit.message }}"
           file: ${{ steps.find-aab.outputs.path }}
 
       - name: Upload to Google Play Beta
@@ -103,7 +112,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: >
-            {"text":"${{ job.status == 'success' && format('🚀 Android v{0} soumis au Play Store Beta', steps.version.outputs.name) || '❌ Android production build échoué' }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs>"}
+            {"text":"${{ job.status == 'success' && format('✅ Android Production v{0} soumis sur le Play Store (Beta)', steps.version.outputs.name) || '❌ Android Production build échoué' }} — Build #${{ github.run_number }} | Commit : `${{ github.sha }}` | ${{ github.event.head_commit.message }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

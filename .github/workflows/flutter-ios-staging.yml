@@ -15,6 +15,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Notifier Slack — Build démarré
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: >
+            {"text":"🔄 *Build iOS Staging démarré* — Build #${{ github.run_number }}\n• *Branche :* `${{ github.ref_name }}`\n• *Commit :* `${{ github.sha }}`\n• *Message :* ${{ github.event.head_commit.message }}\n• *Auteur :* ${{ github.actor }}\n• <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
       - name: Set Xcode Version
         run: |
           if [ -d "/Applications/Xcode_15.4.app" ]; then
@@ -122,7 +131,7 @@ jobs:
           firebase appdistribution:distribute "${{ steps.find-ipa.outputs.path }}" \
             --app "$FIREBASE_APP_ID" \
             --groups "ios-staging" \
-            --release-notes "iOS Staging #${{ github.run_number }} — ${{ github.event.head_commit.message }}"
+            --release-notes "🍏 Build iOS Staging #${{ github.run_number }}\nBranche : ${{ github.ref_name }}\nCommit : ${{ github.sha }}\n${{ github.event.head_commit.message }}"
 
       - name: Upload dSYMs to Firebase Crashlytics
         run: |
@@ -142,13 +151,13 @@ jobs:
           if [ -n "$SLACK_BOT_TOKEN" ] && [ -n "$SLACK_CHANNEL_ID" ]; then
             node .github/scripts/upload_to_slack.js \
               "${{ steps.find-ipa.outputs.path }}" \
-              "🍏 iOS Staging IPA — Build #${{ github.run_number }}"
+              "🍏 iOS Staging — IPA Build #${{ github.run_number }} (commit: ${{ github.sha }})"
 
             echo "Zipping and uploading dSYMs..."
             zip -r build/ios/ipa/dsyms.zip build/ios/archive/Runner.xcarchive/dSYMs
             node .github/scripts/upload_to_slack.js \
               build/ios/ipa/dsyms.zip \
-              "🗜️ iOS Staging dSYMs (Crashlytics) — Build #${{ github.run_number }}"
+              "🗜️ iOS Staging — Symboles dSYMs (Crashlytics) — Build #${{ github.run_number }}"
           else
             echo "Slack Bot Token or Channel ID not set. Skipping Slack files upload."
           fi
@@ -158,7 +167,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: >
-            {"text":"${{ job.status == 'success' && '🍎 iOS staging dispo sur Firebase App Distribution' || '❌ iOS staging build échoué' }} — Build #${{ github.run_number }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs>"}
+            {"text":"${{ job.status == 'success' && '✅ iOS Staging disponible sur Firebase App Distribution' || '❌ iOS Staging build échoué' }} — Build #${{ github.run_number }} | Commit : `${{ github.sha }}` | ${{ github.event.head_commit.message }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
