@@ -13,7 +13,7 @@ jobs:
     name: Build & Distribute Android Staging
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Prepare Slack start payload
         run: |
@@ -33,9 +33,8 @@ jobs:
         uses: slackapi/slack-github-action@v3.0.3
         with:
           payload-file-path: /tmp/slack_start.json
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
 
       - name: Restore firebase_options.dart
         run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 --decode > lib/firebase_options.dart
@@ -148,9 +147,8 @@ jobs:
         uses: slackapi/slack-github-action@v3.0.3
         with:
           payload-file-path: /tmp/slack_result.json
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
 
       - name: Cleanup secrets
         if: always()
