@@ -16,14 +16,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Prepare Slack start payload
+        run: |
+          jq -n \
+            --arg run "${{ github.run_number }}" \
+            --arg branch "${{ github.ref_name }}" \
+            --arg sha "${{ github.sha }}" \
+            --arg msg "$COMMIT_MSG" \
+            --arg actor "${{ github.actor }}" \
+            --arg url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            '{"text": ("🔄 *Build iOS Production démarré* — Build #" + $run + "\n• *Branche :* `" + $branch + "`\n• *Commit :* `" + $sha + "`\n• *Message :* " + $msg + "\n• *Auteur :* " + $actor + "\n• <" + $url + "|Voir les logs>")}' \
+            > /tmp/slack_start.json
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+
       - name: Notifier Slack — Build démarré
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
-          payload: >
-            {"text":"🔄 *Build iOS Production démarré* — Build #${{ github.run_number }}\n• *Branche :* `${{ github.ref_name }}`\n• *Commit :* `${{ github.sha }}`\n• *Message :* ${{ github.event.head_commit.message }}\n• *Auteur :* ${{ github.actor }}\n• <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
+          payload-file-path: /tmp/slack_start.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          SLACK_WEBHOOK_TYPE: incoming-webhook
 
       - name: Set Xcode Version
         run: |
@@ -80,7 +93,6 @@ jobs:
           echo "${{ secrets.IOS_PROVISIONING_PROFILE_PRODUCTION }}" | base64 --decode > /tmp/production.mobileprovision
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
 
-          # Get profile UUID
           UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i /tmp/production.mobileprovision))
           cp /tmp/production.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${UUID}.mobileprovision
           echo "Installed profile UUID: $UUID"
@@ -156,15 +168,34 @@ jobs:
             echo "Slack Bot Token or Channel ID not set. Skipping Slack files upload."
           fi
 
+      - name: Prepare Slack result payload
+        if: always()
+        run: |
+          VERSION="${{ steps.version.outputs.name }}"
+          if [ "${{ job.status }}" = "success" ]; then
+            STATUS="✅ iOS Production v${VERSION} soumis sur TestFlight (App Store)"
+          else
+            STATUS="❌ iOS Production build échoué"
+          fi
+          jq -n \
+            --arg status "$STATUS" \
+            --arg run "${{ github.run_number }}" \
+            --arg sha "${{ github.sha }}" \
+            --arg msg "$COMMIT_MSG" \
+            --arg url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            '{"text": ($status + " — Build #" + $run + " | Commit : `" + $sha + "` | " + $msg + " — <" + $url + "|Voir les logs>")}' \
+            > /tmp/slack_result.json
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+
       - name: Notify Slack
         if: always()
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
-          payload: >
-            {"text":"${{ job.status == 'success' && format('✅ iOS Production v{0} soumis sur TestFlight (App Store)', steps.version.outputs.name) || '❌ iOS Production build échoué' }} — Build #${{ github.run_number }} | Commit : `${{ github.sha }}` | ${{ github.event.head_commit.message }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
+          payload-file-path: /tmp/slack_result.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          SLACK_WEBHOOK_TYPE: incoming-webhook
 
       - name: Cleanup
         if: always()
