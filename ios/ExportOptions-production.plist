@@ -19,7 +19,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>com.tbg.cliceat</key>
-        <string>ClicEat AppStore Production</string>
+        <string>ClicEat Production AppStore</string>
     </dict>
 </dict>
 </plist>
