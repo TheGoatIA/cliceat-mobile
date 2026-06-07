@@ -30,7 +30,7 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
 
       - name: Notifier Slack — Build démarré
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           payload-file-path: /tmp/slack_start.json
         env:
@@ -145,7 +145,7 @@ jobs:
 
       - name: Notify Slack
         if: always()
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           payload-file-path: /tmp/slack_result.json
         env:
