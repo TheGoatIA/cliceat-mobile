@@ -13,7 +13,7 @@ jobs:
     name: Analyze & Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Restore firebase_options.dart
         run: |
@@ -61,7 +61,7 @@ jobs:
     name: Android Debug Build Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Restore firebase_options.dart
         run: |
           if [ -z "${{ secrets.FIREBASE_OPTIONS_DART }}" ]; then
@@ -135,7 +135,7 @@ jobs:
     name: iOS Build Check (no codesign)
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Restore firebase_options.dart
         run: |
           if [ -z "${{ secrets.FIREBASE_OPTIONS_DART }}" ]; then
