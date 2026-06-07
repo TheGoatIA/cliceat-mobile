@@ -15,11 +15,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Prepare Slack start payload
+        run: |
+          jq -n \
+            --arg run "${{ github.run_number }}" \
+            --arg branch "${{ github.ref_name }}" \
+            --arg sha "${{ github.sha }}" \
+            --arg msg "$COMMIT_MSG" \
+            --arg actor "${{ github.actor }}" \
+            --arg url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            '{"text": ("🔄 *Build Android Staging démarré* — Build #" + $run + "\n• *Branche :* `" + $branch + "`\n• *Commit :* `" + $sha + "`\n• *Message :* " + $msg + "\n• *Auteur :* " + $actor + "\n• <" + $url + "|Voir les logs>")}' \
+            > /tmp/slack_start.json
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+
       - name: Notifier Slack — Build démarré
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          payload: >
-            {"text":"🔄 *Build Android Staging démarré* — Build #${{ github.run_number }}\n• *Branche :* `${{ github.ref_name }}`\n• *Commit :* `${{ github.sha }}`\n• *Message :* ${{ github.event.head_commit.message }}\n• *Auteur :* ${{ github.actor }}\n• <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
+          payload-file-path: /tmp/slack_start.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
@@ -111,12 +124,30 @@ jobs:
             echo "Slack Bot Token or Channel ID not set. Skipping APK upload to Slack."
           fi
 
+      - name: Prepare Slack result payload
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            STATUS="✅ Android Staging disponible sur Firebase App Distribution"
+          else
+            STATUS="❌ Android Staging build échoué"
+          fi
+          jq -n \
+            --arg status "$STATUS" \
+            --arg run "${{ github.run_number }}" \
+            --arg sha "${{ github.sha }}" \
+            --arg msg "$COMMIT_MSG" \
+            --arg url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            '{"text": ($status + " — Build #" + $run + " | Commit : `" + $sha + "` | " + $msg + " — <" + $url + "|Voir les logs>")}' \
+            > /tmp/slack_result.json
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+
       - name: Notify Slack
         if: always()
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          payload: >
-            {"text":"${{ job.status == 'success' && '✅ Android Staging disponible sur Firebase App Distribution' || '❌ Android Staging build échoué' }} — Build #${{ github.run_number }} | Commit : `${{ github.sha }}` | ${{ github.event.head_commit.message }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir les logs>"}
+          payload-file-path: /tmp/slack_result.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
