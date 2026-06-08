@@ -11,7 +11,7 @@ concurrency:
 jobs:
   build-and-submit:
     name: Build & Submit iOS Production
-    runs-on: macos-latest
+    runs-on: macos-15
     environment: production
     steps:
       - uses: actions/checkout@v4
