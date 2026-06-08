@@ -38,15 +38,20 @@ jobs:
           webhook-type: incoming-webhook
 
       - name: Set Xcode Version
+        id: xcode
         run: |
           if [ -d "/Applications/Xcode_26.app" ]; then
             sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+            echo "xcode26=true" >> $GITHUB_OUTPUT
           elif [ -d "/Applications/Xcode_16.4.app" ]; then
             sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+            echo "xcode26=false" >> $GITHUB_OUTPUT
           elif [ -d "/Applications/Xcode_16.2.app" ]; then
             sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+            echo "xcode26=false" >> $GITHUB_OUTPUT
           else
             echo "Using default Xcode"
+            echo "xcode26=false" >> $GITHUB_OUTPUT
           fi
           xcodebuild -version
 
@@ -136,15 +141,18 @@ jobs:
           echo "path=$IPA" >> $GITHUB_OUTPUT
           echo "IPA trouvé : $IPA"
 
-      # Désactivé temporairement — Xcode 26 requis par App Store Connect (iOS 26 SDK)
-      # Réactiver quand GitHub Actions proposera Xcode 26 sur ses runners
-      # - name: Upload to TestFlight (App Store)
-      #   uses: apple-actions/upload-testflight-build@v1
-      #   with:
-      #     app-path: ${{ steps.find-ipa.outputs.path }}
-      #     issuer-id: ${{ secrets.ASC_ISSUER_ID }}
-      #     api-key-id: ${{ secrets.ASC_KEY_ID }}
-      #     api-private-key: ${{ secrets.ASC_PRIVATE_KEY }}
+      - name: Upload to TestFlight (App Store)
+        if: steps.xcode.outputs.xcode26 == 'true'
+        uses: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: ${{ steps.find-ipa.outputs.path }}
+          issuer-id: ${{ secrets.ASC_ISSUER_ID }}
+          api-key-id: ${{ secrets.ASC_KEY_ID }}
+          api-private-key: ${{ secrets.ASC_PRIVATE_KEY }}
+
+      - name: TestFlight skipped — Xcode 26 non disponible
+        if: steps.xcode.outputs.xcode26 == 'false'
+        run: echo "⚠️ Upload TestFlight ignoré — Xcode 26 absent du runner (iOS 26 SDK requis par Apple). L'IPA est buildé mais non soumis."
 
       - name: Upload dSYMs to Firebase Crashlytics
         run: |
@@ -180,7 +188,11 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.name }}"
           if [ "${{ job.status }}" = "success" ]; then
-            STATUS="✅ iOS Production v${VERSION} buildé (TestFlight désactivé — Xcode 26 requis)"
+            if [ "${{ steps.xcode.outputs.xcode26 }}" = "true" ]; then
+              STATUS="✅ iOS Production v${VERSION} soumis sur TestFlight"
+            else
+              STATUS="⚠️ iOS Production v${VERSION} buildé (TestFlight en attente de Xcode 26)"
+            fi
           else
             STATUS="❌ iOS Production build échoué"
           fi
