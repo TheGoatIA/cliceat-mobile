@@ -58,16 +58,22 @@ jobs:
       - run: flutter pub get
 
       - name: Decode keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/cliceat-release.keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/cliceat-release.keystore
+          echo "=== Vérification SHA1 du keystore ==="
+          keytool -list -v \
+            -keystore android/app/cliceat-release.keystore \
+            -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            2>/dev/null | grep -E "SHA1:|SHA256:"
 
       - name: Create key.properties
         run: |
-          cat > android/key.properties << 'KEYEOF'
-          storeFile=cliceat-release.keystore
+          cat > android/key.properties <<EOF
+          storeFile=${{ github.workspace }}/android/app/cliceat-release.keystore
           storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
-          KEYEOF
+          EOF
 
       - name: Restore .env.prod
         run: |
