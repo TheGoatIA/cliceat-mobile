@@ -136,13 +136,15 @@ jobs:
           echo "path=$IPA" >> $GITHUB_OUTPUT
           echo "IPA trouvé : $IPA"
 
-      - name: Upload to TestFlight (App Store)
-        uses: apple-actions/upload-testflight-build@v1
-        with:
-          app-path: ${{ steps.find-ipa.outputs.path }}
-          issuer-id: ${{ secrets.ASC_ISSUER_ID }}
-          api-key-id: ${{ secrets.ASC_KEY_ID }}
-          api-private-key: ${{ secrets.ASC_PRIVATE_KEY }}
+      # Désactivé temporairement — Xcode 26 requis par App Store Connect (iOS 26 SDK)
+      # Réactiver quand GitHub Actions proposera Xcode 26 sur ses runners
+      # - name: Upload to TestFlight (App Store)
+      #   uses: apple-actions/upload-testflight-build@v1
+      #   with:
+      #     app-path: ${{ steps.find-ipa.outputs.path }}
+      #     issuer-id: ${{ secrets.ASC_ISSUER_ID }}
+      #     api-key-id: ${{ secrets.ASC_KEY_ID }}
+      #     api-private-key: ${{ secrets.ASC_PRIVATE_KEY }}
 
       - name: Upload dSYMs to Firebase Crashlytics
         run: |
@@ -178,7 +180,7 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.name }}"
           if [ "${{ job.status }}" = "success" ]; then
-            STATUS="✅ iOS Production v${VERSION} soumis sur TestFlight (App Store)"
+            STATUS="✅ iOS Production v${VERSION} buildé (TestFlight désactivé — Xcode 26 requis)"
           else
             STATUS="❌ iOS Production build échoué"
           fi
