@@ -65,7 +65,7 @@ class _WalletPageState extends State<WalletPage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Feature disabled by administrator',
+                        'wallet.feature_disabled'.tr(),
                         style: GoogleFonts.bricolageGrotesque(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -310,7 +310,6 @@ class _WalletPageState extends State<WalletPage> {
                     tx['description']?.toString() ?? _fallbackDescription(type);
                 final method = tx['method']?.toString() ?? '';
 
-                // Config visuelle selon le type
                 final config = _txConfig(type, status);
 
                 return Container(
@@ -323,7 +322,6 @@ class _WalletPageState extends State<WalletPage> {
                   ),
                   child: Row(
                     children: [
-                      // Icône avec couleur de fond
                       Container(
                         width: 48,
                         height: 48,
@@ -338,7 +336,6 @@ class _WalletPageState extends State<WalletPage> {
                         ),
                       ),
                       const SizedBox(width: 14),
-                      // Infos textuelles
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,7 +361,7 @@ class _WalletPageState extends State<WalletPage> {
                                   ),
                                 ),
                                 if (method.isNotEmpty &&
-                                    type != 'recharge') ...[
+                                    type != 'recharge') ...([
                                   const SizedBox(width: 6),
                                   Container(
                                     width: 3,
@@ -382,17 +379,15 @@ class _WalletPageState extends State<WalletPage> {
                                       color: AppTheme.muted,
                                     ),
                                   ),
-                                ],
+                                ]),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            // Badge de statut
                             _statusBadge(status),
                           ],
                         ),
                       ),
                       const SizedBox(width: 10),
-                      // Montant
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -449,7 +444,6 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  /// Configuration visuelle par type de transaction
   Map<String, dynamic> _txConfig(String type, String status) {
     if (status == 'refunded') {
       return {
@@ -485,7 +479,7 @@ class _WalletPageState extends State<WalletPage> {
           'amountColor': const Color(0xFF2E7D32),
           'prefix': '+',
         };
-      default: // order_payment
+      default:
         return {
           'icon': Icons.shopping_bag_rounded,
           'bgColor': AppTheme.redSoft,
@@ -499,28 +493,28 @@ class _WalletPageState extends State<WalletPage> {
   String _fallbackDescription(String type) {
     switch (type) {
       case 'recharge':
-        return 'Rechargement Wallet';
+        return 'wallet.type_recharge'.tr();
       case 'wallet_payment':
-        return 'Paiement commande (Wallet)';
+        return 'wallet.type_wallet_payment'.tr();
       case 'refund':
-        return 'Remboursement';
+        return 'wallet.type_refund'.tr();
       default:
-        return 'Paiement commande';
+        return 'wallet.type_order_payment'.tr();
     }
   }
 
   String _methodLabel(String method) {
     switch (method) {
       case 'orange_money':
-        return 'Orange Money';
+        return 'wallet.orange_money'.tr();
       case 'mtn_momo':
-        return 'MTN MoMo';
+        return 'wallet.mtn_momo'.tr();
       case 'wave':
         return 'Wave';
       case 'wallet':
-        return 'Wallet';
+        return 'wallet.title'.tr();
       case 'cash':
-        return 'Espèces';
+        return 'wallet.method_cash'.tr();
       default:
         return method;
     }
@@ -534,28 +528,28 @@ class _WalletPageState extends State<WalletPage> {
       case 'completed':
         bg = const Color(0xFFE8F5E9);
         fg = const Color(0xFF2E7D32);
-        label = 'Complété';
+        label = 'wallet.status_completed'.tr();
         break;
       case 'initiated':
       case 'pending':
         bg = const Color(0xFFFFF8E1);
         fg = const Color(0xFFFF8F00);
-        label = 'En attente';
+        label = 'wallet.status_pending'.tr();
         break;
       case 'failed':
         bg = AppTheme.redSoft;
         fg = AppTheme.primaryRed;
-        label = 'Échoué';
+        label = 'wallet.status_failed'.tr();
         break;
       case 'refunded':
         bg = const Color(0xFFE3F2FD);
         fg = const Color(0xFF1565C0);
-        label = 'Remboursé';
+        label = 'wallet.status_refunded'.tr();
         break;
       case 'cancelled':
         bg = AppTheme.lineSoft;
         fg = AppTheme.muted;
-        label = 'Annulé';
+        label = 'wallet.status_cancelled'.tr();
         break;
       default:
         bg = AppTheme.lineSoft;
@@ -683,7 +677,7 @@ class _WalletPageState extends State<WalletPage> {
           await pageContext.push(
             '/client/payment',
             extra: {
-              'paymentUrl': data['url'],
+              'paymentUrl': data['paymentUrl'],
               'orderId': data['reference'],
               'isWalletRecharge': true,
             },

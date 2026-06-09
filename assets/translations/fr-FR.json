@@ -84,6 +84,7 @@
     "role_delivery_title": "Livreur",
     "role_delivery_subtitle": "Travailler comme livreur indépendant",
     "registration_submitted": "Inscription soumise ! Nos équipes vérifieront vos documents sous 48h.",
+    "registration_success": "Compte créé ! Vérifiez votre e-mail pour activer votre compte.",
     "id_card": "Photo de la CNI / Passeport",
     "license": "Permis de conduire",
     "photo": "Photo de profil / Selfie",
@@ -326,7 +327,20 @@
     "notif_promotions_desc": "Offres exclusives et codes promo",
     "notif_new_restaurants": "Nouveaux restaurants",
     "notif_new_restaurants_desc": "Découvrez les nouveaux restaurants de votre zone",
-    "dark_mode": "Mode sombre"
+    "dark_mode": "Mode sombre",
+    "updated_success": "Profil mis à jour avec succès",
+    "photo_uploading": "Mise à jour de la photo de profil...",
+    "photo_updated": "Photo de profil mise à jour avec succès !",
+    "delete_address_title": "Supprimer l'adresse ?",
+    "delete_address_message": "Voulez-vous vraiment supprimer cette adresse ?",
+    "address_deleted": "Adresse supprimée",
+    "address_updated": "Adresse modifiée avec succès",
+    "edit_address": "Modifier l'adresse",
+    "address_default_label": "Adresse",
+    "save_btn": "Enregistrer",
+    "choose_on_map": "Choisir sur la carte",
+    "help_whatsapp": "WhatsApp: +237 6XX XXX XXX",
+    "phone_required": "Votre numéro est requis pour passer commande."
   },
   "delivery": {
     "dashboard_title": "Tableau de bord",
@@ -485,7 +499,8 @@
     "add": "Ajouter",
     "understood": "J'ai compris",
     "lang_french": "Français",
-    "lang_english": "English"
+    "lang_english": "English",
+    "delete": "Supprimer"
   },
   "legal": {
     "terms_title": "Conditions Générales d'Utilisation",
@@ -532,7 +547,18 @@
     "history_error": "Impossible de charger l'historique des transactions.",
     "recharge_success": "Rechargement du portefeuille effectué avec succès !",
     "orange_money": "Orange Money",
-    "mtn_momo": "MTN MoMo"
+    "mtn_momo": "MTN MoMo",
+    "feature_disabled": "Fonctionnalité désactivée par l'administrateur",
+    "status_completed": "Complété",
+    "status_pending": "En attente",
+    "status_failed": "Échoué",
+    "status_refunded": "Remboursé",
+    "status_cancelled": "Annulé",
+    "type_recharge": "Rechargement Wallet",
+    "type_wallet_payment": "Paiement commande (Wallet)",
+    "type_refund": "Remboursement",
+    "type_order_payment": "Paiement commande",
+    "method_cash": "Espèces"
   },
   "dispute": {
     "history_title": "Mes Litiges",
@@ -629,6 +655,9 @@
     "insufficient_balance": "Solde insuffisant pour le retrait",
     "mtn_mobile_money": "MTN Mobile Money",
     "orange_money": "Orange Money"
+  },
+  "promotion": {
+    "exclusive_offers": "Offres exclusives"
   },
   "pending": "En attente",
   "processed": "Traité",

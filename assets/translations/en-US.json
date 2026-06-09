@@ -84,6 +84,7 @@
     "role_delivery_title": "Driver",
     "role_delivery_subtitle": "Work as an independent driver",
     "registration_submitted": "Registration submitted! Our team will verify your documents within 48h.",
+    "registration_success": "Account created! Check your email to activate your account.",
     "id_card": "ID Card / Passport Photo",
     "license": "Driver's License",
     "photo": "Profile Photo / Selfie",
@@ -326,7 +327,20 @@
     "notif_promotions_desc": "Exclusive offers and promo codes",
     "notif_new_restaurants": "New restaurants",
     "notif_new_restaurants_desc": "Discover new restaurants in your area",
-    "dark_mode": "Dark mode"
+    "dark_mode": "Dark mode",
+    "updated_success": "Profile updated successfully",
+    "photo_uploading": "Updating profile photo...",
+    "photo_updated": "Profile photo updated successfully!",
+    "delete_address_title": "Delete address?",
+    "delete_address_message": "Are you sure you want to delete this address?",
+    "address_deleted": "Address deleted",
+    "address_updated": "Address updated successfully",
+    "edit_address": "Edit address",
+    "address_default_label": "Address",
+    "save_btn": "Save",
+    "choose_on_map": "Choose on map",
+    "help_whatsapp": "WhatsApp: +237 6XX XXX XXX",
+    "phone_required": "Your phone number is required to place an order."
   },
   "delivery": {
     "dashboard_title": "Dashboard",
@@ -485,7 +499,8 @@
     "add": "Add",
     "understood": "Got it",
     "lang_french": "Français",
-    "lang_english": "English"
+    "lang_english": "English",
+    "delete": "Delete"
   },
   "legal": {
     "terms_title": "Terms of Service",
@@ -532,7 +547,18 @@
     "history_error": "Unable to load transaction history.",
     "recharge_success": "Wallet top-up successful!",
     "orange_money": "Orange Money",
-    "mtn_momo": "MTN MoMo"
+    "mtn_momo": "MTN MoMo",
+    "feature_disabled": "Feature disabled by administrator",
+    "status_completed": "Completed",
+    "status_pending": "Pending",
+    "status_failed": "Failed",
+    "status_refunded": "Refunded",
+    "status_cancelled": "Cancelled",
+    "type_recharge": "Wallet Top-up",
+    "type_wallet_payment": "Order Payment (Wallet)",
+    "type_refund": "Refund",
+    "type_order_payment": "Order Payment",
+    "method_cash": "Cash"
   },
   "dispute": {
     "history_title": "My Disputes",
@@ -629,6 +655,9 @@
     "insufficient_balance": "Insufficient balance for payout",
     "mtn_mobile_money": "MTN Mobile Money",
     "orange_money": "Orange Money"
+  },
+  "promotion": {
+    "exclusive_offers": "Exclusive Offers"
   },
   "pending": "Pending",
   "processed": "Processed",
