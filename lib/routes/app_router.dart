@@ -272,7 +272,17 @@ final GoRouter appRouter = GoRouter(
     // ── Client routes ─────────────────────────────────────────────────────────
     GoRoute(
       path: AppRoutes.client,
-      builder: (context, state) => const ClientMainTab(),
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const ClientMainTab(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 200),
+      ),
       routes: [
         GoRoute(
           path: 'ai',
@@ -385,30 +395,69 @@ final GoRouter appRouter = GoRouter(
     // Résultats de recherche (accessible depuis le shell client)
     GoRoute(
       path: AppRoutes.search,
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final query = state.uri.queryParameters['q'] ?? '';
         final city = state.uri.queryParameters['city'] ?? 'Douala';
-        return SearchResultsPage(initialQuery: query, city: city);
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: SearchResultsPage(initialQuery: query, city: city),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 200),
+        );
       },
     ),
 
     // Détail restaurant (accessible depuis carte, accueil, recherche)
     GoRoute(
       path: AppRoutes.restaurant,
-      builder: (context, state) =>
-          RestaurantDetailPage(restaurantId: state.pathParameters['id']!),
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: RestaurantDetailPage(restaurantId: state.pathParameters['id']!),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 200),
+      ),
     ),
 
     // Checkout (plein écran, hors tab shell)
     GoRoute(
       path: AppRoutes.checkout,
-      builder: (context, state) => const CheckoutPage(),
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const CheckoutPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 200),
+      ),
     ),
 
     // ── Delivery routes ───────────────────────────────────────────────────────
     GoRoute(
       path: AppRoutes.delivery,
-      builder: (context, state) => const DeliveryMainTab(),
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const DeliveryMainTab(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 200),
+      ),
       routes: [
         GoRoute(
           path: 'incoming',
