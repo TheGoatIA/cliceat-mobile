@@ -136,7 +136,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
         return entry.value;
       }
     }
-    // Fallback déterministe et varié basé sur le hash du nom de la cuisine
     final index = cleaned.hashCode.abs() % _fallbackFoodEmojis.length;
     return _fallbackFoodEmojis[index];
   }
@@ -160,7 +159,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   Future<void> _loadRestaurants() async {
     setState(() => _loadingRestaurants = true);
-    // On charge tous les restaurants de la ville sélectionnée pour avoir une liste complète et des catégories réelles
     final cityResult = await getIt<RestaurantRepository>().getRestaurants(
       city: _selectedCity,
     );
@@ -168,7 +166,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
     List<RestaurantModel> restaurants = [];
     cityResult.fold((_) {}, (list) => restaurants = list);
 
-    // En cas d'échec ou d'absence de restaurants dans cette ville, fallback de secours sur les "featured"
     if (restaurants.isEmpty) {
       final featuredResult = await getIt<RestaurantRepository>()
           .getFeaturedRestaurants();
@@ -226,7 +223,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
     final seen = <String>{};
     final result = <(String, String)>[];
     for (final r in restaurants) {
-      // Extraire toutes les catégories de cuisine déclarées par le restaurant
       final candidates = [
         if (r.cuisineType != null) r.cuisineType!.trim(),
         ...r.cuisines.map((c) => c.trim()),
@@ -234,12 +230,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
       for (final c in candidates) {
         if (c.isNotEmpty && seen.add(c.toLowerCase())) {
-          // Rendre le nom élégant avec la première lettre en majuscule
           final displayName = c[0].toUpperCase() + c.substring(1).toLowerCase();
           final emoji = _getEmojiForCuisine(c);
           result.add((emoji, displayName));
-
-          // Limiter à 12 catégories pour une barre de défilement ergonomique
           if (result.length >= 12) break;
         }
       }
@@ -287,9 +280,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
   void _onFilterTap(String filter) {
     setState(() {
       if (filter == 'Tous les restaurants') {
-        _selectedFilter = ''; // Reset/show all
+        _selectedFilter = '';
       } else if (_selectedFilter == filter) {
-        _selectedFilter = ''; // Deselect if tapped again
+        _selectedFilter = '';
       } else {
         _selectedFilter = filter;
       }
@@ -300,7 +293,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
   List<RestaurantModel> _getFilteredRestaurantsList() {
     List<RestaurantModel> filteredList = List.from(_allRestaurants);
 
-    // Apply search query locally if active
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
       filteredList = filteredList
@@ -314,7 +306,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
           .toList();
     }
 
-    // Apply quick strip filter
     if (_selectedFilter.startsWith('Top') || _selectedFilter == 'Premium') {
       final filteredByRating = filteredList
           .where((r) => (r.rating ?? 0.0) >= 4.0)
@@ -322,9 +313,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
       if (filteredByRating.isNotEmpty) {
         filteredList = filteredByRating;
       } else {
-        // Fallback: If no restaurant has >= 4.0 rating (e.g. empty or newly created DB),
-        // we sort them by rating descending so the user sees the best available,
-        // and put open restaurants first.
         filteredList.sort((a, b) {
           final ra = a.rating ?? 0.0;
           final rb = b.rating ?? 0.0;
@@ -352,7 +340,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
       }
     }
 
-    // Apply modal filters
     if (_isOpenOnly) {
       filteredList = filteredList.where((r) => r.isOpen == true).toList();
     }
@@ -369,7 +356,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
           .toList();
     }
 
-    // Apply sorting
     if (_sortBy == 'rating') {
       filteredList.sort((a, b) => (b.rating ?? 0.0).compareTo(a.rating ?? 0.0));
     } else if (_sortBy == 'deliveryTime') {
@@ -489,7 +475,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
-        // Extract cuisines dynamically
         final cuisines = _allRestaurants
             .expand(
               (r) => [if (r.cuisineType != null) r.cuisineType!, ...r.cuisines],
@@ -500,7 +485,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
         return StatefulBuilder(
           builder: (context, setModalState) {
-            // Helper to calculate filtered count in real time
             int getFilteredCount() {
               return _getFilteredRestaurantsList().length;
             }
@@ -517,7 +501,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -553,8 +536,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
                     const SizedBox(height: 8),
                     Container(height: 1, color: AppTheme.lineSoft),
                     const SizedBox(height: 20),
-
-                    // Sort section
                     Text(
                       'Trier par',
                       style: GoogleFonts.bricolageGrotesque(
@@ -600,8 +581,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       ],
                     ),
                     const SizedBox(height: 24),
-
-                    // Features Section
                     Text(
                       'Options',
                       style: GoogleFonts.bricolageGrotesque(
@@ -647,8 +626,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       activeThumbColor: AppTheme.primaryRed,
                     ),
                     const SizedBox(height: 20),
-
-                    // Cuisine section
                     if (cuisines.isNotEmpty) ...[
                       Text(
                         'Type de cuisine',
@@ -708,8 +685,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       ),
                       const SizedBox(height: 32),
                     ],
-
-                    // Apply Button
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -839,7 +814,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
                 ],
               ),
             ),
-            // Notification bell
             GestureDetector(
               onTap: () => context.push('/client/notifications'),
               child: Container(
@@ -877,7 +851,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
               ),
             ),
             const SizedBox(width: 8),
-            // Chat
             GestureDetector(
               onTap: () => context.push('/client/chat'),
               child: Container(
@@ -992,7 +965,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
         child: BannerCarousel(banners: _banners, height: 160),
       );
     }
-    // Default hero
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       height: 148,
@@ -1007,7 +979,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // Decorative circle
           Positioned(
             right: -30,
             top: -30,
@@ -1020,7 +991,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
               ),
             ),
           ),
-          // Food emoji
           const Positioned(
             right: 20,
             bottom: 12,
@@ -1275,28 +1245,32 @@ class _HomeClientPageState extends State<HomeClientPage> {
       );
     }
     if (_displayedRestaurants.isEmpty) {
-      return EmptyState(
-        title: _isSearching
-            ? 'common.no_results'.tr()
-            : 'restaurant.none_available'.tr(),
-        subtitle: _isSearching ? 'common.try_other_query'.tr() : null,
-        icon: _isSearching ? Icons.search_off : Icons.restaurant_outlined,
-        actionLabel: _isSearching ? 'common.clear'.tr() : null,
-        onAction: _isSearching
-            ? () {
-                _searchController.clear();
-                setState(() {
-                  _searchQuery = '';
-                  _selectedCategory = null;
-                  _displayedRestaurants = _allRestaurants;
-                });
-              }
-            : null,
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20),
+          child: EmptyState(
+            title: _isSearching
+                ? 'common.no_results'.tr()
+                : 'restaurant.none_available'.tr(),
+            subtitle: _isSearching ? 'common.try_other_query'.tr() : null,
+            icon: _isSearching ? Icons.search_off : Icons.restaurant_outlined,
+            actionLabel: _isSearching ? 'common.clear'.tr() : null,
+            onAction: _isSearching
+                ? () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = '';
+                      _selectedCategory = null;
+                      _displayedRestaurants = _allRestaurants;
+                    });
+                  }
+                : null,
+          ),
+        ),
       );
     }
 
     if (!_isSearching) {
-      // Horizontal list of top 5
       final top5 = _displayedRestaurants.take(5).toList();
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -1420,13 +1394,13 @@ class _HomeClientPageState extends State<HomeClientPage> {
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            const BoxShadow(
+          boxShadow: const [
+            BoxShadow(
               color: Color(0x59C41E1A),
               blurRadius: 24,
               offset: Offset(0, 8),
             ),
-            const BoxShadow(
+            BoxShadow(
               color: Color(0x4DC41E1A),
               blurRadius: 6,
               offset: Offset(0, 2),
