@@ -15,6 +15,7 @@ import 'package:cliceat_app/shared/models/user_model.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:cliceat_app/core/config/feature_flags.dart';
+import 'package:cliceat_app/core/config/app_constants.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
@@ -381,7 +382,7 @@ class _ProfilePageState extends State<ProfilePage> {
         // Version info
         Center(
           child: Text(
-            'ClicEat v1.0.0',
+            'ClicEat v${AppConstants.appVersion}',
             style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
           ),
         ),
