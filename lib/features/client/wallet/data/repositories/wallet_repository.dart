@@ -25,7 +25,7 @@ class WalletRepository {
         final paymentUrl = dataObj?['paymentUrl'] as String?;
         final reference = dataObj?['reference'] as String?;
         if (paymentUrl != null && reference != null) {
-          return Right({'url': paymentUrl, 'reference': reference});
+          return Right({'paymentUrl': paymentUrl, 'reference': reference});
         }
       }
       return Left(AppError.fromResponse(res.body, 'wallet.recharge_error'));
