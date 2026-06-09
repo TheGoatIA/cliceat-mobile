@@ -58,6 +58,13 @@ class _HomeClientPageState extends State<HomeClientPage> {
     ('🥤', 'Jus local'),
   ];
 
+  // Internal filter key constants
+  static const _kFilterTopCity = 'top_city';
+  static const _kFilterOpenNow = 'open_now';
+  static const _kFilterRating45 = 'rating_4_5';
+  static const _kFilterUnder30 = 'under_30min';
+  static const _kFilterPremium = 'premium';
+
   static const _emojiMap = {
     'burger': '🍔',
     'pizza': '🍕',
@@ -84,8 +91,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
     'drink': '🥤',
     'rice': '🍚',
     'riz': '🍚',
-    'viande': '🥩',
-    'meat': '🥩',
+    'viande': '\ud83e\udd©',
+    'meat': '\ud83e\udd©',
     'eru': '🌿',
     'beignet': '🍩',
     'grillades': '🔥',
@@ -104,8 +111,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
     'italien': '🍝',
     'french': '🥐',
     'francais': '🥐',
-    'seafood': '🍤',
-    'fruits de mer': '🍤',
+    'seafood': '🤤',
+    'fruits de mer': '🤤',
     'soup': '🥣',
     'soupe': '🥣',
     'coffee': '☕',
@@ -277,14 +284,12 @@ class _HomeClientPageState extends State<HomeClientPage> {
       _freeDelivery ||
       _selectedCuisineType != null;
 
-  void _onFilterTap(String filter) {
+  void _onFilterTap(String filterKey) {
     setState(() {
-      if (filter == 'Tous les restaurants') {
-        _selectedFilter = '';
-      } else if (_selectedFilter == filter) {
+      if (filterKey.isEmpty || _selectedFilter == filterKey) {
         _selectedFilter = '';
       } else {
-        _selectedFilter = filter;
+        _selectedFilter = filterKey;
       }
     });
     _applyFilters();
@@ -306,7 +311,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
           .toList();
     }
 
-    if (_selectedFilter.startsWith('Top') || _selectedFilter == 'Premium') {
+    if (_selectedFilter == _kFilterTopCity ||
+        _selectedFilter == _kFilterPremium) {
       final filteredByRating = filteredList
           .where((r) => (r.rating ?? 0.0) >= 4.0)
           .toList();
@@ -321,9 +327,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
           return a.name.compareTo(b.name);
         });
       }
-    } else if (_selectedFilter == 'Ouvert maintenant') {
+    } else if (_selectedFilter == _kFilterOpenNow) {
       filteredList = filteredList.where((r) => r.isOpen == true).toList();
-    } else if (_selectedFilter == '⭐ 4.5+') {
+    } else if (_selectedFilter == _kFilterRating45) {
       final filteredByRating = filteredList
           .where((r) => (r.rating ?? 0.0) >= 4.5)
           .toList();
@@ -391,7 +397,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Choisir votre ville',
+              'home.city_picker_title'.tr(),
               style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -399,8 +405,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildCityTile('Douala', 'Capitale économique'),
-            _buildCityTile('Yaoundé', 'Capitale politique'),
+            _buildCityTile('Douala', 'home.douala_subtitle'.tr()),
+            _buildCityTile('Yaoundé', 'home.yaounde_subtitle'.tr()),
             const SizedBox(height: 20),
           ],
         ),
@@ -414,9 +420,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
       onTap: () {
         setState(() {
           _selectedCity = city;
-          if (_selectedFilter.startsWith('Top')) {
-            _selectedFilter = 'Top $city';
-          }
         });
         context.pop();
         _loadData();
@@ -505,7 +508,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Filtres de recherche',
+                          'home.filter_title'.tr(),
                           style: GoogleFonts.bricolageGrotesque(
                             fontWeight: FontWeight.w800,
                             fontSize: 20,
@@ -523,7 +526,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                             });
                           },
                           child: Text(
-                            'Réinitialiser',
+                            'home.reset'.tr(),
                             style: GoogleFonts.inter(
                               color: AppTheme.primaryRed,
                               fontWeight: FontWeight.w600,
@@ -537,7 +540,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                     Container(height: 1, color: AppTheme.lineSoft),
                     const SizedBox(height: 20),
                     Text(
-                      'Trier par',
+                      'home.sort_by'.tr(),
                       style: GoogleFonts.bricolageGrotesque(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
@@ -551,28 +554,28 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       runSpacing: 8,
                       children: [
                         _buildFilterChip(
-                          label: 'Par défaut',
+                          label: 'home.sort_default'.tr(),
                           isSelected: _sortBy == 'default',
                           onSelected: (selected) {
                             setModalState(() => _sortBy = 'default');
                           },
                         ),
                         _buildFilterChip(
-                          label: 'Meilleure note ⭐',
+                          label: 'home.sort_rating'.tr(),
                           isSelected: _sortBy == 'rating',
                           onSelected: (selected) {
                             setModalState(() => _sortBy = 'rating');
                           },
                         ),
                         _buildFilterChip(
-                          label: 'Plus rapide ⚡',
+                          label: 'home.sort_speed'.tr(),
                           isSelected: _sortBy == 'deliveryTime',
                           onSelected: (selected) {
                             setModalState(() => _sortBy = 'deliveryTime');
                           },
                         ),
                         _buildFilterChip(
-                          label: 'Moins cher 💸',
+                          label: 'home.sort_price'.tr(),
                           isSelected: _sortBy == 'deliveryFee',
                           onSelected: (selected) {
                             setModalState(() => _sortBy = 'deliveryFee');
@@ -582,7 +585,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Options',
+                      'home.options'.tr(),
                       style: GoogleFonts.bricolageGrotesque(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
@@ -597,7 +600,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                         setModalState(() => _isOpenOnly = val);
                       },
                       title: Text(
-                        'Ouvert maintenant',
+                        'home.open_now'.tr(),
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w500,
                           fontSize: 14,
@@ -614,7 +617,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                         setModalState(() => _freeDelivery = val);
                       },
                       title: Text(
-                        'Livraison gratuite',
+                        'home.free_delivery'.tr(),
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w500,
                           fontSize: 14,
@@ -628,7 +631,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                     const SizedBox(height: 20),
                     if (cuisines.isNotEmpty) ...[
                       Text(
-                        'Type de cuisine',
+                        'home.cuisine_type'.tr(),
                         style: GoogleFonts.bricolageGrotesque(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
@@ -703,8 +706,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
                         ),
                         child: Text(
                           count > 0
-                              ? 'Voir les $count restaurants'
-                              : 'Aucun résultat',
+                              ? 'home.see_restaurants'.tr(
+                                  namedArgs: {'count': '$count'},
+                                )
+                              : 'common.no_results'.tr(),
                           style: GoogleFonts.inter(
                             fontWeight: FontWeight.w700,
                             fontSize: 15,
@@ -775,7 +780,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Livrer à',
+                    'client.deliver_to'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -907,7 +912,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                     }
                   },
                   decoration: InputDecoration(
-                    hintText: 'Chercher un plat, un restaurant...',
+                    hintText: 'home.search_hint'.tr(),
                     hintStyle: GoogleFonts.inter(
                       fontSize: 14,
                       color: AppTheme.muted,
@@ -1020,7 +1025,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Offre du jour',
+                        'home.daily_offer'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -1033,7 +1038,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Livraison\ngratuite',
+                  'home.free_delivery_title'.tr(),
                   style: GoogleFonts.bricolageGrotesque(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
@@ -1050,7 +1055,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                       color: Colors.white.withValues(alpha: 0.85),
                     ),
                     children: [
-                      const TextSpan(text: 'Code '),
+                      TextSpan(text: 'home.welcome_code_prefix'.tr()),
                       TextSpan(
                         text: 'BIENVENUE',
                         style: GoogleFonts.inter(
@@ -1170,8 +1175,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          title: _isSearching ? 'Résultats' : 'Près de toi',
-          actionLabel: _isSearching ? null : 'Voir tout',
+          title: _isSearching ? 'home.results'.tr() : 'home.near_you'.tr(),
+          actionLabel: _isSearching ? null : 'client.see_all'.tr(),
           onAction: () => context.push('/search?city=$_selectedCity'),
           leading: _isSearching
               ? null
@@ -1188,13 +1193,13 @@ class _HomeClientPageState extends State<HomeClientPage> {
   }
 
   Widget _buildFilterStrip() {
-    final filters = [
-      'Tous les restaurants',
-      'Top $_selectedCity',
-      'Ouvert maintenant',
-      '⭐ 4.5+',
-      'Moins de 30min',
-      'Premium',
+    final filters = <(String, String)>[
+      ('', 'home.all_restaurants'.tr()),
+      (_kFilterTopCity, 'home.top_city'.tr(namedArgs: {'city': _selectedCity})),
+      (_kFilterOpenNow, 'home.open_now'.tr()),
+      (_kFilterRating45, '⭐ 4.5+'),
+      (_kFilterUnder30, 'home.under_30min'.tr()),
+      (_kFilterPremium, 'Premium'),
     ];
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 4),
@@ -1203,11 +1208,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
         padding: const EdgeInsets.only(left: 20, right: 80),
         child: Row(
           children: filters.map<Widget>((f) {
-            final isSelected =
-                (f == 'Tous les restaurants' && _selectedFilter.isEmpty) ||
-                _selectedFilter == f;
+            final (key, label) = f;
+            final isSelected = _selectedFilter == key;
             return GestureDetector(
-              onTap: () => _onFilterTap(f),
+              onTap: () => _onFilterTap(key),
               child: Container(
                 margin: const EdgeInsets.only(right: 8),
                 padding: const EdgeInsets.symmetric(
@@ -1220,7 +1224,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   border: isSelected ? null : Border.all(color: AppTheme.line),
                 ),
                 child: Text(
-                  f,
+                  label,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -1355,7 +1359,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Parraine un ami',
+                    'home.referral_title'.tr(),
                     style: GoogleFonts.bricolageGrotesque(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -1365,7 +1369,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Gagne 500 FCFA à chaque inscription',
+                    'home.referral_subtitle'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: AppTheme.inkSoft,
