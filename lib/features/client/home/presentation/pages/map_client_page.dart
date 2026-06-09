@@ -65,6 +65,13 @@ class _MapClientPageState extends State<MapClientPage> {
     // Écouter les clics sur les features
     map.setOnMapTapListener(_onMapTap);
     // Désactiver l'échelle et les attributions encombrantes si besoin
+    map.location.updateSettings(
+      LocationComponentSettings(
+        enabled: true,
+        pulsingEnabled: true,
+        pulsingMaxRadius: 50.0,
+      ),
+    );
     map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
     map.compass.updateSettings(CompassSettings(enabled: false));
     map.attribution.updateSettings(AttributionSettings(enabled: false));
