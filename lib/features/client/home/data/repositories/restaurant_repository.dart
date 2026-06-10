@@ -258,7 +258,8 @@ class RestaurantRepository {
               )
               .toList();
         } catch (e, s) {
-      debugPrint('[restaurant_repository.dart] error: $e\n$s');}
+          debugPrint('[restaurant_repository.dart] error: $e\n$s');
+        }
       }
       return MenuItemModel(
         id: m.id,

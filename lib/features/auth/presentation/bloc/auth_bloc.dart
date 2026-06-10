@@ -85,16 +85,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (token != null && userId != null) {
         // Vérifier que le token n'a pas déjà expiré avant de restaurer la session
         if (_tokenService.isTokenExpired(token)) {
-          _logger.w('[Auth] Token expiré au démarrage — tentative de rafraîchissement.');
+          _logger.w(
+            '[Auth] Token expiré au démarrage — tentative de rafraîchissement.',
+          );
           final refreshed = await _tokenService.refreshToken();
           if (refreshed != null) {
             await _postAuthSetup(refreshed);
             _startSessionTimer(refreshed);
-            emit(AuthState.authenticated(
-              token: refreshed,
-              userId: userId,
-              currentMode: currentMode,
-            ));
+            emit(
+              AuthState.authenticated(
+                token: refreshed,
+                userId: userId,
+                currentMode: currentMode,
+              ),
+            );
           } else {
             await _clearCredentials();
             emit(const AuthState.unauthenticated());
