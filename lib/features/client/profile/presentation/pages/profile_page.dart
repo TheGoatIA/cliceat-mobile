@@ -729,7 +729,8 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         },
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[profile_page.dart] error: $e\n$s');
       if (context.mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1081,7 +1082,9 @@ class _NotificationSettingsSheetState extends State<NotificationSettingsSheet> {
           orElse: () {},
         );
       }
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[profile_page.dart] error: $e\n$s');
+    }
   }
 
   @override
@@ -1367,7 +1370,15 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
               child: ElevatedButton(
                 onPressed: () async {
                   final address = addressCtrl.text.trim();
-                  if (address.isEmpty) return;
+                  if (address.isEmpty) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(
+                        content: Text("L'adresse ne peut pas être vide"),
+                        backgroundColor: AppTheme.errorColor,
+                      ),
+                    );
+                    return;
+                  }
 
                   Navigator.pop(ctx);
                   if (!locationPicked) {
@@ -1383,7 +1394,9 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
                         selectedLat = pos.latitude;
                         selectedLng = pos.longitude;
                       }
-                    } catch (_) {}
+                    } catch (e, s) {
+                      debugPrint('[profile_page.dart] error: $e\n$s');
+                    }
                   }
 
                   final Map<String, dynamic> data = {

@@ -103,11 +103,15 @@ class _MapClientPageState extends State<MapClientPage> {
     ]) {
       try {
         await style.removeStyleLayer(id);
-      } catch (_) {}
+      } catch (e, s) {
+        debugPrint('[map_client_page.dart] error: $e\n$s');
+      }
     }
     try {
       await style.removeStyleSource(_kSourceId);
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[map_client_page.dart] error: $e\n$s');
+    }
 
     // Ajouter l'icône de marqueur individuel (généré en haute définition 48x48)
     final markerBytes = await _buildMarkerIcon();
@@ -121,7 +125,9 @@ class _MapClientPageState extends State<MapClientPage> {
         [],
         null,
       );
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[map_client_page.dart] error: $e\n$s');
+    }
 
     // GeoJSON source avec clustering activé
     final features = _restaurants
@@ -474,7 +480,9 @@ class _MapClientPageState extends State<MapClientPage> {
         CameraOptions(zoom: (currentZoom + 1.0).clamp(0.0, 22.0)),
         MapAnimationOptions(duration: 400),
       );
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[map_client_page.dart] error: $e\n$s');
+    }
   }
 
   Future<void> _zoomOut() async {
@@ -487,7 +495,9 @@ class _MapClientPageState extends State<MapClientPage> {
         CameraOptions(zoom: (currentZoom - 1.0).clamp(0.0, 22.0)),
         MapAnimationOptions(duration: 400),
       );
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[map_client_page.dart] error: $e\n$s');
+    }
   }
 
   @override
