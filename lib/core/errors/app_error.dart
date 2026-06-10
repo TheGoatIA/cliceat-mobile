@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 /// Typed application error returned by all repositories.
 enum AppErrorType { network, auth, notFound, validation, server, unknown }
 

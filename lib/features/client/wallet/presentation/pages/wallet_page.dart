@@ -307,8 +307,8 @@ class _WalletPageState extends State<WalletPage> with SecureScreenMixin {
                 final date =
                     DateTime.tryParse(tx['createdAt']?.toString() ?? '') ??
                     DateTime.now();
-                final description =
-                    tx['description']?.toString() ?? _fallbackDescription(type);
+                final rawDesc = tx['description']?.toString();
+                final description = rawDesc ?? _fallbackDescription(type);
                 final method = tx['method']?.toString() ?? '';
 
                 final config = _txConfig(type, status);
