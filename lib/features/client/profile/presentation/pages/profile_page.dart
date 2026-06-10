@@ -540,7 +540,7 @@ class _ProfilePageState extends State<ProfilePage> {
     // Determine initial city: normalize stored value to one of the two options
     const cities = ['Douala', 'Yaoundé'];
     String selectedCity = cities.firstWhere(
-      (c) => c.toLowerCase() == (user.city ?? '').toLowerCase(),
+      (c) => c.toLowerCase().replaceAll('é', 'e') == (user.city ?? '').toLowerCase(),
       orElse: () => cities.first,
     );
     showModalBottomSheet(
@@ -605,7 +605,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<String>(
-                value: selectedCity,
+                initialValue: selectedCity,
                 decoration: InputDecoration(
                   labelText: 'profile.city'.tr(),
                   prefixIcon: const Icon(Icons.location_city_outlined),

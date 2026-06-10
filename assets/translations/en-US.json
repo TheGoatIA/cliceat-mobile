@@ -347,6 +347,7 @@
     "name": "Full name",
     "phone": "Phone",
     "email": "Email",
+    "city": "City",
     "default_name": "User",
     "notifications_subtitle": "Manage your notification preferences",
     "notif_order_updates": "Order updates",

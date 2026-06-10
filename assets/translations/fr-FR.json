@@ -347,6 +347,7 @@
     "name": "Nom complet",
     "phone": "Téléphone",
     "email": "E-mail",
+    "city": "Ville",
     "default_name": "Utilisateur",
     "notifications_subtitle": "Gérez vos préférences de notifications",
     "notif_order_updates": "Mises à jour des commandes",
