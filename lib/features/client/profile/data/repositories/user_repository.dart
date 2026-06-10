@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
@@ -45,7 +46,8 @@ class UserRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       final cached = await _loadCachedProfile();
       if (cached != null) return Right(cached);
       return Left(AppError.network());
@@ -72,7 +74,8 @@ class UserRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -107,7 +110,8 @@ class UserRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -141,7 +145,8 @@ class UserRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       final cached = await _loadCachedAddresses();
       if (cached.isNotEmpty) return Right(cached);
       return Left(AppError.network());
@@ -177,7 +182,8 @@ class UserRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -211,7 +217,8 @@ class UserRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -230,7 +237,8 @@ class UserRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -244,7 +252,8 @@ class UserRepository {
         return Right(LoyaltyModel.fromJson(res.body!));
       }
       return Left(AppError.fromResponse(res.body, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -254,13 +263,17 @@ class UserRepository {
   Future<void> registerFcmToken(String token, {String? lang}) async {
     try {
       await _service.registerFcmToken({'token': token, 'language': lang});
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
+    }
   }
 
   Future<void> unregisterFcmToken(String token) async {
     try {
       await _service.unregisterFcmToken({'token': token});
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
+    }
   }
 
   // ─── Cache helpers ────────────────────────────────────────────────────────
@@ -271,7 +284,9 @@ class UserRepository {
         key: _profileCacheKey,
         value: jsonEncode(user.toJson()),
       );
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
+    }
   }
 
   Future<UserModel?> _loadCachedProfile() async {
@@ -279,7 +294,8 @@ class UserRepository {
       final raw = await _secureStorage.read(key: _profileCacheKey);
       if (raw == null) return null;
       return UserModel.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       return null;
     }
   }
@@ -290,7 +306,9 @@ class UserRepository {
         key: _addressesCacheKey,
         value: jsonEncode(addresses.map((a) => a.toJson()).toList()),
       );
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
+    }
   }
 
   Future<List<AddressModel>> _loadCachedAddresses() async {
@@ -302,7 +320,8 @@ class UserRepository {
           .whereType<Map<String, dynamic>>()
           .map(AddressModel.fromJson)
           .toList();
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
       return [];
     }
   }
@@ -312,7 +331,9 @@ class UserRepository {
       final addresses = await _loadCachedAddresses();
       final updated = addresses.where((a) => a.id != id).toList();
       await _cacheAddresses(updated);
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[user_repository.dart] error: $e\n$s');
+    }
   }
 
   Future<void> clearCache() async {

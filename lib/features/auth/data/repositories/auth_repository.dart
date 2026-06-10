@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
@@ -80,7 +81,8 @@ class AuthRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -108,7 +110,8 @@ class AuthRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -129,7 +132,8 @@ class AuthRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -162,7 +166,8 @@ class AuthRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -195,7 +200,8 @@ class AuthRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -209,7 +215,8 @@ class AuthRepository {
       return Left(
         AppError.fromResponse(res.body, 'auth.error_forgot_password'),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -225,7 +232,8 @@ class AuthRepository {
       });
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'auth.error_reset_password'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -237,7 +245,8 @@ class AuthRepository {
       final res = await _authService.verifyEmail(token);
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'auth.error_verify_email'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -249,7 +258,8 @@ class AuthRepository {
       return Left(
         AppError.fromResponse(res.body, 'auth.error_resend_verification'),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -259,7 +269,9 @@ class AuthRepository {
   Future<void> logout() async {
     try {
       await _authService.logout();
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
+    }
     await clearAuth();
   }
 
@@ -277,7 +289,8 @@ class AuthRepository {
       final userId = user?['_id']?.toString() ?? user?['id']?.toString();
       if (token != null && userId != null) return (token, userId);
       return null;
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return null;
     }
   }
@@ -290,7 +303,8 @@ class AuthRepository {
       final user = data?['user'] as Map<String, dynamic>?;
       if (user != null) return UserModel.fromJson(user);
       return null;
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
       return null;
     }
   }
@@ -305,8 +319,8 @@ class AuthRepository {
 
         await _userService.registerFcmToken({'token': token, 'locale': locale});
       }
-    } catch (_) {
-      // Non-critical failure
+    } catch (e, s) {
+      debugPrint('[auth_repository.dart] error: $e\n$s');
     }
   }
 }
