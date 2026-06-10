@@ -611,9 +611,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   prefixIcon: const Icon(Icons.location_city_outlined),
                 ),
                 items: cities
-                    .map(
-                      (c) => DropdownMenuItem(value: c, child: Text(c)),
-                    )
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (value) {
                   if (value != null) setSheetState(() => selectedCity = value);
