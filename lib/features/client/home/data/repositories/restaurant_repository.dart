@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:injectable/injectable.dart';
@@ -57,7 +58,8 @@ class RestaurantRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[restaurant_repository.dart] error: $e\n$s');
       final cached = await _dao.getByCity(normalizedCity);
       if (cached.isNotEmpty) return Right(_fromRows(cached));
       return Left(AppError.network());
@@ -75,7 +77,8 @@ class RestaurantRepository {
         return Right(models);
       }
       return Left(AppError.fromResponse(res.body, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[restaurant_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -92,7 +95,8 @@ class RestaurantRepository {
         return Right(raw.map(RestaurantModel.fromJson).toList());
       }
       return Left(AppError.fromResponse(res.body, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[restaurant_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -137,7 +141,8 @@ class RestaurantRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[restaurant_repository.dart] error: $e\n$s');
       final cached = await _dao.getById(id);
       if (cached != null) {
         final menuRows = await _menuDao.getByRestaurant(id);
@@ -152,7 +157,8 @@ class RestaurantRepository {
       final res = await _service.toggleFavorite(id);
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[restaurant_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -251,7 +257,9 @@ class RestaurantRepository {
                 (e) => MenuVariationModel.fromJson(e as Map<String, dynamic>),
               )
               .toList();
-        } catch (_) {}
+        } catch (e, s) {
+          debugPrint('[restaurant_repository.dart] error: $e\n$s');
+        }
       }
       return MenuItemModel(
         id: m.id,

@@ -15,6 +15,8 @@ class SyncManagerService {
   final PendingActionsDao _pendingActionsDao;
   final Logger _logger;
 
+  static const int _maxRetries = 5;
+
   StreamSubscription? _connectivitySubscription;
   bool _isProcessing = false;
 
@@ -53,6 +55,14 @@ class SyncManagerService {
       _logger.i('Processing ${actions.length} pending actions');
 
       for (final action in actions) {
+        if (action.retryCount >= _maxRetries) {
+          _logger.e(
+            'Action ${action.id} (${action.type}) exceeded max retries ($_maxRetries), discarding.',
+          );
+          await _pendingActionsDao.deletePending(action.id);
+          continue;
+        }
+
         final success = await _dispatchAction(action.type, action.payload);
         if (success) {
           await _pendingActionsDao.deletePending(action.id);

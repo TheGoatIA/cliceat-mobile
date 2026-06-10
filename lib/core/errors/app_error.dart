@@ -45,7 +45,9 @@ class AppError {
       } else if (body is String) {
         try {
           decoded = jsonDecode(body);
-        } catch (_) {}
+        } catch (e, s) {
+          debugPrint('[app_error.dart] error: $e\n$s');
+        }
       }
     }
 
