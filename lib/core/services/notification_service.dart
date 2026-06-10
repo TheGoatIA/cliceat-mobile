@@ -65,7 +65,7 @@ class NotificationService {
     }
 
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      'ic_notification',
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission:

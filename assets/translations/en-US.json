@@ -68,6 +68,7 @@
     "error_resend_verification": "Unable to resend verification email.",
     "or": "or",
     "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
     "terms_prefix": "By registering, you agree to our ",
     "terms_cgu": "Terms of Service",
     "terms_conjunction": " and our ",

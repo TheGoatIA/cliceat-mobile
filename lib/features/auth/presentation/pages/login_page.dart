@@ -300,6 +300,7 @@ class _LoginPageState extends State<LoginPage>
         if (Platform.isIOS) ...[
           const SizedBox(height: 12),
           SignInWithAppleButton(
+            text: 'auth.continue_with_apple'.tr(),
             onPressed: () => _handleAppleSignIn(context),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -706,8 +707,13 @@ class _LoginPageState extends State<LoginPage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.g_mobiledata, size: 26, color: AppTheme.ink),
-          const SizedBox(width: 8),
+          Image.asset(
+            'assets/images/google_logo.png',
+            width: 20,
+            height: 20,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(width: 10),
           Text(
             'auth.continue_with_google'.tr(),
             style: GoogleFonts.inter(

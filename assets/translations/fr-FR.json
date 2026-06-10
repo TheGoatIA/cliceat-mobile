@@ -68,6 +68,7 @@
     "error_resend_verification": "Impossible de renvoyer l'e-mail de vérification.",
     "or": "ou",
     "continue_with_google": "Continuer avec Google",
+    "continue_with_apple": "Continuer avec Apple",
     "terms_prefix": "En vous inscrivant, vous acceptez nos ",
     "terms_cgu": "CGU",
     "terms_conjunction": " et notre ",
