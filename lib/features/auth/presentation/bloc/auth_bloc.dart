@@ -618,7 +618,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final userId = user?['_id']?.toString() ?? user?['id']?.toString();
       if (token != null && userId != null) return (token, userId);
       return null;
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_bloc.dart] error: $e\n$s');
       return null;
     }
   }
@@ -636,7 +637,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       }
       return map['message']?.toString() ?? fallback;
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_bloc.dart] error: $e\n$s');
       return fallback;
     }
   }

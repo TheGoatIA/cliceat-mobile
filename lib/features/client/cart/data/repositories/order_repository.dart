@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:cliceat_app/shared/models/address_model.dart';
@@ -260,7 +261,8 @@ class OrderRepository extends BaseRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[order_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -317,7 +319,8 @@ class OrderRepository extends BaseRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[order_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -343,7 +346,8 @@ class OrderRepository extends BaseRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[order_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -400,7 +404,8 @@ class OrderRepository extends BaseRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[order_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -421,7 +426,8 @@ class OrderRepository extends BaseRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[order_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -440,7 +446,8 @@ class OrderRepository extends BaseRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[order_repository.dart] error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -471,7 +478,9 @@ class OrderRepository extends BaseRepository {
   Future<void> _removeFromCache(String id) async {
     try {
       await _orderDao.deleteOrder(id);
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[order_repository.dart] error: $e\n$s');
+    }
   }
 
   Future<void> clearCache() async {
@@ -508,13 +517,17 @@ class OrderRepository extends BaseRepository {
       items = decoded
           .map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[order_repository.dart] error: $e\n$s');
+    }
 
     AddressModel? addr;
     if (r.deliveryAddressJson != null) {
       try {
         addr = AddressModel.fromJson(jsonDecode(r.deliveryAddressJson!));
-      } catch (_) {}
+      } catch (e, s) {
+        debugPrint('[order_repository.dart] error: $e\n$s');
+      }
     }
 
     return OrderModel(
@@ -561,7 +574,8 @@ class OrderRepository extends BaseRepository {
           type: AppErrorType.server,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[order_repository.dart] error: $e\n$s');
       return const Left(
         AppError(message: 'common.error_network', type: AppErrorType.network),
       );

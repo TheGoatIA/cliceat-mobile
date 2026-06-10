@@ -117,7 +117,9 @@ class RestaurantCard extends StatelessWidget {
                                 restaurant.id,
                               );
                             }
-                          } catch (_) {}
+                          } catch (e, s) {
+                            debugPrint('[restaurant_card.dart] error: $e\n$s');
+                          }
 
                           final result = await getIt<RestaurantRepository>()
                               .toggleFavorite(restaurant.id);
@@ -133,7 +135,11 @@ class RestaurantCard extends StatelessWidget {
                                   restaurant.id,
                                 );
                               }
-                            } catch (_) {}
+                            } catch (e, s) {
+                              debugPrint(
+                                '[restaurant_card.dart] error: $e\n$s',
+                              );
+                            }
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(err.message.tr())),

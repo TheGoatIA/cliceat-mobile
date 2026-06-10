@@ -52,7 +52,9 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
           _mission = MissionModel.fromJson(orderData);
         });
       }
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[active_navigation_page.dart] error: $e\n$s');
+    }
   }
 
   @override
@@ -169,7 +171,9 @@ class _ActiveNavigationPageState extends State<ActiveNavigationPage> {
           zoom: 14.0,
         ),
       );
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[active_navigation_page.dart] error: $e\n$s');
+    }
   }
 
   void _onMapCreated(MapboxMap mapboxMap) {

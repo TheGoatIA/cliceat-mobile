@@ -120,7 +120,9 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
             }
           }
         }
-      } catch (_) {}
+      } catch (e, s) {
+        debugPrint('[address_selection_page.dart] error: $e\n$s');
+      }
 
       if (mounted) {
         final address = {
