@@ -361,26 +361,26 @@ class _WalletPageState extends State<WalletPage> with SecureScreenMixin {
                                     color: AppTheme.muted,
                                   ),
                                 ),
-                                if (method.isNotEmpty &&
-                                    type != 'recharge') ...([
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    width: 3,
-                                    height: 3,
-                                    decoration: const BoxDecoration(
-                                      color: AppTheme.muted,
-                                      shape: BoxShape.circle,
+                                if (method.isNotEmpty && type != 'recharge')
+                                  ...([
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      width: 3,
+                                      height: 3,
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.muted,
+                                        shape: BoxShape.circle,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    _methodLabel(method),
-                                    style: GoogleFonts.inter(
-                                      fontSize: 11,
-                                      color: AppTheme.muted,
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _methodLabel(method),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11,
+                                        color: AppTheme.muted,
+                                      ),
                                     ),
-                                  ),
-                                ]),
+                                  ]),
                               ],
                             ),
                             const SizedBox(height: 6),
