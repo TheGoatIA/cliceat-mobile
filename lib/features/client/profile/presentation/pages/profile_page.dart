@@ -625,7 +625,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Navigator.pop(ctx);
                     final payload = <String, dynamic>{
                       'name': nameController.text.trim(),
-                      'city': selectedCity,
+                      'city': selectedCity.toLowerCase().replaceAll('é', 'e'),
                     };
                     final phone = phoneController.text.trim();
                     if (phone.isNotEmpty) payload['phone'] = phone;
