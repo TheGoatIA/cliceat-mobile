@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -85,16 +86,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (token != null && userId != null) {
         // Vérifier que le token n'a pas déjà expiré avant de restaurer la session
         if (_tokenService.isTokenExpired(token)) {
-          _logger.w('[Auth] Token expiré au démarrage — tentative de rafraîchissement.');
+          _logger.w(
+            '[Auth] Token expiré au démarrage — tentative de rafraîchissement.',
+          );
           final refreshed = await _tokenService.refreshToken();
           if (refreshed != null) {
             await _postAuthSetup(refreshed);
             _startSessionTimer(refreshed);
-            emit(AuthState.authenticated(
-              token: refreshed,
-              userId: userId,
-              currentMode: currentMode,
-            ));
+            emit(
+              AuthState.authenticated(
+                token: refreshed,
+                userId: userId,
+                currentMode: currentMode,
+              ),
+            );
           } else {
             await _clearCredentials();
             emit(const AuthState.unauthenticated());
@@ -614,7 +619,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final userId = user?['_id']?.toString() ?? user?['id']?.toString();
       if (token != null && userId != null) return (token, userId);
       return null;
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_bloc.dart] error: $e\n$s');
       return null;
     }
   }
@@ -632,7 +638,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       }
       return map['message']?.toString() ?? fallback;
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[auth_bloc.dart] error: $e\n$s');
       return fallback;
     }
   }

@@ -30,8 +30,8 @@ class RestaurantRepository {
     int? page,
     int? limit,
   }) async {
+    final normalizedCity = city.toLowerCase().replaceAll('é', 'e');
     try {
-      final normalizedCity = city.toLowerCase().replaceAll('é', 'e');
       final res = await _service.getRestaurants(
         normalizedCity,
         20000.0,
@@ -48,7 +48,7 @@ class RestaurantRepository {
         return Right(models);
       }
       // Cache fallback
-      final cached = await _dao.getByCity(city);
+      final cached = await _dao.getByCity(normalizedCity);
       if (cached.isNotEmpty) return Right(_fromRows(cached));
       return Left(
         AppError.fromResponse(
@@ -58,7 +58,7 @@ class RestaurantRepository {
         ),
       );
     } catch (_) {
-      final cached = await _dao.getByCity(city);
+      final cached = await _dao.getByCity(normalizedCity);
       if (cached.isNotEmpty) return Right(_fromRows(cached));
       return Left(AppError.network());
     }
@@ -176,10 +176,12 @@ class RestaurantRepository {
   }
 
   RestaurantsTableCompanion _toCompanion(RestaurantModel r) {
+    final cityRaw = r.city ?? 'Douala';
+    final cityNormalized = cityRaw.toLowerCase().replaceAll('é', 'e');
     return RestaurantsTableCompanion.insert(
       id: r.id,
       name: r.name,
-      city: r.city ?? 'Douala',
+      city: cityNormalized,
       lat: r.lat,
       lng: r.lng,
       isOpen: drift.Value(r.isOpen),

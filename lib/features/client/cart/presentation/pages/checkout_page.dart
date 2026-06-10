@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:screen_protector/screen_protector.dart';
+import '../../../../../core/mixins/secure_screen_mixin.dart';
 import '../../../../../core/config/app_constants.dart';
 import 'package:cliceat_app/core/di/injection.dart';
 import 'package:cliceat_app/features/client/cart/data/models/coupon_model.dart';
@@ -27,7 +27,7 @@ class CheckoutPage extends StatefulWidget {
   State<CheckoutPage> createState() => _CheckoutPageState();
 }
 
-class _CheckoutPageState extends State<CheckoutPage> {
+class _CheckoutPageState extends State<CheckoutPage> with SecureScreenMixin {
   String _selectedPaymentMethod = 'orange_money';
   final _couponController = TextEditingController();
   final _notesController = TextEditingController();
@@ -45,8 +45,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
   @override
   void initState() {
     super.initState();
-    ScreenProtector.preventScreenshotOn();
-
     // Select first enabled payment method based on platform configuration
     final configState = context.read<ConfigBloc>().state;
     final paymentConfig = configState.maybeWhen(
@@ -77,7 +75,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void dispose() {
     _couponController.dispose();
     _notesController.dispose();
-    ScreenProtector.preventScreenshotOff();
+
     super.dispose();
   }
 

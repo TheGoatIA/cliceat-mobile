@@ -44,7 +44,9 @@ class _DropoffPageState extends State<DropoffPage> {
           _mission = MissionModel.fromJson(orderData);
         });
       }
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint('[dropoff_page.dart] error: $e\n$s');
+    }
   }
 
   @override

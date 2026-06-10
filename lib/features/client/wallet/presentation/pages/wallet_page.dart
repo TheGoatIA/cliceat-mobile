@@ -10,6 +10,7 @@ import 'package:cliceat_app/features/client/wallet/presentation/bloc/wallet_cubi
 import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
+import 'package:cliceat_app/core/mixins/secure_screen_mixin.dart';
 
 class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
@@ -18,7 +19,7 @@ class WalletPage extends StatefulWidget {
   State<WalletPage> createState() => _WalletPageState();
 }
 
-class _WalletPageState extends State<WalletPage> {
+class _WalletPageState extends State<WalletPage> with SecureScreenMixin {
   late final WalletCubit _walletCubit;
 
   @override
