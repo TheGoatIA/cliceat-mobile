@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
@@ -16,11 +17,17 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<void> loadProfile() async {
     emit(const ProfileState.loading());
-    final result = await _userRepository.getProfile();
-    result.fold(
-      (error) => emit(ProfileState.error(error.message)),
-      (user) => emit(ProfileState.loaded(user)),
-    );
+    final trace = FirebasePerformance.instance.newTrace('profile_load');
+    await trace.start();
+    try {
+      final result = await _userRepository.getProfile();
+      result.fold(
+        (error) => emit(ProfileState.error(error.message)),
+        (user) => emit(ProfileState.loaded(user)),
+      );
+    } finally {
+      await trace.stop();
+    }
   }
 
   Future<void> updateProfile(Map<String, dynamic> data) async {
