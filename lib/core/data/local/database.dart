@@ -96,8 +96,28 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(offlineActionsTable);
       }
       if (from < 9) {
-        await m.createTable(aiConversationsTable);
-        await m.createTable(aiMessagesTable);
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS ai_conversations_table (
+            id TEXT NOT NULL PRIMARY KEY,
+            server_id TEXT,
+            title TEXT NOT NULL DEFAULT 'Nouvelle conversation',
+            last_message_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            is_synced INTEGER NOT NULL DEFAULT 0,
+            is_archived INTEGER NOT NULL DEFAULT 0
+          )
+        ''');
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS ai_messages_table (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            conversation_id TEXT NOT NULL REFERENCES ai_conversations_table(id),
+            role TEXT NOT NULL,
+            content TEXT NOT NULL,
+            token_count INTEGER,
+            created_at INTEGER NOT NULL,
+            is_synced INTEGER NOT NULL DEFAULT 0
+          )
+        ''');
       }
     },
     beforeOpen: (details) async {
