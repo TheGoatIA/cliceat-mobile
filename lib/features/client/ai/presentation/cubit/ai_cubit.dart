@@ -12,34 +12,24 @@ part 'ai_cubit.freezed.dart';
 class AiCubit extends Cubit<AiState> {
   final AiRepository _repository;
 
-  AiCubit(this._repository) : super(const AiState.initial(conversations: []));
+  AiCubit(this._repository) : super(const AiState.loading());
 
-  Future<void> loadConversations() async {
+  /// Charge la conversation existante ou en crée une nouvelle automatiquement.
+  Future<void> loadOrCreateConversation() async {
+    emit(const AiState.loading());
     final conversations = await _repository.getLocalConversations();
-    emit(AiState.conversationList(conversations: conversations));
-  }
-
-  Future<void> openConversation(String conversationId) async {
+    final String conversationId;
+    if (conversations.isNotEmpty) {
+      conversationId = conversations.first.id;
+    } else {
+      conversationId = await _repository.createLocalConversation('Ma conversation');
+    }
     final messages = await _repository.getLocalMessages(conversationId);
     emit(AiState.chat(
       conversationId: conversationId,
       messages: messages,
       isTyping: false,
     ));
-  }
-
-  Future<void> newConversation() async {
-    final id = await _repository.createLocalConversation('Nouvelle conversation');
-    emit(AiState.chat(
-      conversationId: id,
-      messages: const [],
-      isTyping: false,
-    ));
-  }
-
-  Future<void> archiveConversation(String conversationId) async {
-    await _repository.archiveLocalConversation(conversationId);
-    await loadConversations();
   }
 
   Future<void> sendMessage(String text) async {
@@ -56,6 +46,7 @@ class AiCubit extends Cubit<AiState> {
       conversationId: currentState.conversationId,
       messages: updatedMessages,
       isTyping: true,
+      suggestions: currentState.suggestions,
     ));
 
     final history = updatedMessages.length > 10
@@ -78,14 +69,15 @@ class AiCubit extends Cubit<AiState> {
           messages: updatedMessages,
           isTyping: false,
           offlineError: true,
+          suggestions: currentState.suggestions,
         ));
       },
       (modelMessage) {
-        final finalMessages = [...updatedMessages, modelMessage];
         emit(AiState.chat(
           conversationId: currentState.conversationId,
-          messages: finalMessages,
+          messages: [...updatedMessages, modelMessage],
           isTyping: false,
+          suggestions: currentState.suggestions,
         ));
       },
     );

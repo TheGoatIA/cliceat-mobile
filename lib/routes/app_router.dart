@@ -287,7 +287,7 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'ai',
           builder: (context, state) => BlocProvider(
-              create: (context) => getIt<AiCubit>()..loadConversations(),
+              create: (context) => getIt<AiCubit>()..loadOrCreateConversation(),
               child: const AiAssistantPage(),
             ),
         ),

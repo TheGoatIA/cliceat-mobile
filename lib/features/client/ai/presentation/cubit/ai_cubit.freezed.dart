@@ -37,69 +37,63 @@ $AiStateCopyWith(AiState _, $Res Function(AiState) __);
 /// Adds pattern-matching-related methods to [AiState].
 extension AiStatePatterns on AiState {
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function(_Initial value)? initial,TResult Function(_ConversationList value)? conversationList,TResult Function(_Chat value)? chat,TResult Function(_Error value)? error,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function(_Loading value)? loading,TResult Function(_Chat value)? chat,TResult Function(_Error value)? error,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _Initial() when initial != null:
-return initial(_that);case _ConversationList() when conversationList != null:
-return conversationList(_that);case _Chat() when chat != null:
+case _Loading() when loading != null:
+return loading(_that);case _Chat() when chat != null:
 return chat(_that);case _Error() when error != null:
 return error(_that);case _:
   return orElse();
 }
 }
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function(_Initial value) initial,required TResult Function(_ConversationList value) conversationList,required TResult Function(_Chat value) chat,required TResult Function(_Error value) error,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function(_Loading value) loading,required TResult Function(_Chat value) chat,required TResult Function(_Error value) error,}){
 final _that = this;
 switch (_that) {
-case _Initial():
-return initial(_that);case _ConversationList():
-return conversationList(_that);case _Chat():
+case _Loading():
+return loading(_that);case _Chat():
 return chat(_that);case _Error():
 return error(_that);case _:
   throw StateError('Unexpected subclass');
 }
 }
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function(_Initial value)? initial,TResult? Function(_ConversationList value)? conversationList,TResult? Function(_Chat value)? chat,TResult? Function(_Error value)? error,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function(_Loading value)? loading,TResult? Function(_Chat value)? chat,TResult? Function(_Error value)? error,}){
 final _that = this;
 switch (_that) {
-case _Initial() when initial != null:
-return initial(_that);case _ConversationList() when conversationList != null:
-return conversationList(_that);case _Chat() when chat != null:
+case _Loading() when loading != null:
+return loading(_that);case _Chat() when chat != null:
 return chat(_that);case _Error() when error != null:
 return error(_that);case _:
   return null;
 }
 }
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function(List<AiConversationModel> conversations)? initial,TResult Function(List<AiConversationModel> conversations)? conversationList,TResult Function(String conversationId, List<AiMessageModel> messages, bool isTyping, bool offlineError, List<AiSuggestionModel> suggestions)? chat,TResult Function(String message)? error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()? loading,TResult Function(String conversationId, List<AiMessageModel> messages, bool isTyping, bool offlineError, List<AiSuggestionModel> suggestions)? chat,TResult Function(String message)? error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _Initial() when initial != null:
-return initial(_that.conversations);case _ConversationList() when conversationList != null:
-return conversationList(_that.conversations);case _Chat() when chat != null:
+case _Loading() when loading != null:
+return loading();case _Chat() when chat != null:
 return chat(_that.conversationId,_that.messages,_that.isTyping,_that.offlineError,_that.suggestions);case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
 }
 }
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function(List<AiConversationModel> conversations) initial,required TResult Function(List<AiConversationModel> conversations) conversationList,required TResult Function(String conversationId, List<AiMessageModel> messages, bool isTyping, bool offlineError, List<AiSuggestionModel> suggestions) chat,required TResult Function(String message) error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function() loading,required TResult Function(String conversationId, List<AiMessageModel> messages, bool isTyping, bool offlineError, List<AiSuggestionModel> suggestions) chat,required TResult Function(String message) error,}) {final _that = this;
 switch (_that) {
-case _Initial():
-return initial(_that.conversations);case _ConversationList():
-return conversationList(_that.conversations);case _Chat():
+case _Loading():
+return loading();case _Chat():
 return chat(_that.conversationId,_that.messages,_that.isTyping,_that.offlineError,_that.suggestions);case _Error():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
 }
 }
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function(List<AiConversationModel> conversations)? initial,TResult? Function(List<AiConversationModel> conversations)? conversationList,TResult? Function(String conversationId, List<AiMessageModel> messages, bool isTyping, bool offlineError, List<AiSuggestionModel> suggestions)? chat,TResult? Function(String message)? error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()? loading,TResult? Function(String conversationId, List<AiMessageModel> messages, bool isTyping, bool offlineError, List<AiSuggestionModel> suggestions)? chat,TResult? Function(String message)? error,}) {final _that = this;
 switch (_that) {
-case _Initial() when initial != null:
-return initial(_that.conversations);case _ConversationList() when conversationList != null:
-return conversationList(_that.conversations);case _Chat() when chat != null:
+case _Loading() when loading != null:
+return loading();case _Chat() when chat != null:
 return chat(_that.conversationId,_that.messages,_that.isTyping,_that.offlineError,_that.suggestions);case _Error() when error != null:
 return error(_that.message);case _:
   return null;
@@ -110,98 +104,22 @@ return error(_that.message);case _:
 
 /// @nodoc
 
-class _Initial implements AiState {
-  const _Initial({required final List<AiConversationModel> conversations}): _conversations = conversations;
-
- final List<AiConversationModel> _conversations;
- List<AiConversationModel> get conversations {
-  if (_conversations is EqualUnmodifiableListView) return _conversations;
-  return EqualUnmodifiableListView(_conversations);
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$InitialCopyWith<_Initial> get copyWith => __$InitialCopyWithImpl<_Initial>(this, _$identity);
+class _Loading implements AiState {
+  const _Loading();
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Initial&&const DeepCollectionEquality().equals(other._conversations, _conversations));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loading);
 }
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_conversations));
-
-@override
-String toString() {
-  return 'AiState.initial(conversations: $conversations)';
-}
-
-}
-
-/// @nodoc
-abstract mixin class _$InitialCopyWith<$Res> implements $AiStateCopyWith<$Res> {
-  factory _$InitialCopyWith(_Initial value, $Res Function(_Initial) _then) = __$InitialCopyWithImpl;
-@useResult
-$Res call({List<AiConversationModel> conversations});
-}
-/// @nodoc
-class __$InitialCopyWithImpl<$Res> implements _$InitialCopyWith<$Res> {
-  __$InitialCopyWithImpl(this._self, this._then);
-  final _Initial _self;
-  final $Res Function(_Initial) _then;
-@pragma('vm:prefer-inline') $Res call({Object? conversations = null,}) {
-  return _then(_Initial(
-conversations: null == conversations ? _self._conversations : conversations as List<AiConversationModel>,
-  ));
-}
-}
-
-/// @nodoc
-
-class _ConversationList implements AiState {
-  const _ConversationList({required final List<AiConversationModel> conversations}): _conversations = conversations;
-
- final List<AiConversationModel> _conversations;
- List<AiConversationModel> get conversations {
-  if (_conversations is EqualUnmodifiableListView) return _conversations;
-  return EqualUnmodifiableListView(_conversations);
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$ConversationListCopyWith<_ConversationList> get copyWith => __$ConversationListCopyWithImpl<_ConversationList>(this, _$identity);
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConversationList&&const DeepCollectionEquality().equals(other._conversations, _conversations));
-}
-
-@override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_conversations));
+int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'AiState.conversationList(conversations: $conversations)';
+  return 'AiState.loading()';
 }
 
-}
-
-/// @nodoc
-abstract mixin class _$ConversationListCopyWith<$Res> implements $AiStateCopyWith<$Res> {
-  factory _$ConversationListCopyWith(_ConversationList value, $Res Function(_ConversationList) _then) = __$ConversationListCopyWithImpl;
-@useResult
-$Res call({List<AiConversationModel> conversations});
-}
-/// @nodoc
-class __$ConversationListCopyWithImpl<$Res> implements _$ConversationListCopyWith<$Res> {
-  __$ConversationListCopyWithImpl(this._self, this._then);
-  final _ConversationList _self;
-  final $Res Function(_ConversationList) _then;
-@pragma('vm:prefer-inline') $Res call({Object? conversations = null,}) {
-  return _then(_ConversationList(
-conversations: null == conversations ? _self._conversations : conversations as List<AiConversationModel>,
-  ));
-}
 }
 
 /// @nodoc
@@ -267,10 +185,6 @@ class _Error implements AiState {
 
  final String message;
 
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$ErrorCopyWith<_Error> get copyWith => __$ErrorCopyWithImpl<_Error>(this, _$identity);
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _Error&&(identical(other.message, message) || other.message == message));
@@ -284,24 +198,6 @@ String toString() {
   return 'AiState.error(message: $message)';
 }
 
-}
-
-/// @nodoc
-abstract mixin class _$ErrorCopyWith<$Res> implements $AiStateCopyWith<$Res> {
-  factory _$ErrorCopyWith(_Error value, $Res Function(_Error) _then) = __$ErrorCopyWithImpl;
-@useResult
-$Res call({String message});
-}
-/// @nodoc
-class __$ErrorCopyWithImpl<$Res> implements _$ErrorCopyWith<$Res> {
-  __$ErrorCopyWithImpl(this._self, this._then);
-  final _Error _self;
-  final $Res Function(_Error) _then;
-@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
-  return _then(_Error(
-null == message ? _self.message : message as String,
-  ));
-}
 }
 
 // dart format on

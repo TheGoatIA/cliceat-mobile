@@ -3,11 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
+import '../../data/models/ai_model.dart';
 import '../cubit/ai_cubit.dart';
 
 class AiAssistantPage extends StatefulWidget {
-  final String? conversationId;
-  const AiAssistantPage({super.key, this.conversationId});
+  const AiAssistantPage({super.key});
 
   @override
   State<AiAssistantPage> createState() => _AiAssistantPageState();
@@ -21,13 +21,14 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
   @override
   void initState() {
     super.initState();
-    final cubit = context.read<AiCubit>();
-    if (widget.conversationId != null) {
-      cubit.openConversation(widget.conversationId!);
-    } else {
-      cubit.newConversation();
-    }
-    cubit.loadSuggestions(_selectedCity);
+    context.read<AiCubit>().loadSuggestions(_selectedCity);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _scrollToBottom() {
@@ -92,6 +93,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
         },
         builder: (context, state) {
           return state.maybeWhen(
+            loading: () => const Center(child: CircularProgressIndicator()),
             chat: (conversationId, messages, isTyping, offlineError, suggestions) {
               return Column(
                 children: [
@@ -117,7 +119,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                     ),
                   Expanded(
                     child: messages.isEmpty && !isTyping
-                        ? _buildWelcomeState(suggestions, onSuggestionTap: _sendMessage)
+                        ? _buildWelcomeState(suggestions)
                         : ListView.builder(
                             controller: _scrollController,
                             reverse: true,
@@ -132,7 +134,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                           ),
                   ),
                   if (messages.isNotEmpty && suggestions.isNotEmpty)
-                    _buildSuggestionChips(suggestions, onTap: _sendMessage),
+                    _buildSuggestionChips(suggestions),
                   _buildMessageInput(),
                 ],
               );
@@ -144,7 +146,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
     );
   }
 
-  Widget _buildWelcomeState(List suggestions, {required void Function(String) onSuggestionTap}) {
+  Widget _buildWelcomeState(List<AiSuggestionModel> suggestions) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -186,9 +188,8 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 runSpacing: 8,
                 alignment: WrapAlignment.center,
                 children: suggestions.map((s) {
-                  final text = (s as dynamic).text as String;
                   return GestureDetector(
-                    onTap: () => onSuggestionTap(text),
+                    onTap: () => _sendMessage(s.text),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
@@ -198,7 +199,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                         boxShadow: AppTheme.shadowSm,
                       ),
                       child: Text(
-                        text,
+                        s.text,
                         style: GoogleFonts.inter(fontSize: 13, color: AppTheme.ink),
                       ),
                     ),
@@ -212,7 +213,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
     );
   }
 
-  Widget _buildSuggestionChips(List suggestions, {required void Function(String) onTap}) {
+  Widget _buildSuggestionChips(List<AiSuggestionModel> suggestions) {
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -221,9 +222,9 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
         itemCount: suggestions.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final text = (suggestions[index] as dynamic).text as String;
+          final s = suggestions[index];
           return GestureDetector(
-            onTap: () => onTap(text),
+            onTap: () => _sendMessage(s.text),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
@@ -231,7 +232,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppTheme.line),
               ),
-              child: Text(text, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.ink)),
+              child: Text(s.text, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.ink)),
             ),
           );
         },
@@ -342,7 +343,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
             ),
             const SizedBox(width: 8),
             GestureDetector(
-              onTap: () => _sendMessage(),
+              onTap: _sendMessage,
               child: Container(
                 width: 44,
                 height: 44,

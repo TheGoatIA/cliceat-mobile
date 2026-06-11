@@ -2,13 +2,7 @@ part of 'ai_cubit.dart';
 
 @freezed
 class AiState with _$AiState {
-  const factory AiState.initial({
-    required List<AiConversationModel> conversations,
-  }) = _Initial;
-
-  const factory AiState.conversationList({
-    required List<AiConversationModel> conversations,
-  }) = _ConversationList;
+  const factory AiState.loading() = _Loading;
 
   const factory AiState.chat({
     required String conversationId,
