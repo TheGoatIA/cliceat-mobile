@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+import 'package:cliceat_app/core/network/services/navigation_service.dart';
+import 'package:cliceat_app/features/navigation/data/repositories/navigation_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -27,8 +29,11 @@ class ClientTrackingPage extends StatefulWidget {
 class _ClientTrackingPageState extends State<ClientTrackingPage> {
   MapboxMap? mapboxMap;
   PointAnnotationManager? _annotationManager;
+  PolylineAnnotationManager? _polylineManager;
   PointAnnotation? _driverAnnotation;
   PointAnnotation? _destinationAnnotation;
+  PolylineAnnotation? _routePolyline;
+  PolylineAnnotation? _breadcrumbPolyline;
   Uint8List? _driverIcon;
   Uint8List? _destinationIcon;
   OrderModel? _order;
@@ -38,8 +43,25 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   bool _loading = true;
   String? _error;
 
+  // Driver heading (degrees) for icon rotation
+  double _driverHeading = 0.0;
+  double? _lastDriverLat;
+  double? _lastDriverLng;
+
+  // Breadcrumb trail — last N driver positions
+  final List<Position> _breadcrumbPositions = [];
+  static const int _maxBreadcrumbs = 60;
+
+  // OSRM-based ETA
+  String? _osrmEta;
+  Timer? _osrmEtaTimer;
+  final NavigationRepository _navRepository = NavigationRepository(
+    getIt<NavigationService>(),
+  );
+
   StreamSubscription<Map<String, dynamic>>? _wsSub;
   StreamSubscription<Map<String, dynamic>>? _driverLocationSub;
+  StreamSubscription<Map<String, dynamic>>? _navUpdateSub;
   StreamSubscription<WsStatus>? _wsStatusSub;
   Timer? _etaTimer;
 
@@ -162,8 +184,26 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     _driverLocationSub = ws.driverLocationEvents.listen((event) {
       final lat = (event['lat'] as num?)?.toDouble();
       final lng = (event['lng'] as num?)?.toDouble();
+      final heading = (event['heading'] as num?)?.toDouble();
       if (lat != null && lng != null && _trackingData != null) {
+        // Compute heading from position delta if not provided
+        double newHeading = _driverHeading;
+        if (heading != null) {
+          newHeading = heading;
+        } else if (_lastDriverLat != null && _lastDriverLng != null) {
+          newHeading = _computeBearing(_lastDriverLat!, _lastDriverLng!, lat, lng);
+        }
+
+        // Update breadcrumb trail
+        _breadcrumbPositions.add(Position(lng, lat));
+        if (_breadcrumbPositions.length > _maxBreadcrumbs) {
+          _breadcrumbPositions.removeAt(0);
+        }
+
         setState(() {
+          _driverHeading = newHeading;
+          _lastDriverLat = lat;
+          _lastDriverLng = lng;
           _trackingData = TrackingModel(
             orderId: _trackingData!.orderId,
             status: _trackingData!.status,
@@ -176,7 +216,28 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
           );
         });
         _updateDriverMarker();
+        _updateBreadcrumb();
+        _fetchOsrmRoute(lat, lng);
       }
+    });
+
+    // Listen to driver nav step updates (order:driver_position from socket)
+    _navUpdateSub = ws.driverNavPositionEvents.listen((event) {
+      if (event['type'] == 'order:driver_position' || event['driverId'] != null) {
+        final lat = (event['lat'] as num?)?.toDouble();
+        final lng = (event['lng'] as num?)?.toDouble();
+        if (lat != null && lng != null) {
+          // Refresh OSRM route with new driver position
+          _fetchOsrmRoute(lat, lng);
+        }
+      }
+    });
+
+    // OSRM ETA refresh every 30 seconds as fallback
+    _osrmEtaTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      final lat = _trackingData?.driverLat;
+      final lng = _trackingData?.driverLng;
+      if (lat != null && lng != null) _fetchOsrmRoute(lat, lng);
     });
   }
 
@@ -186,8 +247,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     ws.leaveOrder(widget.orderId);
     _wsSub?.cancel();
     _driverLocationSub?.cancel();
+    _navUpdateSub?.cancel();
     _wsStatusSub?.cancel();
     _etaTimer?.cancel();
+    _osrmEtaTimer?.cancel();
     super.dispose();
   }
 
@@ -287,9 +350,15 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     mapboxMap = map;
     _driverIcon = await _buildDriverIcon();
     _destinationIcon = await _buildDestinationIcon();
+    // Create polyline manager first (rendered below point annotations)
+    _polylineManager = await map.annotations.createPolylineAnnotationManager();
     _annotationManager = await map.annotations.createPointAnnotationManager();
     _updateDriverMarker();
     _updateDeliveryMarker();
+    // Fetch initial route if driver position is already known
+    final lat = _trackingData?.driverLat;
+    final lng = _trackingData?.driverLng;
+    if (lat != null && lng != null) _fetchOsrmRoute(lat, lng);
     map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
     map.compass.updateSettings(CompassSettings(enabled: false));
     map.attribution.updateSettings(AttributionSettings(enabled: false));
@@ -297,6 +366,85 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   }
 
   /// Extracts driver lat/lng from tracking data and places/moves the marker.
+  // ─── Sprint 2 helpers ─────────────────────────────────────────────────────
+
+  double _computeBearing(double lat1, double lng1, double lat2, double lng2) {
+    final dLng = (lng2 - lng1) * math.pi / 180;
+    final lat1Rad = lat1 * math.pi / 180;
+    final lat2Rad = lat2 * math.pi / 180;
+    final y = math.sin(dLng) * math.cos(lat2Rad);
+    final x = math.cos(lat1Rad) * math.sin(lat2Rad) -
+        math.sin(lat1Rad) * math.cos(lat2Rad) * math.cos(dLng);
+    return ((math.atan2(y, x) * 180 / math.pi) + 360) % 360;
+  }
+
+  Future<void> _updateBreadcrumb() async {
+    if (_polylineManager == null || _breadcrumbPositions.length < 2) return;
+    try {
+      final coords = List<Position>.from(_breadcrumbPositions);
+      if (_breadcrumbPolyline == null) {
+        _breadcrumbPolyline = await _polylineManager!.create(
+          PolylineAnnotationOptions(
+            geometry: LineString(coordinates: coords),
+            lineColor: AppTheme.primaryRed.withValues(alpha: 0.35).toARGB32(),
+            lineWidth: 3.0,
+            lineOpacity: 0.6,
+          ),
+        );
+      } else {
+        _breadcrumbPolyline!.geometry = LineString(coordinates: coords);
+        await _polylineManager!.update(_breadcrumbPolyline!);
+      }
+    } catch (e) {
+      debugPrint('[tracking] breadcrumb error: $e');
+    }
+  }
+
+  Future<void> _fetchOsrmRoute(double driverLat, double driverLng) async {
+    final dest = _order?.deliveryAddress;
+    if (dest?.lat == null || dest?.lng == null) return;
+    try {
+      final result = await _navRepository.computeRoute(
+        originLat: driverLat,
+        originLng: driverLng,
+        destLat: dest!.lat!,
+        destLng: dest.lng!,
+        orderId: widget.orderId,
+      );
+      final route = result.route;
+
+      // Update OSRM ETA label
+      if (mounted) {
+        setState(() {
+          _osrmEta = route.durationLabel;
+        });
+      }
+
+      // Draw route polyline on map
+      if (_polylineManager == null) return;
+      final coords = route.geometry.coordinates
+          .map((c) => Position(c[0], c[1]))
+          .toList();
+      if (coords.isEmpty) return;
+
+      if (_routePolyline == null) {
+        _routePolyline = await _polylineManager!.create(
+          PolylineAnnotationOptions(
+            geometry: LineString(coordinates: coords),
+            lineColor: AppTheme.primaryRed.toARGB32(),
+            lineWidth: 5.0,
+            lineOpacity: 0.85,
+          ),
+        );
+      } else {
+        _routePolyline!.geometry = LineString(coordinates: coords);
+        await _polylineManager!.update(_routePolyline!);
+      }
+    } catch (e) {
+      debugPrint('[tracking] OSRM route error: $e');
+    }
+  }
+
   Future<void> _updateDriverMarker() async {
     if (_annotationManager == null || _driverIcon == null) return;
     if (_trackingData == null) return;
@@ -645,10 +793,11 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                       ),
                     ],
                   ),
-                  if (etaMinutes != null)
+                  // Prefer OSRM ETA (Sprint 2), fallback to heuristic
+                  if (_osrmEta != null || etaMinutes != null)
                     Semantics(
                       label: 'Temps de livraison restant',
-                      value: '$etaMinutes minutes',
+                      value: _osrmEta ?? '$etaMinutes min',
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -658,15 +807,24 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                           color: AppTheme.redSoft,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Text(
-                          'tracking.eta_minutes'.tr(
-                            args: [etaMinutes.toString()],
-                          ),
-                          style: GoogleFonts.inter(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                            color: AppTheme.primaryRed,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_osrmEta != null)
+                              const Icon(Icons.route, size: 12, color: AppTheme.primaryRed),
+                            if (_osrmEta != null) const SizedBox(width: 4),
+                            Text(
+                              _osrmEta ??
+                                  'tracking.eta_minutes'.tr(
+                                    args: [etaMinutes.toString()],
+                                  ),
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: AppTheme.primaryRed,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

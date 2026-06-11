@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/services/websocket_service.dart';
 import '../../data/models/osrm_route_model.dart';
 import '../../data/repositories/navigation_repository.dart';
 
@@ -127,6 +129,15 @@ class NavigationCubit extends Cubit<NavigationState> {
         _distanceCovered >= stepCutoff - _stepCompletedThreshold) {
       _currentStepIndex++;
       _speakStep(_currentStepIndex);
+      // Emit step update to server
+      if (_orderId != null && _orderId!.isNotEmpty) {
+        getIt<WebSocketService>().emitNavUpdate(
+          orderId: _orderId!,
+          stepIndex: _currentStepIndex,
+          lat: lat,
+          lng: lng,
+        );
+      }
     }
 
     // Auto-reroute if significantly off track (deviation from expected cumulative distance)

@@ -92,7 +92,10 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
       ),
     ).listen((pos) {
       if (!mounted) return;
-      getIt<WebSocketService>().emitLocationUpdate(pos.latitude, pos.longitude);
+      getIt<WebSocketService>().emitLocationUpdate(
+        pos.latitude, pos.longitude,
+        heading: pos.heading,
+      );
     });
   }
 
