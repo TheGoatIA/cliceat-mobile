@@ -286,13 +286,10 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(
           path: 'ai',
-          builder: (context, state) {
-            final locale = context.locale.languageCode;
-            return BlocProvider(
-              create: (context) => getIt<AiCubit>()..initChat(locale),
+          builder: (context, state) => BlocProvider(
+              create: (context) => getIt<AiCubit>()..loadConversations(),
               child: const AiAssistantPage(),
-            );
-          },
+            ),
         ),
         GoRoute(
           path: 'notifications',

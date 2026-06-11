@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
-import '../../../../core/errors/app_error.dart';
-import '../../../../core/network/services/ai_service.dart';
+import '../../../../../core/errors/app_error.dart';
+import '../../../../../core/network/services/ai_service.dart';
 import '../local/ai_dao.dart';
 import '../models/ai_model.dart';
 
@@ -45,6 +45,7 @@ class AiRepository {
       createdAt: r.createdAt,
     )).toList();
   }
+
 
   Future<String> createLocalConversation(String title) =>
       _localDao.createConversation(title);

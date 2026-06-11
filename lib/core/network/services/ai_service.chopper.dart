@@ -40,4 +40,24 @@ final class _$AiService extends AiService {
     );
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
+
+  @override
+  Future<Response<Map<String, dynamic>>> getConversations({int? page}) {
+    final Uri $url = Uri.parse('/ai/conversations');
+    final Map<String, dynamic> $params = <String, dynamic>{'page': page};
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+    );
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> getConversationMessages(String id) {
+    final Uri $url = Uri.parse('/ai/conversations/${id}');
+    final Request $request = Request('GET', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
 }

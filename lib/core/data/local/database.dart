@@ -26,8 +26,7 @@ import 'daos/order_dao.dart';
 import 'daos/favorites_dao.dart';
 import 'daos/offline_queue_dao.dart';
 
-import '../../features/client/ai/data/local/ai_tables.dart';
-import '../../features/client/ai/data/local/ai_dao.dart';
+import '../../../features/client/ai/data/local/ai_tables.dart';
 
 part 'database.g.dart';
 
@@ -56,7 +55,6 @@ part 'database.g.dart';
     OrderDao,
     FavoritesDao,
     OfflineQueueDao,
-    AiLocalDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
