@@ -86,7 +86,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   duration: const Duration(seconds: 4),
                 ),
               );
-              context.go('/login');
+              context.go('/auth/login?mode=delivery');
             },
             authenticated: (_, _, _) {
               context.go('/client');
