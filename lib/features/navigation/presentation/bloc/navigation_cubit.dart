@@ -43,11 +43,17 @@ class NavigationCubit extends Cubit<NavigationState> {
     required double destLng,
     String? orderId,
   }) async {
+    // Cancel any existing tracking before restarting
+    _locationSub?.cancel();
+    _locationSub = null;
     emit(const NavigationState.loading());
     _destLat = destLat;
     _destLng = destLng;
     _orderId = orderId;
     _currentStepIndex = 0;
+    _distanceCovered = 0.0;
+    _lastLat = null;
+    _lastLng = null;
 
     try {
       final result = await _repository.computeRoute(
@@ -81,6 +87,11 @@ class NavigationCubit extends Cubit<NavigationState> {
     ).listen(_onLocationUpdate);
   }
 
+  // Cumulative distance covered along the route (metres)
+  double _distanceCovered = 0.0;
+  double? _lastLat;
+  double? _lastLng;
+
   void _onLocationUpdate(Position pos) {
     final route = _currentRoute;
     if (route == null) return;
@@ -90,7 +101,14 @@ class NavigationCubit extends Cubit<NavigationState> {
     final lat = pos.latitude;
     final lng = pos.longitude;
 
-    // Check arrival
+    // Accumulate distance from last known position
+    if (_lastLat != null && _lastLng != null) {
+      _distanceCovered += Geolocator.distanceBetween(_lastLat!, _lastLng!, lat, lng);
+    }
+    _lastLat = lat;
+    _lastLng = lng;
+
+    // Check arrival at destination
     final distToDest = Geolocator.distanceBetween(lat, lng, _destLat!, _destLng!);
     if (distToDest <= _arrivalThreshold) {
       _locationSub?.cancel();
@@ -99,27 +117,24 @@ class NavigationCubit extends Cubit<NavigationState> {
       return;
     }
 
-    // Advance step if close enough to next step
-    if (_currentStepIndex < steps.length - 1) {
-      final nextStep = steps[_currentStepIndex + 1];
-      // Use step geometry if available — otherwise estimate via distance
-      // Simple approach: if user is within threshold of current step end, advance
-      final stepDist = Geolocator.distanceBetween(
-        lat, lng,
-        // We don't have exact waypoint coords per step from OSRM in this model,
-        // so we estimate by cumulative distance heuristic
-        lat, lng, // placeholder — step advancement uses distance remaining
-      );
-      // Advance based on distance threshold from start
-      final distToRemaining = distToDest;
-      final stepDistRemaining = steps
-          .skip(_currentStepIndex + 1)
-          .fold(0.0, (sum, s) => sum + s.distance);
+    // Advance steps based on cumulative distance along route
+    // Each step occupies a known distance — advance when covered >= sum of completed steps
+    double stepCutoff = 0.0;
+    for (int i = 0; i <= _currentStepIndex && i < steps.length; i++) {
+      stepCutoff += steps[i].distance;
+    }
+    if (_currentStepIndex < steps.length - 1 &&
+        _distanceCovered >= stepCutoff - _stepCompletedThreshold) {
+      _currentStepIndex++;
+      _speakStep(_currentStepIndex);
+    }
 
-      if (distToRemaining < stepDistRemaining + _stepCompletedThreshold) {
-        _currentStepIndex++;
-        _speakStep(_currentStepIndex);
-      }
+    // Auto-reroute if significantly off track (deviation from expected cumulative distance)
+    final expectedDistCovered = stepCutoff;
+    final deviation = (distToDest - (route.distance - expectedDistCovered)).abs();
+    if (deviation > _deviationThreshold && _currentStepIndex > 0) {
+      // Trigger background reroute — don't await, let it update state when done
+      requestReroute();
     }
 
     emit(NavigationState.navigating(
@@ -145,6 +160,9 @@ class NavigationCubit extends Cubit<NavigationState> {
       );
       _currentRoute = result.route;
       _currentStepIndex = 0;
+      _distanceCovered = 0.0;
+      _lastLat = null;
+      _lastLng = null;
       emit(NavigationState.navigating(
         route: result.route,
         currentStepIndex: 0,
