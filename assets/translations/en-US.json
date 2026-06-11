@@ -319,7 +319,8 @@
     "call_driver": "Call driver",
     "call_unavailable": "Unable to make a call on this device",
     "live_tracking": "Live tracking",
-    "eta_minutes": "In {} min"
+    "eta_minutes": "In {} min",
+    "destination": "Destination"
   },
   "profile": {
     "title": "My Profile",
@@ -474,7 +475,10 @@
     "mission_load_error": "Unable to load mission details.",
     "status_waiting": "Waiting for a mission",
     "status_offline": "Offline",
-    "mission_id_missing": "Error: missing mission ID"
+    "mission_id_missing": "Error: missing mission ID",
+    "arrived_at_restaurant": "Arrived at restaurant",
+    "online_paid": "Online payment — already paid",
+    "error_code_required": "Please enter the confirmation code"
   },
   "address": {
     "select_title": "Choose an address",

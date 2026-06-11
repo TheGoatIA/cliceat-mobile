@@ -140,6 +140,8 @@ class _DropoffPageState extends State<DropoffPage> {
   }
 
   void _onConfirm() {
+    if (_isSubmitting) return; // guard double-tap
+
     if (_requiresCode &&
         (_codeController.text.isEmpty || _codeController.text.length < 4)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -322,8 +324,10 @@ class _DropoffPageState extends State<DropoffPage> {
                   'Appeler le client',
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                    fontSize: 13,
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
             ),

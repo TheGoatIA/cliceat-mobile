@@ -319,7 +319,8 @@
     "call_driver": "Appeler le livreur",
     "call_unavailable": "Impossible de passer un appel sur cet appareil",
     "live_tracking": "Suivi en direct",
-    "eta_minutes": "Dans {} min"
+    "eta_minutes": "Dans {} min",
+    "destination": "Destination"
   },
   "profile": {
     "title": "Mon Profil",
@@ -456,7 +457,7 @@
     "status_update_failed": "Impossible de mettre à jour le statut. Vérifiez votre connexion.",
     "now_online": "Vous êtes maintenant EN LIGNE ✅",
     "now_offline": "Vous êtes maintenant HORS LIGNE",
-    "go_online_hint": "Activez le switch pour recevoir des missions",
+    "go_online_hint": "Activez votre disponibilité pour recevoir des missions",
     "waiting_mission": "En attente d'une nouvelle mission…",
     "deliveries_today": "Livraisons aujourd'hui",
     "order_short_id": "Commande #{}",
@@ -474,7 +475,10 @@
     "accepting": "Acceptation en cours...",
     "mission_taken_by_other": "Mission déjà prise par un autre livreur.",
     "mission_load_error": "Impossible de charger les détails de la mission.",
-    "mission_id_missing": "Erreur : ID de mission manquant"
+    "mission_id_missing": "Erreur : ID de mission manquant",
+    "arrived_at_restaurant": "Arrivé au restaurant",
+    "online_paid": "Paiement en ligne — déjà réglé",
+    "error_code_required": "Veuillez saisir le code de confirmation"
   },
   "address": {
     "select_title": "Choisir une adresse",
