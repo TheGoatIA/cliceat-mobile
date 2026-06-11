@@ -5330,6 +5330,460 @@ class FavoritesTableCompanion extends UpdateCompanion<FavoritesTableData> {
   }
 }
 
+class $OfflineActionsTableTable extends OfflineActionsTable
+    with TableInfo<$OfflineActionsTableTable, OfflineActionsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OfflineActionsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _actionTypeMeta = const VerificationMeta(
+    'actionType',
+  );
+  @override
+  late final GeneratedColumn<String> actionType = GeneratedColumn<String>(
+    'action_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _retryCountMeta = const VerificationMeta(
+    'retryCount',
+  );
+  @override
+  late final GeneratedColumn<int> retryCount = GeneratedColumn<int>(
+    'retry_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _maxRetriesMeta = const VerificationMeta(
+    'maxRetries',
+  );
+  @override
+  late final GeneratedColumn<int> maxRetries = GeneratedColumn<int>(
+    'max_retries',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(3),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    actionType,
+    payload,
+    retryCount,
+    maxRetries,
+    createdAt,
+    status,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'offline_actions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OfflineActionsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('action_type')) {
+      context.handle(
+        _actionTypeMeta,
+        actionType.isAcceptableOrUnknown(data['action_type']!, _actionTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionTypeMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('retry_count')) {
+      context.handle(
+        _retryCountMeta,
+        retryCount.isAcceptableOrUnknown(data['retry_count']!, _retryCountMeta),
+      );
+    }
+    if (data.containsKey('max_retries')) {
+      context.handle(
+        _maxRetriesMeta,
+        maxRetries.isAcceptableOrUnknown(data['max_retries']!, _maxRetriesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OfflineActionsTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OfflineActionsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      actionType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action_type'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      retryCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}retry_count'],
+      )!,
+      maxRetries: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}max_retries'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $OfflineActionsTableTable createAlias(String alias) {
+    return $OfflineActionsTableTable(attachedDatabase, alias);
+  }
+}
+
+class OfflineActionsTableData extends DataClass
+    implements Insertable<OfflineActionsTableData> {
+  final int id;
+  final String actionType;
+  final String payload;
+  final int retryCount;
+  final int maxRetries;
+  final DateTime createdAt;
+  final String status;
+  const OfflineActionsTableData({
+    required this.id,
+    required this.actionType,
+    required this.payload,
+    required this.retryCount,
+    required this.maxRetries,
+    required this.createdAt,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['action_type'] = Variable<String>(actionType);
+    map['payload'] = Variable<String>(payload);
+    map['retry_count'] = Variable<int>(retryCount);
+    map['max_retries'] = Variable<int>(maxRetries);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['status'] = Variable<String>(status);
+    return map;
+  }
+
+  OfflineActionsTableCompanion toCompanion(bool nullToAbsent) {
+    return OfflineActionsTableCompanion(
+      id: Value(id),
+      actionType: Value(actionType),
+      payload: Value(payload),
+      retryCount: Value(retryCount),
+      maxRetries: Value(maxRetries),
+      createdAt: Value(createdAt),
+      status: Value(status),
+    );
+  }
+
+  factory OfflineActionsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OfflineActionsTableData(
+      id: serializer.fromJson<int>(json['id']),
+      actionType: serializer.fromJson<String>(json['actionType']),
+      payload: serializer.fromJson<String>(json['payload']),
+      retryCount: serializer.fromJson<int>(json['retryCount']),
+      maxRetries: serializer.fromJson<int>(json['maxRetries']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      status: serializer.fromJson<String>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'actionType': serializer.toJson<String>(actionType),
+      'payload': serializer.toJson<String>(payload),
+      'retryCount': serializer.toJson<int>(retryCount),
+      'maxRetries': serializer.toJson<int>(maxRetries),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'status': serializer.toJson<String>(status),
+    };
+  }
+
+  OfflineActionsTableData copyWith({
+    int? id,
+    String? actionType,
+    String? payload,
+    int? retryCount,
+    int? maxRetries,
+    DateTime? createdAt,
+    String? status,
+  }) => OfflineActionsTableData(
+    id: id ?? this.id,
+    actionType: actionType ?? this.actionType,
+    payload: payload ?? this.payload,
+    retryCount: retryCount ?? this.retryCount,
+    maxRetries: maxRetries ?? this.maxRetries,
+    createdAt: createdAt ?? this.createdAt,
+    status: status ?? this.status,
+  );
+  OfflineActionsTableData copyWithCompanion(OfflineActionsTableCompanion data) {
+    return OfflineActionsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      actionType: data.actionType.present
+          ? data.actionType.value
+          : this.actionType,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      retryCount: data.retryCount.present
+          ? data.retryCount.value
+          : this.retryCount,
+      maxRetries: data.maxRetries.present
+          ? data.maxRetries.value
+          : this.maxRetries,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OfflineActionsTableData(')
+          ..write('id: $id, ')
+          ..write('actionType: $actionType, ')
+          ..write('payload: $payload, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('maxRetries: $maxRetries, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, actionType, payload, retryCount, maxRetries, createdAt, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OfflineActionsTableData &&
+          other.id == this.id &&
+          other.actionType == this.actionType &&
+          other.payload == this.payload &&
+          other.retryCount == this.retryCount &&
+          other.maxRetries == this.maxRetries &&
+          other.createdAt == this.createdAt &&
+          other.status == this.status);
+}
+
+class OfflineActionsTableCompanion
+    extends UpdateCompanion<OfflineActionsTableData> {
+  final Value<int> id;
+  final Value<String> actionType;
+  final Value<String> payload;
+  final Value<int> retryCount;
+  final Value<int> maxRetries;
+  final Value<DateTime> createdAt;
+  final Value<String> status;
+  const OfflineActionsTableCompanion({
+    this.id = const Value.absent(),
+    this.actionType = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.maxRetries = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  OfflineActionsTableCompanion.insert({
+    Value<int> id = const Value.absent(),
+    required String actionType,
+    required String payload,
+    Value<int> retryCount = const Value.absent(),
+    Value<int> maxRetries = const Value.absent(),
+    required DateTime createdAt,
+    Value<String> status = const Value.absent(),
+  }) : id = id,
+       actionType = Value(actionType),
+       payload = Value(payload),
+       retryCount = retryCount,
+       maxRetries = maxRetries,
+       createdAt = Value(createdAt),
+       status = status;
+  static Insertable<OfflineActionsTableData> custom({
+    Expression<int>? id,
+    Expression<String>? actionType,
+    Expression<String>? payload,
+    Expression<int>? retryCount,
+    Expression<int>? maxRetries,
+    Expression<DateTime>? createdAt,
+    Expression<String>? status,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (actionType != null) 'action_type': actionType,
+      if (payload != null) 'payload': payload,
+      if (retryCount != null) 'retry_count': retryCount,
+      if (maxRetries != null) 'max_retries': maxRetries,
+      if (createdAt != null) 'created_at': createdAt,
+      if (status != null) 'status': status,
+    });
+  }
+
+  OfflineActionsTableCompanion copyWith({
+    Value<int>? id,
+    Value<String>? actionType,
+    Value<String>? payload,
+    Value<int>? retryCount,
+    Value<int>? maxRetries,
+    Value<DateTime>? createdAt,
+    Value<String>? status,
+  }) {
+    return OfflineActionsTableCompanion(
+      id: id ?? this.id,
+      actionType: actionType ?? this.actionType,
+      payload: payload ?? this.payload,
+      retryCount: retryCount ?? this.retryCount,
+      maxRetries: maxRetries ?? this.maxRetries,
+      createdAt: createdAt ?? this.createdAt,
+      status: status ?? this.status,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (actionType.present) {
+      map['action_type'] = Variable<String>(actionType.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (retryCount.present) {
+      map['retry_count'] = Variable<int>(retryCount.value);
+    }
+    if (maxRetries.present) {
+      map['max_retries'] = Variable<int>(maxRetries.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OfflineActionsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('actionType: $actionType, ')
+          ..write('payload: $payload, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('maxRetries: $maxRetries, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5346,12 +5800,17 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MessagesTableTable messagesTable = $MessagesTableTable(this);
   late final $OrdersTableTable ordersTable = $OrdersTableTable(this);
   late final $FavoritesTableTable favoritesTable = $FavoritesTableTable(this);
+  late final $OfflineActionsTableTable offlineActionsTable =
+      $OfflineActionsTableTable(this);
   late final MenuDao menuDao = MenuDao(this as AppDatabase);
   late final ChatDao chatDao = ChatDao(this as AppDatabase);
   late final PendingActionsDao pendingActionsDao = PendingActionsDao(
     this as AppDatabase,
   );
   late final OrderDao orderDao = OrderDao(this as AppDatabase);
+  late final OfflineQueueDao offlineQueueDao = OfflineQueueDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5366,6 +5825,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     messagesTable,
     ordersTable,
     favoritesTable,
+    offlineActionsTable,
   ];
 }
 
@@ -8032,6 +8492,255 @@ typedef $$FavoritesTableTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 
+typedef $$OfflineActionsTableTableCreateCompanionBuilder =
+    OfflineActionsTableCompanion Function({
+      Value<int> id,
+      required String actionType,
+      required String payload,
+      Value<int> retryCount,
+      Value<int> maxRetries,
+      required DateTime createdAt,
+      Value<String> status,
+    });
+typedef $$OfflineActionsTableTableUpdateCompanionBuilder =
+    OfflineActionsTableCompanion Function({
+      Value<int> id,
+      Value<String> actionType,
+      Value<String> payload,
+      Value<int> retryCount,
+      Value<int> maxRetries,
+      Value<DateTime> createdAt,
+      Value<String> status,
+    });
+
+class $$OfflineActionsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $OfflineActionsTableTable> {
+  $$OfflineActionsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actionType => $composableBuilder(
+    column: $table.actionType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get maxRetries => $composableBuilder(
+    column: $table.maxRetries,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$OfflineActionsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $OfflineActionsTableTable> {
+  $$OfflineActionsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actionType => $composableBuilder(
+    column: $table.actionType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get maxRetries => $composableBuilder(
+    column: $table.maxRetries,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OfflineActionsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OfflineActionsTableTable> {
+  $$OfflineActionsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get actionType =>
+      $composableBuilder(column: $table.actionType, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<int> get retryCount =>
+      $composableBuilder(column: $table.retryCount, builder: (column) => column);
+
+  GeneratedColumn<int> get maxRetries =>
+      $composableBuilder(column: $table.maxRetries, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+}
+
+class $$OfflineActionsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OfflineActionsTableTable,
+          OfflineActionsTableData,
+          $$OfflineActionsTableTableFilterComposer,
+          $$OfflineActionsTableTableOrderingComposer,
+          $$OfflineActionsTableTableAnnotationComposer,
+          $$OfflineActionsTableTableCreateCompanionBuilder,
+          $$OfflineActionsTableTableUpdateCompanionBuilder,
+          (
+            OfflineActionsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $OfflineActionsTableTable,
+              OfflineActionsTableData
+            >,
+          ),
+          OfflineActionsTableData,
+          PrefetchHooks Function()
+        > {
+  $$OfflineActionsTableTableTableManager(
+    _$AppDatabase db,
+    $OfflineActionsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OfflineActionsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OfflineActionsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$OfflineActionsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> actionType = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<int> retryCount = const Value.absent(),
+                Value<int> maxRetries = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String> status = const Value.absent(),
+              }) => OfflineActionsTableCompanion(
+                id: id,
+                actionType: actionType,
+                payload: payload,
+                retryCount: retryCount,
+                maxRetries: maxRetries,
+                createdAt: createdAt,
+                status: status,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String actionType,
+                required String payload,
+                Value<int> retryCount = const Value.absent(),
+                Value<int> maxRetries = const Value.absent(),
+                required DateTime createdAt,
+                Value<String> status = const Value.absent(),
+              }) => OfflineActionsTableCompanion.insert(
+                id: id,
+                actionType: actionType,
+                payload: payload,
+                retryCount: retryCount,
+                maxRetries: maxRetries,
+                createdAt: createdAt,
+                status: status,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$OfflineActionsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OfflineActionsTableTable,
+      OfflineActionsTableData,
+      $$OfflineActionsTableTableFilterComposer,
+      $$OfflineActionsTableTableOrderingComposer,
+      $$OfflineActionsTableTableAnnotationComposer,
+      $$OfflineActionsTableTableCreateCompanionBuilder,
+      $$OfflineActionsTableTableUpdateCompanionBuilder,
+      (
+        OfflineActionsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $OfflineActionsTableTable,
+          OfflineActionsTableData
+        >,
+      ),
+      OfflineActionsTableData,
+      PrefetchHooks Function()
+    >;
+
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
@@ -8053,4 +8762,6 @@ class $AppDatabaseManager {
       $$OrdersTableTableTableManager(_db, _db.ordersTable);
   $$FavoritesTableTableTableManager get favoritesTable =>
       $$FavoritesTableTableTableManager(_db, _db.favoritesTable);
+  $$OfflineActionsTableTableTableManager get offlineActionsTable =>
+      $$OfflineActionsTableTableTableManager(_db, _db.offlineActionsTable);
 }

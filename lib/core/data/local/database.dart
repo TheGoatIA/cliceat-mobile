@@ -9,6 +9,7 @@ import 'tables/restaurants_table.dart';
 import 'tables/cart_table.dart';
 import 'tables/pending_actions_table.dart';
 import 'tables/favorites_table.dart';
+import 'tables/offline_actions_table.dart';
 
 import 'tables/menu_items_table.dart';
 import 'tables/conversations_table.dart';
@@ -23,6 +24,7 @@ import 'daos/restaurant_dao.dart';
 import 'daos/user_prefs_dao.dart';
 import 'daos/order_dao.dart';
 import 'daos/favorites_dao.dart';
+import 'daos/offline_queue_dao.dart';
 
 part 'database.g.dart';
 
@@ -37,6 +39,7 @@ part 'database.g.dart';
     MessagesTable,
     OrdersTable,
     FavoritesTable,
+    OfflineActionsTable,
   ],
   daos: [
     CartDao,
@@ -47,6 +50,7 @@ part 'database.g.dart';
     PendingActionsDao,
     OrderDao,
     FavoritesDao,
+    OfflineQueueDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -56,7 +60,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -81,6 +85,11 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 7) {
         await m.createTable(favoritesTable);
+      }
+      if (from < 8) {
+        // Persistance de la file d'attente hors-ligne avec gestion des retries
+        // et statuts ('pending' | 'processing' | 'failed').
+        await m.createTable(offlineActionsTable);
       }
     },
     beforeOpen: (details) async {

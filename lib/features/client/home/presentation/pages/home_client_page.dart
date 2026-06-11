@@ -1,22 +1,19 @@
 import 'dart:async';
-import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_theme.dart';
-import 'package:cliceat_app/core/di/injection.dart';
-import 'package:cliceat_app/features/client/banner/data/models/banner_model.dart';
-import 'package:cliceat_app/features/client/banner/data/repositories/banner_repository.dart';
 import 'package:cliceat_app/features/client/home/data/models/restaurant_model.dart';
-import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
 import '../../../../../shared/widgets/banner_carousel.dart';
 import '../../../../../shared/widgets/empty_state.dart';
 import '../../../../../shared/widgets/restaurant_card.dart';
 import '../../../../../shared/widgets/section_header.dart';
 import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate_sliver.dart';
+import 'package:cliceat_app/core/di/injection.dart';
+import '../bloc/home_cubit.dart';
 import '../bloc/promotion_cubit.dart';
 import '../../../../../shared/widgets/promotion_banner.dart';
 import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
@@ -41,13 +38,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
   bool _freeDelivery = false;
   String? _selectedCuisineType;
 
-  List<RestaurantModel> _allRestaurants = [];
   List<RestaurantModel> _displayedRestaurants = [];
-  List<BannerModel> _banners = [];
   List<(String, String)> _categories = _fallbackCategories;
-
-  bool _loadingRestaurants = true;
-  bool _loadingBanners = true;
 
   static const _fallbackCategories = [
     ('\u{1F96C}', 'Ndolé'),
@@ -153,7 +145,15 @@ class _HomeClientPageState extends State<HomeClientPage> {
   void initState() {
     super.initState();
     _initializeCity();
-    _loadData();
+  }
+
+  void _syncFromCubit(HomeState homeState) {
+    final categories = _extractCategories(homeState.restaurants);
+    setState(() {
+      if (categories.isNotEmpty) _categories = categories;
+      _displayedRestaurants =
+          _getFilteredRestaurantsList(homeState.restaurants);
+    });
   }
 
   void _initializeCity() {
@@ -187,53 +187,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
   }
 
   Future<void> _loadData() async {
-    await Future.wait([_loadRestaurants(), _loadBanners()]);
-  }
-
-  Future<void> _loadRestaurants() async {
-    setState(() => _loadingRestaurants = true);
-    final trace = FirebasePerformance.instance.newTrace('restaurant_list_load');
-    await trace.start();
-    trace.putAttribute('city', _selectedCity);
-    try {
-      final cityResult = await getIt<RestaurantRepository>().getRestaurants(
-        city: _selectedCity,
-      );
-
-      List<RestaurantModel> restaurants = [];
-      cityResult.fold((_) {}, (list) => restaurants = list);
-
-      if (restaurants.isEmpty) {
-        final featuredResult = await getIt<RestaurantRepository>()
-            .getFeaturedRestaurants();
-        featuredResult.fold((_) {}, (list) => restaurants = list);
-      }
-
-      if (!mounted) return;
-
-      final categories = _extractCategories(restaurants);
-      setState(() {
-        _allRestaurants = restaurants;
-        _loadingRestaurants = false;
-        if (categories.isNotEmpty) _categories = categories;
-      });
-      _applyFilters();
-    } finally {
-      await trace.stop();
-    }
-  }
-
-  Future<void> _loadBanners() async {
-    setState(() => _loadingBanners = true);
-    final result = await getIt<BannerRepository>().getBanners();
-    if (!mounted) return;
-    result.fold(
-      (_) => setState(() => _loadingBanners = false),
-      (banners) => setState(() {
-        _banners = banners;
-        _loadingBanners = false;
-      }),
-    );
+    await context.read<HomeCubit>().loadData(_selectedCity);
   }
 
   Future<void> _search(String query) async {
@@ -242,21 +196,17 @@ class _HomeClientPageState extends State<HomeClientPage> {
         _searchQuery = '';
         _selectedCategory = null;
       });
-      await _loadRestaurants();
+      await context.read<HomeCubit>().loadRestaurants(_selectedCity);
+      if (mounted) {
+        _applyFilters(context.read<HomeCubit>().state.restaurants);
+      }
       return;
     }
-    setState(() => _loadingRestaurants = true);
-    final result = await getIt<RestaurantRepository>().search(query.trim());
-    if (!mounted) return;
-    result.fold((_) => setState(() => _loadingRestaurants = false), (
-      restaurants,
-    ) {
-      setState(() {
-        _allRestaurants = restaurants;
-        _loadingRestaurants = false;
-      });
-      _applyFilters();
-    });
+    setState(() => _searchQuery = query.trim());
+    await context.read<HomeCubit>().search(query.trim());
+    if (mounted) {
+      _applyFilters(context.read<HomeCubit>().state.restaurants);
+    }
   }
 
   List<(String, String)> _extractCategories(List<RestaurantModel> restaurants) {
@@ -297,7 +247,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
       setState(() {
         _selectedCategory = null;
         _searchQuery = '';
-        _displayedRestaurants = _allRestaurants;
+        _displayedRestaurants =
+            context.read<HomeCubit>().state.restaurants;
       });
     } else {
       _searchController.text = category;
@@ -328,8 +279,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
     _applyFilters();
   }
 
-  List<RestaurantModel> _getFilteredRestaurantsList() {
-    List<RestaurantModel> filteredList = List.from(_allRestaurants);
+  List<RestaurantModel> _getFilteredRestaurantsList(
+      List<RestaurantModel> allRestaurants) {
+    List<RestaurantModel> filteredList = List.from(allRestaurants);
 
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
@@ -410,9 +362,11 @@ class _HomeClientPageState extends State<HomeClientPage> {
     return filteredList;
   }
 
-  void _applyFilters() {
+  void _applyFilters([List<RestaurantModel>? restaurants]) {
+    final allRestaurants =
+        restaurants ?? context.read<HomeCubit>().state.restaurants;
     setState(() {
-      _displayedRestaurants = _getFilteredRestaurantsList();
+      _displayedRestaurants = _getFilteredRestaurantsList(allRestaurants);
     });
   }
 
@@ -525,7 +479,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
-        final cuisines = _allRestaurants
+        final cuisines = context
+            .read<HomeCubit>()
+            .state
+            .restaurants
             .expand(
               (r) => [if (r.cuisineType != null) r.cuisineType!, ...r.cuisines],
             )
@@ -536,7 +493,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             int getFilteredCount() {
-              return _getFilteredRestaurantsList().length;
+              return _getFilteredRestaurantsList(
+                context.read<HomeCubit>().state.restaurants,
+              ).length;
             }
 
             final count = getFilteredCount();
@@ -776,9 +735,25 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<PromotionCubit>()..loadGlobalPromotions(),
-      child: BlocListener<ProfileCubit, ProfileState>(
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => getIt<HomeCubit>()..loadData(_selectedCity),
+        ),
+        BlocProvider(
+          create: (context) => getIt<PromotionCubit>()..loadGlobalPromotions(),
+        ),
+      ],
+      child: BlocListener<HomeCubit, HomeState>(
+        listenWhen: (previous, current) =>
+            previous.restaurants != current.restaurants ||
+            previous.loadingRestaurants != current.loadingRestaurants,
+        listener: (context, homeState) {
+          if (!homeState.loadingRestaurants) {
+            _syncFromCubit(homeState);
+          }
+        },
+        child: BlocListener<ProfileCubit, ProfileState>(
         listener: (context, state) {
           state.maybeWhen(
             loaded: (user) {
@@ -828,6 +803,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
           ),
         ),
         floatingActionButton: _buildFAB(context),
+      ),
+        ),
       ),
     ),
   );

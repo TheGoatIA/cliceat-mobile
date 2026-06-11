@@ -51,6 +51,8 @@ import '../../features/client/home/data/repositories/promotion_repository.dart'
     as _i241;
 import '../../features/client/home/data/repositories/restaurant_repository.dart'
     as _i1001;
+import '../../features/client/home/presentation/bloc/home_cubit.dart'
+    as _i999;
 import '../../features/client/home/presentation/bloc/promotion_cubit.dart'
     as _i340;
 import '../../features/client/notification/data/repositories/notification_repository.dart'
@@ -358,6 +360,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i340.PromotionCubit>(
       () => _i340.PromotionCubit(gh<_i241.PromotionRepository>()),
     );
+    gh.factory<_i999.HomeCubit>(() => _i999.HomeCubit());
     gh.lazySingleton<_i1001.RestaurantRepository>(
       () => _i1001.RestaurantRepository(
         gh<_i813.RestaurantService>(),
