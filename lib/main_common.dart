@@ -211,8 +211,41 @@ Future<void> _bootstrap() async {
   );
 }
 
-class ClicEatApp extends StatelessWidget {
+class ClicEatApp extends StatefulWidget {
   const ClicEatApp({super.key});
+
+  @override
+  State<ClicEatApp> createState() => _ClicEatAppState();
+}
+
+class _ClicEatAppState extends State<ClicEatApp> with WidgetsBindingObserver {
+  Timer? _configRefreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Refresh config every 2 minutes to pick up maintenance/feature flag changes
+    _configRefreshTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+      getIt<ConfigBloc>().add(const ConfigEvent.fetchConfig());
+    });
+  }
+
+  @override
+  void dispose() {
+    _configRefreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Re-fetch platform config when app comes back to foreground
+      // This picks up maintenance mode changes without requiring app restart
+      getIt<ConfigBloc>().add(const ConfigEvent.fetchConfig());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

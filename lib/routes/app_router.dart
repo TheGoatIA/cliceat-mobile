@@ -63,19 +63,26 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 // ─── Refresh Listenable ───────────────────────────────────────────────────────
 
-/// Helper class to convert a Stream into a Listenable for GoRouter.
+/// Helper class to convert one or more Streams into a Listenable for GoRouter.
 class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
+  GoRouterRefreshStream(Stream<dynamic> stream, {List<Stream<dynamic>> extra = const []}) {
     _subscription = stream.listen((dynamic _) => notifyListeners());
+    _extraSubscriptions = extra.map((s) => s.listen((dynamic _) => notifyListeners())).toList();
   }
 
   late final StreamSubscription<dynamic> _subscription;
+  late final List<StreamSubscription<dynamic>> _extraSubscriptions;
 
   @override
   void dispose() {
     _subscription.cancel();
+    for (final s in _extraSubscriptions) {
+      s.cancel();
+    }
     super.dispose();
   }
+
+
 }
 
 // ─── Route names (constants to avoid typos) ───────────────────────────────────
@@ -219,7 +226,10 @@ String? _guardRedirect(BuildContext context, GoRouterState state) {
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: AppRoutes.splash,
-  refreshListenable: GoRouterRefreshStream(getIt<AuthBloc>().stream),
+  refreshListenable: GoRouterRefreshStream(
+    getIt<AuthBloc>().stream,
+    extra: [getIt<ConfigBloc>().stream],
+  ),
   redirect: _guardRedirect,
   routes: [
     // Splash — gère le check d'auth et redirige
