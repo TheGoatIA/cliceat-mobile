@@ -119,6 +119,7 @@ import '../services/notification_service.dart' as _i941;
 import '../services/precache_service.dart' as _i1048;
 import '../services/sync_manager_service.dart' as _i114;
 import '../services/token_service.dart' as _i227;
+import '../network/services/navigation_service.dart' as _i392;
 import '../services/websocket_service.dart' as _i555;
 import '../theme/presentation/bloc/theme_cubit.dart' as _i787;
 import 'core_module.dart' as _i154;
@@ -256,6 +257,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i996.PromotionService>(
       () => networkModule.getPromotionService(gh<_i31.ChopperClient>()),
+    );
+    gh.lazySingleton<_i392.NavigationService>(
+      () => networkModule.getNavigationService(gh<_i31.ChopperClient>()),
     );
     gh.lazySingleton<_i580.PayoutService>(
       () => networkModule.getPayoutService(gh<_i31.ChopperClient>()),

@@ -477,8 +477,12 @@
     "status_offline": "Offline",
     "mission_id_missing": "Error: missing mission ID",
     "arrived_at_restaurant": "Arrived at restaurant",
-    "online_paid": "Online payment — already paid",
-    "error_code_required": "Please enter the confirmation code"
+    "arrived_at_client": "Arrived at client",
+    "online_paid": "Online payment — paid",
+    "error_code_required": "Please enter the confirmation code",
+    "quit_navigation": "Quit navigation?",
+    "quit_warning": "You are about to stop navigation.",
+    "quit": "Quit"
   },
   "address": {
     "select_title": "Choose an address",
