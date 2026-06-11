@@ -22,6 +22,7 @@ import '../../features/chat/data/datasources/chat_service.dart' as _i321;
 import '../../features/chat/data/repositories/chat_repository.dart' as _i796;
 import '../../features/chat/presentation/cubit/chat_cubit.dart' as _i305;
 import '../../features/client/ai/data/repositories/ai_repository.dart' as _i48;
+import '../../features/client/ai/data/local/ai_dao.dart' as _i91;
 import '../../features/client/ai/presentation/cubit/ai_cubit.dart' as _i585;
 import '../../features/client/banner/data/repositories/banner_repository.dart'
     as _i359;
@@ -259,8 +260,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i580.PayoutService>(
       () => networkModule.getPayoutService(gh<_i31.ChopperClient>()),
     );
+    gh.lazySingleton<_i91.AiLocalDao>(
+      () => _i91.AiLocalDao(gh<_i475.AppDatabase>()),
+    );
     gh.factory<_i48.AiRepository>(
-      () => _i48.AiRepository(gh<_i176.AiService>()),
+      () => _i48.AiRepository(gh<_i176.AiService>(), gh<_i91.AiLocalDao>()),
     );
     gh.lazySingleton<_i863.CouponRepository>(
       () => _i863.CouponRepository(gh<_i851.CouponService>()),
