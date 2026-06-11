@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -191,28 +192,35 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   Future<void> _loadRestaurants() async {
     setState(() => _loadingRestaurants = true);
-    final cityResult = await getIt<RestaurantRepository>().getRestaurants(
-      city: _selectedCity,
-    );
+    final trace = FirebasePerformance.instance.newTrace('restaurant_list_load');
+    await trace.start();
+    trace.putAttribute('city', _selectedCity);
+    try {
+      final cityResult = await getIt<RestaurantRepository>().getRestaurants(
+        city: _selectedCity,
+      );
 
-    List<RestaurantModel> restaurants = [];
-    cityResult.fold((_) {}, (list) => restaurants = list);
+      List<RestaurantModel> restaurants = [];
+      cityResult.fold((_) {}, (list) => restaurants = list);
 
-    if (restaurants.isEmpty) {
-      final featuredResult = await getIt<RestaurantRepository>()
-          .getFeaturedRestaurants();
-      featuredResult.fold((_) {}, (list) => restaurants = list);
+      if (restaurants.isEmpty) {
+        final featuredResult = await getIt<RestaurantRepository>()
+            .getFeaturedRestaurants();
+        featuredResult.fold((_) {}, (list) => restaurants = list);
+      }
+
+      if (!mounted) return;
+
+      final categories = _extractCategories(restaurants);
+      setState(() {
+        _allRestaurants = restaurants;
+        _loadingRestaurants = false;
+        if (categories.isNotEmpty) _categories = categories;
+      });
+      _applyFilters();
+    } finally {
+      await trace.stop();
     }
-
-    if (!mounted) return;
-
-    final categories = _extractCategories(restaurants);
-    setState(() {
-      _allRestaurants = restaurants;
-      _loadingRestaurants = false;
-      if (categories.isNotEmpty) _categories = categories;
-    });
-    _applyFilters();
   }
 
   Future<void> _loadBanners() async {
@@ -442,14 +450,26 @@ class _HomeClientPageState extends State<HomeClientPage> {
   Widget _buildCityTile(String city, String sub) {
     final isSelected = _selectedCity == city;
     return ListTile(
-      onTap: () {
+      onTap: () async {
+        final previousCity = _selectedCity;
         setState(() {
           _selectedCity = city;
         });
         context.pop();
         _loadData();
         final lowerCity = city == 'Yaound\u00e9' ? 'yaounde' : 'douala';
-        context.read<ProfileCubit>().updateProfile({'city': lowerCity});
+        final result = await context.read<ProfileCubit>().updateProfile({'city': lowerCity});
+        result.fold(
+          (err) {
+            if (mounted) {
+              setState(() { _selectedCity = previousCity; });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('common.error'.tr())),
+              );
+            }
+          },
+          (_) {},
+        );
       },
       leading: Icon(
         Icons.location_city_rounded,

@@ -25,4 +25,7 @@ class AppConstants {
 
   // ── Current app version loaded at startup ─────────────────────────────────
   static String appVersion = '1.0.0';
+
+  // ── Phone placeholder for Cameroon ────────────────────────────────────────
+  static const String phoneHintCameroon = '+237 6XX XXX XXX';
 }

@@ -105,18 +105,28 @@ Future<void> _bootstrap() async {
   getIt<PrecacheService>().startPrecaching();
 
   debugPrint('⚙️ Fetching Platform Config...');
-  await getIt<ConfigBloc>().stream
-      .firstWhere(
-        (state) => state.maybeWhen(
-          loaded: (_) => true,
-          error: (_) => true,
-          orElse: () => false,
-        ),
-      )
-      .timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => const ConfigState.error('timeout'),
-      );
+  bool configLoaded = false;
+  for (int attempt = 0; attempt < 3 && !configLoaded; attempt++) {
+    if (attempt > 0) {
+      debugPrint('⚙️ Config retry attempt $attempt...');
+      await Future.delayed(Duration(seconds: attempt * 2));
+      getIt<ConfigBloc>().add(const ConfigEvent.fetchConfig());
+    }
+    try {
+      final state = await getIt<ConfigBloc>().stream
+          .firstWhere(
+            (s) => s.maybeWhen(
+              loaded: (_) => true,
+              error: (_) => true,
+              orElse: () => false,
+            ),
+          )
+          .timeout(const Duration(seconds: 5));
+      configLoaded = state.maybeWhen(loaded: (_) => true, orElse: () => false);
+    } catch (_) {
+      // timeout or error, will retry
+    }
+  }
   // Note: We don't block everything if config fails, but it's better to have it.
 
   debugPrint('🏁 Bootstrap finished. Running App...');

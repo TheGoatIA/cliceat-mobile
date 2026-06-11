@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'package:dartz/dartz.dart' show Either;
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/shared/models/user_model.dart';
 import '../../data/repositories/user_repository.dart';
 
@@ -30,13 +32,14 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
   }
 
-  Future<void> updateProfile(Map<String, dynamic> data) async {
+  Future<Either<AppError, UserModel>> updateProfile(Map<String, dynamic> data) async {
     emit(const ProfileState.loading());
     final result = await _userRepository.updateProfile(data);
     result.fold(
       (error) => emit(ProfileState.error(error.message)),
       (user) => emit(ProfileState.loaded(user)),
     );
+    return result;
   }
 
   void emitLoaded(UserModel user) {

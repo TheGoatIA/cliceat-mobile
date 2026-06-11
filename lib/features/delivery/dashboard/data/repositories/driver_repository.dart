@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/models/mission_model.dart';
@@ -45,7 +46,8 @@ class DriverRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] getActiveMissions error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -61,7 +63,8 @@ class DriverRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] acceptMission error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -77,7 +80,8 @@ class DriverRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] rejectMission error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -93,7 +97,8 @@ class DriverRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] confirmPickup error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -112,7 +117,8 @@ class DriverRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] confirmDelivery error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -125,7 +131,8 @@ class DriverRepository {
       final res = await _missionService.reportMission(id, report);
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] reportMission error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -146,7 +153,8 @@ class DriverRepository {
         return Right(profile);
       }
       return Left(AppError.fromResponse(res.body, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] getProfile error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -158,7 +166,8 @@ class DriverRepository {
       final res = await _driverService.updateStatus({'isOnline': isOnline});
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] updateOnlineStatus error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -166,7 +175,10 @@ class DriverRepository {
   Future<void> updateLocation(double lat, double lng) async {
     try {
       await _driverService.updateLocation({'lat': lat, 'lng': lng});
-    } catch (_) {}
+    } catch (e) {
+      // Location update is best-effort — non-critical, server will use last known position
+      debugPrint('[driver_repository.dart] updateLocation error: $e');
+    }
   }
 
   // ─── Earnings ─────────────────────────────────────────────────────────────
@@ -180,7 +192,8 @@ class DriverRepository {
         return Right(EarningsModel.fromJson(data));
       }
       return Left(AppError.fromResponse(res.body, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] getEarnings error: $e\n$s');
       return Left(AppError.network());
     }
   }

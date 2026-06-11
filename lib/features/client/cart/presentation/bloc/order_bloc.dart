@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -79,23 +80,29 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     Emitter<OrderState> emit,
   ) async {
     emit(const OrderState.loading());
-    final result = await _orderRepository.createOrder(event.payload);
-    result.fold(
-      (err) {
-        _logger.e('Error creating order: ${err.message}');
-        emit(OrderState.error(err.message));
-      },
-      (order) {
-        getIt<AnalyticsService>().logPurchase(
-          orderId: order.id,
-          total: order.total,
-          deliveryFee: order.deliveryFee,
-        );
-        emit(
-          OrderState.created(orderId: order.id, paymentUrl: order.paymentUrl),
-        );
-      },
-    );
+    final trace = FirebasePerformance.instance.newTrace('order_placement');
+    await trace.start();
+    try {
+      final result = await _orderRepository.createOrder(event.payload);
+      result.fold(
+        (err) {
+          _logger.e('Error creating order: ${err.message}');
+          emit(OrderState.error(err.message));
+        },
+        (order) {
+          getIt<AnalyticsService>().logPurchase(
+            orderId: order.id,
+            total: order.total,
+            deliveryFee: order.deliveryFee,
+          );
+          emit(
+            OrderState.created(orderId: order.id, paymentUrl: order.paymentUrl),
+          );
+        },
+      );
+    } finally {
+      await trace.stop();
+    }
   }
 
   Future<void> _onLoadOrders(LoadOrders event, Emitter<OrderState> emit) async {

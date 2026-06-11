@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/client/home/data/datasources/promotion_service.dart';
@@ -21,7 +22,8 @@ class PromotionRepository {
         return Right(listData.cast<Map<String, dynamic>>());
       }
       return Left(AppError.fromResponse(res.body, 'promotion.load_error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[promotion_repository.dart] getActivePromotions error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -36,7 +38,8 @@ class PromotionRepository {
         return Right(data.cast<Map<String, dynamic>>());
       }
       return Left(AppError.fromResponse(res.body, 'promotion.load_error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[promotion_repository.dart] getRestaurantPromotions error: $e\n$s');
       return Left(AppError.network());
     }
   }

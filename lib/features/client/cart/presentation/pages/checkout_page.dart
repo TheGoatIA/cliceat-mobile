@@ -426,7 +426,7 @@ class _CheckoutPageState extends State<CheckoutPage> with SecureScreenMixin {
               autofocus: true,
               decoration: InputDecoration(
                 labelText: 'Téléphone',
-                hintText: '+237 6XX XXX XXX',
+                hintText: AppConstants.phoneHintCameroon,
                 prefixIcon: const Icon(
                   Icons.phone_outlined,
                   color: AppTheme.primaryRed,

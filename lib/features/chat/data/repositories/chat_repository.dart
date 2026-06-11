@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/chat/data/datasources/chat_service.dart';
@@ -33,7 +34,8 @@ class ChatRepository {
         return Right(ConversationModel.fromJson(data));
       }
       return Left(AppError.fromResponse(res.body, 'chat.error_create'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[chat_repository.dart] createOrGetConversation error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -81,7 +83,8 @@ class ChatRepository {
       if (cached.isNotEmpty) return Right(_fromConversationRows(cached));
 
       return Left(AppError.fromResponse(res.body, 'chat.error_load'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[chat_repository.dart] getConversations error: $e\n$s');
       final cached = await _chatDao.getConversations();
       if (cached.isNotEmpty) return Right(_fromConversationRows(cached));
       return Left(AppError.network());
@@ -133,7 +136,8 @@ class ChatRepository {
       if (cached.isNotEmpty) return Right(_fromMessageRows(cached));
 
       return Left(AppError.fromResponse(res.body, 'chat.error_load_messages'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[chat_repository.dart] getMessages error: $e\n$s');
       final cached = await _chatDao.getMessages(conversationId);
       if (cached.isNotEmpty) return Right(_fromMessageRows(cached));
       return Left(AppError.network());
@@ -179,7 +183,8 @@ class ChatRepository {
         return Right(model);
       }
       return Left(AppError.fromResponse(res.body, 'chat.error_send'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[chat_repository.dart] sendMessage error: $e\n$s');
       // Offline mode: queue the message
       if (file == null) {
         // We only queue text messages for now to avoid local file management complexity
@@ -222,7 +227,8 @@ class ChatRepository {
       final res = await _chatService.markAsRead(conversationId);
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'chat.error_update'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[chat_repository.dart] markAsRead error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -235,7 +241,8 @@ class ChatRepository {
         return Right((data['unreadCount'] as num?)?.toInt() ?? 0);
       }
       return Left(AppError.fromResponse(res.body, 'chat.error_load'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[chat_repository.dart] getUnreadCount error: $e\n$s');
       return const Right(0);
     }
   }

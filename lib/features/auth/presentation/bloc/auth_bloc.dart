@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -145,6 +146,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onVerifyOtp(_VerifyOtp event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
+    final trace = FirebasePerformance.instance.newTrace('user_login');
+    await trace.start();
+    trace.putAttribute('method', 'phone_otp');
     try {
       final res = await _authService.verifyOtp({
         'phone': _formatPhone(event.phone),
@@ -175,6 +179,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       _logger.e('[Auth] Erreur vérification OTP: $e');
       emit(const AuthState.error(message: 'common.network_error'));
+    } finally {
+      await trace.stop();
     }
   }
 
@@ -183,6 +189,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthState.loading());
+    final trace = FirebasePerformance.instance.newTrace('user_login');
+    await trace.start();
+    trace.putAttribute('method', 'email');
     try {
       final res = await _authService.login({
         'email': event.email,
@@ -213,6 +222,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       _logger.e('[Auth] Erreur login email: $e');
       emit(const AuthState.error(message: 'common.network_error'));
+    } finally {
+      await trace.stop();
     }
   }
 
@@ -221,6 +232,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthState.loading());
+    final trace = FirebasePerformance.instance.newTrace('user_login');
+    await trace.start();
+    trace.putAttribute('method', 'delivery_phone');
     try {
       final res = await _authService.loginDelivery({
         'phone': _formatPhone(event.phone),
@@ -251,6 +265,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       _logger.e('[Auth] Erreur login livreur: $e');
       emit(const AuthState.error(message: 'common.network_error'));
+    } finally {
+      await trace.stop();
     }
   }
 
@@ -259,6 +275,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthState.loading());
+    final trace = FirebasePerformance.instance.newTrace('user_login');
+    await trace.start();
+    trace.putAttribute('method', 'google');
     try {
       final res = await _authService.loginWithFirebase({
         'idToken': event.token,
@@ -287,6 +306,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       _logger.e('[Auth] Erreur login Google: $e');
       emit(const AuthState.error(message: 'common.network_error'));
+    } finally {
+      await trace.stop();
     }
   }
 
@@ -295,6 +316,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthState.loading());
+    final trace = FirebasePerformance.instance.newTrace('user_login');
+    await trace.start();
+    trace.putAttribute('method', 'apple');
     try {
       final res = await _authService.loginWithFirebase({
         'idToken': event.token,
@@ -323,6 +347,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       _logger.e('[Auth] Erreur login Apple: $e');
       emit(const AuthState.error(message: 'common.network_error'));
+    } finally {
+      await trace.stop();
     }
   }
 

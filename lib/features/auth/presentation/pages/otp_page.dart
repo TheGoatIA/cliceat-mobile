@@ -173,7 +173,7 @@ class _OtpPageState extends State<OtpPage> {
                                   ),
                                 ),
                                 validator: (value) {
-                                  if (value == null || value.length < 4) {
+                                  if (value == null || value.length != 6) {
                                     return 'auth.otp_error'.tr();
                                   }
                                   return null;

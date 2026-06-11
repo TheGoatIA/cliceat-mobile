@@ -370,7 +370,14 @@
     "save_btn": "Save",
     "choose_on_map": "Choose on map",
     "help_whatsapp": "WhatsApp: +237 6XX XXX XXX",
-    "phone_required": "Your phone number is required to place an order."
+    "phone_required": "Your phone number is required to place an order.",
+    "update_success": "Profile updated successfully",
+    "photo_updating": "Updating profile photo...",
+    "photo_update_success": "Profile photo updated successfully!",
+    "whatsapp_contact": "WhatsApp: +237 6XX XXX XXX",
+    "address_empty_error": "Address cannot be empty",
+    "name_required": "Name is required",
+    "phone_invalid": "Invalid format (e.g. +237 6XX XXX XXX)"
   },
   "delivery": {
     "dashboard_title": "Dashboard",

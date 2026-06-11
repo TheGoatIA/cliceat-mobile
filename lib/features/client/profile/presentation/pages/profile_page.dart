@@ -537,6 +537,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _showEditProfile(BuildContext context, UserModel user) {
     final nameController = TextEditingController(text: user.name);
     final phoneController = TextEditingController(text: user.phone ?? '');
+    final formKey = GlobalKey<FormState>();
     // Determine initial city: normalize stored value to one of the two options
     const cities = ['Douala', 'Yaoundé'];
     String selectedCity = cities.firstWhere(
@@ -557,112 +558,132 @@ class _ProfilePageState extends State<ProfilePage> {
             top: 24,
             bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: AppTheme.lineSoft,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Text(
-                'profile.edit_profile'.tr(),
-                style: GoogleFonts.bricolageGrotesque(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'profile.name'.tr(),
-                  prefixIcon: const Icon(Icons.person_outline),
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: 'profile.phone'.tr(),
-                  hintText: '+237 6XX XXX XXX',
-                  prefixIcon: const Icon(Icons.phone_outlined),
-                  helperText: 'Votre numéro est requis pour passer commande.',
-                  helperStyle: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: AppTheme.muted,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<String>(
-                initialValue: selectedCity,
-                decoration: InputDecoration(
-                  labelText: 'profile.city'.tr(),
-                  prefixIcon: const Icon(Icons.location_city_outlined),
-                ),
-                items: cities
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) setSheetState(() => selectedCity = value);
-                },
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    final payload = <String, dynamic>{
-                      'name': nameController.text.trim(),
-                      'city': selectedCity.toLowerCase().replaceAll('é', 'e'),
-                    };
-                    final phone = phoneController.text.trim();
-                    if (phone.isNotEmpty) payload['phone'] = phone;
-                    final result = await getIt<UserRepository>().updateProfile(
-                      payload,
-                    );
-                    result.fold(
-                      (err) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(err.message.tr())),
-                          );
-                        }
-                      },
-                      (updatedUser) {
-                        if (mounted) {
-                          context.read<ProfileCubit>().emitLoaded(updatedUser);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Profil mis à jour avec succès"),
-                              backgroundColor: AppTheme.successColor,
-                            ),
-                          );
-                        }
-                      },
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.lineSoft,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  child: Text('common.save'.tr()),
                 ),
-              ),
-            ],
+                Text(
+                  'profile.edit_profile'.tr(),
+                  style: GoogleFonts.bricolageGrotesque(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'profile.name'.tr(),
+                    prefixIcon: const Icon(Icons.person_outline),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'profile.name_required'.tr();
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: 'profile.phone'.tr(),
+                    hintText: '+237 6XX XXX XXX',
+                    prefixIcon: const Icon(Icons.phone_outlined),
+                    helperText: 'profile.phone_required'.tr(),
+                    helperStyle: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.muted,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'profile.phone_required'.tr();
+                    }
+                    final phoneRegex = RegExp(r'^\+?237[0-9]{8,9}$|^6[0-9]{8}$');
+                    if (!phoneRegex.hasMatch(value.trim().replaceAll(' ', ''))) {
+                      return 'profile.phone_invalid'.tr();
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedCity,
+                  decoration: InputDecoration(
+                    labelText: 'profile.city'.tr(),
+                    prefixIcon: const Icon(Icons.location_city_outlined),
+                  ),
+                  items: cities
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) setSheetState(() => selectedCity = value);
+                  },
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (!formKey.currentState!.validate()) return;
+                      Navigator.pop(ctx);
+                      final payload = <String, dynamic>{
+                        'name': nameController.text.trim(),
+                        'city': selectedCity.toLowerCase().replaceAll('é', 'e'),
+                      };
+                      final phone = phoneController.text.trim();
+                      if (phone.isNotEmpty) payload['phone'] = phone;
+                      final result = await getIt<UserRepository>().updateProfile(
+                        payload,
+                      );
+                      result.fold(
+                        (err) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(err.message.tr())),
+                            );
+                          }
+                        },
+                        (updatedUser) {
+                          if (mounted) {
+                            context.read<ProfileCubit>().emitLoaded(updatedUser);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('profile.update_success'.tr()),
+                                backgroundColor: AppTheme.successColor,
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text('common.save'.tr()),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -686,10 +707,10 @@ class _ProfilePageState extends State<ProfilePage> {
       final file = File(image.path);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
@@ -697,11 +718,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   strokeWidth: 2,
                 ),
               ),
-              SizedBox(width: 12),
-              Text("Mise à jour de la photo de profil..."),
+              const SizedBox(width: 12),
+              Text('profile.photo_updating'.tr()),
             ],
           ),
-          duration: Duration(seconds: 10),
+          duration: const Duration(seconds: 10),
         ),
       );
 
@@ -722,8 +743,8 @@ class _ProfilePageState extends State<ProfilePage> {
         (updatedUser) {
           context.read<ProfileCubit>().emitLoaded(updatedUser);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Photo de profil mise à jour avec succès !"),
+            SnackBar(
+              content: Text('profile.photo_update_success'.tr()),
               backgroundColor: AppTheme.successColor,
             ),
           );
@@ -964,7 +985,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const Text('support@cliceat.cm', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 6),
             Text(
-              'WhatsApp: +237 6XX XXX XXX',
+              'profile.whatsapp_contact'.tr(),
               style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
             ),
             const SizedBox(height: 16),
@@ -1240,14 +1261,14 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Supprimer l'adresse ?"),
+        title: Text('profile.delete_address_title'.tr()),
         content: const Text(
           "Voulez-vous vraiment supprimer cette adresse de votre compte ?",
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text("Annuler", style: TextStyle(color: AppTheme.muted)),
+            child: Text('common.cancel'.tr(), style: const TextStyle(color: AppTheme.muted)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -1255,7 +1276,7 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
             ),
-            child: const Text("Supprimer"),
+            child: Text('common.delete'.tr()),
           ),
         ],
       ),
@@ -1316,7 +1337,7 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
               ),
             ),
             Text(
-              isEditing ? 'Modifier l\'adresse' : 'profile.add_address'.tr(),
+              isEditing ? 'profile.edit_address'.tr() : 'profile.add_address'.tr(),
               style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -1344,7 +1365,7 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
                     Icons.map_rounded,
                     color: AppTheme.primaryRed,
                   ),
-                  tooltip: 'Choisir sur la carte',
+                  tooltip: 'profile.choose_on_map'.tr(),
                   onPressed: () async {
                     HapticFeedback.selectionClick();
                     final result = await context.push(
@@ -1372,8 +1393,8 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
                   final address = addressCtrl.text.trim();
                   if (address.isEmpty) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      const SnackBar(
-                        content: Text("L'adresse ne peut pas être vide"),
+                      SnackBar(
+                        content: Text('profile.address_empty_error'.tr()),
                         backgroundColor: AppTheme.errorColor,
                       ),
                     );
@@ -1437,7 +1458,7 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
                           SnackBar(
                             content: Text(
                               isEditing
-                                  ? "Adresse modifiée avec succès"
+                                  ? 'profile.address_updated'.tr()
                                   : 'profile.address_added'.tr(),
                             ),
                             backgroundColor: AppTheme.successColor,
@@ -1454,7 +1475,7 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(isEditing ? 'Enregistrer' : 'common.add'.tr()),
+                child: Text(isEditing ? 'common.save'.tr() : 'common.add'.tr()),
               ),
             ),
           ],

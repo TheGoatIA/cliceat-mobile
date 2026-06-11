@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/delivery/dashboard/data/datasources/payout_service.dart';
@@ -17,7 +18,8 @@ class PayoutRepository {
         return Right(data.cast<Map<String, dynamic>>());
       }
       return Left(AppError.fromResponse(res.body, 'payout.load_error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[payout_repository.dart] getPayouts error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -27,7 +29,8 @@ class PayoutRepository {
       final res = await _payoutService.requestPayout({'amount': amount});
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'payout.request_error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[payout_repository.dart] requestPayout error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -39,7 +42,8 @@ class PayoutRepository {
         return Right(res.body!['data'] as Map<String, dynamic>);
       }
       return Left(AppError.fromResponse(res.body, 'payout.account_error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[payout_repository.dart] getPayoutAccount error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -59,7 +63,8 @@ class PayoutRepository {
       return Left(
         AppError.fromResponse(res.body, 'payout.update_account_error'),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[payout_repository.dart] updatePayoutAccount error: $e\n$s');
       return Left(AppError.network());
     }
   }

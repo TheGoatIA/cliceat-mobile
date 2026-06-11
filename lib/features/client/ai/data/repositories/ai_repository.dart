@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/core/network/services/ai_service.dart';

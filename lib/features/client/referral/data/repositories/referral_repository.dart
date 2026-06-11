@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/core/network/services/referral_service.dart';
@@ -17,7 +18,8 @@ class ReferralRepository {
         return Right(data['referralCode']?.toString() ?? '');
       }
       return Left(AppError.fromResponse(res.body, 'referral.error_load'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[referral_repository.dart] getMyCode error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -29,7 +31,8 @@ class ReferralRepository {
         return const Right(null);
       }
       return Left(AppError.fromResponse(res.body, 'referral.error_apply'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[referral_repository.dart] applyCode error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -42,7 +45,8 @@ class ReferralRepository {
         return Right(ReferralStatsModel.fromJson(data));
       }
       return Left(AppError.fromResponse(res.body, 'referral.error_load'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[referral_repository.dart] getStats error: $e\n$s');
       return Left(AppError.network());
     }
   }

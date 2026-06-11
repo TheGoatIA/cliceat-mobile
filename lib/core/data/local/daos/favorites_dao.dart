@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import '../database.dart';
 
@@ -53,7 +54,8 @@ class FavoritesDao {
           .watch()
           .map((rows) => rows.map((r) => r.restaurantId).toSet())
           .handleError((e) => <String>{});
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[favorites_dao.dart] watchFavoriteIds error: $e\n$s');
       return Stream.value(<String>{});
     }
   }
