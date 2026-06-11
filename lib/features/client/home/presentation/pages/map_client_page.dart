@@ -4,10 +4,12 @@ import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 
 import 'package:cliceat_app/core/services/location_service.dart';
 import '../../../../../core/config/app_constants.dart';
@@ -33,18 +35,64 @@ class _MapClientPageState extends State<MapClientPage> {
   MapboxMap? _mapboxMap;
   List<RestaurantModel> _restaurants = [];
   bool _loading = true;
+  String _selectedCity = 'Yaound\u00e9';
 
   @override
   void initState() {
     super.initState();
+    _initializeCity();
     _loadRestaurants();
+  }
+
+  void _initializeCity() {
+    final profileState = context.read<ProfileCubit>().state;
+    profileState.maybeWhen(
+      loaded: (user) {
+        if (user.city != null && user.city!.isNotEmpty) {
+          _selectedCity = _normalizeCity(user.city!);
+        } else {
+          _selectedCity = 'Yaound\u00e9';
+        }
+      },
+      orElse: () {
+        _selectedCity = 'Yaound\u00e9';
+      },
+    );
+  }
+
+  String _normalizeCity(String city) {
+    final lower = city.toLowerCase().trim();
+    if (lower == 'douala') return 'Douala';
+    if (lower == 'yaounde' || lower == 'yaound\u00e9') return 'Yaound\u00e9';
+    return 'Yaound\u00e9';
+  }
+
+  Future<void> _centerOnCity() async {
+    if (_mapboxMap == null) return;
+    final (lat, lng) = _getCityCenter(_selectedCity);
+    await _mapboxMap!.flyTo(
+      CameraOptions(
+        center: Point(coordinates: Position(lng, lat)),
+        zoom: 12.0,
+      ),
+      MapAnimationOptions(duration: 800),
+    );
+  }
+
+  (double, double) _getCityCenter(String city) {
+    final lower = city.toLowerCase().trim();
+    if (lower == 'douala') {
+      return (4.0511, 9.7679);
+    }
+    return (3.8480, 11.5021);
   }
 
   // ─── Data ─────────────────────────────────────────────────────────────────
 
   Future<void> _loadRestaurants() async {
+    setState(() => _loading = true);
     final result = await getIt<RestaurantRepository>().getRestaurants(
-      city: AppConstants.defaultCity,
+      city: _selectedCity,
     );
     if (!mounted) return;
     result.fold((_) => setState(() => _loading = false), (restaurants) {
@@ -62,6 +110,7 @@ class _MapClientPageState extends State<MapClientPage> {
 
   Future<void> _onMapCreated(MapboxMap map) async {
     _mapboxMap = map;
+    _centerOnCity();
     // Écouter les clics sur les features
     map.setOnMapTapListener(_onMapTap);
     // Désactiver l'échelle et les attributions encombrantes si besoin
@@ -503,23 +552,41 @@ class _MapClientPageState extends State<MapClientPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      body: Stack(
-        children: [
-          MapWidget(
-            key: const ValueKey('clientMapWidget'),
-            onMapCreated: _onMapCreated,
-            styleUri: MapboxStyles.MAPBOX_STREETS,
-            cameraOptions: CameraOptions(
-              center: Point(
-                coordinates: Position(
-                  AppConstants.defaultLng,
-                  AppConstants.defaultLat,
+    return BlocListener<ProfileCubit, ProfileState>(
+      listener: (context, state) {
+        state.maybeWhen(
+          loaded: (user) {
+            if (user.city != null && user.city!.isNotEmpty) {
+              final normalized = _normalizeCity(user.city!);
+              if (_selectedCity != normalized) {
+                setState(() {
+                  _selectedCity = normalized;
+                });
+                _loadRestaurants();
+                _centerOnCity();
+              }
+            }
+          },
+          orElse: () {},
+        );
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            MapWidget(
+              key: const ValueKey('clientMapWidget'),
+              onMapCreated: _onMapCreated,
+              styleUri: MapboxStyles.MAPBOX_STREETS,
+              cameraOptions: CameraOptions(
+                center: Point(
+                  coordinates: Position(
+                    _selectedCity == 'Douala' ? 9.7679 : 11.5021,
+                    _selectedCity == 'Douala' ? 4.0511 : 3.8480,
+                  ),
                 ),
+                zoom: AppConstants.defaultZoom,
               ),
-              zoom: AppConstants.defaultZoom,
             ),
-          ),
 
           // Barre de recherche
           Positioned(
@@ -615,8 +682,9 @@ class _MapClientPageState extends State<MapClientPage> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildRestaurantBottomSheet(ThemeData theme) {
     return Container(

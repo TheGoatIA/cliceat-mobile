@@ -15,7 +15,7 @@ class SearchResultsPage extends StatefulWidget {
   const SearchResultsPage({
     super.key,
     required this.initialQuery,
-    this.city = 'Douala',
+    this.city = 'Yaound\u00e9',
   });
 
   @override

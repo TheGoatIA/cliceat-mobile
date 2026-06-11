@@ -397,7 +397,7 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.search,
       pageBuilder: (context, state) {
         final query = state.uri.queryParameters['q'] ?? '';
-        final city = state.uri.queryParameters['city'] ?? 'Douala';
+        final city = state.uri.queryParameters['city'] ?? 'Yaound\u00e9';
         return CustomTransitionPage(
           key: state.pageKey,
           child: SearchResultsPage(initialQuery: query, city: city),

@@ -3,10 +3,10 @@
 class AppConstants {
   AppConstants._();
 
-  // ── Default city / map center (Douala, Cameroun) ─────────────────────────
-  static const String defaultCity = 'Douala';
-  static const double defaultLat = 4.0511;
-  static const double defaultLng = 9.7679;
+  // ── Default city / map center (Yaoundé, Cameroun) ─────────────────────────
+  static const String defaultCity = 'Yaound\u00e9';
+  static const double defaultLat = 3.8480;
+  static const double defaultLng = 11.5021;
   static const double defaultZoom = 12.0;
 
   // ── Delivery fee (FCFA) — used as fallback before server value ────────────

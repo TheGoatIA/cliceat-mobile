@@ -18,6 +18,7 @@ import 'package:cliceat_app/core/config/feature_flags.dart';
 import 'package:cliceat_app/core/widgets/feature_gate_sliver.dart';
 import '../bloc/promotion_cubit.dart';
 import '../../../../../shared/widgets/promotion_banner.dart';
+import 'package:cliceat_app/features/client/profile/presentation/bloc/profile_cubit.dart';
 
 class HomeClientPage extends StatefulWidget {
   const HomeClientPage({super.key});
@@ -32,7 +33,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   String _searchQuery = '';
   String? _selectedCategory;
-  String _selectedCity = 'Douala';
+  String _selectedCity = 'Yaound\u00e9';
   String _selectedFilter = '';
   String _sortBy = 'default';
   bool _isOpenOnly = false;
@@ -150,7 +151,31 @@ class _HomeClientPageState extends State<HomeClientPage> {
   @override
   void initState() {
     super.initState();
+    _initializeCity();
     _loadData();
+  }
+
+  void _initializeCity() {
+    final profileState = context.read<ProfileCubit>().state;
+    profileState.maybeWhen(
+      loaded: (user) {
+        if (user.city != null && user.city!.isNotEmpty) {
+          _selectedCity = _normalizeCity(user.city!);
+        } else {
+          _selectedCity = 'Yaound\u00e9';
+        }
+      },
+      orElse: () {
+        _selectedCity = 'Yaound\u00e9';
+      },
+    );
+  }
+
+  String _normalizeCity(String city) {
+    final lower = city.toLowerCase().trim();
+    if (lower == 'douala') return 'Douala';
+    if (lower == 'yaounde' || lower == 'yaound\u00e9') return 'Yaound\u00e9';
+    return 'Yaound\u00e9';
   }
 
   @override
@@ -423,6 +448,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
         });
         context.pop();
         _loadData();
+        final lowerCity = city == 'Yaound\u00e9' ? 'yaounde' : 'douala';
+        context.read<ProfileCubit>().updateProfile({'city': lowerCity});
       },
       leading: Icon(
         Icons.location_city_rounded,
@@ -731,7 +758,24 @@ class _HomeClientPageState extends State<HomeClientPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => getIt<PromotionCubit>()..loadGlobalPromotions(),
-      child: Scaffold(
+      child: BlocListener<ProfileCubit, ProfileState>(
+        listener: (context, state) {
+          state.maybeWhen(
+            loaded: (user) {
+              if (user.city != null && user.city!.isNotEmpty) {
+                final normalized = _normalizeCity(user.city!);
+                if (_selectedCity != normalized) {
+                  setState(() {
+                    _selectedCity = normalized;
+                  });
+                  _loadData();
+                }
+              }
+            },
+            orElse: () {},
+          );
+        },
+        child: Scaffold(
         backgroundColor: AppTheme.bg,
         body: RefreshIndicator(
           color: AppTheme.primaryRed,
@@ -765,8 +809,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
         ),
         floatingActionButton: _buildFAB(context),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildHeader(BuildContext context) {
     return SafeArea(
