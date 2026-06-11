@@ -147,6 +147,17 @@ class _HomeClientPageState extends State<HomeClientPage> {
     _initializeCity();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final cubit = context.read<HomeCubit>();
+    if (cubit.state.restaurants.isEmpty && !cubit.state.loadingRestaurants) {
+      cubit.loadData(_selectedCity);
+    } else if (cubit.state.restaurants.isNotEmpty) {
+      _syncFromCubit(cubit.state);
+    }
+  }
+
   void _syncFromCubit(HomeState homeState) {
     final categories = _extractCategories(homeState.restaurants);
     setState(() {
@@ -735,15 +746,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => getIt<HomeCubit>()..loadData(_selectedCity),
-        ),
-        BlocProvider(
-          create: (context) => getIt<PromotionCubit>()..loadGlobalPromotions(),
-        ),
-      ],
+    return BlocProvider(
+      create: (context) => getIt<PromotionCubit>()..loadGlobalPromotions(),
       child: BlocListener<HomeCubit, HomeState>(
         listenWhen: (previous, current) =>
             previous.restaurants != current.restaurants ||
@@ -996,23 +1000,28 @@ class _HomeClientPageState extends State<HomeClientPage> {
   }
 
   Widget _buildHeroBanner() {
-    if (_loadingBanners && _banners.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-        height: 148,
-        decoration: BoxDecoration(
-          color: AppTheme.bgWarm,
-          borderRadius: BorderRadius.circular(24),
-        ),
-      );
-    }
-    if (_banners.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
-        child: BannerCarousel(banners: _banners, height: 160),
-      );
-    }
-    return Container(
+    return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.banners != current.banners ||
+          previous.loadingBanners != current.loadingBanners,
+      builder: (context, homeState) {
+        if (homeState.loadingBanners && homeState.banners.isEmpty) {
+          return Container(
+            margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            height: 148,
+            decoration: BoxDecoration(
+              color: AppTheme.bgWarm,
+              borderRadius: BorderRadius.circular(24),
+            ),
+          );
+        }
+        if (homeState.banners.isNotEmpty) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+            child: BannerCarousel(banners: homeState.banners, height: 160),
+          );
+        }
+        return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       height: 148,
       decoration: BoxDecoration(
@@ -1113,6 +1122,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
           ),
         ],
       ),
+        );
+      },
     );
   }
 
@@ -1282,90 +1293,98 @@ class _HomeClientPageState extends State<HomeClientPage> {
   }
 
   Widget _buildRestaurantList() {
-    if (_loadingRestaurants) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(40),
-          child: CircularProgressIndicator(color: AppTheme.primaryRed),
-        ),
-      );
-    }
-    if (_displayedRestaurants.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20),
-          child: EmptyState(
-            title: _isSearching
-                ? 'common.no_results'.tr()
-                : 'restaurant.none_available'.tr(),
-            subtitle: _isSearching ? 'common.try_other_query'.tr() : null,
-            icon: _isSearching ? Icons.search_off : Icons.restaurant_outlined,
-            actionLabel: _isSearching ? 'common.clear'.tr() : null,
-            onAction: _isSearching
-                ? () {
-                    _searchController.clear();
-                    setState(() {
-                      _searchQuery = '';
-                      _selectedCategory = null;
-                      _displayedRestaurants = _allRestaurants;
-                    });
-                  }
-                : null,
-          ),
-        ),
-      );
-    }
-
-    if (!_isSearching) {
-      final top5 = _displayedRestaurants.take(5).toList();
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: Row(
-          children: top5
-              .map(
-                (r) => Container(
-                  width: 280,
-                  margin: const EdgeInsets.only(right: 16),
-                  child: RestaurantCard(restaurant: r, compact: true),
-                ),
-              )
-              .toList(),
-        ),
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isTablet = constraints.maxWidth >= 600;
-        if (isTablet) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 14,
-                mainAxisExtent: 240,
-              ),
-              itemCount: _displayedRestaurants.length,
-              itemBuilder: (_, i) => RestaurantCard(
-                restaurant: _displayedRestaurants[i],
-                compact: true,
+    return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.loadingRestaurants != current.loadingRestaurants ||
+          previous.restaurants != current.restaurants,
+      builder: (context, homeState) {
+        if (homeState.loadingRestaurants) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: CircularProgressIndicator(color: AppTheme.primaryRed),
+            ),
+          );
+        }
+        if (_displayedRestaurants.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20),
+              child: EmptyState(
+                title: _isSearching
+                    ? 'common.no_results'.tr()
+                    : 'restaurant.none_available'.tr(),
+                subtitle: _isSearching ? 'common.try_other_query'.tr() : null,
+                icon: _isSearching ? Icons.search_off : Icons.restaurant_outlined,
+                actionLabel: _isSearching ? 'common.clear'.tr() : null,
+                onAction: _isSearching
+                    ? () {
+                        _searchController.clear();
+                        setState(() {
+                          _searchQuery = '';
+                          _selectedCategory = null;
+                          _displayedRestaurants =
+                              context.read<HomeCubit>().state.restaurants;
+                        });
+                      }
+                    : null,
               ),
             ),
           );
         }
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: _displayedRestaurants.length,
-          itemBuilder: (_, i) => Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            child: RestaurantCard(restaurant: _displayedRestaurants[i]),
-          ),
+
+        if (!_isSearching) {
+          final top5 = _displayedRestaurants.take(5).toList();
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Row(
+              children: top5
+                  .map(
+                    (r) => Container(
+                      width: 280,
+                      margin: const EdgeInsets.only(right: 16),
+                      child: RestaurantCard(restaurant: r, compact: true),
+                    ),
+                  )
+                  .toList(),
+            ),
+          );
+        }
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isTablet = constraints.maxWidth >= 600;
+            if (isTablet) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 14,
+                    mainAxisExtent: 240,
+                  ),
+                  itemCount: _displayedRestaurants.length,
+                  itemBuilder: (_, i) => RestaurantCard(
+                    restaurant: _displayedRestaurants[i],
+                    compact: true,
+                  ),
+                ),
+              );
+            }
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: _displayedRestaurants.length,
+              itemBuilder: (_, i) => Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: RestaurantCard(restaurant: _displayedRestaurants[i]),
+              ),
+            );
+          },
         );
       },
     );

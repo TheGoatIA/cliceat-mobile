@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/di/injection.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../cart/presentation/bloc/cart_cubit.dart';
 import '../../../cart/presentation/pages/cart_page.dart';
 import '../../../cart/presentation/pages/order_history_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
+import '../bloc/home_cubit.dart';
 import 'home_client_page.dart';
 import 'map_client_page.dart';
 
@@ -35,7 +37,9 @@ class ClientMainTabState extends State<ClientMainTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocProvider(
+      create: (_) => getIt<HomeCubit>(),
+      child: Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -83,6 +87,7 @@ class ClientMainTabState extends State<ClientMainTab> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
