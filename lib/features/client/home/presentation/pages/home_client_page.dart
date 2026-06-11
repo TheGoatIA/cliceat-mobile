@@ -808,7 +808,6 @@ class _HomeClientPageState extends State<HomeClientPage> {
         ),
         floatingActionButton: _buildFAB(context),
       ),
-        ),
       ),
     ),
   );
