@@ -18,7 +18,7 @@ class OfflineQueueDao extends DatabaseAccessor<AppDatabase>
             ..where(
               (t) =>
                   t.status.equals('pending') &
-                  t.retryCount.isSmallerThanValue(t.maxRetries),
+                  t.retryCount.isSmallerThan(t.maxRetries),
             )
             ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
           .get();

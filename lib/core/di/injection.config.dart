@@ -97,6 +97,7 @@ import '../data/local/daos/chat_dao.dart' as _i468;
 import '../data/local/daos/favorites_dao.dart' as _i968;
 import '../data/local/daos/menu_dao.dart' as _i594;
 import '../data/local/daos/order_dao.dart' as _i427;
+import '../data/local/daos/offline_queue_dao.dart' as _i633;
 import '../data/local/daos/pending_actions_dao.dart' as _i902;
 import '../data/local/daos/restaurant_dao.dart' as _i471;
 import '../data/local/daos/user_prefs_dao.dart' as _i658;
@@ -179,6 +180,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i902.PendingActionsDao>(
       () => _i902.PendingActionsDao(gh<_i475.AppDatabase>()),
+    );
+    gh.lazySingleton<_i633.OfflineQueueDao>(
+      () => _i633.OfflineQueueDao(gh<_i475.AppDatabase>()),
     );
     await gh.lazySingletonAsync<_i31.ChopperClient>(
       () => networkModule.chopperClient(
@@ -264,6 +268,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i114.SyncManagerService>(
       () => _i114.SyncManagerService(
         gh<_i902.PendingActionsDao>(),
+        gh<_i633.OfflineQueueDao>(),
         gh<_i974.Logger>(),
       ),
     );
