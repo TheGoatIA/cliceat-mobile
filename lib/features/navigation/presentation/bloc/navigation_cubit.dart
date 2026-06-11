@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/services/websocket_service.dart';
+import '../../data/datasources/navigation_cache.dart';
 import '../../data/models/osrm_route_model.dart';
 import '../../data/repositories/navigation_repository.dart';
 
@@ -57,6 +58,43 @@ class NavigationCubit extends Cubit<NavigationState> {
     _lastLat = null;
     _lastLng = null;
 
+    // Try loading from cache first for offline/fast start
+    final cached = await NavigationCache.loadRoute(orderId ?? '');
+    if (cached != null) {
+      _currentRoute = cached;
+      emit(NavigationState.navigating(
+        route: cached,
+        currentStepIndex: 0,
+        currentLat: originLat,
+        currentLng: originLng,
+      ));
+      _speakStep(0);
+      _startLocationTracking();
+      // Fetch fresh route in background and update
+      _repository.computeRoute(
+        originLat: originLat,
+        originLng: originLng,
+        destLat: destLat,
+        destLng: destLng,
+        orderId: orderId,
+      ).then((result) {
+        _currentRoute = result.route;
+        NavigationCache.saveRoute(result.route, orderId ?? '');
+        if (state is NavigationNavigating) {
+          final s = state as NavigationNavigating;
+          emit(NavigationState.navigating(
+            route: result.route,
+            currentStepIndex: s.currentStepIndex,
+            currentLat: s.currentLat,
+            currentLng: s.currentLng,
+          ));
+        }
+      }).catchError((e) {
+        debugPrint('Background route refresh failed: $e');
+      });
+      return;
+    }
+
     try {
       final result = await _repository.computeRoute(
         originLat: originLat,
@@ -66,6 +104,7 @@ class NavigationCubit extends Cubit<NavigationState> {
         orderId: orderId,
       );
       _currentRoute = result.route;
+      await NavigationCache.saveRoute(result.route, orderId ?? '');
       emit(NavigationState.navigating(
         route: result.route,
         currentStepIndex: 0,

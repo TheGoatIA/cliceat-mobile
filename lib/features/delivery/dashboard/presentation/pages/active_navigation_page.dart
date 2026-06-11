@@ -52,6 +52,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
   late MissionModel _mission;
   bool _navigationStarted = false;
   bool _showStepsList = false;
+  double _currentSpeedKmh = 0.0;
 
   @override
   void initState() {
@@ -92,6 +93,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
       ),
     ).listen((pos) {
       if (!mounted) return;
+      setState(() => _currentSpeedKmh = (pos.speed * 3.6).clamp(0.0, 200.0));
       getIt<WebSocketService>().emitLocationUpdate(
         pos.latitude, pos.longitude,
         heading: pos.heading,
@@ -228,6 +230,33 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                 const Center(child: CircularProgressIndicator(color: AppTheme.primaryRed)),
               _buildTopPanel(navState),
               _buildBottomPanel(isRestaurantPhase, navState),
+              // Speed HUD
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 100,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _speedColor(_currentSpeedKmh),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: AppTheme.shadowMd,
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        _currentSpeedKmh.round().toString(),
+                        style: GoogleFonts.bricolageGrotesque(
+                          fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white,
+                        ),
+                      ),
+                      Text('km/h', style: GoogleFonts.inter(fontSize: 10, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              ),
+              // Arrival overlay
+              if (navState is NavigationArrived)
+                _buildArrivalOverlay(navState as NavigationArrived),
               // Steps list overlay
               if (_showStepsList)
                 _buildStepsListOverlay(navState),
@@ -612,6 +641,55 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Color _speedColor(double speed) {
+    if (speed > 60) return Colors.red;
+    if (speed > 30) return Colors.orange;
+    return AppTheme.primaryRed;
+  }
+
+  Widget _buildArrivalOverlay(NavigationArrived state) {
+    // Auto-pop after 3s
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) context.pop();
+    });
+
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black54,
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: AppTheme.shadowLg,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle_rounded, size: 80, color: AppTheme.green),
+                const SizedBox(height: 16),
+                Text(
+                  'Vous êtes arrivé ! 🎉',
+                  style: GoogleFonts.bricolageGrotesque(
+                    fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.ink,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${state.route.distanceLabel} • ${state.route.durationLabel}',
+                  style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
