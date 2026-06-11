@@ -15,4 +15,14 @@ abstract class AiService extends ChopperService {
   Future<Response<Map<String, dynamic>>> getSuggestions({
     @Query('city') String? city,
   });
+
+  @GET(path: '/conversations')
+  Future<Response<Map<String, dynamic>>> getConversations({
+    @Query('page') int? page,
+  });
+
+  @GET(path: '/conversations/{id}')
+  Future<Response<Map<String, dynamic>>> getConversationMessages(
+    @Path('id') String id,
+  );
 }

@@ -1,46 +1,105 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
-import '../../data/repositories/ai_repository.dart';
 import '../../data/models/ai_model.dart';
-import 'ai_state.dart';
+import '../../data/repositories/ai_repository.dart';
+
+part 'ai_state.dart';
+part 'ai_cubit.freezed.dart';
 
 @injectable
 class AiCubit extends Cubit<AiState> {
   final AiRepository _repository;
-  final List<AiMessageModel> _messages = [];
 
-  AiCubit(this._repository) : super(const AiState.initial());
+  AiCubit(this._repository) : super(const AiState.initial(conversations: []));
 
-  void initChat(String locale) {
-    if (_messages.isEmpty) {
-      _messages.add(
-        AiMessageModel(
-          role: 'model',
-          content: locale == 'fr'
-              ? "Bonjour ! Je suis ClicEat AI, votre assistant culinaire. Que désirez-vous manger aujourd'hui ?"
-              : "Hello! I am ClicEat AI, your food assistant. What would you like to eat today?",
-        ),
-      );
-    }
-    emit(AiState.idle(messages: List.from(_messages)));
+  Future<void> loadConversations() async {
+    final conversations = await _repository.getLocalConversations();
+    emit(AiState.conversationList(conversations: conversations));
+  }
+
+  Future<void> openConversation(String conversationId) async {
+    final messages = await _repository.getLocalMessages(conversationId);
+    emit(AiState.chat(
+      conversationId: conversationId,
+      messages: messages,
+      isTyping: false,
+    ));
+  }
+
+  Future<void> newConversation() async {
+    final id = await _repository.createLocalConversation('Nouvelle conversation');
+    emit(AiState.chat(
+      conversationId: id,
+      messages: const [],
+      isTyping: false,
+    ));
+  }
+
+  Future<void> archiveConversation(String conversationId) async {
+    await _repository.archiveLocalConversation(conversationId);
+    await loadConversations();
   }
 
   Future<void> sendMessage(String text) async {
+    final currentState = state;
+    if (currentState is! _Chat) return;
     if (text.trim().isEmpty) return;
 
-    _messages.add(AiMessageModel(role: 'user', content: text));
-    emit(const AiState.typing());
+    final updatedMessages = [
+      ...currentState.messages,
+      AiMessageModel(role: 'user', content: text, createdAt: DateTime.now()),
+    ];
 
-    // Send only up to last 10 messages for context
-    final history = _messages.length > 10
-        ? _messages.sublist(_messages.length - 10)
-        : _messages;
+    emit(AiState.chat(
+      conversationId: currentState.conversationId,
+      messages: updatedMessages,
+      isTyping: true,
+    ));
 
-    final res = await _repository.sendMessage(text, history);
+    final history = updatedMessages.length > 10
+        ? updatedMessages.sublist(updatedMessages.length - 10)
+        : updatedMessages;
 
-    res.fold((err) => emit(AiState.error(err.message)), (reply) {
-      _messages.add(AiMessageModel(role: 'model', content: reply));
-      emit(AiState.idle(messages: List.from(_messages)));
-    });
+    final conv = await _repository.getLocalConversation(currentState.conversationId);
+
+    final result = await _repository.sendMessage(
+      localConversationId: currentState.conversationId,
+      message: text,
+      history: history,
+      serverConversationId: conv?.serverId,
+    );
+
+    result.fold(
+      (error) {
+        emit(AiState.chat(
+          conversationId: currentState.conversationId,
+          messages: updatedMessages,
+          isTyping: false,
+          offlineError: true,
+        ));
+      },
+      (modelMessage) {
+        final finalMessages = [...updatedMessages, modelMessage];
+        emit(AiState.chat(
+          conversationId: currentState.conversationId,
+          messages: finalMessages,
+          isTyping: false,
+        ));
+      },
+    );
+  }
+
+  Future<void> loadSuggestions(String city) async {
+    final result = await _repository.getSuggestions(city);
+    result.fold(
+      (_) {},
+      (suggestions) {
+        final current = state;
+        if (current is _Chat) {
+          emit(current.copyWith(suggestions: suggestions));
+        }
+      },
+    );
   }
 }

@@ -26,6 +26,9 @@ import 'daos/order_dao.dart';
 import 'daos/favorites_dao.dart';
 import 'daos/offline_queue_dao.dart';
 
+import '../../features/client/ai/data/local/ai_tables.dart';
+import '../../features/client/ai/data/local/ai_dao.dart';
+
 part 'database.g.dart';
 
 @DriftDatabase(
@@ -40,6 +43,8 @@ part 'database.g.dart';
     OrdersTable,
     FavoritesTable,
     OfflineActionsTable,
+    AiConversationsTable,
+    AiMessagesTable,
   ],
   daos: [
     CartDao,
@@ -51,6 +56,7 @@ part 'database.g.dart';
     OrderDao,
     FavoritesDao,
     OfflineQueueDao,
+    AiLocalDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -60,7 +66,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -90,6 +96,10 @@ class AppDatabase extends _$AppDatabase {
         // Persistance de la file d'attente hors-ligne avec gestion des retries
         // et statuts ('pending' | 'processing' | 'failed').
         await m.createTable(offlineActionsTable);
+      }
+      if (from < 9) {
+        await m.createTable(aiConversationsTable);
+        await m.createTable(aiMessagesTable);
       }
     },
     beforeOpen: (details) async {
