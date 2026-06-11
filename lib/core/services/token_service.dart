@@ -54,6 +54,7 @@ class TokenService {
         expiry.subtract(const Duration(minutes: 1)),
       );
     } catch (_) {
+      // JWT parse failure — treat token as expired (safest default)
       return true;
     }
   }

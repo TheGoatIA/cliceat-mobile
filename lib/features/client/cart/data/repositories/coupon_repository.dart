@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/client/cart/data/models/coupon_model.dart';
@@ -41,7 +42,8 @@ class CouponRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[coupon_repository.dart] validateCoupon error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -59,7 +61,8 @@ class CouponRepository {
         );
       }
       return Left(AppError.fromResponse(res.body ?? res.error, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[coupon_repository.dart] getBanners error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -77,7 +80,8 @@ class CouponRepository {
         );
       }
       return Left(AppError.fromResponse(res.body ?? res.error, 'common.error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[coupon_repository.dart] getAvailableCoupons error: $e\n$s');
       return Left(AppError.network());
     }
   }

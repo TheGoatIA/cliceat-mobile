@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/core/network/services/review_service.dart';
@@ -31,7 +32,8 @@ class ReviewRepository {
         );
       }
       return Left(AppError.fromResponse(res.body, 'review.error_load'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[review_repository.dart] getRestaurantReviews error: $e\n$s');
       return Left(
         const AppError(message: 'review.error_load', type: AppErrorType.server),
       );
@@ -54,7 +56,8 @@ class ReviewRepository {
         );
       }
       return Left(AppError.fromResponse(res.body, 'review.error_load'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[review_repository.dart] getMyReviews error: $e\n$s');
       return Left(
         const AppError(message: 'review.error_load', type: AppErrorType.server),
       );
@@ -78,7 +81,8 @@ class ReviewRepository {
       );
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'review.error_create'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[review_repository.dart] createReview error (queuing offline): $e\n$s');
       // Offline mode: queue the review
       await _pendingActionsDao.addPending(
         'create_review',

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:http/http.dart' show MultipartFile;
 // ignore: depend_on_referenced_packages
@@ -49,7 +50,8 @@ class DisputeRepository {
 
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'dispute.create_error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[dispute_repository.dart] createDispute error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -64,7 +66,8 @@ class DisputeRepository {
         return Right(list.cast<Map<String, dynamic>>());
       }
       return Left(AppError.fromResponse(res.body, 'dispute.history_error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[dispute_repository.dart] getMyDisputes error: $e\n$s');
       return Left(AppError.network());
     }
   }

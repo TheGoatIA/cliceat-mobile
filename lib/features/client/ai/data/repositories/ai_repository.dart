@@ -25,7 +25,8 @@ class AiRepository {
         return Right(data['reply']?.toString() ?? '');
       }
       return Left(AppError.fromResponse(res.body, 'ai.error_chat'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[ai_repository.dart] sendMessage error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -44,7 +45,8 @@ class AiRepository {
         );
       }
       return Left(AppError.fromResponse(res.body, 'ai.error_suggestions'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[ai_repository.dart] getSuggestions error: $e\n$s');
       return Left(AppError.network());
     }
   }

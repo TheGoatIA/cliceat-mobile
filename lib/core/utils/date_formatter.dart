@@ -15,6 +15,7 @@ String formatDate(dynamic rawDate, {String locale = 'fr'}) {
     final fmt = DateFormat.yMMMd(locale).add_Hm();
     return fmt.format(dt);
   } catch (_) {
+    // Date parse failure — return raw value as-is rather than crashing
     return rawDate.toString();
   }
 }
@@ -26,6 +27,7 @@ String formatDateShort(dynamic rawDate, {String locale = 'fr'}) {
     final dt = DateTime.parse(rawDate.toString()).toLocal();
     return DateFormat.yMd(locale).format(dt);
   } catch (_) {
+    // Date parse failure — return raw value as-is rather than crashing
     return rawDate.toString();
   }
 }
@@ -42,6 +44,7 @@ String formatRelative(dynamic rawDate, {String locale = 'fr'}) {
     if (diff.inHours < 24) return '${diff.inHours} h';
     return '${diff.inDays} $dayLabel';
   } catch (_) {
+    // Date parse failure — return raw value as-is rather than crashing
     return rawDate.toString();
   }
 }

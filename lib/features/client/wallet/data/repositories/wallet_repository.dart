@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/features/client/wallet/data/datasources/wallet_service.dart';
@@ -29,7 +30,8 @@ class WalletRepository {
         }
       }
       return Left(AppError.fromResponse(res.body, 'wallet.recharge_error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[wallet_repository.dart] recharge error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -43,7 +45,8 @@ class WalletRepository {
         return Right(items.cast<Map<String, dynamic>>());
       }
       return Left(AppError.fromResponse(res.body, 'wallet.history_error'));
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[wallet_repository.dart] getHistory error: $e\n$s');
       return Left(AppError.network());
     }
   }

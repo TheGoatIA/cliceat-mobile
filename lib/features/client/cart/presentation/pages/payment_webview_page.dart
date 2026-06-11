@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -148,7 +149,8 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
           }
         },
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[payment_webview_page.dart] payment verification error: $e\n$s');
       if (mounted) {
         setState(() => _verifying = false);
         _showPaymentFailed();

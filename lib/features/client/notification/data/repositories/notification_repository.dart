@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cliceat_app/core/errors/app_error.dart';
 import 'package:cliceat_app/core/network/services/user_service.dart';
@@ -33,7 +34,8 @@ class NotificationRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[notification_repository.dart] getNotifications error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -51,7 +53,8 @@ class NotificationRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[notification_repository.dart] markAsRead error: $e\n$s');
       return Left(AppError.network());
     }
   }
@@ -69,7 +72,8 @@ class NotificationRepository {
           statusCode: res.statusCode,
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[notification_repository.dart] deleteNotification error: $e\n$s');
       return Left(AppError.network());
     }
   }

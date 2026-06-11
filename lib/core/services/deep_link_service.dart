@@ -182,7 +182,8 @@ class DeepLinkService {
           }
         },
       );
-    } catch (_) {
+    } catch (e, s) {
+      _logger.e('[DeepLink] Payment verification failed: $e\n$s');
       if (context.mounted) {
         Navigator.of(context).pop(); // Close the loading dialog
         _showPaymentFailedSnackbar(context);

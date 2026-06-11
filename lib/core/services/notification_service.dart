@@ -218,6 +218,7 @@ class NotificationService {
           data['orderId'] as String? ?? data['order_id'] as String? ?? '';
       _navigate(type, orderId);
     } catch (_) {
+      // JSON parse failure — fall back to regex extraction from raw payload string
       final orderIdMatch = RegExp(r'orderId:\s*([^\s,}]+)').firstMatch(payload);
       final typeMatch = RegExp(r'type:\s*([^\s,}]+)').firstMatch(payload);
       _navigate(typeMatch?.group(1) ?? '', orderIdMatch?.group(1) ?? '');

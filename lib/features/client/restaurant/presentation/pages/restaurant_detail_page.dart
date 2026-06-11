@@ -847,6 +847,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
 
       return currentMin >= openMin && currentMin <= closeMin;
     } catch (_) {
+      // Hours parse failure — assume restaurant is open rather than blocking the user
       return true;
     }
   }

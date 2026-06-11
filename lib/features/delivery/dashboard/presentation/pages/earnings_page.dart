@@ -201,6 +201,7 @@ class _EarningsPageState extends State<EarningsPage> {
       try {
         return '${e.date.day}/${e.date.month}';
       } catch (_) {
+        // Date parse failure for chart label — return empty string to skip tick
         return '';
       }
     }).toList();
