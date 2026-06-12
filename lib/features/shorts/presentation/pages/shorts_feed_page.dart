@@ -28,7 +28,7 @@ class _ShortsFeedPageState extends State<ShortsFeedPage> {
       child: Builder(
         builder: (context) {
           return Scaffold(
-            backgroundColor: AppTheme.bg,
+            backgroundColor: Colors.black,
             body: Column(
               children: [
                 // City filter chips

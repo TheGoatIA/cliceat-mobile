@@ -43,8 +43,6 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
   late final Animation<double> _pulseAnimation;
   bool _hasPromptedResume = false;
 
-  // Auto-refresh every 30s + lifecycle resume detection
-  Timer? _refreshTimer;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -67,14 +65,6 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
 
     _loadEarnings();
     _loadInitialStatus();
-
-    // Auto-refresh dashboard every 30 seconds
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) {
-        _missionBloc.add(MissionEvent.loadActiveMissions());
-        _loadEarnings();
-      }
-    });
 
     // Re-prompt resume when app comes back to foreground
     _lifecycleListener = AppLifecycleListener(
@@ -109,7 +99,6 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     _wsSubscription?.cancel();
     _missionBloc.close();
     _locationSubscription?.cancel();
-    _refreshTimer?.cancel();
     _lifecycleListener.dispose();
     super.dispose();
   }

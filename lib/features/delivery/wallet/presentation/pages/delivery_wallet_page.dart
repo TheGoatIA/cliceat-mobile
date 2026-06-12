@@ -55,6 +55,7 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
         final body = jsonDecode(res.body) as Map<String, dynamic>;
         final data = body['data'] as Map<String, dynamic>? ?? body;
         final balance =
+            (data['walletBalance'] as num?)?.toDouble() ??
             (data['balance'] as num?)?.toDouble() ??
             (data['wallet']?['balance'] as num?)?.toDouble() ??
             0.0;
@@ -73,14 +74,14 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
         });
       } else {
         setState(() {
-          _error = 'legal.load_error'.tr();
+          _error = 'common.error'.tr();
           _loading = false;
         });
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = 'legal.load_error'.tr();
+        _error = 'common.error'.tr();
         _loading = false;
       });
     }
@@ -119,7 +120,7 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
         _loadWallet();
       } else {
         final body = jsonDecode(res.body) as Map<String, dynamic>?;
-        final msg = body?['message']?.toString() ?? 'legal.load_error'.tr();
+        final msg = body?['message']?.toString() ?? 'common.error'.tr();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(msg),
@@ -135,7 +136,7 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('legal.load_error'.tr()),
+          content: Text('common.error'.tr()),
           backgroundColor: AppTheme.primaryRed,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
