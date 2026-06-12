@@ -497,7 +497,17 @@
     "tts_arrived": "Vous êtes arrivé à destination",
     "tts_reroute": "Recalcul de l'itinéraire",
     "nav_channel_name": "Navigation Active",
-    "nav_channel_desc": "Mises à jour des étapes de navigation"
+    "nav_channel_desc": "Mises à jour des étapes de navigation",
+    "wallet_title": "Mon Portefeuille",
+    "wallet_balance": "Solde disponible",
+    "wallet_withdraw": "Retirer vers Mobile Money",
+    "wallet_withdraw_amount": "Montant à retirer (XAF)",
+    "wallet_withdraw_phone": "Numéro Mobile Money",
+    "wallet_withdraw_success": "Retrait en cours de traitement",
+    "wallet_min_amount": "Minimum 500 XAF",
+    "wallet_insufficient": "Solde insuffisant",
+    "wallet_transactions": "Historique",
+    "wallet_no_transactions": "Aucune transaction"
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -590,7 +600,11 @@
     "privacy_s5_title": "5. Vos droits",
     "privacy_s5_body": "Conformément à la loi camerounaise sur les données personnelles, vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition. Contactez-nous à : privacy@cliceat.cm",
     "privacy_s6_title": "6. Sécurité",
-    "privacy_s6_body": "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, notamment le chiffrement des données sensibles et la transmission sécurisée (HTTPS/TLS)."
+    "privacy_s6_body": "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, notamment le chiffrement des données sensibles et la transmission sécurisée (HTTPS/TLS).",
+    "last_updated": "Mis à jour le",
+    "loading": "Chargement...",
+    "load_error": "Impossible de charger le contenu",
+    "retry": "Réessayer"
   },
   "wallet": {
     "title": "Mon Portefeuille",
@@ -666,11 +680,14 @@
     "friends_invited": "Amis invités",
     "share_title": "Partagez votre code",
     "share_desc": "Invitez vos amis et gagnez de l'argent lorsqu'ils commandent",
-    "copied": "Code copié dans le presse-papier",
+    "copied": "Code copié !",
     "apply_code_btn": "J'ai un code de parrainage",
     "apply_title": "Appliquer un code",
     "code_hint": "Code de parrainage",
-    "apply_success": "Code appliqué avec succès !"
+    "apply_success": "Code appliqué avec succès !",
+    "share": "Partager mon code",
+    "your_code": "Ton code de parrainage",
+    "share_subject": "Code de parrainage ClicEat"
   },
   "ai": {
     "assistant_title": "Assistant IA",
@@ -721,5 +738,11 @@
   },
   "pending": "En attente",
   "processed": "Traité",
-  "rejected": "Rejeté"
+  "rejected": "Rejeté",
+  "support": {
+    "call_support": "Appeler le support",
+    "whatsapp": "WhatsApp",
+    "phone_number": "658 709 986",
+    "email": "support@cliceat.cm"
+  }
 }

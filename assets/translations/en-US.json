@@ -497,7 +497,17 @@
     "tts_arrived": "You have arrived at your destination",
     "tts_reroute": "Recalculating route",
     "nav_channel_name": "Active Navigation",
-    "nav_channel_desc": "Updates on navigation steps"
+    "nav_channel_desc": "Updates on navigation steps",
+    "wallet_title": "My Wallet",
+    "wallet_balance": "Available balance",
+    "wallet_withdraw": "Withdraw to Mobile Money",
+    "wallet_withdraw_amount": "Amount to withdraw (XAF)",
+    "wallet_withdraw_phone": "Mobile Money number",
+    "wallet_withdraw_success": "Withdrawal being processed",
+    "wallet_min_amount": "Minimum 500 XAF",
+    "wallet_insufficient": "Insufficient balance",
+    "wallet_transactions": "History",
+    "wallet_no_transactions": "No transactions"
   },
   "address": {
     "select_title": "Choose an address",
@@ -590,7 +600,11 @@
     "privacy_s5_title": "5. Your Rights",
     "privacy_s5_body": "In accordance with Cameroonian personal data law, you have the right to access, rectify, erase, and object to your data. Contact us at: privacy@cliceat.cm",
     "privacy_s6_title": "6. Security",
-    "privacy_s6_body": "We implement technical and organizational security measures to protect your data against unauthorized access, including encryption of sensitive data and secure transmission (HTTPS/TLS)."
+    "privacy_s6_body": "We implement technical and organizational security measures to protect your data against unauthorized access, including encryption of sensitive data and secure transmission (HTTPS/TLS).",
+    "last_updated": "Last updated",
+    "loading": "Loading...",
+    "load_error": "Unable to load content",
+    "retry": "Retry"
   },
   "wallet": {
     "title": "My Wallet",
@@ -666,11 +680,14 @@
     "friends_invited": "Friends Invited",
     "share_title": "Share your code",
     "share_desc": "Invite friends and earn money when they order",
-    "copied": "Code copied to clipboard",
+    "copied": "Code copied!",
     "apply_code_btn": "I have a referral code",
     "apply_title": "Apply a code",
     "code_hint": "Referral code",
-    "apply_success": "Code successfully applied!"
+    "apply_success": "Code successfully applied!",
+    "share": "Share my code",
+    "your_code": "Your referral code",
+    "share_subject": "ClicEat referral code"
   },
   "ai": {
     "assistant_title": "AI Assistant",
@@ -721,5 +738,11 @@
   },
   "pending": "Pending",
   "processed": "Processed",
-  "rejected": "Rejected"
+  "rejected": "Rejected",
+  "support": {
+    "call_support": "Call support",
+    "whatsapp": "WhatsApp",
+    "phone_number": "658 709 986",
+    "email": "support@cliceat.cm"
+  }
 }
