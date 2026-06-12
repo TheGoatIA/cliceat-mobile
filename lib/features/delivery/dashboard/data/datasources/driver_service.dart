@@ -28,6 +28,20 @@ abstract class DriverService extends ChopperService {
     @Body() Map<String, dynamic> locationData,
   );
 
+  /// GET /delivery/me/ranking
+  @GET(path: '/me/ranking')
+  Future<Response<Map<String, dynamic>>> getRanking();
+
+  /// GET /delivery/me/goal
+  @GET(path: '/me/goal')
+  Future<Response<Map<String, dynamic>>> getGoal();
+
+  /// PUT /delivery/me/goal — { amount: int }
+  @PUT(path: '/me/goal')
+  Future<Response<Map<String, dynamic>>> setGoal(
+    @Body() Map<String, dynamic> goalData,
+  );
+
   /// POST /delivery/register (Multipart)
   @POST(path: '/register')
   @Multipart()

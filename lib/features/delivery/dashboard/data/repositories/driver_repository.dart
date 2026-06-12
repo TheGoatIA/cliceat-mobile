@@ -197,4 +197,47 @@ class DriverRepository {
       return Left(AppError.network());
     }
   }
+
+  // ─── Ranking & Goals ──────────────────────────────────────────────────────
+
+  Future<Either<AppError, Map<String, dynamic>>> getRanking() async {
+    try {
+      final res = await _driverService.getRanking();
+      if (res.isSuccessful && res.body != null) {
+        final data =
+            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        return Right(data);
+      }
+      return Left(AppError.fromResponse(res.body, 'common.error'));
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] getRanking error: $e\n$s');
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, Map<String, dynamic>>> getGoal() async {
+    try {
+      final res = await _driverService.getGoal();
+      if (res.isSuccessful && res.body != null) {
+        final data =
+            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        return Right(data);
+      }
+      return Left(AppError.fromResponse(res.body, 'common.error'));
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] getGoal error: $e\n$s');
+      return Left(AppError.network());
+    }
+  }
+
+  Future<Either<AppError, void>> setGoal(int amount) async {
+    try {
+      final res = await _driverService.setGoal({'amount': amount});
+      if (res.isSuccessful) return const Right(null);
+      return Left(AppError.fromResponse(res.body, 'common.error'));
+    } catch (e, s) {
+      debugPrint('[driver_repository.dart] setGoal error: $e\n$s');
+      return Left(AppError.network());
+    }
+  }
 }
