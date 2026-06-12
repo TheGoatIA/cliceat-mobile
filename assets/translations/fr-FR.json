@@ -113,7 +113,8 @@
     "nav_cart": "Panier",
     "nav_profile": "Profil",
     "search_results": "Résultats de recherche",
-    "restaurants": "restaurants"
+    "restaurants": "restaurants",
+    "nav_shorts": "Shorts"
   },
   "home": {
     "city_picker_title": "Choisir votre ville",
@@ -763,5 +764,23 @@
     "whatsapp": "WhatsApp",
     "phone_number": "658 709 986",
     "email": "support@cliceat.cm"
+  },
+  "shorts": {
+    "title": "Shorts",
+    "empty": "Aucune vidéo disponible pour le moment.",
+    "share": "Partager",
+    "upload_title": "Publier un Short",
+    "upload_pick": "Choisir une vidéo (max 60s)",
+    "upload_record": "Filmer une vidéo",
+    "upload_change": "Changer la vidéo",
+    "upload_no_video": "Veuillez sélectionner une vidéo.",
+    "rating": "Note",
+    "caption": "Légende",
+    "caption_hint": "Décrivez votre expérience... (200 car. max)",
+    "publish": "Publier",
+    "load_error": "Impossible de charger les Shorts.",
+    "upload_error": "Erreur lors de la publication.",
+    "like_error": "Erreur lors du like.",
+    "view_error": "Erreur lors du comptage de vue."
   }
 }

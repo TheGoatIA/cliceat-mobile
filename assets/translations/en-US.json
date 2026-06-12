@@ -113,7 +113,8 @@
     "nav_cart": "Cart",
     "nav_profile": "Profile",
     "search_results": "Search results",
-    "restaurants": "restaurants"
+    "restaurants": "restaurants",
+    "nav_shorts": "Shorts"
   },
   "home": {
     "city_picker_title": "Choose your city",
@@ -763,5 +764,23 @@
     "whatsapp": "WhatsApp",
     "phone_number": "658 709 986",
     "email": "support@cliceat.cm"
+  },
+  "shorts": {
+    "title": "Shorts",
+    "empty": "No videos available yet.",
+    "share": "Share",
+    "upload_title": "Publish a Short",
+    "upload_pick": "Choose a video (max 60s)",
+    "upload_record": "Record a video",
+    "upload_change": "Change video",
+    "upload_no_video": "Please select a video.",
+    "rating": "Rating",
+    "caption": "Caption",
+    "caption_hint": "Describe your experience... (max 200 chars)",
+    "publish": "Publish",
+    "load_error": "Unable to load Shorts.",
+    "upload_error": "Error while publishing.",
+    "like_error": "Error while liking.",
+    "view_error": "Error counting view."
   }
 }

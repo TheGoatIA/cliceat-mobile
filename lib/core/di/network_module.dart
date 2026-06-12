@@ -28,6 +28,7 @@ import '../../features/client/dispute/data/datasources/dispute_service.dart';
 import '../../features/client/home/data/datasources/promotion_service.dart';
 import '../../features/delivery/dashboard/data/datasources/payout_service.dart';
 import '../network/services/navigation_service.dart';
+import '../../features/shorts/data/datasources/shorts_service.dart';
 
 import '../network/pinned_client_provider.dart';
 import '../network/safe_json_converter.dart';
@@ -64,6 +65,7 @@ abstract class NetworkModule {
         PromotionService.create(),
         PayoutService.create(),
         NavigationService.create(),
+        ShortsService.create(),
       ],
       converter: const SafeJsonConverter(),
       interceptors: [
@@ -152,4 +154,8 @@ abstract class NetworkModule {
   @lazySingleton
   NavigationService getNavigationService(ChopperClient client) =>
       client.getService<NavigationService>();
+
+  @lazySingleton
+  ShortsService getShortsService(ChopperClient client) =>
+      client.getService<ShortsService>();
 }
