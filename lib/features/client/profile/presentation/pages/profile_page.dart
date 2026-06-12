@@ -370,6 +370,20 @@ class _ProfilePageState extends State<ProfilePage> {
             color: AppTheme.green,
             onTap: () => _showHelp(context),
           ),
+          _buildDivider(theme),
+          _buildMenuItem(
+            icon: Icons.privacy_tip_outlined,
+            title: 'profile.privacy_policy'.tr(),
+            color: AppTheme.muted,
+            onTap: () => context.push('/client/legal/privacy'),
+          ),
+          _buildDivider(theme),
+          _buildMenuItem(
+            icon: Icons.description_outlined,
+            title: 'profile.terms'.tr(),
+            color: AppTheme.muted,
+            onTap: () => context.push('/client/legal/terms'),
+          ),
         ], theme),
 
         const SizedBox(height: 28),
@@ -999,8 +1013,10 @@ class _ProfilePageState extends State<ProfilePage> {
               title: 'support.call_support'.tr(),
               subtitle: 'support.phone_number'.tr(),
               onTap: () async {
-                final uri = Uri.parse('tel:+237658709986');
-                if (await canLaunchUrl(uri)) await launchUrl(uri);
+                await launchUrl(
+                  Uri.parse('tel:+237658709986'),
+                  mode: LaunchMode.externalApplication,
+                );
               },
             ),
             const SizedBox(height: 10),
@@ -1012,10 +1028,10 @@ class _ProfilePageState extends State<ProfilePage> {
               title: 'support.whatsapp'.tr(),
               subtitle: 'support.phone_number'.tr(),
               onTap: () async {
-                final uri = Uri.parse('https://wa.me/237658709986');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
+                await launchUrl(
+                  Uri.parse('https://wa.me/237658709986'),
+                  mode: LaunchMode.externalApplication,
+                );
               },
             ),
             const SizedBox(height: 10),
@@ -1027,8 +1043,10 @@ class _ProfilePageState extends State<ProfilePage> {
               title: 'support.email'.tr(),
               subtitle: 'support.email'.tr(),
               onTap: () async {
-                final uri = Uri.parse('mailto:support@cliceat.cm');
-                if (await canLaunchUrl(uri)) await launchUrl(uri);
+                await launchUrl(
+                  Uri.parse('mailto:support@cliceat.cm'),
+                  mode: LaunchMode.externalApplication,
+                );
               },
             ),
             const SizedBox(height: 8),

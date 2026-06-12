@@ -23,6 +23,12 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
   final _picker = ImagePicker();
   final Map<String, int> _quantities = {};
 
+  @override
+  void initState() {
+    super.initState();
+    context.read<AiCubit>().initPhotoOrder();
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     HapticFeedback.lightImpact();
     final picked = await _picker.pickImage(
@@ -202,6 +208,28 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
                         SizedBox(height: 12),
                         Text('Gemini analyse votre photo...'),
                       ],
+                    ),
+                  ),
+                  idle: () => SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _imageFile != null ? _analyze : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryRed,
+                        disabledBackgroundColor: AppTheme.line,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        'ai.analyze'.tr(),
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
                   ),
                   orElse: () => SizedBox(

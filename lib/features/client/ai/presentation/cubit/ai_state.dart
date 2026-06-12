@@ -2,6 +2,7 @@ part of 'ai_cubit.dart';
 
 @freezed
 class AiState with _$AiState {
+  const factory AiState.idle() = _Idle;
   const factory AiState.loading() = _Loading;
 
   const factory AiState.chat({

@@ -108,6 +108,14 @@ class AiCubit extends Cubit<AiState> {
 
   // ── Photo Order ───────────────────────────────────────────────────────────
 
+  void initPhotoOrder() {
+    emit(const AiState.idle());
+  }
+
+  void initQualityCheck() {
+    emit(const AiState.idle());
+  }
+
   Future<void> analyzePhotoOrder({
     required List<int> imageBytes,
     required String filename,
