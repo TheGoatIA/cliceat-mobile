@@ -36,7 +36,13 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
         state.maybeWhen(
           actionSuccess: (msg) {
             setState(() => _isSubmitting = false);
-            context.pushReplacement('/delivery/dropoff', extra: widget.mission);
+            // Return to navigation page with picked_up status so it re-routes toward
+            // the client. DropoffPage stays accessible via the "Livrer" button there.
+            final updatedMission = MissionModel.fromJson({
+              ...widget.mission.toJson(),
+              'status': 'picked_up',
+            });
+            context.pushReplacement('/delivery/active-navigation', extra: updatedMission);
           },
           error: (msg) {
             setState(() => _isSubmitting = false);
