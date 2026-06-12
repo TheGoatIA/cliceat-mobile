@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/services/websocket_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../data/datasources/navigation_cache.dart';
 import '../../data/models/osrm_route_model.dart';
 import '../../data/repositories/navigation_repository.dart';
@@ -154,6 +155,7 @@ class NavigationCubit extends Cubit<NavigationState> {
     if (distToDest <= _arrivalThreshold) {
       _locationSub?.cancel();
       _tts.speak('Vous êtes arrivé à destination');
+      getIt<NotificationService>().stopOngoingNavigation();
       emit(NavigationState.arrived(route: route));
       return;
     }
@@ -232,11 +234,16 @@ class NavigationCubit extends Cubit<NavigationState> {
     if (steps == null || index >= steps.length) return;
     final step = steps[index];
     _tts.speak(step.displayInstruction);
+    getIt<NotificationService>().showOngoingNavigation(
+      title: step.distanceLabel,
+      body: step.displayInstruction,
+    );
   }
 
   void stopNavigation() {
     _locationSub?.cancel();
     _tts.stop();
+    getIt<NotificationService>().stopOngoingNavigation();
     _currentRoute = null;
     _currentStepIndex = 0;
     emit(const NavigationState.idle());
@@ -246,6 +253,7 @@ class NavigationCubit extends Cubit<NavigationState> {
   Future<void> close() {
     _locationSub?.cancel();
     _tts.stop();
+    getIt<NotificationService>().stopOngoingNavigation();
     return super.close();
   }
 }

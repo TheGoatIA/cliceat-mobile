@@ -85,11 +85,37 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
   }
 
   void _startLocationEmitting() {
-    _locationSub = geo.Geolocator.getPositionStream(
-      locationSettings: const geo.LocationSettings(
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
+
+    final geo.LocationSettings settings;
+    if (isAndroid) {
+      settings = geo.AndroidSettings(
         accuracy: geo.LocationAccuracy.bestForNavigation,
         distanceFilter: 10,
-      ),
+        foregroundNotificationConfig: const geo.ForegroundNotificationConfig(
+          notificationText: "ClicEat suit votre position pour la livraison",
+          notificationTitle: "Service de livraison actif",
+          enableWakeLock: true,
+        ),
+      );
+    } else if (isIOS) {
+      settings = geo.AppleSettings(
+        accuracy: geo.LocationAccuracy.bestForNavigation,
+        distanceFilter: 10,
+        activityType: geo.ActivityType.otherNavigation,
+        allowBackgroundLocationUpdates: true,
+        showBackgroundLocationIndicator: true,
+      );
+    } else {
+      settings = const geo.LocationSettings(
+        accuracy: geo.LocationAccuracy.bestForNavigation,
+        distanceFilter: 10,
+      );
+    }
+
+    _locationSub = geo.Geolocator.getPositionStream(
+      locationSettings: settings,
     ).listen((pos) {
       if (!mounted) return;
       setState(() => _currentSpeedKmh = (pos.speed * 3.6).clamp(0.0, 200.0));

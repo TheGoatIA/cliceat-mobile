@@ -26,7 +26,7 @@ class ClientTrackingPage extends StatefulWidget {
   State<ClientTrackingPage> createState() => _ClientTrackingPageState();
 }
 
-class _ClientTrackingPageState extends State<ClientTrackingPage> {
+class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProviderStateMixin {
   MapboxMap? mapboxMap;
   PointAnnotationManager? _annotationManager;
   PolylineAnnotationManager? _polylineManager;
@@ -48,6 +48,15 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   double _driverHeading = 0.0;
   double? _lastDriverLat;
   double? _lastDriverLng;
+
+  // Animation variables for smooth location interpolation
+  AnimationController? _movementController;
+  double _animStartLat = 0.0;
+  double _animStartLng = 0.0;
+  double _animEndLat = 0.0;
+  double _animEndLng = 0.0;
+  double _animStartHeading = 0.0;
+  double _animEndHeading = 0.0;
 
   // Breadcrumb trail — last N driver positions
   final List<Position> _breadcrumbPositions = [];
@@ -120,6 +129,27 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   @override
   void initState() {
     super.initState();
+    _movementController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+
+    _movementController!.addListener(() {
+      if (_driverAnnotation == null || _movementController == null) return;
+      final t = _movementController!.value;
+      final lat = _animStartLat + (_animEndLat - _animStartLat) * t;
+      final lng = _animStartLng + (_animEndLng - _animStartLng) * t;
+      final heading = _animStartHeading + (_animEndHeading - _animStartHeading) * t;
+
+      final point = Point(coordinates: Position(lng, lat));
+      _driverAnnotation!.geometry = point;
+      _driverAnnotation!.iconRotate = heading;
+
+      if (_annotationManager != null) {
+        _annotationManager!.update(_driverAnnotation!);
+      }
+    });
+
     final ws = getIt<WebSocketService>();
     ws.connect();
 
@@ -133,7 +163,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     );
 
     // Gérer les reconnexions automatiques
-    _wsStatusSub = ws.statusStream.listen((status) {
+    ws.statusStream.listen((status) {
       if (status == WsStatus.connected) {
         ws.joinOrder(widget.orderId);
       }
@@ -201,22 +231,54 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
           _breadcrumbPositions.removeAt(0);
         }
 
-        setState(() {
-          _driverHeading = newHeading;
-          _lastDriverLat = lat;
-          _lastDriverLng = lng;
-          _trackingData = TrackingModel(
-            orderId: _trackingData!.orderId,
-            status: _trackingData!.status,
-            driverLat: lat,
-            driverLng: lng,
-            etaMinutes: _trackingData!.etaMinutes,
-            driverName: _trackingData!.driverName,
-            driverPhone: _trackingData!.driverPhone,
-            driverAvatar: _trackingData!.driverAvatar,
+        if (_driverAnnotation == null) {
+          setState(() {
+            _driverHeading = newHeading;
+            _lastDriverLat = lat;
+            _lastDriverLng = lng;
+            _trackingData = TrackingModel(
+              orderId: _trackingData!.orderId,
+              status: _trackingData!.status,
+              driverLat: lat,
+              driverLng: lng,
+              etaMinutes: _trackingData!.etaMinutes,
+              driverName: _trackingData!.driverName,
+              driverPhone: _trackingData!.driverPhone,
+              driverAvatar: _trackingData!.driverAvatar,
+            );
+          });
+          _updateDriverMarker();
+        } else {
+          _animStartLat = _lastDriverLat ?? lat;
+          _animStartLng = _lastDriverLng ?? lng;
+          _animEndLat = lat;
+          _animEndLng = lng;
+          _animStartHeading = _driverHeading;
+          _animEndHeading = newHeading;
+
+          setState(() {
+            _driverHeading = newHeading;
+            _lastDriverLat = lat;
+            _lastDriverLng = lng;
+            _trackingData = TrackingModel(
+              orderId: _trackingData!.orderId,
+              status: _trackingData!.status,
+              driverLat: lat,
+              driverLng: lng,
+              etaMinutes: _trackingData!.etaMinutes,
+              driverName: _trackingData!.driverName,
+              driverPhone: _trackingData!.driverPhone,
+              driverAvatar: _trackingData!.driverAvatar,
+            );
+          });
+
+          _movementController?.forward(from: 0.0);
+          mapboxMap?.flyTo(
+            CameraOptions(center: Point(coordinates: Position(lng, lat)), zoom: 15.0),
+            MapAnimationOptions(duration: 1000),
           );
-        });
-        _updateDriverMarker();
+        }
+
         _updateBreadcrumb();
         _fetchOsrmRoute(lat, lng);
       }
@@ -244,6 +306,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
 
   @override
   void dispose() {
+    _movementController?.dispose();
     final ws = getIt<WebSocketService>();
     ws.leaveOrder(widget.orderId);
     _wsSub?.cancel();

@@ -349,4 +349,36 @@ class NotificationService {
       payload: jsonEncode(message.data),
     );
   }
+
+  /// Affiche ou met à jour une notification persistante d'itinéraire en cours
+  Future<void> showOngoingNavigation({
+    required String title,
+    required String body,
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      'cliceat_navigation_channel',
+      'Navigation Active',
+      channelDescription: 'Mises à jour des étapes de navigation',
+      importance: Importance.low,
+      priority: Priority.low,
+      playSound: false,
+      enableVibration: false,
+      ongoing: true,
+      onlyAlertOnce: true,
+      showWhen: false,
+    );
+
+    const platformDetails = NotificationDetails(android: androidDetails);
+    await _localNotifications.show(
+      id: 9999, // ID statique unique pour la notification persistante de navigation
+      title: title,
+      body: body,
+      notificationDetails: platformDetails,
+    );
+  }
+
+  /// Supprime la notification persistante de navigation
+  Future<void> stopOngoingNavigation() async {
+    await _localNotifications.cancel(id: 9999);
+  }
 }
