@@ -100,7 +100,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 );
                 _orderBloc.add(const LoadOrders());
               },
-              reorderSuccess: (newOrderId) {
+              reorderSuccess: (newOrderId, paymentUrl) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('order.reorder_success'.tr()),
@@ -111,7 +111,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     ),
                   ),
                 );
-                context.push('/client/tracking/$newOrderId');
+                if (paymentUrl != null && paymentUrl.isNotEmpty) {
+                  context.push(
+                    '/client/payment',
+                    extra: {'orderId': newOrderId, 'paymentUrl': paymentUrl},
+                  );
+                } else {
+                  context.push('/client/tracking/$newOrderId');
+                }
               },
               error: (message) {
                 ScaffoldMessenger.of(context).showSnackBar(

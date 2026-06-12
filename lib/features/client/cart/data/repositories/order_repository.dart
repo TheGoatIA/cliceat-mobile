@@ -305,20 +305,7 @@ class OrderRepository extends BaseRepository {
       };
 
       // 3. Créer la nouvelle commande
-      final res = await _orderService.createOrder(payload);
-      if (res.isSuccessful && res.body != null) {
-        final newData = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
-        final newOrderData =
-            newData['order'] as Map<String, dynamic>? ?? newData;
-        return Right(OrderModel.fromJson(newOrderData));
-      }
-      return Left(
-        AppError.fromResponse(
-          res.body ?? res.error,
-          'order.error_create',
-          statusCode: res.statusCode,
-        ),
-      );
+      return createOrder(payload);
     } catch (e, s) {
       debugPrint('[order_repository.dart] error: $e\n$s');
       return Left(AppError.network());

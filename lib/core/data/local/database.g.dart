@@ -5535,11 +5535,23 @@ class $OfflineActionsTableTable extends OfflineActionsTable
 class OfflineActionsTableData extends DataClass
     implements Insertable<OfflineActionsTableData> {
   final int id;
+
+  /// Type d'action — identifie le handler dans SyncManagerService.
   final String actionType;
+
+  /// Payload JSON sérialisé contenant les données de l'action.
   final String payload;
+
+  /// Nombre de tentatives déjà effectuées.
   final int retryCount;
+
+  /// Nombre maximum de tentatives avant marquage 'failed'.
   final int maxRetries;
+
+  /// Date de création de l'entrée.
   final DateTime createdAt;
+
+  /// Statut de l'action : 'pending' | 'processing' | 'failed'.
   final String status;
   const OfflineActionsTableData({
     required this.id,
@@ -5654,8 +5666,15 @@ class OfflineActionsTableData extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, actionType, payload, retryCount, maxRetries, createdAt, status);
+  int get hashCode => Object.hash(
+    id,
+    actionType,
+    payload,
+    retryCount,
+    maxRetries,
+    createdAt,
+    status,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5688,20 +5707,16 @@ class OfflineActionsTableCompanion
     this.status = const Value.absent(),
   });
   OfflineActionsTableCompanion.insert({
-    Value<int> id = const Value.absent(),
+    this.id = const Value.absent(),
     required String actionType,
     required String payload,
-    Value<int> retryCount = const Value.absent(),
-    Value<int> maxRetries = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.maxRetries = const Value.absent(),
     required DateTime createdAt,
-    Value<String> status = const Value.absent(),
-  }) : id = id,
-       actionType = Value(actionType),
+    this.status = const Value.absent(),
+  }) : actionType = Value(actionType),
        payload = Value(payload),
-       retryCount = retryCount,
-       maxRetries = maxRetries,
-       createdAt = Value(createdAt),
-       status = status;
+       createdAt = Value(createdAt);
   static Insertable<OfflineActionsTableData> custom({
     Expression<int>? id,
     Expression<String>? actionType,
@@ -5784,6 +5799,949 @@ class OfflineActionsTableCompanion
   }
 }
 
+class $AiConversationsTableTable extends AiConversationsTable
+    with TableInfo<$AiConversationsTableTable, AiConversationsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AiConversationsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverIdMeta = const VerificationMeta(
+    'serverId',
+  );
+  @override
+  late final GeneratedColumn<String> serverId = GeneratedColumn<String>(
+    'server_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Nouvelle conversation'),
+  );
+  static const VerificationMeta _lastMessageAtMeta = const VerificationMeta(
+    'lastMessageAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastMessageAt =
+      GeneratedColumn<DateTime>(
+        'last_message_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isArchivedMeta = const VerificationMeta(
+    'isArchived',
+  );
+  @override
+  late final GeneratedColumn<bool> isArchived = GeneratedColumn<bool>(
+    'is_archived',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_archived" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    serverId,
+    title,
+    lastMessageAt,
+    createdAt,
+    isSynced,
+    isArchived,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ai_conversations_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiConversationsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('server_id')) {
+      context.handle(
+        _serverIdMeta,
+        serverId.isAcceptableOrUnknown(data['server_id']!, _serverIdMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('last_message_at')) {
+      context.handle(
+        _lastMessageAtMeta,
+        lastMessageAt.isAcceptableOrUnknown(
+          data['last_message_at']!,
+          _lastMessageAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastMessageAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    if (data.containsKey('is_archived')) {
+      context.handle(
+        _isArchivedMeta,
+        isArchived.isAcceptableOrUnknown(data['is_archived']!, _isArchivedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AiConversationsTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiConversationsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      serverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}server_id'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      lastMessageAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_message_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      isSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_synced'],
+      )!,
+      isArchived: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_archived'],
+      )!,
+    );
+  }
+
+  @override
+  $AiConversationsTableTable createAlias(String alias) {
+    return $AiConversationsTableTable(attachedDatabase, alias);
+  }
+}
+
+class AiConversationsTableData extends DataClass
+    implements Insertable<AiConversationsTableData> {
+  final String id;
+  final String? serverId;
+  final String title;
+  final DateTime lastMessageAt;
+  final DateTime createdAt;
+  final bool isSynced;
+  final bool isArchived;
+  const AiConversationsTableData({
+    required this.id,
+    this.serverId,
+    required this.title,
+    required this.lastMessageAt,
+    required this.createdAt,
+    required this.isSynced,
+    required this.isArchived,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || serverId != null) {
+      map['server_id'] = Variable<String>(serverId);
+    }
+    map['title'] = Variable<String>(title);
+    map['last_message_at'] = Variable<DateTime>(lastMessageAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['is_synced'] = Variable<bool>(isSynced);
+    map['is_archived'] = Variable<bool>(isArchived);
+    return map;
+  }
+
+  AiConversationsTableCompanion toCompanion(bool nullToAbsent) {
+    return AiConversationsTableCompanion(
+      id: Value(id),
+      serverId: serverId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverId),
+      title: Value(title),
+      lastMessageAt: Value(lastMessageAt),
+      createdAt: Value(createdAt),
+      isSynced: Value(isSynced),
+      isArchived: Value(isArchived),
+    );
+  }
+
+  factory AiConversationsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiConversationsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      serverId: serializer.fromJson<String?>(json['serverId']),
+      title: serializer.fromJson<String>(json['title']),
+      lastMessageAt: serializer.fromJson<DateTime>(json['lastMessageAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+      isArchived: serializer.fromJson<bool>(json['isArchived']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'serverId': serializer.toJson<String?>(serverId),
+      'title': serializer.toJson<String>(title),
+      'lastMessageAt': serializer.toJson<DateTime>(lastMessageAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'isSynced': serializer.toJson<bool>(isSynced),
+      'isArchived': serializer.toJson<bool>(isArchived),
+    };
+  }
+
+  AiConversationsTableData copyWith({
+    String? id,
+    Value<String?> serverId = const Value.absent(),
+    String? title,
+    DateTime? lastMessageAt,
+    DateTime? createdAt,
+    bool? isSynced,
+    bool? isArchived,
+  }) => AiConversationsTableData(
+    id: id ?? this.id,
+    serverId: serverId.present ? serverId.value : this.serverId,
+    title: title ?? this.title,
+    lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+    createdAt: createdAt ?? this.createdAt,
+    isSynced: isSynced ?? this.isSynced,
+    isArchived: isArchived ?? this.isArchived,
+  );
+  AiConversationsTableData copyWithCompanion(
+    AiConversationsTableCompanion data,
+  ) {
+    return AiConversationsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      serverId: data.serverId.present ? data.serverId.value : this.serverId,
+      title: data.title.present ? data.title.value : this.title,
+      lastMessageAt: data.lastMessageAt.present
+          ? data.lastMessageAt.value
+          : this.lastMessageAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+      isArchived: data.isArchived.present
+          ? data.isArchived.value
+          : this.isArchived,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiConversationsTableData(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('title: $title, ')
+          ..write('lastMessageAt: $lastMessageAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('isArchived: $isArchived')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    serverId,
+    title,
+    lastMessageAt,
+    createdAt,
+    isSynced,
+    isArchived,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiConversationsTableData &&
+          other.id == this.id &&
+          other.serverId == this.serverId &&
+          other.title == this.title &&
+          other.lastMessageAt == this.lastMessageAt &&
+          other.createdAt == this.createdAt &&
+          other.isSynced == this.isSynced &&
+          other.isArchived == this.isArchived);
+}
+
+class AiConversationsTableCompanion
+    extends UpdateCompanion<AiConversationsTableData> {
+  final Value<String> id;
+  final Value<String?> serverId;
+  final Value<String> title;
+  final Value<DateTime> lastMessageAt;
+  final Value<DateTime> createdAt;
+  final Value<bool> isSynced;
+  final Value<bool> isArchived;
+  final Value<int> rowid;
+  const AiConversationsTableCompanion({
+    this.id = const Value.absent(),
+    this.serverId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.lastMessageAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AiConversationsTableCompanion.insert({
+    required String id,
+    this.serverId = const Value.absent(),
+    this.title = const Value.absent(),
+    required DateTime lastMessageAt,
+    required DateTime createdAt,
+    this.isSynced = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       lastMessageAt = Value(lastMessageAt),
+       createdAt = Value(createdAt);
+  static Insertable<AiConversationsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? serverId,
+    Expression<String>? title,
+    Expression<DateTime>? lastMessageAt,
+    Expression<DateTime>? createdAt,
+    Expression<bool>? isSynced,
+    Expression<bool>? isArchived,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (serverId != null) 'server_id': serverId,
+      if (title != null) 'title': title,
+      if (lastMessageAt != null) 'last_message_at': lastMessageAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (isArchived != null) 'is_archived': isArchived,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AiConversationsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? serverId,
+    Value<String>? title,
+    Value<DateTime>? lastMessageAt,
+    Value<DateTime>? createdAt,
+    Value<bool>? isSynced,
+    Value<bool>? isArchived,
+    Value<int>? rowid,
+  }) {
+    return AiConversationsTableCompanion(
+      id: id ?? this.id,
+      serverId: serverId ?? this.serverId,
+      title: title ?? this.title,
+      lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      createdAt: createdAt ?? this.createdAt,
+      isSynced: isSynced ?? this.isSynced,
+      isArchived: isArchived ?? this.isArchived,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (serverId.present) {
+      map['server_id'] = Variable<String>(serverId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (lastMessageAt.present) {
+      map['last_message_at'] = Variable<DateTime>(lastMessageAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (isArchived.present) {
+      map['is_archived'] = Variable<bool>(isArchived.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiConversationsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('title: $title, ')
+          ..write('lastMessageAt: $lastMessageAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AiMessagesTableTable extends AiMessagesTable
+    with TableInfo<$AiMessagesTableTable, AiMessagesTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AiMessagesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _conversationIdMeta = const VerificationMeta(
+    'conversationId',
+  );
+  @override
+  late final GeneratedColumn<String> conversationId = GeneratedColumn<String>(
+    'conversation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES ai_conversations_table (id)',
+    ),
+  );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+    'role',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokenCountMeta = const VerificationMeta(
+    'tokenCount',
+  );
+  @override
+  late final GeneratedColumn<int> tokenCount = GeneratedColumn<int>(
+    'token_count',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    conversationId,
+    role,
+    content,
+    tokenCount,
+    createdAt,
+    isSynced,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ai_messages_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiMessagesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('conversation_id')) {
+      context.handle(
+        _conversationIdMeta,
+        conversationId.isAcceptableOrUnknown(
+          data['conversation_id']!,
+          _conversationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_conversationIdMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentMeta);
+    }
+    if (data.containsKey('token_count')) {
+      context.handle(
+        _tokenCountMeta,
+        tokenCount.isAcceptableOrUnknown(data['token_count']!, _tokenCountMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AiMessagesTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiMessagesTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      conversationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}conversation_id'],
+      )!,
+      role: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}role'],
+      )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      )!,
+      tokenCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}token_count'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      isSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_synced'],
+      )!,
+    );
+  }
+
+  @override
+  $AiMessagesTableTable createAlias(String alias) {
+    return $AiMessagesTableTable(attachedDatabase, alias);
+  }
+}
+
+class AiMessagesTableData extends DataClass
+    implements Insertable<AiMessagesTableData> {
+  final int id;
+  final String conversationId;
+  final String role;
+  final String content;
+  final int? tokenCount;
+  final DateTime createdAt;
+  final bool isSynced;
+  const AiMessagesTableData({
+    required this.id,
+    required this.conversationId,
+    required this.role,
+    required this.content,
+    this.tokenCount,
+    required this.createdAt,
+    required this.isSynced,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['conversation_id'] = Variable<String>(conversationId);
+    map['role'] = Variable<String>(role);
+    map['content'] = Variable<String>(content);
+    if (!nullToAbsent || tokenCount != null) {
+      map['token_count'] = Variable<int>(tokenCount);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['is_synced'] = Variable<bool>(isSynced);
+    return map;
+  }
+
+  AiMessagesTableCompanion toCompanion(bool nullToAbsent) {
+    return AiMessagesTableCompanion(
+      id: Value(id),
+      conversationId: Value(conversationId),
+      role: Value(role),
+      content: Value(content),
+      tokenCount: tokenCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tokenCount),
+      createdAt: Value(createdAt),
+      isSynced: Value(isSynced),
+    );
+  }
+
+  factory AiMessagesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiMessagesTableData(
+      id: serializer.fromJson<int>(json['id']),
+      conversationId: serializer.fromJson<String>(json['conversationId']),
+      role: serializer.fromJson<String>(json['role']),
+      content: serializer.fromJson<String>(json['content']),
+      tokenCount: serializer.fromJson<int?>(json['tokenCount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'conversationId': serializer.toJson<String>(conversationId),
+      'role': serializer.toJson<String>(role),
+      'content': serializer.toJson<String>(content),
+      'tokenCount': serializer.toJson<int?>(tokenCount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'isSynced': serializer.toJson<bool>(isSynced),
+    };
+  }
+
+  AiMessagesTableData copyWith({
+    int? id,
+    String? conversationId,
+    String? role,
+    String? content,
+    Value<int?> tokenCount = const Value.absent(),
+    DateTime? createdAt,
+    bool? isSynced,
+  }) => AiMessagesTableData(
+    id: id ?? this.id,
+    conversationId: conversationId ?? this.conversationId,
+    role: role ?? this.role,
+    content: content ?? this.content,
+    tokenCount: tokenCount.present ? tokenCount.value : this.tokenCount,
+    createdAt: createdAt ?? this.createdAt,
+    isSynced: isSynced ?? this.isSynced,
+  );
+  AiMessagesTableData copyWithCompanion(AiMessagesTableCompanion data) {
+    return AiMessagesTableData(
+      id: data.id.present ? data.id.value : this.id,
+      conversationId: data.conversationId.present
+          ? data.conversationId.value
+          : this.conversationId,
+      role: data.role.present ? data.role.value : this.role,
+      content: data.content.present ? data.content.value : this.content,
+      tokenCount: data.tokenCount.present
+          ? data.tokenCount.value
+          : this.tokenCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiMessagesTableData(')
+          ..write('id: $id, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('tokenCount: $tokenCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('isSynced: $isSynced')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    conversationId,
+    role,
+    content,
+    tokenCount,
+    createdAt,
+    isSynced,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiMessagesTableData &&
+          other.id == this.id &&
+          other.conversationId == this.conversationId &&
+          other.role == this.role &&
+          other.content == this.content &&
+          other.tokenCount == this.tokenCount &&
+          other.createdAt == this.createdAt &&
+          other.isSynced == this.isSynced);
+}
+
+class AiMessagesTableCompanion extends UpdateCompanion<AiMessagesTableData> {
+  final Value<int> id;
+  final Value<String> conversationId;
+  final Value<String> role;
+  final Value<String> content;
+  final Value<int?> tokenCount;
+  final Value<DateTime> createdAt;
+  final Value<bool> isSynced;
+  const AiMessagesTableCompanion({
+    this.id = const Value.absent(),
+    this.conversationId = const Value.absent(),
+    this.role = const Value.absent(),
+    this.content = const Value.absent(),
+    this.tokenCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.isSynced = const Value.absent(),
+  });
+  AiMessagesTableCompanion.insert({
+    this.id = const Value.absent(),
+    required String conversationId,
+    required String role,
+    required String content,
+    this.tokenCount = const Value.absent(),
+    required DateTime createdAt,
+    this.isSynced = const Value.absent(),
+  }) : conversationId = Value(conversationId),
+       role = Value(role),
+       content = Value(content),
+       createdAt = Value(createdAt);
+  static Insertable<AiMessagesTableData> custom({
+    Expression<int>? id,
+    Expression<String>? conversationId,
+    Expression<String>? role,
+    Expression<String>? content,
+    Expression<int>? tokenCount,
+    Expression<DateTime>? createdAt,
+    Expression<bool>? isSynced,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (conversationId != null) 'conversation_id': conversationId,
+      if (role != null) 'role': role,
+      if (content != null) 'content': content,
+      if (tokenCount != null) 'token_count': tokenCount,
+      if (createdAt != null) 'created_at': createdAt,
+      if (isSynced != null) 'is_synced': isSynced,
+    });
+  }
+
+  AiMessagesTableCompanion copyWith({
+    Value<int>? id,
+    Value<String>? conversationId,
+    Value<String>? role,
+    Value<String>? content,
+    Value<int?>? tokenCount,
+    Value<DateTime>? createdAt,
+    Value<bool>? isSynced,
+  }) {
+    return AiMessagesTableCompanion(
+      id: id ?? this.id,
+      conversationId: conversationId ?? this.conversationId,
+      role: role ?? this.role,
+      content: content ?? this.content,
+      tokenCount: tokenCount ?? this.tokenCount,
+      createdAt: createdAt ?? this.createdAt,
+      isSynced: isSynced ?? this.isSynced,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (conversationId.present) {
+      map['conversation_id'] = Variable<String>(conversationId.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (tokenCount.present) {
+      map['token_count'] = Variable<int>(tokenCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiMessagesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('tokenCount: $tokenCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('isSynced: $isSynced')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5802,6 +6760,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FavoritesTableTable favoritesTable = $FavoritesTableTable(this);
   late final $OfflineActionsTableTable offlineActionsTable =
       $OfflineActionsTableTable(this);
+  late final $AiConversationsTableTable aiConversationsTable =
+      $AiConversationsTableTable(this);
+  late final $AiMessagesTableTable aiMessagesTable = $AiMessagesTableTable(
+    this,
+  );
   late final MenuDao menuDao = MenuDao(this as AppDatabase);
   late final ChatDao chatDao = ChatDao(this as AppDatabase);
   late final PendingActionsDao pendingActionsDao = PendingActionsDao(
@@ -5826,6 +6789,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ordersTable,
     favoritesTable,
     offlineActionsTable,
+    aiConversationsTable,
+    aiMessagesTable,
   ];
 }
 
@@ -8491,7 +9456,6 @@ typedef $$FavoritesTableTableProcessedTableManager =
       FavoritesTableData,
       PrefetchHooks Function()
     >;
-
 typedef $$OfflineActionsTableTableCreateCompanionBuilder =
     OfflineActionsTableCompanion Function({
       Value<int> id,
@@ -8615,17 +9579,23 @@ class $$OfflineActionsTableTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get actionType =>
-      $composableBuilder(column: $table.actionType, builder: (column) => column);
+  GeneratedColumn<String> get actionType => $composableBuilder(
+    column: $table.actionType,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get payload =>
       $composableBuilder(column: $table.payload, builder: (column) => column);
 
-  GeneratedColumn<int> get retryCount =>
-      $composableBuilder(column: $table.retryCount, builder: (column) => column);
+  GeneratedColumn<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<int> get maxRetries =>
-      $composableBuilder(column: $table.maxRetries, builder: (column) => column);
+  GeneratedColumn<int> get maxRetries => $composableBuilder(
+    column: $table.maxRetries,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -8740,6 +9710,746 @@ typedef $$OfflineActionsTableTableProcessedTableManager =
       OfflineActionsTableData,
       PrefetchHooks Function()
     >;
+typedef $$AiConversationsTableTableCreateCompanionBuilder =
+    AiConversationsTableCompanion Function({
+      required String id,
+      Value<String?> serverId,
+      Value<String> title,
+      required DateTime lastMessageAt,
+      required DateTime createdAt,
+      Value<bool> isSynced,
+      Value<bool> isArchived,
+      Value<int> rowid,
+    });
+typedef $$AiConversationsTableTableUpdateCompanionBuilder =
+    AiConversationsTableCompanion Function({
+      Value<String> id,
+      Value<String?> serverId,
+      Value<String> title,
+      Value<DateTime> lastMessageAt,
+      Value<DateTime> createdAt,
+      Value<bool> isSynced,
+      Value<bool> isArchived,
+      Value<int> rowid,
+    });
+
+final class $$AiConversationsTableTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AiConversationsTableTable,
+          AiConversationsTableData
+        > {
+  $$AiConversationsTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$AiMessagesTableTable, List<AiMessagesTableData>>
+  _aiMessagesTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.aiMessagesTable,
+    aliasName: $_aliasNameGenerator(
+      db.aiConversationsTable.id,
+      db.aiMessagesTable.conversationId,
+    ),
+  );
+
+  $$AiMessagesTableTableProcessedTableManager get aiMessagesTableRefs {
+    final manager = $$AiMessagesTableTableTableManager(
+      $_db,
+      $_db.aiMessagesTable,
+    ).filter((f) => f.conversationId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _aiMessagesTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$AiConversationsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $AiConversationsTableTable> {
+  $$AiConversationsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastMessageAt => $composableBuilder(
+    column: $table.lastMessageAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> aiMessagesTableRefs(
+    Expression<bool> Function($$AiMessagesTableTableFilterComposer f) f,
+  ) {
+    final $$AiMessagesTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.aiMessagesTable,
+      getReferencedColumn: (t) => t.conversationId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AiMessagesTableTableFilterComposer(
+            $db: $db,
+            $table: $db.aiMessagesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$AiConversationsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $AiConversationsTableTable> {
+  $$AiConversationsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastMessageAt => $composableBuilder(
+    column: $table.lastMessageAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AiConversationsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AiConversationsTableTable> {
+  $$AiConversationsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get serverId =>
+      $composableBuilder(column: $table.serverId, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastMessageAt => $composableBuilder(
+    column: $table.lastMessageAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  GeneratedColumn<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => column,
+  );
+
+  Expression<T> aiMessagesTableRefs<T extends Object>(
+    Expression<T> Function($$AiMessagesTableTableAnnotationComposer a) f,
+  ) {
+    final $$AiMessagesTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.aiMessagesTable,
+      getReferencedColumn: (t) => t.conversationId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AiMessagesTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.aiMessagesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$AiConversationsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AiConversationsTableTable,
+          AiConversationsTableData,
+          $$AiConversationsTableTableFilterComposer,
+          $$AiConversationsTableTableOrderingComposer,
+          $$AiConversationsTableTableAnnotationComposer,
+          $$AiConversationsTableTableCreateCompanionBuilder,
+          $$AiConversationsTableTableUpdateCompanionBuilder,
+          (AiConversationsTableData, $$AiConversationsTableTableReferences),
+          AiConversationsTableData,
+          PrefetchHooks Function({bool aiMessagesTableRefs})
+        > {
+  $$AiConversationsTableTableTableManager(
+    _$AppDatabase db,
+    $AiConversationsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AiConversationsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AiConversationsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AiConversationsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> serverId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<DateTime> lastMessageAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiConversationsTableCompanion(
+                id: id,
+                serverId: serverId,
+                title: title,
+                lastMessageAt: lastMessageAt,
+                createdAt: createdAt,
+                isSynced: isSynced,
+                isArchived: isArchived,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> serverId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                required DateTime lastMessageAt,
+                required DateTime createdAt,
+                Value<bool> isSynced = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiConversationsTableCompanion.insert(
+                id: id,
+                serverId: serverId,
+                title: title,
+                lastMessageAt: lastMessageAt,
+                createdAt: createdAt,
+                isSynced: isSynced,
+                isArchived: isArchived,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$AiConversationsTableTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({aiMessagesTableRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (aiMessagesTableRefs) db.aiMessagesTable,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (aiMessagesTableRefs)
+                    await $_getPrefetchedData<
+                      AiConversationsTableData,
+                      $AiConversationsTableTable,
+                      AiMessagesTableData
+                    >(
+                      currentTable: table,
+                      referencedTable: $$AiConversationsTableTableReferences
+                          ._aiMessagesTableRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$AiConversationsTableTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).aiMessagesTableRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.conversationId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AiConversationsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AiConversationsTableTable,
+      AiConversationsTableData,
+      $$AiConversationsTableTableFilterComposer,
+      $$AiConversationsTableTableOrderingComposer,
+      $$AiConversationsTableTableAnnotationComposer,
+      $$AiConversationsTableTableCreateCompanionBuilder,
+      $$AiConversationsTableTableUpdateCompanionBuilder,
+      (AiConversationsTableData, $$AiConversationsTableTableReferences),
+      AiConversationsTableData,
+      PrefetchHooks Function({bool aiMessagesTableRefs})
+    >;
+typedef $$AiMessagesTableTableCreateCompanionBuilder =
+    AiMessagesTableCompanion Function({
+      Value<int> id,
+      required String conversationId,
+      required String role,
+      required String content,
+      Value<int?> tokenCount,
+      required DateTime createdAt,
+      Value<bool> isSynced,
+    });
+typedef $$AiMessagesTableTableUpdateCompanionBuilder =
+    AiMessagesTableCompanion Function({
+      Value<int> id,
+      Value<String> conversationId,
+      Value<String> role,
+      Value<String> content,
+      Value<int?> tokenCount,
+      Value<DateTime> createdAt,
+      Value<bool> isSynced,
+    });
+
+final class $$AiMessagesTableTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AiMessagesTableTable,
+          AiMessagesTableData
+        > {
+  $$AiMessagesTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AiConversationsTableTable _conversationIdTable(_$AppDatabase db) =>
+      db.aiConversationsTable.createAlias(
+        $_aliasNameGenerator(
+          db.aiMessagesTable.conversationId,
+          db.aiConversationsTable.id,
+        ),
+      );
+
+  $$AiConversationsTableTableProcessedTableManager get conversationId {
+    final $_column = $_itemColumn<String>('conversation_id')!;
+
+    final manager = $$AiConversationsTableTableTableManager(
+      $_db,
+      $_db.aiConversationsTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_conversationIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AiMessagesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $AiMessagesTableTable> {
+  $$AiMessagesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tokenCount => $composableBuilder(
+    column: $table.tokenCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AiConversationsTableTableFilterComposer get conversationId {
+    final $$AiConversationsTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.conversationId,
+      referencedTable: $db.aiConversationsTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AiConversationsTableTableFilterComposer(
+            $db: $db,
+            $table: $db.aiConversationsTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AiMessagesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $AiMessagesTableTable> {
+  $$AiMessagesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tokenCount => $composableBuilder(
+    column: $table.tokenCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AiConversationsTableTableOrderingComposer get conversationId {
+    final $$AiConversationsTableTableOrderingComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.conversationId,
+          referencedTable: $db.aiConversationsTable,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AiConversationsTableTableOrderingComposer(
+                $db: $db,
+                $table: $db.aiConversationsTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$AiMessagesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AiMessagesTableTable> {
+  $$AiMessagesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<int> get tokenCount => $composableBuilder(
+    column: $table.tokenCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  $$AiConversationsTableTableAnnotationComposer get conversationId {
+    final $$AiConversationsTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.conversationId,
+          referencedTable: $db.aiConversationsTable,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AiConversationsTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.aiConversationsTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$AiMessagesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AiMessagesTableTable,
+          AiMessagesTableData,
+          $$AiMessagesTableTableFilterComposer,
+          $$AiMessagesTableTableOrderingComposer,
+          $$AiMessagesTableTableAnnotationComposer,
+          $$AiMessagesTableTableCreateCompanionBuilder,
+          $$AiMessagesTableTableUpdateCompanionBuilder,
+          (AiMessagesTableData, $$AiMessagesTableTableReferences),
+          AiMessagesTableData,
+          PrefetchHooks Function({bool conversationId})
+        > {
+  $$AiMessagesTableTableTableManager(
+    _$AppDatabase db,
+    $AiMessagesTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AiMessagesTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AiMessagesTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AiMessagesTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> conversationId = const Value.absent(),
+                Value<String> role = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<int?> tokenCount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+              }) => AiMessagesTableCompanion(
+                id: id,
+                conversationId: conversationId,
+                role: role,
+                content: content,
+                tokenCount: tokenCount,
+                createdAt: createdAt,
+                isSynced: isSynced,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String conversationId,
+                required String role,
+                required String content,
+                Value<int?> tokenCount = const Value.absent(),
+                required DateTime createdAt,
+                Value<bool> isSynced = const Value.absent(),
+              }) => AiMessagesTableCompanion.insert(
+                id: id,
+                conversationId: conversationId,
+                role: role,
+                content: content,
+                tokenCount: tokenCount,
+                createdAt: createdAt,
+                isSynced: isSynced,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$AiMessagesTableTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({conversationId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (conversationId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.conversationId,
+                                referencedTable:
+                                    $$AiMessagesTableTableReferences
+                                        ._conversationIdTable(db),
+                                referencedColumn:
+                                    $$AiMessagesTableTableReferences
+                                        ._conversationIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AiMessagesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AiMessagesTableTable,
+      AiMessagesTableData,
+      $$AiMessagesTableTableFilterComposer,
+      $$AiMessagesTableTableOrderingComposer,
+      $$AiMessagesTableTableAnnotationComposer,
+      $$AiMessagesTableTableCreateCompanionBuilder,
+      $$AiMessagesTableTableUpdateCompanionBuilder,
+      (AiMessagesTableData, $$AiMessagesTableTableReferences),
+      AiMessagesTableData,
+      PrefetchHooks Function({bool conversationId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8764,4 +10474,8 @@ class $AppDatabaseManager {
       $$FavoritesTableTableTableManager(_db, _db.favoritesTable);
   $$OfflineActionsTableTableTableManager get offlineActionsTable =>
       $$OfflineActionsTableTableTableManager(_db, _db.offlineActionsTable);
+  $$AiConversationsTableTableTableManager get aiConversationsTable =>
+      $$AiConversationsTableTableTableManager(_db, _db.aiConversationsTable);
+  $$AiMessagesTableTableTableManager get aiMessagesTable =>
+      $$AiMessagesTableTableTableManager(_db, _db.aiMessagesTable);
 }

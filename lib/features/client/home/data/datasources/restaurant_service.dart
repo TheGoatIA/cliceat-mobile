@@ -18,7 +18,7 @@ abstract class RestaurantService extends ChopperService {
   );
 
   @GET(path: '/featured')
-  Future<Response> getFeaturedRestaurants();
+  Future<Response> getFeaturedRestaurants(@Query('city') String? city);
 
   @GET(path: '/search')
   Future<Response> searchRestaurants(

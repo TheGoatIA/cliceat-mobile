@@ -146,7 +146,7 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( String orderId,  String? paymentUrl)?  created,TResult Function( List<Map<String, dynamic>> orders)?  ordersLoaded,TResult Function( List<Map<String, dynamic>> orders)?  loadingMore,TResult Function()?  cancelled,TResult Function()?  rated,TResult Function( String newOrderId)?  reorderSuccess,TResult Function( String filePath)?  invoiceDownloaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( String orderId,  String? paymentUrl)?  created,TResult Function( List<Map<String, dynamic>> orders)?  ordersLoaded,TResult Function( List<Map<String, dynamic>> orders)?  loadingMore,TResult Function()?  cancelled,TResult Function()?  rated,TResult Function( String newOrderId,  String? paymentUrl)?  reorderSuccess,TResult Function( String filePath)?  invoiceDownloaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
@@ -156,7 +156,7 @@ return ordersLoaded(_that.orders);case _LoadingMore() when loadingMore != null:
 return loadingMore(_that.orders);case _Cancelled() when cancelled != null:
 return cancelled();case _Rated() when rated != null:
 return rated();case _ReorderSuccess() when reorderSuccess != null:
-return reorderSuccess(_that.newOrderId);case _InvoiceDownloaded() when invoiceDownloaded != null:
+return reorderSuccess(_that.newOrderId,_that.paymentUrl);case _InvoiceDownloaded() when invoiceDownloaded != null:
 return invoiceDownloaded(_that.filePath);case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
@@ -176,7 +176,7 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( String orderId,  String? paymentUrl)  created,required TResult Function( List<Map<String, dynamic>> orders)  ordersLoaded,required TResult Function( List<Map<String, dynamic>> orders)  loadingMore,required TResult Function()  cancelled,required TResult Function()  rated,required TResult Function( String newOrderId)  reorderSuccess,required TResult Function( String filePath)  invoiceDownloaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( String orderId,  String? paymentUrl)  created,required TResult Function( List<Map<String, dynamic>> orders)  ordersLoaded,required TResult Function( List<Map<String, dynamic>> orders)  loadingMore,required TResult Function()  cancelled,required TResult Function()  rated,required TResult Function( String newOrderId,  String? paymentUrl)  reorderSuccess,required TResult Function( String filePath)  invoiceDownloaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
@@ -186,7 +186,7 @@ return ordersLoaded(_that.orders);case _LoadingMore():
 return loadingMore(_that.orders);case _Cancelled():
 return cancelled();case _Rated():
 return rated();case _ReorderSuccess():
-return reorderSuccess(_that.newOrderId);case _InvoiceDownloaded():
+return reorderSuccess(_that.newOrderId,_that.paymentUrl);case _InvoiceDownloaded():
 return invoiceDownloaded(_that.filePath);case _Error():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
@@ -205,7 +205,7 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( String orderId,  String? paymentUrl)?  created,TResult? Function( List<Map<String, dynamic>> orders)?  ordersLoaded,TResult? Function( List<Map<String, dynamic>> orders)?  loadingMore,TResult? Function()?  cancelled,TResult? Function()?  rated,TResult? Function( String newOrderId)?  reorderSuccess,TResult? Function( String filePath)?  invoiceDownloaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( String orderId,  String? paymentUrl)?  created,TResult? Function( List<Map<String, dynamic>> orders)?  ordersLoaded,TResult? Function( List<Map<String, dynamic>> orders)?  loadingMore,TResult? Function()?  cancelled,TResult? Function()?  rated,TResult? Function( String newOrderId,  String? paymentUrl)?  reorderSuccess,TResult? Function( String filePath)?  invoiceDownloaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
@@ -215,7 +215,7 @@ return ordersLoaded(_that.orders);case _LoadingMore() when loadingMore != null:
 return loadingMore(_that.orders);case _Cancelled() when cancelled != null:
 return cancelled();case _Rated() when rated != null:
 return rated();case _ReorderSuccess() when reorderSuccess != null:
-return reorderSuccess(_that.newOrderId);case _InvoiceDownloaded() when invoiceDownloaded != null:
+return reorderSuccess(_that.newOrderId,_that.paymentUrl);case _InvoiceDownloaded() when invoiceDownloaded != null:
 return invoiceDownloaded(_that.filePath);case _Error() when error != null:
 return error(_that.message);case _:
   return null;
@@ -569,10 +569,11 @@ String toString() {
 
 
 class _ReorderSuccess implements OrderState {
-  const _ReorderSuccess(this.newOrderId);
+  const _ReorderSuccess(this.newOrderId, {this.paymentUrl});
   
 
  final  String newOrderId;
+ final  String? paymentUrl;
 
 /// Create a copy of OrderState
 /// with the given fields replaced by the non-null parameter values.
@@ -584,16 +585,16 @@ _$ReorderSuccessCopyWith<_ReorderSuccess> get copyWith => __$ReorderSuccessCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReorderSuccess&&(identical(other.newOrderId, newOrderId) || other.newOrderId == newOrderId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReorderSuccess&&(identical(other.newOrderId, newOrderId) || other.newOrderId == newOrderId)&&(identical(other.paymentUrl, paymentUrl) || other.paymentUrl == paymentUrl));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,newOrderId);
+int get hashCode => Object.hash(runtimeType,newOrderId,paymentUrl);
 
 @override
 String toString() {
-  return 'OrderState.reorderSuccess(newOrderId: $newOrderId)';
+  return 'OrderState.reorderSuccess(newOrderId: $newOrderId, paymentUrl: $paymentUrl)';
 }
 
 
@@ -604,7 +605,7 @@ abstract mixin class _$ReorderSuccessCopyWith<$Res> implements $OrderStateCopyWi
   factory _$ReorderSuccessCopyWith(_ReorderSuccess value, $Res Function(_ReorderSuccess) _then) = __$ReorderSuccessCopyWithImpl;
 @useResult
 $Res call({
- String newOrderId
+ String newOrderId, String? paymentUrl
 });
 
 
@@ -621,10 +622,11 @@ class __$ReorderSuccessCopyWithImpl<$Res>
 
 /// Create a copy of OrderState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? newOrderId = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? newOrderId = null,Object? paymentUrl = freezed,}) {
   return _then(_ReorderSuccess(
 null == newOrderId ? _self.newOrderId : newOrderId // ignore: cast_nullable_to_non_nullable
-as String,
+as String,paymentUrl: freezed == paymentUrl ? _self.paymentUrl : paymentUrl // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

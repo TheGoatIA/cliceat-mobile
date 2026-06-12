@@ -64,9 +64,7 @@ class NotificationService {
       _logger.w('[Notif] Permission refusée : ${settings.authorizationStatus}');
     }
 
-    const androidSettings = AndroidInitializationSettings(
-      'ic_notification',
-    );
+    const androidSettings = AndroidInitializationSettings('ic_notification');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission:
           false, // Already requested via FirebaseMessaging.requestPermission
@@ -348,5 +346,37 @@ class NotificationService {
       notificationDetails: platformDetails,
       payload: jsonEncode(message.data),
     );
+  }
+
+  /// Affiche ou met à jour une notification persistante d'itinéraire en cours
+  Future<void> showOngoingNavigation({
+    required String title,
+    required String body,
+  }) async {
+    final androidDetails = AndroidNotificationDetails(
+      'cliceat_navigation_channel',
+      'delivery.nav_channel_name'.tr(),
+      channelDescription: 'delivery.nav_channel_desc'.tr(),
+      importance: Importance.low,
+      priority: Priority.low,
+      playSound: false,
+      enableVibration: false,
+      ongoing: true,
+      onlyAlertOnce: true,
+      showWhen: false,
+    );
+
+    final platformDetails = NotificationDetails(android: androidDetails);
+    await _localNotifications.show(
+      id: 9999, // ID statique unique pour la notification persistante de navigation
+      title: title,
+      body: body,
+      notificationDetails: platformDetails,
+    );
+  }
+
+  /// Supprime la notification persistante de navigation
+  Future<void> stopOngoingNavigation() async {
+    await _localNotifications.cancel(id: 9999);
   }
 }

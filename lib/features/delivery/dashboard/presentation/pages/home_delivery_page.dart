@@ -203,9 +203,6 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
   }
 
   void _promptResumeDelivery(MissionModel mission) {
-    final isEnRoute =
-        mission.status == 'picked_up' || mission.status == 'en_route';
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -251,9 +248,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              final Future<dynamic> nav = isEnRoute
-                  ? context.push('/delivery/dropoff', extra: mission)
-                  : context.push('/delivery/active-navigation', extra: mission);
+              final Future<dynamic> nav = context.push(
+                '/delivery/active-navigation',
+                extra: mission,
+              );
               nav.then((_) {
                 if (!mounted) return;
                 _missionBloc.add(MissionEvent.loadActiveMissions());
@@ -861,12 +859,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 ElevatedButton(
                   onPressed: () {
                     HapticFeedback.mediumImpact();
-                    final Future<dynamic> nav = isEnRoute
-                        ? context.push('/delivery/dropoff', extra: mission)
-                        : context.push(
-                            '/delivery/active-navigation',
-                            extra: mission,
-                          );
+                    final Future<dynamic> nav = context.push(
+                      '/delivery/active-navigation',
+                      extra: mission,
+                    );
                     nav.then((_) {
                       if (!mounted) return;
                       _missionBloc.add(MissionEvent.loadActiveMissions());

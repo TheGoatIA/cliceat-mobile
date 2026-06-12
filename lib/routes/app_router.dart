@@ -65,9 +65,14 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Helper class to convert one or more Streams into a Listenable for GoRouter.
 class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream, {List<Stream<dynamic>> extra = const []}) {
+  GoRouterRefreshStream(
+    Stream<dynamic> stream, {
+    List<Stream<dynamic>> extra = const [],
+  }) {
     _subscription = stream.listen((dynamic _) => notifyListeners());
-    _extraSubscriptions = extra.map((s) => s.listen((dynamic _) => notifyListeners())).toList();
+    _extraSubscriptions = extra
+        .map((s) => s.listen((dynamic _) => notifyListeners()))
+        .toList();
   }
 
   late final StreamSubscription<dynamic> _subscription;
@@ -81,8 +86,6 @@ class GoRouterRefreshStream extends ChangeNotifier {
     }
     super.dispose();
   }
-
-
 }
 
 // ─── Route names (constants to avoid typos) ───────────────────────────────────
@@ -221,6 +224,19 @@ String? _guardRedirect(BuildContext context, GoRouterState state) {
   );
 }
 
+MissionModel _parseMission(Object? extra) {
+  if (extra is MissionModel) {
+    return extra;
+  }
+  if (extra is Map<String, dynamic>) {
+    return MissionModel.fromJson(extra);
+  }
+  if (extra is Map) {
+    return MissionModel.fromJson(Map<String, dynamic>.from(extra));
+  }
+  throw Exception('Invalid mission extra: $extra');
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 final GoRouter appRouter = GoRouter(
@@ -297,9 +313,9 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'ai',
           builder: (context, state) => BlocProvider(
-              create: (context) => getIt<AiCubit>()..loadOrCreateConversation(),
-              child: const AiAssistantPage(),
-            ),
+            create: (context) => getIt<AiCubit>()..loadOrCreateConversation(),
+            child: const AiAssistantPage(),
+          ),
         ),
         GoRoute(
           path: 'notifications',
@@ -469,7 +485,7 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'incoming',
           builder: (context, state) {
-            final mission = state.extra as MissionModel;
+            final mission = _parseMission(state.extra);
             return BlocProvider<MissionBloc>(
               create: (context) => getIt<MissionBloc>(),
               child: MissionIncomingPage(mission: mission),
@@ -483,14 +499,14 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'active-navigation',
           builder: (context, state) {
-            final mission = state.extra as MissionModel;
+            final mission = _parseMission(state.extra);
             return ActiveNavigationPage(mission: mission);
           },
         ),
         GoRoute(
           path: 'confirm-pickup',
           builder: (context, state) {
-            final mission = state.extra as MissionModel;
+            final mission = _parseMission(state.extra);
             return BlocProvider<MissionBloc>(
               create: (context) => getIt<MissionBloc>(),
               child: ConfirmPickupPage(mission: mission),
@@ -500,7 +516,7 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'dropoff',
           builder: (context, state) {
-            final mission = state.extra as MissionModel;
+            final mission = _parseMission(state.extra);
             return BlocProvider<MissionBloc>(
               create: (context) => getIt<MissionBloc>(),
               child: DropoffPage(mission: mission),

@@ -67,7 +67,11 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 color: AppTheme.primaryRed,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 18),
+              child: const Icon(
+                Icons.psychology_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 10),
             Text(
@@ -85,7 +89,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
       body: BlocConsumer<AiCubit, AiState>(
         listener: (context, state) {
           state.maybeWhen(
-            chat: (_, messages, isTyping, __, ___) {
+            chat: (_, messages, isTyping, _, _) {
               if (isTyping || messages.isNotEmpty) _scrollToBottom();
             },
             orElse: () {},
@@ -94,51 +98,75 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
         builder: (context, state) {
           return state.maybeWhen(
             loading: () => const Center(child: CircularProgressIndicator()),
-            chat: (conversationId, messages, isTyping, offlineError, suggestions) {
-              return Column(
-                children: [
-                  if (offlineError)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      color: Colors.orange.shade50,
-                      child: Row(
-                        children: [
-                          const Icon(Icons.wifi_off_rounded, color: Colors.orange, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Pas de connexion — message sauvegardé',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: Colors.orange.shade800,
-                              fontWeight: FontWeight.w500,
-                            ),
+            chat:
+                (
+                  conversationId,
+                  messages,
+                  isTyping,
+                  offlineError,
+                  suggestions,
+                ) {
+                  return Column(
+                    children: [
+                      if (offlineError)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
                           ),
-                        ],
+                          color: Colors.orange.shade50,
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.wifi_off_rounded,
+                                color: Colors.orange,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Pas de connexion — message sauvegardé',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: Colors.orange.shade800,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      Expanded(
+                        child: messages.isEmpty && !isTyping
+                            ? _buildWelcomeState(suggestions)
+                            : ListView.builder(
+                                controller: _scrollController,
+                                reverse: true,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                itemCount: messages.length + (isTyping ? 1 : 0),
+                                itemBuilder: (context, index) {
+                                  if (isTyping && index == 0) {
+                                    return _buildTypingIndicator();
+                                  }
+                                  final msgIndex = isTyping ? index - 1 : index;
+                                  final msg =
+                                      messages[messages.length - 1 - msgIndex];
+                                  return _buildMessageBubble(
+                                    context,
+                                    msg.role == 'user',
+                                    msg.content,
+                                  );
+                                },
+                              ),
                       ),
-                    ),
-                  Expanded(
-                    child: messages.isEmpty && !isTyping
-                        ? _buildWelcomeState(suggestions)
-                        : ListView.builder(
-                            controller: _scrollController,
-                            reverse: true,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            itemCount: messages.length + (isTyping ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (isTyping && index == 0) return _buildTypingIndicator();
-                              final msgIndex = isTyping ? index - 1 : index;
-                              final msg = messages[messages.length - 1 - msgIndex];
-                              return _buildMessageBubble(context, msg.role == 'user', msg.content);
-                            },
-                          ),
-                  ),
-                  if (messages.isNotEmpty && suggestions.isNotEmpty)
-                    _buildSuggestionChips(suggestions),
-                  _buildMessageInput(),
-                ],
-              );
-            },
+                      if (messages.isNotEmpty && suggestions.isNotEmpty)
+                        _buildSuggestionChips(suggestions),
+                      _buildMessageInput(),
+                    ],
+                  );
+                },
             orElse: () => const Center(child: CircularProgressIndicator()),
           );
         },
@@ -161,7 +189,11 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 color: AppTheme.redSoft,
                 borderRadius: BorderRadius.circular(40),
               ),
-              child: const Icon(Icons.psychology_rounded, size: 40, color: AppTheme.primaryRed),
+              child: const Icon(
+                Icons.psychology_rounded,
+                size: 40,
+                color: AppTheme.primaryRed,
+              ),
             ),
             const SizedBox(height: 20),
             Text(
@@ -179,7 +211,11 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
             Text(
               'Pose-moi une question sur les restaurants,\ntes commandes ou les livraisons.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted, height: 1.5),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppTheme.muted,
+                height: 1.5,
+              ),
             ),
             if (suggestions.isNotEmpty) ...[
               const SizedBox(height: 24),
@@ -191,7 +227,10 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                   return GestureDetector(
                     onTap: () => _sendMessage(s.text),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -200,7 +239,10 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                       ),
                       child: Text(
                         s.text,
-                        style: GoogleFonts.inter(fontSize: 13, color: AppTheme.ink),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppTheme.ink,
+                        ),
                       ),
                     ),
                   );
@@ -220,7 +262,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: suggestions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final s = suggestions[index];
           return GestureDetector(
@@ -232,7 +274,10 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppTheme.line),
               ),
-              child: Text(s.text, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.ink)),
+              child: Text(
+                s.text,
+                style: GoogleFonts.inter(fontSize: 13, color: AppTheme.ink),
+              ),
             ),
           );
         },
@@ -269,13 +314,19 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
     );
   }
 
-  Widget _buildMessageBubble(BuildContext context, bool isUser, String content) {
+  Widget _buildMessageBubble(
+    BuildContext context,
+    bool isUser,
+    String content,
+  ) {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.78,
+        ),
         decoration: BoxDecoration(
           color: isUser ? AppTheme.primaryRed : Colors.white,
           borderRadius: BorderRadius.only(
@@ -333,9 +384,15 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                   style: GoogleFonts.inter(fontSize: 14, color: AppTheme.ink),
                   decoration: InputDecoration(
                     hintText: 'ai.ask_hint'.tr(),
-                    hintStyle: GoogleFonts.inter(fontSize: 14, color: AppTheme.mutedLight),
+                    hintStyle: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: AppTheme.mutedLight,
+                    ),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                   ),
                   onSubmitted: (_) => _sendMessage(),
                 ),
@@ -351,7 +408,11 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                   color: AppTheme.primaryRed,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                child: const Icon(
+                  Icons.send_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
             ),
           ],

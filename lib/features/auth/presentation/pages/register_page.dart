@@ -558,20 +558,21 @@ class _RegisterPageState extends State<RegisterPage> {
     return DropdownButtonFormField<String>(
       initialValue: _selectedCity,
       onChanged: (val) => setState(() => _selectedCity = val!),
-      items: [
-            {'label': 'Douala', 'value': 'douala'},
-            {'label': 'Yaoundé', 'value': 'yaounde'},
-          ]
-          .map(
-            (city) => DropdownMenuItem(
-              value: city['value'],
-              child: Text(
-                city['label']!,
-                style: GoogleFonts.inter(fontSize: 15, color: AppTheme.ink),
-              ),
-            ),
-          )
-          .toList(),
+      items:
+          [
+                {'label': 'Douala', 'value': 'douala'},
+                {'label': 'Yaoundé', 'value': 'yaounde'},
+              ]
+              .map(
+                (city) => DropdownMenuItem(
+                  value: city['value'],
+                  child: Text(
+                    city['label']!,
+                    style: GoogleFonts.inter(fontSize: 15, color: AppTheme.ink),
+                  ),
+                ),
+              )
+              .toList(),
       dropdownColor: Colors.white,
       decoration: InputDecoration(
         labelText: 'auth.city'.tr(),

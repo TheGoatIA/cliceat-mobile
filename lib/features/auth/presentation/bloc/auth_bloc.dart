@@ -681,12 +681,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final fcmToken = await getIt<NotificationService>().getFcmToken();
       if (fcmToken != null) {
-        await getIt<UserRepository>()
-            .unregisterFcmToken(fcmToken)
-            .catchError((e) {
-              // FCM token unregister failure during logout — non-critical, continue logout
-              _logger.w('[Auth] Échec de désenregistrement du token FCM: $e');
-            });
+        await getIt<UserRepository>().unregisterFcmToken(fcmToken).catchError((
+          e,
+        ) {
+          // FCM token unregister failure during logout — non-critical, continue logout
+          _logger.w('[Auth] Échec de désenregistrement du token FCM: $e');
+        });
       }
       await FirebaseMessaging.instance.deleteToken();
     } catch (e) {

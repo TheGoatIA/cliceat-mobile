@@ -32,7 +32,9 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
   }
 
-  Future<Either<AppError, UserModel>> updateProfile(Map<String, dynamic> data) async {
+  Future<Either<AppError, UserModel>> updateProfile(
+    Map<String, dynamic> data,
+  ) async {
     emit(const ProfileState.loading());
     final result = await _userRepository.updateProfile(data);
     result.fold(

@@ -71,6 +71,12 @@ class WebSocketService {
       StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get chatEvents => _chatEventController.stream;
 
+  /// Stream for driver navigation step position updates (order:driver_position)
+  final _driverNavPositionController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get driverNavPositionEvents =>
+      _driverNavPositionController.stream;
+
   final _authErrorController = StreamController<String>.broadcast();
   Stream<String> get authErrors => _authErrorController.stream;
 
@@ -102,9 +108,29 @@ class WebSocketService {
     _statusController.add(WsStatus.disconnected);
   }
 
-  void emitLocationUpdate(double lat, double lng) {
+  void emitLocationUpdate(double lat, double lng, {double? heading}) {
     if (isConnected) {
-      _socket?.emit('driver:location', {'lat': lat, 'lng': lng});
+      _socket?.emit('driver:location', {
+        'lat': lat,
+        'lng': lng,
+        'heading': ?heading,
+      });
+    }
+  }
+
+  void emitNavUpdate({
+    required String orderId,
+    required int stepIndex,
+    required double lat,
+    required double lng,
+  }) {
+    if (isConnected) {
+      _socket?.emit('driver:nav_update', {
+        'orderId': orderId,
+        'stepIndex': stepIndex,
+        'lat': lat,
+        'lng': lng,
+      });
     }
   }
 
@@ -200,9 +226,22 @@ class WebSocketService {
       _driverLocationController.add(_toMap(data));
     });
 
+    _socket!.on('driver_location', (data) {
+      _logger.d('[WS] Position livreur reçue (driver_location): $data');
+      _driverLocationController.add(_toMap(data));
+    });
+
     _socket!.on('eta_updated', (data) {
       _logger.d('[WS] ETA mis à jour: $data');
       _etaUpdateController.add(_toMap(data));
+    });
+
+    // Driver navigation step position (Sprint 2 — real-time step forwarding)
+    _socket!.on('order:driver_position', (data) {
+      _logger.d('[WS] Driver nav position: $data');
+      _driverNavPositionController.add(_toMap(data));
+      // Also forward to driverLocation stream for map marker update
+      _driverLocationController.add(_toMap(data));
     });
 
     _socket!.on('status_changed', (data) {

@@ -66,10 +66,13 @@ class RestaurantRepository {
     }
   }
 
-  Future<Either<AppError, List<RestaurantModel>>>
-  getFeaturedRestaurants() async {
+  Future<Either<AppError, List<RestaurantModel>>> getFeaturedRestaurants([
+    String? city,
+  ]) async {
     try {
-      final res = await _service.getFeaturedRestaurants();
+      final res = await _service.getFeaturedRestaurants(
+        city?.toLowerCase().replaceAll('é', 'e'),
+      );
       if (res.isSuccessful && res.body != null) {
         final raw = _extractList(res.body);
         final models = raw.map(RestaurantModel.fromJson).toList();

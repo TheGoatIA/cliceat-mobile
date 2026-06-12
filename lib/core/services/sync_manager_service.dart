@@ -9,6 +9,8 @@ import 'package:cliceat_app/features/chat/data/repositories/chat_repository.dart
 import 'package:cliceat_app/features/client/review/data/repositories/review_repository.dart';
 import 'package:cliceat_app/features/client/profile/data/repositories/user_repository.dart';
 import 'package:cliceat_app/features/client/home/data/repositories/restaurant_repository.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/order_repository.dart';
+import 'package:cliceat_app/features/client/cart/data/repositories/coupon_repository.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
@@ -225,19 +227,17 @@ class SyncManagerService {
         final result = await repo.toggleFavorite(payload['restaurantId']);
         return result.isRight();
       } else if (type == 'place_order') {
-        // TODO: inject OrderRepository and call placeOrder(payload)
-        debugPrint(
-          '[SyncManagerService] place_order queued — will retry on reconnection',
-        );
-        // Return false so it stays queued until OrderRepository is wired
-        return false;
+        final repo = getIt<OrderRepository>();
+        final result = await repo.createOrder(payload);
+        return result.isRight();
       } else if (type == 'apply_coupon') {
-        // TODO: inject CouponRepository and call applyCoupon(payload)
-        debugPrint(
-          '[SyncManagerService] apply_coupon queued — will retry on reconnection',
-        );
-        // Return false so it stays queued until CouponRepository is wired
-        return false;
+        final code =
+            payload['code']?.toString() ??
+            payload['couponCode']?.toString() ??
+            '';
+        final repo = getIt<CouponRepository>();
+        final result = await repo.validateCoupon(code);
+        return result.isRight();
       }
 
       _logger.w('Unknown action type: $type');

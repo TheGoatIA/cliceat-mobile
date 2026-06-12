@@ -15,13 +15,17 @@ class AiRepository {
 
   Future<List<AiConversationModel>> getLocalConversations() async {
     final rows = await _localDao.getConversations();
-    return rows.map((r) => AiConversationModel(
-      id: r.id,
-      serverId: r.serverId,
-      title: r.title,
-      lastMessageAt: r.lastMessageAt,
-      isSynced: r.isSynced,
-    )).toList();
+    return rows
+        .map(
+          (r) => AiConversationModel(
+            id: r.id,
+            serverId: r.serverId,
+            title: r.title,
+            lastMessageAt: r.lastMessageAt,
+            isSynced: r.isSynced,
+          ),
+        )
+        .toList();
   }
 
   Future<AiConversationModel?> getLocalConversation(String id) async {
@@ -38,14 +42,17 @@ class AiRepository {
 
   Future<List<AiMessageModel>> getLocalMessages(String conversationId) async {
     final rows = await _localDao.getMessages(conversationId);
-    return rows.map((r) => AiMessageModel(
-      role: r.role,
-      content: r.content,
-      tokenCount: r.tokenCount,
-      createdAt: r.createdAt,
-    )).toList();
+    return rows
+        .map(
+          (r) => AiMessageModel(
+            role: r.role,
+            content: r.content,
+            tokenCount: r.tokenCount,
+            createdAt: r.createdAt,
+          ),
+        )
+        .toList();
   }
-
 
   Future<String> createLocalConversation(String title) =>
       _localDao.createConversation(title);
@@ -89,23 +96,33 @@ class AiRepository {
       );
 
       if (newServerId != null && serverConversationId == null) {
-        await _localDao.updateConversation(localConversationId, serverId: newServerId, isSynced: true);
+        await _localDao.updateConversation(
+          localConversationId,
+          serverId: newServerId,
+          isSynced: true,
+        );
       }
 
-      return Right(AiMessageModel(role: 'model', content: reply, tokenCount: tokenCount));
+      return Right(
+        AiMessageModel(role: 'model', content: reply, tokenCount: tokenCount),
+      );
     } catch (e, s) {
       debugPrint('[ai_repository.dart] sendMessage error: $e\n$s');
       return Left(AppError.network());
     }
   }
 
-  Future<Either<AppError, List<AiSuggestionModel>>> getSuggestions(String city) async {
+  Future<Either<AppError, List<AiSuggestionModel>>> getSuggestions(
+    String city,
+  ) async {
     try {
       final res = await _service.getSuggestions(city: city);
       if (res.isSuccessful && res.body != null) {
         final data = res.body!['data'] as List;
         return Right(
-          data.map((e) => AiSuggestionModel.fromJson(e as Map<String, dynamic>)).toList(),
+          data
+              .map((e) => AiSuggestionModel.fromJson(e as Map<String, dynamic>))
+              .toList(),
         );
       }
       return Left(AppError.fromResponse(res.body, 'ai.error_suggestions'));

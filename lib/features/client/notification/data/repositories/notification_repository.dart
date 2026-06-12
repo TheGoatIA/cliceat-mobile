@@ -35,7 +35,9 @@ class NotificationRepository {
         ),
       );
     } catch (e, s) {
-      debugPrint('[notification_repository.dart] getNotifications error: $e\n$s');
+      debugPrint(
+        '[notification_repository.dart] getNotifications error: $e\n$s',
+      );
       return Left(AppError.network());
     }
   }
@@ -73,7 +75,9 @@ class NotificationRepository {
         ),
       );
     } catch (e, s) {
-      debugPrint('[notification_repository.dart] deleteNotification error: $e\n$s');
+      debugPrint(
+        '[notification_repository.dart] deleteNotification error: $e\n$s',
+      );
       return Left(AppError.network());
     }
   }
