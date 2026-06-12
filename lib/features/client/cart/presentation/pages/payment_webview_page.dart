@@ -149,7 +149,9 @@ class _PaymentWebviewPageState extends State<PaymentWebviewPage>
         },
       );
     } catch (e, s) {
-      debugPrint('[payment_webview_page.dart] payment verification error: $e\n$s');
+      debugPrint(
+        '[payment_webview_page.dart] payment verification error: $e\n$s',
+      );
       if (mounted) {
         setState(() => _verifying = false);
         _showPaymentFailed();

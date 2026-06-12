@@ -74,36 +74,43 @@ class NavigationCubit extends Cubit<NavigationState> {
     final cached = await NavigationCache.loadRoute(orderId ?? '');
     if (cached != null) {
       _currentRoute = cached;
-      emit(NavigationState.navigating(
-        route: cached,
-        currentStepIndex: 0,
-        currentLat: originLat,
-        currentLng: originLng,
-      ));
+      emit(
+        NavigationState.navigating(
+          route: cached,
+          currentStepIndex: 0,
+          currentLat: originLat,
+          currentLng: originLng,
+        ),
+      );
       _speakStep(0);
       _startLocationTracking();
       // Fetch fresh route in background and update
-      _repository.computeRoute(
-        originLat: originLat,
-        originLng: originLng,
-        destLat: destLat,
-        destLng: destLng,
-        orderId: orderId,
-      ).then((result) {
-        _currentRoute = result.route;
-        NavigationCache.saveRoute(result.route, orderId ?? '');
-        if (state is NavigationNavigating) {
-          final s = state as NavigationNavigating;
-          emit(NavigationState.navigating(
-            route: result.route,
-            currentStepIndex: s.currentStepIndex,
-            currentLat: s.currentLat,
-            currentLng: s.currentLng,
-          ));
-        }
-      }).catchError((e) {
-        debugPrint('Background route refresh failed: $e');
-      });
+      _repository
+          .computeRoute(
+            originLat: originLat,
+            originLng: originLng,
+            destLat: destLat,
+            destLng: destLng,
+            orderId: orderId,
+          )
+          .then((result) {
+            _currentRoute = result.route;
+            NavigationCache.saveRoute(result.route, orderId ?? '');
+            if (state is NavigationNavigating) {
+              final s = state as NavigationNavigating;
+              emit(
+                NavigationState.navigating(
+                  route: result.route,
+                  currentStepIndex: s.currentStepIndex,
+                  currentLat: s.currentLat,
+                  currentLng: s.currentLng,
+                ),
+              );
+            }
+          })
+          .catchError((e) {
+            debugPrint('Background route refresh failed: $e');
+          });
       return;
     }
 
@@ -117,12 +124,14 @@ class NavigationCubit extends Cubit<NavigationState> {
       );
       _currentRoute = result.route;
       await NavigationCache.saveRoute(result.route, orderId ?? '');
-      emit(NavigationState.navigating(
-        route: result.route,
-        currentStepIndex: 0,
-        currentLat: originLat,
-        currentLng: originLng,
-      ));
+      emit(
+        NavigationState.navigating(
+          route: result.route,
+          currentStepIndex: 0,
+          currentLat: originLat,
+          currentLng: originLng,
+        ),
+      );
       _speakStep(0);
       _startLocationTracking();
     } catch (e) {
@@ -156,13 +165,23 @@ class NavigationCubit extends Cubit<NavigationState> {
 
     // Accumulate distance from last known position
     if (_lastLat != null && _lastLng != null) {
-      _distanceCovered += Geolocator.distanceBetween(_lastLat!, _lastLng!, lat, lng);
+      _distanceCovered += Geolocator.distanceBetween(
+        _lastLat!,
+        _lastLng!,
+        lat,
+        lng,
+      );
     }
     _lastLat = lat;
     _lastLng = lng;
 
     // Check arrival at destination
-    final distToDest = Geolocator.distanceBetween(lat, lng, _destLat!, _destLng!);
+    final distToDest = Geolocator.distanceBetween(
+      lat,
+      lng,
+      _destLat!,
+      _destLng!,
+    );
     if (distToDest <= _arrivalThreshold) {
       _locationSub?.cancel();
       _tts.speak('delivery.tts_arrived'.tr());
@@ -194,17 +213,22 @@ class NavigationCubit extends Cubit<NavigationState> {
 
     // Auto-reroute if significantly off track (deviation from expected cumulative distance)
     final expectedDistCovered = stepCutoff;
-    final deviation = (distToDest - (route.distance - expectedDistCovered)).abs();
-    if (!_isRerouting && deviation > _deviationThreshold && _currentStepIndex > 0) {
+    final deviation = (distToDest - (route.distance - expectedDistCovered))
+        .abs();
+    if (!_isRerouting &&
+        deviation > _deviationThreshold &&
+        _currentStepIndex > 0) {
       requestReroute();
     }
 
-    emit(NavigationState.navigating(
-      route: route,
-      currentStepIndex: _currentStepIndex,
-      currentLat: lat,
-      currentLng: lng,
-    ));
+    emit(
+      NavigationState.navigating(
+        route: route,
+        currentStepIndex: _currentStepIndex,
+        currentLat: lat,
+        currentLng: lng,
+      ),
+    );
   }
 
   Future<void> requestReroute() async {
@@ -227,13 +251,15 @@ class NavigationCubit extends Cubit<NavigationState> {
       _distanceCovered = 0.0;
       _lastLat = null;
       _lastLng = null;
-      emit(NavigationState.navigating(
-        route: result.route,
-        currentStepIndex: 0,
-        currentLat: pos.latitude,
-        currentLng: pos.longitude,
-        isRerouting: true,
-      ));
+      emit(
+        NavigationState.navigating(
+          route: result.route,
+          currentStepIndex: 0,
+          currentLat: pos.latitude,
+          currentLng: pos.longitude,
+          isRerouting: true,
+        ),
+      );
       _tts.speak('delivery.tts_reroute'.tr());
       _speakStep(0);
     } catch (e) {

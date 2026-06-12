@@ -71,10 +71,7 @@ class _MapClientPageState extends State<MapClientPage> {
     if (_mapboxMap == null) return;
     final (lat, lng) = _getCityCenter(_selectedCity);
     await _mapboxMap!.flyTo(
-      CameraOptions(
-        center: Point(coordinates: Position(lng, lat)),
-        zoom: 12.0,
-      ),
+      CameraOptions(center: Point(coordinates: Position(lng, lat)), zoom: 12.0),
       MapAnimationOptions(duration: 800),
     );
   }
@@ -588,103 +585,103 @@ class _MapClientPageState extends State<MapClientPage> {
               ),
             ),
 
-          // Barre de recherche
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 12,
-            left: 16,
-            right: 16,
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: TextField(
-                readOnly: true,
-                onTap: () => context.push('/search'),
-                decoration: InputDecoration(
-                  hintText: 'client.search_hint'.tr(),
-                  prefixIcon: const Icon(Icons.search),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-          ),
-
-          // Compteur restaurants
-          if (!_loading)
+            // Barre de recherche
             Positioned(
-              top: MediaQuery.of(context).padding.top + 72,
+              top: MediaQuery.of(context).padding.top + 12,
               left: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+              right: 16,
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryRed,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${_restaurants.length} ${'client.restaurants'.tr()}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                child: TextField(
+                  readOnly: true,
+                  onTap: () => context.push('/search'),
+                  decoration: InputDecoration(
+                    hintText: 'client.search_hint'.tr(),
+                    prefixIcon: const Icon(Icons.search),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
               ),
             ),
 
-          // Boutons de navigation et zoom
-          Positioned(
-            bottom: 230,
-            right: 16,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Bouton Zoom In (+)
-                FloatingActionButton.small(
-                  heroTag: 'zoomIn',
-                  onPressed: _zoomIn,
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.ink,
-                  child: const Icon(Icons.add_rounded, size: 20),
+            // Compteur restaurants
+            if (!_loading)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 72,
+                left: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryRed,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${_restaurants.length} ${'client.restaurants'.tr()}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                // Bouton Zoom Out (-)
-                FloatingActionButton.small(
-                  heroTag: 'zoomOut',
-                  onPressed: _zoomOut,
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.ink,
-                  child: const Icon(Icons.remove_rounded, size: 20),
-                ),
-                const SizedBox(height: 8),
-                // Bouton Localisation
-                FloatingActionButton.small(
-                  heroTag: 'locateMe',
-                  onPressed: _centerOnUser,
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.primaryRed,
-                  child: const Icon(Icons.my_location_rounded, size: 18),
-                ),
-              ],
-            ),
-          ),
+              ),
 
-          // Bottom sheet liste restaurants
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildRestaurantBottomSheet(theme),
-          ),
-        ],
+            // Boutons de navigation et zoom
+            Positioned(
+              bottom: 230,
+              right: 16,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Bouton Zoom In (+)
+                  FloatingActionButton.small(
+                    heroTag: 'zoomIn',
+                    onPressed: _zoomIn,
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppTheme.ink,
+                    child: const Icon(Icons.add_rounded, size: 20),
+                  ),
+                  const SizedBox(height: 8),
+                  // Bouton Zoom Out (-)
+                  FloatingActionButton.small(
+                    heroTag: 'zoomOut',
+                    onPressed: _zoomOut,
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppTheme.ink,
+                    child: const Icon(Icons.remove_rounded, size: 20),
+                  ),
+                  const SizedBox(height: 8),
+                  // Bouton Localisation
+                  FloatingActionButton.small(
+                    heroTag: 'locateMe',
+                    onPressed: _centerOnUser,
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppTheme.primaryRed,
+                    child: const Icon(Icons.my_location_rounded, size: 18),
+                  ),
+                ],
+              ),
+            ),
+
+            // Bottom sheet liste restaurants
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _buildRestaurantBottomSheet(theme),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildRestaurantBottomSheet(ThemeData theme) {
     return Container(

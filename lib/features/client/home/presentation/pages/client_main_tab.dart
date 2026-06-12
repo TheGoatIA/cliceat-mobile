@@ -40,54 +40,54 @@ class ClientMainTabState extends State<ClientMainTab> {
     return BlocProvider(
       create: (_) => getIt<HomeCubit>(),
       child: Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppTheme.lineSoft, width: 1)),
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            height: 60,
-            child: Row(
-              children: [
-                _NavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: 'client.nav_home'.tr(),
-                  isActive: _currentIndex == 0,
-                  onTap: () => setState(() => _currentIndex = 0),
-                ),
-                _NavItem(
-                  icon: Icons.map_outlined,
-                  activeIcon: Icons.map_rounded,
-                  label: 'client.nav_map'.tr(),
-                  isActive: _currentIndex == 1,
-                  onTap: () => setState(() => _currentIndex = 1),
-                ),
-                _NavItem(
-                  icon: Icons.receipt_long_outlined,
-                  activeIcon: Icons.receipt_long_rounded,
-                  label: 'client.nav_orders'.tr(),
-                  isActive: _currentIndex == 2,
-                  onTap: () => setState(() => _currentIndex = 2),
-                ),
-                _CartNavItem(
-                  isActive: _currentIndex == 3,
-                  onTap: () => setState(() => _currentIndex = 3),
-                ),
-                _NavItem(
-                  icon: Icons.person_outline_rounded,
-                  activeIcon: Icons.person_rounded,
-                  label: 'client.nav_profile'.tr(),
-                  isActive: _currentIndex == 4,
-                  onTap: () => setState(() => _currentIndex = 4),
-                ),
-              ],
+        body: IndexedStack(index: _currentIndex, children: _pages),
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: AppTheme.lineSoft, width: 1)),
+          ),
+          child: SafeArea(
+            child: SizedBox(
+              height: 60,
+              child: Row(
+                children: [
+                  _NavItem(
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home_rounded,
+                    label: 'client.nav_home'.tr(),
+                    isActive: _currentIndex == 0,
+                    onTap: () => setState(() => _currentIndex = 0),
+                  ),
+                  _NavItem(
+                    icon: Icons.map_outlined,
+                    activeIcon: Icons.map_rounded,
+                    label: 'client.nav_map'.tr(),
+                    isActive: _currentIndex == 1,
+                    onTap: () => setState(() => _currentIndex = 1),
+                  ),
+                  _NavItem(
+                    icon: Icons.receipt_long_outlined,
+                    activeIcon: Icons.receipt_long_rounded,
+                    label: 'client.nav_orders'.tr(),
+                    isActive: _currentIndex == 2,
+                    onTap: () => setState(() => _currentIndex = 2),
+                  ),
+                  _CartNavItem(
+                    isActive: _currentIndex == 3,
+                    onTap: () => setState(() => _currentIndex = 3),
+                  ),
+                  _NavItem(
+                    icon: Icons.person_outline_rounded,
+                    activeIcon: Icons.person_rounded,
+                    label: 'client.nav_profile'.tr(),
+                    isActive: _currentIndex == 4,
+                    onTap: () => setState(() => _currentIndex = 4),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
       ),
     );
   }

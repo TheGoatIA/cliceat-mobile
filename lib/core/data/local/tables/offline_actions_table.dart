@@ -31,6 +31,5 @@ class OfflineActionsTable extends Table {
   DateTimeColumn get createdAt => dateTime()();
 
   /// Statut de l'action : 'pending' | 'processing' | 'failed'.
-  TextColumn get status =>
-      text().withDefault(const Constant('pending'))();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
 }

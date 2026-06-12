@@ -11,8 +11,7 @@ abstract class NavigationState with _$NavigationState {
     required double currentLng,
     @Default(false) bool isRerouting,
   }) = NavigationNavigating;
-  const factory NavigationState.arrived({
-    required OsrmRoute route,
-  }) = NavigationArrived;
+  const factory NavigationState.arrived({required OsrmRoute route}) =
+      NavigationArrived;
   const factory NavigationState.error(String message) = NavigationError;
 }

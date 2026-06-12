@@ -21,14 +21,18 @@ class AiCubit extends Cubit<AiState> {
     if (conversations.isNotEmpty) {
       conversationId = conversations.first.id;
     } else {
-      conversationId = await _repository.createLocalConversation('Ma conversation');
+      conversationId = await _repository.createLocalConversation(
+        'Ma conversation',
+      );
     }
     final messages = await _repository.getLocalMessages(conversationId);
-    emit(AiState.chat(
-      conversationId: conversationId,
-      messages: messages,
-      isTyping: false,
-    ));
+    emit(
+      AiState.chat(
+        conversationId: conversationId,
+        messages: messages,
+        isTyping: false,
+      ),
+    );
   }
 
   Future<void> sendMessage(String text) async {
@@ -41,18 +45,22 @@ class AiCubit extends Cubit<AiState> {
       AiMessageModel(role: 'user', content: text, createdAt: DateTime.now()),
     ];
 
-    emit(AiState.chat(
-      conversationId: currentState.conversationId,
-      messages: updatedMessages,
-      isTyping: true,
-      suggestions: currentState.suggestions,
-    ));
+    emit(
+      AiState.chat(
+        conversationId: currentState.conversationId,
+        messages: updatedMessages,
+        isTyping: true,
+        suggestions: currentState.suggestions,
+      ),
+    );
 
     final history = updatedMessages.length > 10
         ? updatedMessages.sublist(updatedMessages.length - 10)
         : updatedMessages;
 
-    final conv = await _repository.getLocalConversation(currentState.conversationId);
+    final conv = await _repository.getLocalConversation(
+      currentState.conversationId,
+    );
 
     final result = await _repository.sendMessage(
       localConversationId: currentState.conversationId,
@@ -63,35 +71,36 @@ class AiCubit extends Cubit<AiState> {
 
     result.fold(
       (error) {
-        emit(AiState.chat(
-          conversationId: currentState.conversationId,
-          messages: updatedMessages,
-          isTyping: false,
-          offlineError: true,
-          suggestions: currentState.suggestions,
-        ));
+        emit(
+          AiState.chat(
+            conversationId: currentState.conversationId,
+            messages: updatedMessages,
+            isTyping: false,
+            offlineError: true,
+            suggestions: currentState.suggestions,
+          ),
+        );
       },
       (modelMessage) {
-        emit(AiState.chat(
-          conversationId: currentState.conversationId,
-          messages: [...updatedMessages, modelMessage],
-          isTyping: false,
-          suggestions: currentState.suggestions,
-        ));
+        emit(
+          AiState.chat(
+            conversationId: currentState.conversationId,
+            messages: [...updatedMessages, modelMessage],
+            isTyping: false,
+            suggestions: currentState.suggestions,
+          ),
+        );
       },
     );
   }
 
   Future<void> loadSuggestions(String city) async {
     final result = await _repository.getSuggestions(city);
-    result.fold(
-      (_) {},
-      (suggestions) {
-        final current = state;
-        if (current is _Chat) {
-          emit(current.copyWith(suggestions: suggestions));
-        }
-      },
-    );
+    result.fold((_) {}, (suggestions) {
+      final current = state;
+      if (current is _Chat) {
+        emit(current.copyWith(suggestions: suggestions));
+      }
+    });
   }
 }

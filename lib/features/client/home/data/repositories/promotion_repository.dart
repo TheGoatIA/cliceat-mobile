@@ -23,7 +23,9 @@ class PromotionRepository {
       }
       return Left(AppError.fromResponse(res.body, 'promotion.load_error'));
     } catch (e, s) {
-      debugPrint('[promotion_repository.dart] getActivePromotions error: $e\n$s');
+      debugPrint(
+        '[promotion_repository.dart] getActivePromotions error: $e\n$s',
+      );
       return Left(AppError.network());
     }
   }
@@ -39,7 +41,9 @@ class PromotionRepository {
       }
       return Left(AppError.fromResponse(res.body, 'promotion.load_error'));
     } catch (e, s) {
-      debugPrint('[promotion_repository.dart] getRestaurantPromotions error: $e\n$s');
+      debugPrint(
+        '[promotion_repository.dart] getRestaurantPromotions error: $e\n$s',
+      );
       return Left(AppError.network());
     }
   }

@@ -42,8 +42,12 @@ class AiConversationModel extends Equatable {
     this.isSynced = false,
   });
 
-  String get lastMessagePreview =>
-      messages.isNotEmpty ? messages.last.content.substring(0, messages.last.content.length.clamp(0, 80)) : '';
+  String get lastMessagePreview => messages.isNotEmpty
+      ? messages.last.content.substring(
+          0,
+          messages.last.content.length.clamp(0, 80),
+        )
+      : '';
 
   @override
   List<Object?> get props => [id, title, lastMessageAt, isSynced];

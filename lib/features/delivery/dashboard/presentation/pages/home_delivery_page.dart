@@ -248,8 +248,10 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              final Future<dynamic> nav =
-                  context.push('/delivery/active-navigation', extra: mission);
+              final Future<dynamic> nav = context.push(
+                '/delivery/active-navigation',
+                extra: mission,
+              );
               nav.then((_) {
                 if (!mounted) return;
                 _missionBloc.add(MissionEvent.loadActiveMissions());

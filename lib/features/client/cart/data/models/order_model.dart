@@ -20,7 +20,8 @@ class OrderItemModel {
     // item may be nested or flat
     final item = json['item'] as Map<String, dynamic>? ?? json;
     return OrderItemModel(
-      itemId: item['menuItemId']?.toString() ??
+      itemId:
+          item['menuItemId']?.toString() ??
           item['itemId']?.toString() ??
           json['menuItemId']?.toString() ??
           json['itemId']?.toString() ??

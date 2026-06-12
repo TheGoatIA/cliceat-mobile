@@ -541,7 +541,9 @@ class _ProfilePageState extends State<ProfilePage> {
     // Determine initial city: normalize stored value to one of the two options
     const cities = ['Douala', 'Yaoundé'];
     String selectedCity = cities.firstWhere(
-      (c) => c.toLowerCase().replaceAll('é', 'e') == (user.city ?? '').toLowerCase(),
+      (c) =>
+          c.toLowerCase().replaceAll('é', 'e') ==
+          (user.city ?? '').toLowerCase(),
       orElse: () => cities.first,
     );
     showModalBottomSheet(
@@ -615,8 +617,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     if (value == null || value.trim().isEmpty) {
                       return 'profile.phone_required'.tr();
                     }
-                    final phoneRegex = RegExp(r'^\+?237[0-9]{8,9}$|^6[0-9]{8}$');
-                    if (!phoneRegex.hasMatch(value.trim().replaceAll(' ', ''))) {
+                    final phoneRegex = RegExp(
+                      r'^\+?237[0-9]{8,9}$|^6[0-9]{8}$',
+                    );
+                    if (!phoneRegex.hasMatch(
+                      value.trim().replaceAll(' ', ''),
+                    )) {
                       return 'profile.phone_invalid'.tr();
                     }
                     return null;
@@ -633,7 +639,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
                   onChanged: (value) {
-                    if (value != null) setSheetState(() => selectedCity = value);
+                    if (value != null) {
+                      setSheetState(() => selectedCity = value);
+                    }
                   },
                 ),
                 const SizedBox(height: 20),
@@ -649,9 +657,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       };
                       final phone = phoneController.text.trim();
                       if (phone.isNotEmpty) payload['phone'] = phone;
-                      final result = await getIt<UserRepository>().updateProfile(
-                        payload,
-                      );
+                      final result = await getIt<UserRepository>()
+                          .updateProfile(payload);
                       result.fold(
                         (err) {
                           if (mounted) {
@@ -662,7 +669,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                         (updatedUser) {
                           if (mounted) {
-                            context.read<ProfileCubit>().emitLoaded(updatedUser);
+                            context.read<ProfileCubit>().emitLoaded(
+                              updatedUser,
+                            );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('profile.update_success'.tr()),
@@ -1268,7 +1277,10 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr(), style: const TextStyle(color: AppTheme.muted)),
+            child: Text(
+              'common.cancel'.tr(),
+              style: const TextStyle(color: AppTheme.muted),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -1337,7 +1349,9 @@ class _MyAddressesSheetState extends State<MyAddressesSheet> {
               ),
             ),
             Text(
-              isEditing ? 'profile.edit_address'.tr() : 'profile.add_address'.tr(),
+              isEditing
+                  ? 'profile.edit_address'.tr()
+                  : 'profile.add_address'.tr(),
               style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

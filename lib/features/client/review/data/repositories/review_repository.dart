@@ -82,7 +82,9 @@ class ReviewRepository {
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'review.error_create'));
     } catch (e, s) {
-      debugPrint('[review_repository.dart] createReview error (queuing offline): $e\n$s');
+      debugPrint(
+        '[review_repository.dart] createReview error (queuing offline): $e\n$s',
+      );
       // Offline mode: queue the review
       await _pendingActionsDao.addPending(
         'create_review',

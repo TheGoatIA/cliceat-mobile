@@ -35,14 +35,12 @@ class OfflineQueueDao extends DatabaseAccessor<AppDatabase>
 
   /// Incrémente le compteur de tentatives d'une action.
   Future<void> incrementRetry(int id) async {
-    final action = await (select(offlineActionsTable)
-          ..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+    final action = await (select(
+      offlineActionsTable,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (action == null) return;
     await (update(offlineActionsTable)..where((t) => t.id.equals(id))).write(
-      OfflineActionsTableCompanion(
-        retryCount: Value(action.retryCount + 1),
-      ),
+      OfflineActionsTableCompanion(retryCount: Value(action.retryCount + 1)),
     );
   }
 
@@ -51,7 +49,7 @@ class OfflineQueueDao extends DatabaseAccessor<AppDatabase>
       (delete(offlineActionsTable)..where((t) => t.id.equals(id))).go();
 
   /// Supprime toutes les actions marquées 'completed'.
-  Future<void> deleteAllCompleted() =>
-      (delete(offlineActionsTable)..where((t) => t.status.equals('completed')))
-          .go();
+  Future<void> deleteAllCompleted() => (delete(
+    offlineActionsTable,
+  )..where((t) => t.status.equals('completed'))).go();
 }

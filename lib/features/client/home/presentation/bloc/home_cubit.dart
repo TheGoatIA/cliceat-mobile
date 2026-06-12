@@ -32,15 +32,12 @@ class HomeCubit extends Cubit<HomeState> {
       cityResult.fold((_) {}, (list) => restaurants = list);
 
       if (restaurants.isEmpty) {
-        final featuredResult =
-            await getIt<RestaurantRepository>().getFeaturedRestaurants(city);
+        final featuredResult = await getIt<RestaurantRepository>()
+            .getFeaturedRestaurants(city);
         featuredResult.fold((_) {}, (list) => restaurants = list);
       }
 
-      emit(state.copyWith(
-        restaurants: restaurants,
-        loadingRestaurants: false,
-      ));
+      emit(state.copyWith(restaurants: restaurants, loadingRestaurants: false));
     } catch (e, s) {
       debugPrint('[HomeCubit] loadRestaurants error: $e\n$s');
       emit(state.copyWith(loadingRestaurants: false));
@@ -68,14 +65,12 @@ class HomeCubit extends Cubit<HomeState> {
     if (query.trim().isEmpty) return;
     emit(state.copyWith(loadingRestaurants: true));
     try {
-      final result =
-          await getIt<RestaurantRepository>().search(query.trim());
+      final result = await getIt<RestaurantRepository>().search(query.trim());
       result.fold(
         (_) => emit(state.copyWith(loadingRestaurants: false)),
-        (restaurants) => emit(state.copyWith(
-          restaurants: restaurants,
-          loadingRestaurants: false,
-        )),
+        (restaurants) => emit(
+          state.copyWith(restaurants: restaurants, loadingRestaurants: false),
+        ),
       );
     } catch (e, s) {
       debugPrint('[HomeCubit] search error: $e\n$s');

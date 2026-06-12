@@ -26,7 +26,8 @@ class ClientTrackingPage extends StatefulWidget {
   State<ClientTrackingPage> createState() => _ClientTrackingPageState();
 }
 
-class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProviderStateMixin {
+class _ClientTrackingPageState extends State<ClientTrackingPage>
+    with TickerProviderStateMixin {
   MapboxMap? mapboxMap;
   PointAnnotationManager? _annotationManager;
   PolylineAnnotationManager? _polylineManager;
@@ -139,7 +140,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProv
       final t = _movementController!.value;
       final lat = _animStartLat + (_animEndLat - _animStartLat) * t;
       final lng = _animStartLng + (_animEndLng - _animStartLng) * t;
-      final heading = _animStartHeading + (_animEndHeading - _animStartHeading) * t;
+      final heading =
+          _animStartHeading + (_animEndHeading - _animStartHeading) * t;
 
       final point = Point(coordinates: Position(lng, lat));
       _driverAnnotation!.geometry = point;
@@ -222,7 +224,12 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProv
         if (heading != null) {
           newHeading = heading;
         } else if (_lastDriverLat != null && _lastDriverLng != null) {
-          newHeading = _computeBearing(_lastDriverLat!, _lastDriverLng!, lat, lng);
+          newHeading = _computeBearing(
+            _lastDriverLat!,
+            _lastDriverLng!,
+            lat,
+            lng,
+          );
         }
 
         // Update breadcrumb trail
@@ -274,7 +281,10 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProv
 
           _movementController?.forward(from: 0.0);
           mapboxMap?.flyTo(
-            CameraOptions(center: Point(coordinates: Position(lng, lat)), zoom: 15.0),
+            CameraOptions(
+              center: Point(coordinates: Position(lng, lat)),
+              zoom: 15.0,
+            ),
             MapAnimationOptions(duration: 1000),
           );
         }
@@ -286,7 +296,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProv
 
     // Listen to driver nav step updates (order:driver_position from socket)
     _navUpdateSub = ws.driverNavPositionEvents.listen((event) {
-      if (event['type'] == 'order:driver_position' || event['driverId'] != null) {
+      if (event['type'] == 'order:driver_position' ||
+          event['driverId'] != null) {
         final lat = (event['lat'] as num?)?.toDouble();
         final lng = (event['lng'] as num?)?.toDouble();
         if (lat != null && lng != null) {
@@ -484,7 +495,8 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProv
     final lat1Rad = lat1 * math.pi / 180;
     final lat2Rad = lat2 * math.pi / 180;
     final y = math.sin(dLng) * math.cos(lat2Rad);
-    final x = math.cos(lat1Rad) * math.sin(lat2Rad) -
+    final x =
+        math.cos(lat1Rad) * math.sin(lat2Rad) -
         math.sin(lat1Rad) * math.cos(lat2Rad) * math.cos(dLng);
     return ((math.atan2(y, x) * 180 / math.pi) + 360) % 360;
   }
@@ -514,10 +526,18 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProv
   Future<void> _fetchOsrmRoute(double driverLat, double driverLng) async {
     if (_order == null) return;
     final status = _trackingData?.status ?? _order!.status;
-    final isRestaurantPhase = status != 'picked_up' && status != 'en_route' && status != 'in_transit' && status != 'delivered';
+    final isRestaurantPhase =
+        status != 'picked_up' &&
+        status != 'en_route' &&
+        status != 'in_transit' &&
+        status != 'delivered';
 
-    final double? destLat = isRestaurantPhase ? _order!.restaurantLat : _order!.deliveryAddress?.lat;
-    final double? destLng = isRestaurantPhase ? _order!.restaurantLng : _order!.deliveryAddress?.lng;
+    final double? destLat = isRestaurantPhase
+        ? _order!.restaurantLat
+        : _order!.deliveryAddress?.lat;
+    final double? destLng = isRestaurantPhase
+        ? _order!.restaurantLng
+        : _order!.deliveryAddress?.lng;
 
     if (destLat == null || destLng == null) return;
     try {
@@ -601,19 +621,33 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProv
   }
 
   Future<void> _updateDeliveryMarker() async {
-    if (_annotationManager == null || _destinationIcon == null || _restaurantIcon == null) return;
+    if (_annotationManager == null ||
+        _destinationIcon == null ||
+        _restaurantIcon == null) {
+      return;
+    }
     if (_order == null) return;
 
     final status = _trackingData?.status ?? _order!.status;
-    final isRestaurantPhase = status != 'picked_up' && status != 'en_route' && status != 'in_transit' && status != 'delivered';
+    final isRestaurantPhase =
+        status != 'picked_up' &&
+        status != 'en_route' &&
+        status != 'in_transit' &&
+        status != 'delivered';
 
-    final double? lat = isRestaurantPhase ? _order!.restaurantLat : _order!.deliveryAddress?.lat;
-    final double? lng = isRestaurantPhase ? _order!.restaurantLng : _order!.deliveryAddress?.lng;
+    final double? lat = isRestaurantPhase
+        ? _order!.restaurantLat
+        : _order!.deliveryAddress?.lat;
+    final double? lng = isRestaurantPhase
+        ? _order!.restaurantLng
+        : _order!.deliveryAddress?.lng;
     if (lat == null || lng == null) return;
 
     final point = Point(coordinates: Position(lng, lat));
     final image = isRestaurantPhase ? _restaurantIcon! : _destinationIcon!;
-    final textField = isRestaurantPhase ? (_order!.restaurantName ?? 'Restaurant') : 'tracking.destination'.tr();
+    final textField = isRestaurantPhase
+        ? (_order!.restaurantName ?? 'Restaurant')
+        : 'tracking.destination'.tr();
 
     if (_destinationAnnotation != null) {
       await _annotationManager!.delete(_destinationAnnotation!);
@@ -932,7 +966,11 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> with TickerProv
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (_osrmEta != null)
-                              const Icon(Icons.route, size: 12, color: AppTheme.primaryRed),
+                              const Icon(
+                                Icons.route,
+                                size: 12,
+                                color: AppTheme.primaryRed,
+                              ),
                             if (_osrmEta != null) const SizedBox(width: 4),
                             Text(
                               _osrmEta ??

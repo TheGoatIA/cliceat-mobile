@@ -35,7 +35,9 @@ class ChatRepository {
       }
       return Left(AppError.fromResponse(res.body, 'chat.error_create'));
     } catch (e, s) {
-      debugPrint('[chat_repository.dart] createOrGetConversation error: $e\n$s');
+      debugPrint(
+        '[chat_repository.dart] createOrGetConversation error: $e\n$s',
+      );
       return Left(AppError.network());
     }
   }

@@ -114,10 +114,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 if (paymentUrl != null && paymentUrl.isNotEmpty) {
                   context.push(
                     '/client/payment',
-                    extra: {
-                      'orderId': newOrderId,
-                      'paymentUrl': paymentUrl,
-                    },
+                    extra: {'orderId': newOrderId, 'paymentUrl': paymentUrl},
                   );
                 } else {
                   context.push('/client/tracking/$newOrderId');

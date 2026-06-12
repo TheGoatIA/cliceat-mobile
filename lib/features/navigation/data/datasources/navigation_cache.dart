@@ -7,35 +7,46 @@ class NavigationCache {
 
   static Future<void> saveRoute(OsrmRoute route, String orderId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, jsonEncode({
-      'orderId': orderId,
-      'route': {
-        'distance': route.distance,
-        'duration': route.duration,
-        'geometry': {
-          'type': route.geometry.type,
-          'coordinates': route.geometry.coordinates,
+    await prefs.setString(
+      _key,
+      jsonEncode({
+        'orderId': orderId,
+        'route': {
+          'distance': route.distance,
+          'duration': route.duration,
+          'geometry': {
+            'type': route.geometry.type,
+            'coordinates': route.geometry.coordinates,
+          },
+          'legs': route.legs
+              .map(
+                (l) => {
+                  'distance': l.distance,
+                  'duration': l.duration,
+                  'steps': l.steps
+                      .map(
+                        (s) => {
+                          'distance': s.distance,
+                          'duration': s.duration,
+                          'instruction': s.instruction,
+                          'instructionFr': s.instructionFr,
+                          'name': s.name,
+                          'mode': s.mode,
+                          'maneuver': {
+                            'type': s.maneuver.type,
+                            'modifier': s.maneuver.modifier,
+                            'bearing_after': s.maneuver.bearingAfter,
+                          },
+                        },
+                      )
+                      .toList(),
+                },
+              )
+              .toList(),
         },
-        'legs': route.legs.map((l) => {
-          'distance': l.distance,
-          'duration': l.duration,
-          'steps': l.steps.map((s) => {
-            'distance': s.distance,
-            'duration': s.duration,
-            'instruction': s.instruction,
-            'instructionFr': s.instructionFr,
-            'name': s.name,
-            'mode': s.mode,
-            'maneuver': {
-              'type': s.maneuver.type,
-              'modifier': s.maneuver.modifier,
-              'bearing_after': s.maneuver.bearingAfter,
-            },
-          }).toList(),
-        }).toList(),
-      },
-      'savedAt': DateTime.now().toIso8601String(),
-    }));
+        'savedAt': DateTime.now().toIso8601String(),
+      }),
+    );
   }
 
   static Future<OsrmRoute?> loadRoute(String orderId) async {

@@ -167,8 +167,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
     final categories = _extractCategories(homeState.restaurants);
     setState(() {
       if (categories.isNotEmpty) _categories = categories;
-      _displayedRestaurants =
-          _getFilteredRestaurantsList(homeState.restaurants);
+      _displayedRestaurants = _getFilteredRestaurantsList(
+        homeState.restaurants,
+      );
     });
   }
 
@@ -263,8 +264,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
       setState(() {
         _selectedCategory = null;
         _searchQuery = '';
-        _displayedRestaurants =
-            context.read<HomeCubit>().state.restaurants;
+        _displayedRestaurants = context.read<HomeCubit>().state.restaurants;
       });
     } else {
       _searchController.text = category;
@@ -296,7 +296,8 @@ class _HomeClientPageState extends State<HomeClientPage> {
   }
 
   List<RestaurantModel> _getFilteredRestaurantsList(
-      List<RestaurantModel> allRestaurants) {
+    List<RestaurantModel> allRestaurants,
+  ) {
     List<RestaurantModel> filteredList = List.from(allRestaurants);
 
     if (_searchQuery.isNotEmpty) {
@@ -427,7 +428,7 @@ class _HomeClientPageState extends State<HomeClientPage> {
         context.pop();
         _loadData();
         final lowerCity = city == 'Yaound\u00e9' ? 'yaounde' : 'douala';
-        
+
         final profileCubit = context.read<ProfileCubit>();
         profileCubit.state.maybeWhen(
           loaded: (user) {
@@ -437,16 +438,13 @@ class _HomeClientPageState extends State<HomeClientPage> {
         );
 
         final result = await profileCubit.updateProfile({'city': lowerCity});
-        result.fold(
-          (err) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('common.error'.tr())),
-              );
-            }
-          },
-          (_) {},
-        );
+        result.fold((err) {
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('common.error'.tr())));
+          }
+        }, (_) {});
       },
       leading: Icon(
         Icons.location_city_rounded,
@@ -770,60 +768,60 @@ class _HomeClientPageState extends State<HomeClientPage> {
           }
         },
         child: BlocListener<ProfileCubit, ProfileState>(
-        listener: (context, state) {
-          state.maybeWhen(
-            loaded: (user) {
-              if (user.city != null && user.city!.isNotEmpty) {
-                final normalized = _normalizeCity(user.city!);
-                if (_selectedCity != normalized) {
-                  setState(() {
-                    _selectedCity = normalized;
-                  });
-                  _loadData();
+          listener: (context, state) {
+            state.maybeWhen(
+              loaded: (user) {
+                if (user.city != null && user.city!.isNotEmpty) {
+                  final normalized = _normalizeCity(user.city!);
+                  if (_selectedCity != normalized) {
+                    setState(() {
+                      _selectedCity = normalized;
+                    });
+                    _loadData();
+                  }
                 }
-              }
-            },
-            orElse: () {},
-          );
-        },
-        child: Scaffold(
-        backgroundColor: AppTheme.bg,
-        body: RefreshIndicator(
-          color: AppTheme.primaryRed,
-          onRefresh: () async {
-            _searchController.clear();
-            setState(() {
-              _searchQuery = '';
-              _selectedCategory = null;
-            });
-            await _loadData();
+              },
+              orElse: () {},
+            );
           },
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(child: _buildHeader(context)),
-              SliverToBoxAdapter(child: _buildSearchBar(context)),
-              if (!_isSearching) ...[
-                SliverToBoxAdapter(child: _buildHeroBanner()),
-                SliverToBoxAdapter(child: _buildPromotions(context)),
-              ],
-              SliverToBoxAdapter(child: _buildCategories()),
-              SliverToBoxAdapter(child: _buildRestaurantSection(context)),
-              if (!_isSearching)
-                FeatureGateSliver(
-                  featureKey: FeatureFlags.referral,
-                  child: SliverToBoxAdapter(child: _buildReferralBanner()),
-                ),
-              const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            ],
+          child: Scaffold(
+            backgroundColor: AppTheme.bg,
+            body: RefreshIndicator(
+              color: AppTheme.primaryRed,
+              onRefresh: () async {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                  _selectedCategory = null;
+                });
+                await _loadData();
+              },
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(child: _buildHeader(context)),
+                  SliverToBoxAdapter(child: _buildSearchBar(context)),
+                  if (!_isSearching) ...[
+                    SliverToBoxAdapter(child: _buildHeroBanner()),
+                    SliverToBoxAdapter(child: _buildPromotions(context)),
+                  ],
+                  SliverToBoxAdapter(child: _buildCategories()),
+                  SliverToBoxAdapter(child: _buildRestaurantSection(context)),
+                  if (!_isSearching)
+                    FeatureGateSliver(
+                      featureKey: FeatureFlags.referral,
+                      child: SliverToBoxAdapter(child: _buildReferralBanner()),
+                    ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                ],
+              ),
+            ),
+            floatingActionButton: _buildFAB(context),
           ),
         ),
-        floatingActionButton: _buildFAB(context),
       ),
-      ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildHeader(BuildContext context) {
     return SafeArea(
@@ -1033,106 +1031,106 @@ class _HomeClientPageState extends State<HomeClientPage> {
           );
         }
         return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      height: 148,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppTheme.primaryRed, AppTheme.redDeep],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Positioned(
-            right: -30,
-            top: -30,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                color: AppTheme.honey.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(80),
-              ),
+          margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          height: 148,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppTheme.primaryRed, AppTheme.redDeep],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(24),
           ),
-          const Positioned(
-            right: 20,
-            bottom: 12,
-            child: Text('\u{1F372}', style: TextStyle(fontSize: 84)),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              Positioned(
+                right: -30,
+                top: -30,
+                child: Container(
+                  width: 160,
+                  height: 160,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.local_fire_department_rounded,
-                        size: 11,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'home.daily_offer'.tr(),
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
+                    color: AppTheme.honey.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(80),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'home.free_delivery_title'.tr(),
-                  style: GoogleFonts.bricolageGrotesque(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.1,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                RichText(
-                  text: TextSpan(
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.85),
+              ),
+              const Positioned(
+                right: 20,
+                bottom: 12,
+                child: Text('\u{1F372}', style: TextStyle(fontSize: 84)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.local_fire_department_rounded,
+                            size: 11,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'home.daily_offer'.tr(),
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    children: [
-                      TextSpan(text: 'home.welcome_code_prefix'.tr()),
-                      TextSpan(
-                        text: 'BIENVENUE',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.honeyLight,
-                        ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'home.free_delivery_title'.tr(),
+                      style: GoogleFonts.bricolageGrotesque(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.1,
+                        letterSpacing: -0.5,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 6),
+                    RichText(
+                      text: TextSpan(
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                        children: [
+                          TextSpan(text: 'home.welcome_code_prefix'.tr()),
+                          TextSpan(
+                            text: 'BIENVENUE',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.honeyLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
         );
       },
     );
@@ -1326,7 +1324,9 @@ class _HomeClientPageState extends State<HomeClientPage> {
                     ? 'common.no_results'.tr()
                     : 'restaurant.none_available'.tr(),
                 subtitle: _isSearching ? 'common.try_other_query'.tr() : null,
-                icon: _isSearching ? Icons.search_off : Icons.restaurant_outlined,
+                icon: _isSearching
+                    ? Icons.search_off
+                    : Icons.restaurant_outlined,
                 actionLabel: _isSearching ? 'common.clear'.tr() : null,
                 onAction: _isSearching
                     ? () {
@@ -1334,8 +1334,10 @@ class _HomeClientPageState extends State<HomeClientPage> {
                         setState(() {
                           _searchQuery = '';
                           _selectedCategory = null;
-                          _displayedRestaurants =
-                              context.read<HomeCubit>().state.restaurants;
+                          _displayedRestaurants = context
+                              .read<HomeCubit>()
+                              .state
+                              .restaurants;
                         });
                       }
                     : null,

@@ -23,16 +23,18 @@ class AiConversationRow {
   });
 
   factory AiConversationRow.fromRow(QueryRow row) => AiConversationRow(
-        id: row.read<String>('id'),
-        serverId: row.readNullable<String>('server_id'),
-        title: row.read<String>('title'),
-        lastMessageAt: DateTime.fromMillisecondsSinceEpoch(
-            row.read<int>('last_message_at') * 1000),
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-            row.read<int>('created_at') * 1000),
-        isSynced: row.read<int>('is_synced') == 1,
-        isArchived: row.read<int>('is_archived') == 1,
-      );
+    id: row.read<String>('id'),
+    serverId: row.readNullable<String>('server_id'),
+    title: row.read<String>('title'),
+    lastMessageAt: DateTime.fromMillisecondsSinceEpoch(
+      row.read<int>('last_message_at') * 1000,
+    ),
+    createdAt: DateTime.fromMillisecondsSinceEpoch(
+      row.read<int>('created_at') * 1000,
+    ),
+    isSynced: row.read<int>('is_synced') == 1,
+    isArchived: row.read<int>('is_archived') == 1,
+  );
 }
 
 class AiMessageRow {
@@ -55,15 +57,16 @@ class AiMessageRow {
   });
 
   factory AiMessageRow.fromRow(QueryRow row) => AiMessageRow(
-        id: row.read<int>('id'),
-        conversationId: row.read<String>('conversation_id'),
-        role: row.read<String>('role'),
-        content: row.read<String>('content'),
-        tokenCount: row.readNullable<int>('token_count'),
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-            row.read<int>('created_at') * 1000),
-        isSynced: row.read<int>('is_synced') == 1,
-      );
+    id: row.read<int>('id'),
+    conversationId: row.read<String>('conversation_id'),
+    role: row.read<String>('role'),
+    content: row.read<String>('content'),
+    tokenCount: row.readNullable<int>('token_count'),
+    createdAt: DateTime.fromMillisecondsSinceEpoch(
+      row.read<int>('created_at') * 1000,
+    ),
+    isSynced: row.read<int>('is_synced') == 1,
+  );
 }
 
 @lazySingleton
@@ -73,17 +76,21 @@ class AiLocalDao {
   AiLocalDao(this._db);
 
   Future<List<AiConversationRow>> getConversations() async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM ai_conversations_table WHERE is_archived = 0 ORDER BY last_message_at DESC',
-    ).get();
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM ai_conversations_table WHERE is_archived = 0 ORDER BY last_message_at DESC',
+        )
+        .get();
     return rows.map(AiConversationRow.fromRow).toList();
   }
 
   Future<AiConversationRow?> getConversation(String id) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM ai_conversations_table WHERE id = ?',
-      variables: [Variable.withString(id)],
-    ).get();
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM ai_conversations_table WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .get();
     if (rows.isEmpty) return null;
     return AiConversationRow.fromRow(rows.first);
   }
@@ -103,8 +110,12 @@ class AiLocalDao {
     return id;
   }
 
-  Future<void> updateConversation(String id,
-      {String? title, String? serverId, bool? isSynced}) async {
+  Future<void> updateConversation(
+    String id, {
+    String? title,
+    String? serverId,
+    bool? isSynced,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final parts = <String>['last_message_at = ?'];
     final vars = <Variable>[Variable.withInt(now)];
@@ -137,10 +148,12 @@ class AiLocalDao {
   }
 
   Future<List<AiMessageRow>> getMessages(String conversationId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM ai_messages_table WHERE conversation_id = ? ORDER BY created_at ASC',
-      variables: [Variable.withString(conversationId)],
-    ).get();
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM ai_messages_table WHERE conversation_id = ? ORDER BY created_at ASC',
+          variables: [Variable.withString(conversationId)],
+        )
+        .get();
     return rows.map(AiMessageRow.fromRow).toList();
   }
 
@@ -157,7 +170,9 @@ class AiLocalDao {
         Variable.withString(conversationId),
         Variable.withString(role),
         Variable.withString(content),
-        tokenCount != null ? Variable.withInt(tokenCount) : const Variable(null),
+        tokenCount != null
+            ? Variable.withInt(tokenCount)
+            : const Variable(null),
         Variable.withInt(now),
       ],
     );

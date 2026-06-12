@@ -25,9 +25,8 @@ class ActiveNavigationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => NavigationCubit(
-        NavigationRepository(getIt<NavigationService>()),
-      ),
+      create: (_) =>
+          NavigationCubit(NavigationRepository(getIt<NavigationService>())),
       child: _ActiveNavigationView(mission: mission),
     );
   }
@@ -72,7 +71,8 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
     try {
       final response = await getIt<OrderService>().getOrderById(_mission.id);
       if (response.isSuccessful && response.body != null && mounted) {
-        final data = response.body!['data'] as Map<String, dynamic>? ?? response.body!;
+        final data =
+            response.body!['data'] as Map<String, dynamic>? ?? response.body!;
         final orderData = data['order'] as Map<String, dynamic>? ?? data;
         setState(() {
           _mission = MissionModel.fromJson(orderData);
@@ -115,36 +115,50 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
       );
     }
 
-    _locationSub = geo.Geolocator.getPositionStream(
-      locationSettings: settings,
-    ).listen((pos) {
-      if (!mounted) return;
-      setState(() => _currentSpeedKmh = (pos.speed * 3.6).clamp(0.0, 200.0));
-      getIt<WebSocketService>().emitLocationUpdate(
-        pos.latitude, pos.longitude,
-        heading: pos.heading,
-      );
-    });
+    _locationSub = geo.Geolocator.getPositionStream(locationSettings: settings)
+        .listen((pos) {
+          if (!mounted) return;
+          setState(
+            () => _currentSpeedKmh = (pos.speed * 3.6).clamp(0.0, 200.0),
+          );
+          getIt<WebSocketService>().emitLocationUpdate(
+            pos.latitude,
+            pos.longitude,
+            heading: pos.heading,
+          );
+        });
   }
 
   Future<void> _tryStartNavigation() async {
-    final isRestaurantPhase = _mission.status != 'picked_up' && _mission.status != 'en_route';
-    final destLat = isRestaurantPhase ? _mission.restaurantLat : _mission.deliveryAddress?.lat;
-    final destLng = isRestaurantPhase ? _mission.restaurantLng : _mission.deliveryAddress?.lng;
+    final isRestaurantPhase =
+        _mission.status != 'picked_up' && _mission.status != 'en_route';
+    final destLat = isRestaurantPhase
+        ? _mission.restaurantLat
+        : _mission.deliveryAddress?.lat;
+    final destLng = isRestaurantPhase
+        ? _mission.restaurantLng
+        : _mission.deliveryAddress?.lng;
 
     if (destLat == null || destLng == null || !mounted) return;
 
     // Build a key that uniquely identifies this leg of the journey.
     // If the destination changes (restaurant → client) we restart navigation.
-    final destKey = '${destLat.toStringAsFixed(5)},${destLng.toStringAsFixed(5)}';
+    final destKey =
+        '${destLat.toStringAsFixed(5)},${destLng.toStringAsFixed(5)}';
     if (_navigationStarted && _lastNavDestKey == destKey) return;
 
     _navigationStarted = true;
     _lastNavDestKey = destKey;
 
-    final pos = await geo.Geolocator.getCurrentPosition(
-      locationSettings: const geo.LocationSettings(accuracy: geo.LocationAccuracy.high),
-    ).catchError((_) async => await geo.Geolocator.getLastKnownPosition() ?? _defaultPos());
+    final pos =
+        await geo.Geolocator.getCurrentPosition(
+          locationSettings: const geo.LocationSettings(
+            accuracy: geo.LocationAccuracy.high,
+          ),
+        ).catchError(
+          (_) async =>
+              await geo.Geolocator.getLastKnownPosition() ?? _defaultPos(),
+        );
 
     if (!mounted) return;
 
@@ -159,9 +173,16 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
   }
 
   geo.Position _defaultPos() => geo.Position(
-    latitude: 4.0511, longitude: 9.7679,
-    timestamp: DateTime.now(), accuracy: 0, altitude: 0,
-    altitudeAccuracy: 0, heading: 0, headingAccuracy: 0, speed: 0, speedAccuracy: 0,
+    latitude: 4.0511,
+    longitude: 9.7679,
+    timestamp: DateTime.now(),
+    accuracy: 0,
+    altitude: 0,
+    altitudeAccuracy: 0,
+    heading: 0,
+    headingAccuracy: 0,
+    speed: 0,
+    speedAccuracy: 0,
   );
 
   void _onMapCreated(MapboxMap map) {
@@ -182,8 +203,8 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
   Future<void> _drawOsrmRoute(OsrmRoute route) async {
     if (mapboxMap == null) return;
     try {
-      _polylineAnnotationManager ??=
-          await mapboxMap!.annotations.createPolylineAnnotationManager();
+      _polylineAnnotationManager ??= await mapboxMap!.annotations
+          .createPolylineAnnotationManager();
 
       final coords = route.geometry.coordinates
           .map((c) => Position(c[0], c[1]))
@@ -210,14 +231,18 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
         final maxLng = coords.map((p) => p.lng).reduce((a, b) => a > b ? a : b);
         final minLat = coords.map((p) => p.lat).reduce((a, b) => a < b ? a : b);
         final maxLat = coords.map((p) => p.lat).reduce((a, b) => a > b ? a : b);
-        mapboxMap?.setCamera(CameraOptions(
-          center: Point(coordinates: Position(
-            (minLng + maxLng) / 2,
-            (minLat + maxLat) / 2,
-          )),
-          zoom: 14.0,
-          pitch: 45.0,
-        ));
+        mapboxMap?.setCamera(
+          CameraOptions(
+            center: Point(
+              coordinates: Position(
+                (minLng + maxLng) / 2,
+                (minLat + maxLat) / 2,
+              ),
+            ),
+            zoom: 14.0,
+            pitch: 45.0,
+          ),
+        );
       }
     } catch (e) {
       debugPrint('[active_navigation_page] drawRoute error: $e');
@@ -225,17 +250,20 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
   }
 
   void _recenterOnDriver(double lat, double lng, double? heading) {
-    mapboxMap?.setCamera(CameraOptions(
-      center: Point(coordinates: Position(lng, lat)),
-      zoom: 17.0,
-      pitch: 60.0,
-      bearing: heading ?? 0,
-    ));
+    mapboxMap?.setCamera(
+      CameraOptions(
+        center: Point(coordinates: Position(lng, lat)),
+        zoom: 17.0,
+        pitch: 60.0,
+        bearing: heading ?? 0,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isRestaurantPhase = _mission.status != 'picked_up' && _mission.status != 'en_route';
+    final isRestaurantPhase =
+        _mission.status != 'picked_up' && _mission.status != 'en_route';
 
     return BlocConsumer<NavigationCubit, NavigationState>(
       listener: (context, state) {
@@ -244,7 +272,10 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
             _drawOsrmRoute(route);
             if (isRerouting) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('delivery.reroute_success'.tr()), duration: const Duration(seconds: 2)),
+                SnackBar(
+                  content: Text('delivery.reroute_success'.tr()),
+                  duration: const Duration(seconds: 2),
+                ),
               );
             }
           },
@@ -269,7 +300,9 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                 ),
               ),
               if (navState is NavigationLoading)
-                const Center(child: CircularProgressIndicator(color: AppTheme.primaryRed)),
+                const Center(
+                  child: CircularProgressIndicator(color: AppTheme.primaryRed),
+                ),
               _buildTopPanel(navState),
               _buildBottomPanel(isRestaurantPhase, navState),
               // Speed HUD
@@ -277,7 +310,10 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                 top: MediaQuery.of(context).padding.top + 100,
                 right: 16,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: _speedColor(_currentSpeedKmh),
                     borderRadius: BorderRadius.circular(12),
@@ -288,20 +324,26 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                       Text(
                         _currentSpeedKmh.round().toString(),
                         style: GoogleFonts.bricolageGrotesque(
-                          fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                         ),
                       ),
-                      Text('km/h', style: GoogleFonts.inter(fontSize: 10, color: Colors.white70)),
+                      Text(
+                        'km/h',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          color: Colors.white70,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
               // Arrival overlay
-              if (navState is NavigationArrived)
-                _buildArrivalOverlay(navState),
+              if (navState is NavigationArrived) _buildArrivalOverlay(navState),
               // Steps list overlay
-              if (_showStepsList)
-                _buildStepsListOverlay(navState),
+              if (_showStepsList) _buildStepsListOverlay(navState),
               // FABs
               Positioned(
                 right: 16,
@@ -317,15 +359,21 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                           _recenterOnDriver(s.currentLat, s.currentLng, null);
                         }
                       },
-                      child: const Icon(Icons.gps_fixed, color: AppTheme.primaryRed),
+                      child: const Icon(
+                        Icons.gps_fixed,
+                        color: AppTheme.primaryRed,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     FloatingActionButton.small(
                       heroTag: 'steps_nav',
                       backgroundColor: Colors.white,
-                      onPressed: () => setState(() => _showStepsList = !_showStepsList),
+                      onPressed: () =>
+                          setState(() => _showStepsList = !_showStepsList),
                       child: Icon(
-                        _showStepsList ? Icons.list_alt : Icons.format_list_numbered,
+                        _showStepsList
+                            ? Icons.list_alt
+                            : Icons.format_list_numbered,
                         color: AppTheme.primaryRed,
                       ),
                     ),
@@ -333,8 +381,12 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                     FloatingActionButton.small(
                       heroTag: 'reroute_nav',
                       backgroundColor: Colors.white,
-                      onPressed: () => context.read<NavigationCubit>().requestReroute(),
-                      child: const Icon(Icons.refresh, color: AppTheme.primaryRed),
+                      onPressed: () =>
+                          context.read<NavigationCubit>().requestReroute(),
+                      child: const Icon(
+                        Icons.refresh,
+                        color: AppTheme.primaryRed,
+                      ),
                     ),
                   ],
                 ),
@@ -357,7 +409,10 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
         final step = steps[navState.currentStepIndex];
         instruction = step.displayInstruction;
         distanceLabel = step.distanceLabel;
-        maneuverIcon = _maneuverIcon(step.maneuver.type, step.maneuver.modifier);
+        maneuverIcon = _maneuverIcon(
+          step.maneuver.type,
+          step.maneuver.modifier,
+        );
       }
     } else if (navState is NavigationArrived) {
       instruction = 'delivery.arrived_destination'.tr();
@@ -368,29 +423,40 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
     }
 
     return Positioned(
-      top: 0, left: 0, right: 0,
+      top: 0,
+      left: 0,
+      right: 0,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 16,
-              bottom: 24, left: 16, right: 16,
+              bottom: 24,
+              left: 16,
+              right: 16,
             ),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(24),
+              ),
               boxShadow: AppTheme.shadowMd,
             ),
             child: Row(
               children: [
                 Container(
-                  width: 60, height: 60,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
                     color: AppTheme.redSoft,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(maneuverIcon, size: 36, color: AppTheme.primaryRed),
+                  child: Icon(
+                    maneuverIcon,
+                    size: 36,
+                    color: AppTheme.primaryRed,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -401,13 +467,18 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                         Text(
                           distanceLabel,
                           style: GoogleFonts.bricolageGrotesque(
-                            fontSize: 24, fontWeight: FontWeight.w800,
-                            color: AppTheme.ink, letterSpacing: -0.5,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.ink,
+                            letterSpacing: -0.5,
                           ),
                         ),
                       Text(
                         instruction,
-                        style: GoogleFonts.inter(fontSize: 14, color: AppTheme.inkSoft),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: AppTheme.inkSoft,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -432,7 +503,9 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
     }
 
     return Positioned(
-      bottom: 0, left: 0, right: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
@@ -441,7 +514,9 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
               boxShadow: AppTheme.shadowLg,
             ),
             child: SafeArea(
@@ -457,17 +532,24 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                           Text(
                             '$etaLabel • $distLabel',
                             style: GoogleFonts.bricolageGrotesque(
-                              fontSize: 22, fontWeight: FontWeight.w800,
-                              color: AppTheme.ink, letterSpacing: -0.5,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.ink,
+                              letterSpacing: -0.5,
                             ),
                           ),
                           Text(
-                            'delivery.destination_label'.tr(args: [
-                              isRestaurantPhase
-                                  ? (_mission.restaurantName ?? '')
-                                  : (_mission.clientName ?? '')
-                            ]),
-                            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
+                            'delivery.destination_label'.tr(
+                              args: [
+                                isRestaurantPhase
+                                    ? (_mission.restaurantName ?? '')
+                                    : (_mission.clientName ?? ''),
+                              ],
+                            ),
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: AppTheme.muted,
+                            ),
                           ),
                         ],
                       ),
@@ -477,20 +559,29 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                           _confirmExitNavigation();
                         },
                         child: Container(
-                          width: 40, height: 40,
+                          width: 40,
+                          height: 40,
                           decoration: BoxDecoration(
                             color: AppTheme.redSoft,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.close, color: AppTheme.primaryRed, size: 20),
+                          child: const Icon(
+                            Icons.close,
+                            color: AppTheme.primaryRed,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  if (_mission.clientPhone != null && _mission.clientPhone!.isNotEmpty) ...[
+                  if (_mission.clientPhone != null &&
+                      _mission.clientPhone!.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.lineSoft.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
@@ -500,7 +591,11 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                           const CircleAvatar(
                             radius: 18,
                             backgroundColor: AppTheme.honeySoft,
-                            child: Icon(Icons.person, color: AppTheme.honey, size: 18),
+                            child: Icon(
+                              Icons.person,
+                              color: AppTheme.honey,
+                              size: 18,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -510,23 +605,34 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                                 Text(
                                   _mission.clientName ?? 'delivery.client'.tr(),
                                   style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.ink,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: AppTheme.ink,
                                   ),
                                 ),
                                 Text(
                                   _mission.clientPhone!,
-                                  style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: AppTheme.muted,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.phone_in_talk_rounded, color: AppTheme.green),
+                            icon: const Icon(
+                              Icons.phone_in_talk_rounded,
+                              color: AppTheme.green,
+                            ),
                             onPressed: () async {
                               final phone = _mission.clientPhone;
                               if (phone == null || phone.isEmpty) return;
                               HapticFeedback.mediumImpact();
-                              final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+                              final cleaned = phone.replaceAll(
+                                RegExp(r'\s+'),
+                                '',
+                              );
                               final uri = Uri.parse('tel:$cleaned');
                               if (await canLaunchUrl(uri)) {
                                 await launchUrl(
@@ -542,18 +648,26 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                   ],
                   const SizedBox(height: 16),
                   SizedBox(
-                    width: double.infinity, height: 52,
+                    width: double.infinity,
+                    height: 52,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isRestaurantPhase ? AppTheme.primaryRed : AppTheme.green,
+                        backgroundColor: isRestaurantPhase
+                            ? AppTheme.primaryRed
+                            : AppTheme.green,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       onPressed: () {
                         HapticFeedback.mediumImpact();
                         if (isRestaurantPhase) {
-                          context.push('/delivery/confirm-pickup', extra: _mission);
+                          context.push(
+                            '/delivery/confirm-pickup',
+                            extra: _mission,
+                          );
                         } else {
                           context.push('/delivery/dropoff', extra: _mission);
                         }
@@ -564,7 +678,10 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                           isRestaurantPhase
                               ? 'delivery.arrived_at_restaurant'.tr()
                               : 'delivery.arrived_at_client'.tr(),
-                          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
@@ -587,7 +704,9 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
     }
 
     return Positioned(
-      top: 120, left: 16, right: 16,
+      top: 120,
+      left: 16,
+      right: 16,
       child: Material(
         elevation: 8,
         borderRadius: BorderRadius.circular(16),
@@ -606,13 +725,19 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                     Text(
                       'delivery.route_steps'.tr(),
                       style: GoogleFonts.bricolageGrotesque(
-                        fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.ink,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.ink,
                       ),
                     ),
                     const Spacer(),
                     GestureDetector(
                       onTap: () => setState(() => _showStepsList = false),
-                      child: const Icon(Icons.close, size: 20, color: AppTheme.muted),
+                      child: const Icon(
+                        Icons.close,
+                        size: 20,
+                        color: AppTheme.muted,
+                      ),
                     ),
                   ],
                 ),
@@ -625,13 +750,21 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                     final isCurrent = i == currentIndex;
                     return Container(
                       color: isCurrent ? AppTheme.redSoft : Colors.transparent,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       child: Row(
                         children: [
                           Icon(
-                            _maneuverIcon(step.maneuver.type, step.maneuver.modifier),
+                            _maneuverIcon(
+                              step.maneuver.type,
+                              step.maneuver.modifier,
+                            ),
                             size: 20,
-                            color: isCurrent ? AppTheme.primaryRed : AppTheme.muted,
+                            color: isCurrent
+                                ? AppTheme.primaryRed
+                                : AppTheme.muted,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -639,14 +772,21 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                               step.displayInstruction,
                               style: GoogleFonts.inter(
                                 fontSize: 13,
-                                fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
-                                color: isCurrent ? AppTheme.ink : AppTheme.inkSoft,
+                                fontWeight: isCurrent
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                                color: isCurrent
+                                    ? AppTheme.ink
+                                    : AppTheme.inkSoft,
                               ),
                             ),
                           ),
                           Text(
                             step.distanceLabel,
-                            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.muted,
+                            ),
                           ),
                         ],
                       ),
@@ -667,7 +807,11 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
       builder: (ctx) => AlertDialog(
         title: Text(
           'delivery.quit_navigation'.tr(),
-          style: GoogleFonts.bricolageGrotesque(fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.ink),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+          ),
         ),
         content: Text(
           'delivery.quit_warning'.tr(),
@@ -676,7 +820,10 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
         actions: [
           TextButton(
             onPressed: () => context.pop(),
-            child: Text('common.cancel'.tr(), style: GoogleFonts.inter(color: AppTheme.muted)),
+            child: Text(
+              'common.cancel'.tr(),
+              style: GoogleFonts.inter(color: AppTheme.muted),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -686,7 +833,10 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
             },
             child: Text(
               'delivery.quit'.tr(),
-              style: GoogleFonts.inter(color: AppTheme.primaryRed, fontWeight: FontWeight.w600),
+              style: GoogleFonts.inter(
+                color: AppTheme.primaryRed,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -721,12 +871,18 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_circle_rounded, size: 80, color: AppTheme.green),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 80,
+                  color: AppTheme.green,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'delivery.arrived_success_title'.tr(),
                   style: GoogleFonts.bricolageGrotesque(
-                    fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.ink,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.ink,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -749,7 +905,9 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
     if (type == 'roundabout' || type == 'rotary') return Icons.roundabout_left;
     if (type == 'u-turn') return Icons.u_turn_left;
     if (modifier == 'left' || modifier == 'sharp left') return Icons.turn_left;
-    if (modifier == 'right' || modifier == 'sharp right') return Icons.turn_right;
+    if (modifier == 'right' || modifier == 'sharp right') {
+      return Icons.turn_right;
+    }
     if (modifier == 'slight left') return Icons.turn_slight_left;
     if (modifier == 'slight right') return Icons.turn_slight_right;
     return Icons.straight;

@@ -3,17 +3,13 @@ class OsrmManeuver {
   final String? modifier;
   final double? bearingAfter;
 
-  const OsrmManeuver({
-    required this.type,
-    this.modifier,
-    this.bearingAfter,
-  });
+  const OsrmManeuver({required this.type, this.modifier, this.bearingAfter});
 
   factory OsrmManeuver.fromJson(Map<String, dynamic> json) => OsrmManeuver(
-        type: json['type'] as String? ?? 'straight',
-        modifier: json['modifier'] as String?,
-        bearingAfter: (json['bearing_after'] as num?)?.toDouble(),
-      );
+    type: json['type'] as String? ?? 'straight',
+    modifier: json['modifier'] as String?,
+    bearingAfter: (json['bearing_after'] as num?)?.toDouble(),
+  );
 }
 
 class OsrmStep {
@@ -36,18 +32,19 @@ class OsrmStep {
   });
 
   factory OsrmStep.fromJson(Map<String, dynamic> json) => OsrmStep(
-        distance: (json['distance'] as num).toDouble(),
-        duration: (json['duration'] as num).toDouble(),
-        instruction: json['instruction'] as String? ?? '',
-        instructionFr: json['instructionFr'] as String? ?? '',
-        maneuver: OsrmManeuver.fromJson(
-          json['maneuver'] as Map<String, dynamic>? ?? {},
-        ),
-        name: json['name'] as String? ?? '',
-        mode: json['mode'] as String? ?? 'driving',
-      );
+    distance: (json['distance'] as num).toDouble(),
+    duration: (json['duration'] as num).toDouble(),
+    instruction: json['instruction'] as String? ?? '',
+    instructionFr: json['instructionFr'] as String? ?? '',
+    maneuver: OsrmManeuver.fromJson(
+      json['maneuver'] as Map<String, dynamic>? ?? {},
+    ),
+    name: json['name'] as String? ?? '',
+    mode: json['mode'] as String? ?? 'driving',
+  );
 
-  String get displayInstruction => instructionFr.isNotEmpty ? instructionFr : instruction;
+  String get displayInstruction =>
+      instructionFr.isNotEmpty ? instructionFr : instruction;
 
   String get distanceLabel {
     if (distance >= 1000) return '${(distance / 1000).toStringAsFixed(1)} km';
@@ -67,12 +64,12 @@ class OsrmLeg {
   });
 
   factory OsrmLeg.fromJson(Map<String, dynamic> json) => OsrmLeg(
-        distance: (json['distance'] as num).toDouble(),
-        duration: (json['duration'] as num).toDouble(),
-        steps: (json['steps'] as List<dynamic>? ?? [])
-            .map((s) => OsrmStep.fromJson(s as Map<String, dynamic>))
-            .toList(),
-      );
+    distance: (json['distance'] as num).toDouble(),
+    duration: (json['duration'] as num).toDouble(),
+    steps: (json['steps'] as List<dynamic>? ?? [])
+        .map((s) => OsrmStep.fromJson(s as Map<String, dynamic>))
+        .toList(),
+  );
 }
 
 class OsrmGeometry {
@@ -85,15 +82,10 @@ class OsrmGeometry {
     final rawCoords = json['coordinates'] as List<dynamic>? ?? [];
     return OsrmGeometry(
       type: json['type'] as String? ?? 'LineString',
-      coordinates: rawCoords
-          .map((c) {
-            final pair = c as List<dynamic>;
-            return [
-              (pair[0] as num).toDouble(),
-              (pair[1] as num).toDouble(),
-            ];
-          })
-          .toList(),
+      coordinates: rawCoords.map((c) {
+        final pair = c as List<dynamic>;
+        return [(pair[0] as num).toDouble(), (pair[1] as num).toDouble()];
+      }).toList(),
     );
   }
 }
@@ -116,17 +108,17 @@ class OsrmRoute {
   });
 
   factory OsrmRoute.fromJson(Map<String, dynamic> json) => OsrmRoute(
-        distance: (json['distance'] as num).toDouble(),
-        duration: (json['duration'] as num).toDouble(),
-        durationOriginal: (json['durationOriginal'] as num?)?.toDouble(),
-        trafficMultiplier: (json['trafficMultiplier'] as num?)?.toDouble(),
-        geometry: OsrmGeometry.fromJson(
-          json['geometry'] as Map<String, dynamic>? ?? {},
-        ),
-        legs: (json['legs'] as List<dynamic>? ?? [])
-            .map((l) => OsrmLeg.fromJson(l as Map<String, dynamic>))
-            .toList(),
-      );
+    distance: (json['distance'] as num).toDouble(),
+    duration: (json['duration'] as num).toDouble(),
+    durationOriginal: (json['durationOriginal'] as num?)?.toDouble(),
+    trafficMultiplier: (json['trafficMultiplier'] as num?)?.toDouble(),
+    geometry: OsrmGeometry.fromJson(
+      json['geometry'] as Map<String, dynamic>? ?? {},
+    ),
+    legs: (json['legs'] as List<dynamic>? ?? [])
+        .map((l) => OsrmLeg.fromJson(l as Map<String, dynamic>))
+        .toList(),
+  );
 
   String get durationLabel {
     final minutes = (duration / 60).round();

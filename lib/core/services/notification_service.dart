@@ -64,9 +64,7 @@ class NotificationService {
       _logger.w('[Notif] Permission refusée : ${settings.authorizationStatus}');
     }
 
-    const androidSettings = AndroidInitializationSettings(
-      'ic_notification',
-    );
+    const androidSettings = AndroidInitializationSettings('ic_notification');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission:
           false, // Already requested via FirebaseMessaging.requestPermission
