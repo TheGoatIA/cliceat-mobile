@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -765,8 +764,8 @@ class _CheckoutPageState extends State<CheckoutPage> with SecureScreenMixin {
       initialDate: minDate,
       firstDate: now,
       lastDate: now.add(const Duration(days: 7)),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
           colorScheme: const ColorScheme.light(primary: AppTheme.primaryRed),
         ),
         child: child!,
@@ -775,10 +774,11 @@ class _CheckoutPageState extends State<CheckoutPage> with SecureScreenMixin {
     if (pickedDate == null || !mounted) return;
 
     final pickedTime = await showTimePicker(
-      context: context,
+      // ignore: use_build_context_synchronously
+      context: this.context,
       initialTime: TimeOfDay.fromDateTime(minDate),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
           colorScheme: const ColorScheme.light(primary: AppTheme.primaryRed),
         ),
         child: child!,

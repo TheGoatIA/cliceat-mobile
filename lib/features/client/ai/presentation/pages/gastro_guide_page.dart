@@ -148,7 +148,7 @@ class _GastroGuidePageState extends State<GastroGuidePage>
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _suggestedQuestions.length,
-        separatorBuilder: (_, _x) => const SizedBox(width: 8),
+        separatorBuilder: (_, i) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           return GestureDetector(
             onTap: () => _sendMessage(_suggestedQuestions[i]),
@@ -288,7 +288,7 @@ class _GastroGuidePageState extends State<GastroGuidePage>
         ),
         child: AnimatedBuilder(
           animation: _dotController,
-          builder: (_, _a) {
+          builder: (_, animation) {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: List.generate(3, (i) {

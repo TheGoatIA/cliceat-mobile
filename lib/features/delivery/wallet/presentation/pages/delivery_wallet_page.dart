@@ -561,7 +561,7 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _transactions.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final tx = _transactions[index];
         final type = tx['type']?.toString() ?? '';

@@ -421,10 +421,10 @@ class _ReferralPageState extends State<ReferralPage> {
             child: ElevatedButton.icon(
               onPressed: () {
                 HapticFeedback.mediumImpact();
-                Share.share(
-                  'Rejoins ClicEat avec mon code : $code\nhttps://cliceat.cm/refer/$code',
+                SharePlus.instance.share(ShareParams(
+                  text: 'Rejoins ClicEat avec mon code : $code\nhttps://cliceat.cm/refer/$code',
                   subject: 'referral.share_subject'.tr(),
-                );
+                ));
               },
               icon: const Icon(Icons.share_rounded, size: 20),
               label: Text(

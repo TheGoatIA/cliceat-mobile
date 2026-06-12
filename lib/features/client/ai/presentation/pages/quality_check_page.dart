@@ -479,7 +479,7 @@ class _QualityCheckPageState extends State<QualityCheckPage> {
             tween: Tween(begin: 0, end: normalized),
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeOut,
-            builder: (_, v, _a) => LinearProgressIndicator(
+            builder: (_, v, child) => LinearProgressIndicator(
               value: v,
               backgroundColor: AppTheme.line,
               color: barColor,
