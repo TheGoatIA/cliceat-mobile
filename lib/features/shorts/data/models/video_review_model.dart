@@ -4,7 +4,7 @@ part 'video_review_model.freezed.dart';
 part 'video_review_model.g.dart';
 
 @freezed
-class VideoReviewModel with _$VideoReviewModel {
+abstract class VideoReviewModel with _$VideoReviewModel {
   const factory VideoReviewModel({
     required String id,
     required String orderId,

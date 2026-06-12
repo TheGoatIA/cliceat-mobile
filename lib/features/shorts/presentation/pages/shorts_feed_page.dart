@@ -153,7 +153,7 @@ class _ShortsFeedPageState extends State<ShortsFeedPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const UploadShortBottomSheet(),
+      builder: (_) => const UploadShortBottomSheet(orderId: ''),
     );
   }
 }

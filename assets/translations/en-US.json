@@ -766,7 +766,13 @@
     "email": "support@cliceat.cm"
   },
   "shorts": {
-    "title": "Shorts",
+    "title": "ClicEat Shorts",
+    "no_videos": "No videos yet",
+    "share_video": "Share my video review",
+    "uploading": "Uploading...",
+    "upload_success": "Video published, pending moderation",
+    "like": "Like",
+    "views": "views",
     "empty": "No videos available yet.",
     "share": "Share",
     "upload_title": "Publish a Short",
@@ -776,7 +782,7 @@
     "upload_no_video": "Please select a video.",
     "rating": "Rating",
     "caption": "Caption",
-    "caption_hint": "Describe your experience... (max 200 chars)",
+    "caption_hint": "Describe your experience...",
     "publish": "Publish",
     "load_error": "Unable to load Shorts.",
     "upload_error": "Error while publishing.",

@@ -111,9 +111,6 @@ import '../network/services/ai_service.dart' as _i176;
 import '../network/services/coupon_service.dart' as _i851;
 import '../network/services/navigation_service.dart' as _i308;
 import '../network/services/platform_service.dart' as _i525;
-import '../../features/shorts/data/datasources/shorts_service.dart' as _i911;
-import '../../features/shorts/data/repositories/shorts_repository.dart' as _i912;
-import '../../features/shorts/presentation/bloc/shorts_cubit.dart' as _i913;
 import '../network/services/referral_service.dart' as _i596;
 import '../network/services/review_service.dart' as _i289;
 import '../network/services/tracking_service.dart' as _i930;
@@ -162,12 +159,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i487.AiLocalDao>(
       () => _i487.AiLocalDao(gh<_i475.AppDatabase>()),
-    );
-    gh.lazySingleton<_i420.ShortsRepository>(
-      () => _i420.ShortsRepository(gh<_i687.ShortsService>()),
-    );
-    gh.factory<_i403.ShortsCubit>(
-      () => _i403.ShortsCubit(gh<_i420.ShortsRepository>()),
     );
     gh.lazySingleton<_i222.AnalyticsService>(
       () => _i222.AnalyticsService(gh<_i974.Logger>()),
@@ -287,6 +278,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i308.NavigationService>(
       () => networkModule.getNavigationService(gh<_i31.ChopperClient>()),
     );
+    gh.lazySingleton<_i687.ShortsService>(
+      () => networkModule.getShortsService(gh<_i31.ChopperClient>()),
+    );
     gh.lazySingleton<_i863.CouponRepository>(
       () => _i863.CouponRepository(gh<_i851.CouponService>()),
     );
@@ -361,6 +355,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i953.NotificationRepository>(
       () => _i953.NotificationRepository(gh<_i895.UserService>()),
     );
+    gh.lazySingleton<_i420.ShortsRepository>(
+      () => _i420.ShortsRepository(gh<_i687.ShortsService>()),
+    );
     gh.factory<_i787.ReviewCubit>(
       () => _i787.ReviewCubit(gh<_i656.ReviewRepository>()),
     );
@@ -404,6 +401,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i305.ChatCubit>(
       () => _i305.ChatCubit(gh<_i796.ChatRepository>()),
     );
+    gh.factory<_i403.ShortsCubit>(
+      () => _i403.ShortsCubit(gh<_i420.ShortsRepository>()),
+    );
     gh.lazySingleton<_i787.ConfigBloc>(
       () => _i787.ConfigBloc(gh<_i173.PlatformRepository>()),
     );
@@ -422,15 +422,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i585.AiCubit>(() => _i585.AiCubit(gh<_i48.AiRepository>()));
     gh.factory<_i341.WalletCubit>(
       () => _i341.WalletCubit(gh<_i691.WalletRepository>()),
-    );
-    gh.lazySingleton<_i911.ShortsService>(
-      () => networkModule.getShortsService(gh<_i31.ChopperClient>()),
-    );
-    gh.lazySingleton<_i912.ShortsRepository>(
-      () => _i912.ShortsRepository(gh<_i911.ShortsService>()),
-    );
-    gh.factory<_i913.ShortsCubit>(
-      () => _i913.ShortsCubit(gh<_i912.ShortsRepository>()),
     );
     return this;
   }

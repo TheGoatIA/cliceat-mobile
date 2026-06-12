@@ -8,7 +8,9 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/repositories/shorts_repository.dart';
 
 class UploadShortBottomSheet extends StatefulWidget {
-  const UploadShortBottomSheet({super.key});
+  final String orderId;
+
+  const UploadShortBottomSheet({super.key, required this.orderId});
 
   @override
   State<UploadShortBottomSheet> createState() =>
@@ -77,7 +79,7 @@ class _UploadShortBottomSheetState extends State<UploadShortBottomSheet> {
       // orderId is required by the API — the parent context should provide it.
       // For now we pass an empty string; a real flow would pass the orderId via constructor.
       final result = await getIt<ShortsRepository>().uploadVideo(
-        '',
+        widget.orderId,
         bytes,
         filename,
         _rating,
@@ -321,7 +323,7 @@ class _UploadShortBottomSheetState extends State<UploadShortBottomSheet> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  disabledBackgroundColor: AppTheme.primaryRed.withOpacity(0.6),
+                  disabledBackgroundColor: AppTheme.primaryRed.withValues(alpha: 0.6),
                 ),
                 child: _isUploading
                     ? const SizedBox(

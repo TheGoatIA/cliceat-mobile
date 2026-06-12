@@ -48,6 +48,7 @@ import '../../features/client/review/presentation/cubit/review_cubit.dart';
 import '../../core/di/injection.dart';
 import '../../features/client/notification/presentation/pages/notifications_page.dart';
 import '../../features/client/notification/presentation/cubit/notification_cubit.dart';
+import '../../features/shorts/presentation/pages/shorts_feed_page.dart';
 import 'package:cliceat_app/shared/pages/map_picker_page.dart';
 import 'package:cliceat_app/core/config/presentation/bloc/config_bloc.dart';
 import 'package:cliceat_app/core/widgets/maintenance_page.dart';
@@ -112,6 +113,7 @@ abstract class AppRoutes {
   static const maintenance = '/maintenance';
   static const update = '/update';
   static const mapPicker = '/map-picker';
+  static const shorts = '/shorts';
 }
 
 // ─── Public routes (accessible without authentication) ────────────────────────
@@ -578,6 +580,11 @@ final GoRouter appRouter = GoRouter(
         return ForceUpdatePage(message: msg, updateUrl: updateUrl);
       },
     ),
+    GoRoute(
+      path: AppRoutes.shorts,
+      builder: (context, state) => const ShortsFeedPage(),
+    ),
+
     GoRoute(
       path: AppRoutes.mapPicker,
       builder: (context, state) {

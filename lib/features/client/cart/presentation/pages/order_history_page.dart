@@ -11,6 +11,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/date_formatter.dart';
 import '../bloc/order_bloc.dart';
 import '../../../home/presentation/pages/client_main_tab.dart';
+import '../../../../shorts/presentation/widgets/upload_short_bottom_sheet.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
@@ -706,6 +707,36 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             color: AppTheme.honey,
                             constraints: const BoxConstraints(),
                             padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
+                        if (isDelivered)
+                          TextButton.icon(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => UploadShortBottomSheet(
+                                  orderId: orderId,
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.videocam_outlined,
+                              size: 16,
+                              color: AppTheme.primaryRed,
+                            ),
+                            label: Text(
+                              'shorts.share_video'.tr(),
+                              style: const TextStyle(
+                                color: AppTheme.primaryRed,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                            ),
                           ),
                         IconButton(
                           icon: const Icon(
