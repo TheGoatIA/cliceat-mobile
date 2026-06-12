@@ -180,9 +180,8 @@ class AiCubit extends Cubit<AiState> {
     );
 
     result.fold(
-      (error) => emit(
-        AiState.gastroChat(history: updatedHistory, isTyping: false),
-      ),
+      (error) =>
+          emit(AiState.gastroChat(history: updatedHistory, isTyping: false)),
       (reply) {
         final newHistory = [
           ...updatedHistory,

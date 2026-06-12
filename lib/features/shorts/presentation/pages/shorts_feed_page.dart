@@ -59,12 +59,13 @@ class _ShortsFeedPageState extends State<ShortsFeedPage> {
                               isSelected: _selectedCity == city,
                               onTap: () {
                                 setState(() {
-                                  _selectedCity =
-                                      _selectedCity == city ? null : city;
+                                  _selectedCity = _selectedCity == city
+                                      ? null
+                                      : city;
                                 });
-                                context
-                                    .read<ShortsCubit>()
-                                    .loadFeed(_selectedCity);
+                                context.read<ShortsCubit>().loadFeed(
+                                  _selectedCity,
+                                );
                               },
                             ),
                           ),
@@ -81,9 +82,7 @@ class _ShortsFeedPageState extends State<ShortsFeedPage> {
                       return state.when(
                         idle: () => const SizedBox.shrink(),
                         loading: () => const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
+                          child: CircularProgressIndicator(color: Colors.white),
                         ),
                         loaded: (videos, hasMore) {
                           if (videos.isEmpty) {
@@ -185,8 +184,7 @@ class _CityChip extends StatelessWidget {
           style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 12,
-            fontWeight:
-                isSelected ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
       ),
@@ -319,10 +317,7 @@ class _ShortItemState extends State<_ShortItem> {
             ),
           )
         else if (widget.video.thumbnailUrl != null)
-          Image.network(
-            widget.video.thumbnailUrl!,
-            fit: BoxFit.cover,
-          )
+          Image.network(widget.video.thumbnailUrl!, fit: BoxFit.cover)
         else
           Container(color: Colors.black87),
 
@@ -364,10 +359,7 @@ class _ShortItemState extends State<_ShortItem> {
                   widget.video.caption!.isNotEmpty) ...[
                 Text(
                   widget.video.caption!,
-                  style: GoogleFonts.inter(
-                    color: Colors.white70,
-                    fontSize: 13,
-                  ),
+                  style: GoogleFonts.inter(color: Colors.white70, fontSize: 13),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

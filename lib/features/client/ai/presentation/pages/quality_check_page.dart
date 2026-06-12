@@ -194,12 +194,12 @@ class _QualityCheckPageState extends State<QualityCheckPage> {
                 state.maybeWhen(
                   qualityResult: (scores, overall, feedback, recommendation) =>
                       _buildResultCard(
-                    context,
-                    scores: scores,
-                    overall: overall,
-                    feedback: feedback,
-                    recommendation: recommendation,
-                  ),
+                        context,
+                        scores: scores,
+                        overall: overall,
+                        feedback: feedback,
+                        recommendation: recommendation,
+                      ),
                   orElse: () => const SizedBox.shrink(),
                 ),
               ],
@@ -282,20 +282,17 @@ class _QualityCheckPageState extends State<QualityCheckPage> {
     final overallColor = overall >= 7
         ? AppTheme.green
         : overall >= 5
-            ? AppTheme.orange
-            : AppTheme.errorColor;
+        ? AppTheme.orange
+        : AppTheme.errorColor;
 
     final (recIcon, recLabel, recColor) = switch (recommendation) {
       'remboursement_suggéré' || 'remboursement_suggere' => (
-          '🔴',
-          'ai.quality_refund'.tr(),
-          AppTheme.errorColor,
-        ),
-      'a_signaler' || 'à_signaler' => (
-          '⚠️',
-          'ai.quality_warn'.tr(),
-          AppTheme.orange,
-        ),
+        '🔴',
+        'ai.quality_refund'.tr(),
+        AppTheme.errorColor,
+      ),
+      'a_signaler' ||
+      'à_signaler' => ('⚠️', 'ai.quality_warn'.tr(), AppTheme.orange),
       _ => ('✅', 'ai.quality_ok'.tr(), AppTheme.green),
     };
 
@@ -347,14 +344,16 @@ class _QualityCheckPageState extends State<QualityCheckPage> {
               const SizedBox(height: 12),
               _buildScoreBar(
                 label: 'Fraîcheur',
-                value: (scores['fraicheur'] as num?)?.toDouble() ??
+                value:
+                    (scores['fraicheur'] as num?)?.toDouble() ??
                     (scores['freshness'] as num?)?.toDouble() ??
                     0,
               ).animate().slideX(begin: -0.3, delay: 100.ms, duration: 400.ms),
               const SizedBox(height: 12),
               _buildScoreBar(
                 label: 'Quantité',
-                value: (scores['quantite'] as num?)?.toDouble() ??
+                value:
+                    (scores['quantite'] as num?)?.toDouble() ??
                     (scores['quantity'] as num?)?.toDouble() ??
                     0,
               ).animate().slideX(begin: -0.3, delay: 200.ms, duration: 400.ms),
@@ -384,9 +383,7 @@ class _QualityCheckPageState extends State<QualityCheckPage> {
                 decoration: BoxDecoration(
                   color: recColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: recColor.withValues(alpha: 0.3),
-                  ),
+                  border: Border.all(color: recColor.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -417,9 +414,7 @@ class _QualityCheckPageState extends State<QualityCheckPage> {
             child: ElevatedButton.icon(
               onPressed: () {
                 if (widget.orderId != null) {
-                  context.push(
-                    '/client/dispute/create/${widget.orderId}',
-                  );
+                  context.push('/client/dispute/create/${widget.orderId}');
                 }
               },
               icon: const Icon(Icons.gavel_rounded, size: 18),
@@ -450,8 +445,8 @@ class _QualityCheckPageState extends State<QualityCheckPage> {
     final barColor = normalized >= 0.7
         ? AppTheme.green
         : normalized >= 0.5
-            ? AppTheme.orange
-            : AppTheme.errorColor;
+        ? AppTheme.orange
+        : AppTheme.errorColor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

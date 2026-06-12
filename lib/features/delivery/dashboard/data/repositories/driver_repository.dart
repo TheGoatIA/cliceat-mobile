@@ -204,8 +204,7 @@ class DriverRepository {
     try {
       final res = await _driverService.getRanking();
       if (res.isSuccessful && res.body != null) {
-        final data =
-            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
         return Right(data);
       }
       return Left(AppError.fromResponse(res.body, 'common.error'));
@@ -219,8 +218,7 @@ class DriverRepository {
     try {
       final res = await _driverService.getGoal();
       if (res.isSuccessful && res.body != null) {
-        final data =
-            res.body!['data'] as Map<String, dynamic>? ?? res.body!;
+        final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
         return Right(data);
       }
       return Left(AppError.fromResponse(res.body, 'common.error'));

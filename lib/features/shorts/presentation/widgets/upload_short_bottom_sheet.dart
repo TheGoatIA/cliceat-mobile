@@ -13,8 +13,7 @@ class UploadShortBottomSheet extends StatefulWidget {
   const UploadShortBottomSheet({super.key, required this.orderId});
 
   @override
-  State<UploadShortBottomSheet> createState() =>
-      _UploadShortBottomSheetState();
+  State<UploadShortBottomSheet> createState() => _UploadShortBottomSheetState();
 }
 
 class _UploadShortBottomSheetState extends State<UploadShortBottomSheet> {
@@ -216,8 +215,11 @@ class _UploadShortBottomSheetState extends State<UploadShortBottomSheet> {
               Center(
                 child: TextButton.icon(
                   onPressed: _recordVideo,
-                  icon: const Icon(Icons.videocam_outlined,
-                      color: AppTheme.primaryRed, size: 18),
+                  icon: const Icon(
+                    Icons.videocam_outlined,
+                    color: AppTheme.primaryRed,
+                    size: 18,
+                  ),
                   label: Text(
                     'shorts.upload_record'.tr(),
                     style: GoogleFonts.inter(
@@ -290,8 +292,10 @@ class _UploadShortBottomSheetState extends State<UploadShortBottomSheet> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      const BorderSide(color: AppTheme.primaryRed, width: 1.5),
+                  borderSide: const BorderSide(
+                    color: AppTheme.primaryRed,
+                    width: 1.5,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.all(12),
               ),
@@ -302,10 +306,7 @@ class _UploadShortBottomSheetState extends State<UploadShortBottomSheet> {
               const SizedBox(height: 8),
               Text(
                 _errorMessage!,
-                style: GoogleFonts.inter(
-                  color: Colors.red,
-                  fontSize: 13,
-                ),
+                style: GoogleFonts.inter(color: Colors.red, fontSize: 13),
               ),
             ],
 
@@ -323,7 +324,9 @@ class _UploadShortBottomSheetState extends State<UploadShortBottomSheet> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  disabledBackgroundColor: AppTheme.primaryRed.withValues(alpha: 0.6),
+                  disabledBackgroundColor: AppTheme.primaryRed.withValues(
+                    alpha: 0.6,
+                  ),
                 ),
                 child: _isUploading
                     ? const SizedBox(

@@ -76,12 +76,13 @@ class _EarningsPageState extends State<EarningsPage> {
           autofocus: true,
           decoration: InputDecoration(
             hintText: 'delivery.goal_placeholder'.tr(),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.primaryRed, width: 2),
+              borderSide: const BorderSide(
+                color: AppTheme.primaryRed,
+                width: 2,
+              ),
             ),
           ),
         ),
@@ -262,7 +263,11 @@ class _EarningsPageState extends State<EarningsPage> {
                   color: AppTheme.honeySoft,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.emoji_events, color: AppTheme.honey, size: 22),
+                child: const Icon(
+                  Icons.emoji_events,
+                  color: AppTheme.honey,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -271,7 +276,10 @@ class _EarningsPageState extends State<EarningsPage> {
                   children: [
                     Text(
                       'delivery.ranking_title'.tr(),
-                      style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.muted,
+                      ),
                     ),
                     Text(
                       'delivery.ranking_top'.tr(
@@ -340,7 +348,11 @@ class _EarningsPageState extends State<EarningsPage> {
                   color: AppTheme.greenSoft,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.track_changes, color: AppTheme.green, size: 22),
+                child: const Icon(
+                  Icons.track_changes,
+                  color: AppTheme.green,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -357,7 +369,10 @@ class _EarningsPageState extends State<EarningsPage> {
               GestureDetector(
                 onTap: _showGoalDialog,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.bg,
                     borderRadius: BorderRadius.circular(10),

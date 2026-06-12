@@ -82,12 +82,7 @@ final class _$DriverService extends DriverService {
   ) {
     final Uri $url = Uri.parse('/delivery/me/goal');
     final $body = goalData;
-    final Request $request = Request(
-      'PUT',
-      $url,
-      client.baseUrl,
-      body: $body,
-    );
+    final Request $request = Request('PUT', $url, client.baseUrl, body: $body);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
 

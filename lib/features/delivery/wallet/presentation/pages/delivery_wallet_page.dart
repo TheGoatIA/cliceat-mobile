@@ -297,8 +297,7 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: () {
-                    final amount =
-                        double.tryParse(amountController.text) ?? 0;
+                    final amount = double.tryParse(amountController.text) ?? 0;
                     final phone = phoneController.text.trim();
                     if (amount < 500) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -312,8 +311,7 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
                     if (amount > _balance) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content:
-                              Text('delivery.wallet_insufficient'.tr()),
+                          content: Text('delivery.wallet_insufficient'.tr()),
                           backgroundColor: AppTheme.primaryRed,
                         ),
                       );
@@ -484,10 +482,7 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
                   fontSize: 14,
                 ),
               ),
-              const Icon(
-                Icons.account_balance_wallet,
-                color: Colors.white70,
-              ),
+              const Icon(Icons.account_balance_wallet, color: Colors.white70),
             ],
           ),
           const SizedBox(height: 10),
@@ -517,10 +512,7 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
         icon: const Icon(Icons.mobile_friendly_rounded),
         label: Text(
           'delivery.wallet_withdraw'.tr(),
-          style: GoogleFonts.inter(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryRed,
@@ -592,9 +584,7 @@ class _DeliveryWalletPageState extends State<DeliveryWalletPage> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: isCredit
-                      ? const Color(0xFFE8F5E9)
-                      : AppTheme.redSoft,
+                  color: isCredit ? const Color(0xFFE8F5E9) : AppTheme.redSoft,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(

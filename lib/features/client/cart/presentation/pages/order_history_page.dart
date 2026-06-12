@@ -710,10 +710,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           ),
                         if (isDelivered)
                           IconButton(
-                            icon: const Icon(
-                              Icons.search_rounded,
-                              size: 20,
-                            ),
+                            icon: const Icon(Icons.search_rounded, size: 20),
                             onPressed: () => context.push(
                               '/ai/quality-check?orderId=$orderId',
                             ),
@@ -729,9 +726,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                 context: context,
                                 isScrollControlled: true,
                                 backgroundColor: Colors.transparent,
-                                builder: (_) => UploadShortBottomSheet(
-                                  orderId: orderId,
-                                ),
+                                builder: (_) =>
+                                    UploadShortBottomSheet(orderId: orderId),
                               );
                             },
                             icon: const Icon(

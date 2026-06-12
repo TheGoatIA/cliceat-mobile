@@ -104,10 +104,7 @@ class _GastroGuidePageState extends State<GastroGuidePage>
             ),
             Text(
               'ai.gastro_subtitle'.tr(),
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: AppTheme.muted,
-              ),
+              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.muted),
             ),
           ],
         ),
@@ -126,8 +123,7 @@ class _GastroGuidePageState extends State<GastroGuidePage>
             gastroChat: (history, isTyping) => Column(
               children: [
                 // Suggested questions (only at start)
-                if (history.isEmpty)
-                  _buildSuggestedQuestions(),
+                if (history.isEmpty) _buildSuggestedQuestions(),
                 Expanded(
                   child: history.isEmpty && !isTyping
                       ? _buildWelcome()
@@ -167,10 +163,7 @@ class _GastroGuidePageState extends State<GastroGuidePage>
               ),
               child: Text(
                 _suggestedQuestions[i],
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppTheme.ink,
-                ),
+                style: GoogleFonts.inter(fontSize: 13, color: AppTheme.ink),
               ),
             ),
           );
@@ -227,10 +220,7 @@ class _GastroGuidePageState extends State<GastroGuidePage>
     );
   }
 
-  Widget _buildMessageList(
-    List<Map<String, dynamic>> history,
-    bool isTyping,
-  ) {
+  Widget _buildMessageList(List<Map<String, dynamic>> history, bool isTyping) {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

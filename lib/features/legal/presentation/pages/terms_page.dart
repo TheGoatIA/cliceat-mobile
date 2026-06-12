@@ -41,13 +41,15 @@ class _TermsPageState extends State<TermsPage> {
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body) as Map<String, dynamic>;
         final data = body['data'] as Map<String, dynamic>? ?? body;
-        final raw = data['content']?.toString() ?? data['text']?.toString() ?? '';
+        final raw =
+            data['content']?.toString() ?? data['text']?.toString() ?? '';
         // Strip HTML tags if present
         final plain = raw.replaceAll(RegExp(r'<[^>]*>'), '').trim();
         setState(() {
           _content = plain.isNotEmpty ? plain : raw;
           _version = data['version']?.toString();
-          _updatedAt = data['updatedAt']?.toString() ?? data['lastUpdated']?.toString();
+          _updatedAt =
+              data['updatedAt']?.toString() ?? data['lastUpdated']?.toString();
           _loading = false;
         });
       } else {

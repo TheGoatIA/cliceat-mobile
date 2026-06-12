@@ -638,10 +638,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 ),
               ),
             ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppTheme.mutedLight,
-            ),
+            const Icon(Icons.chevron_right_rounded, color: AppTheme.mutedLight),
           ],
         ),
       ),

@@ -31,8 +31,13 @@ class ShortsRepository {
             .toList();
         return Right(videos);
       }
-      return Left(AppError.fromResponse(res.body, 'shorts.load_error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'shorts.load_error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (e, s) {
       debugPrint('[shorts_repository.dart] getFeed error: $e\n$s');
       return Left(AppError.network());
@@ -58,8 +63,13 @@ class ShortsRepository {
         final data = res.body!['data'] as Map<String, dynamic>? ?? res.body!;
         return Right(VideoReviewModel.fromJson(data));
       }
-      return Left(AppError.fromResponse(res.body, 'shorts.upload_error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'shorts.upload_error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (e, s) {
       debugPrint('[shorts_repository.dart] uploadVideo error: $e\n$s');
       return Left(AppError.network());
@@ -70,8 +80,13 @@ class ShortsRepository {
     try {
       final res = await _shortsService.likeShort(id);
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(res.body, 'shorts.like_error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'shorts.like_error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (e, s) {
       debugPrint('[shorts_repository.dart] likeShort error: $e\n$s');
       return Left(AppError.network());
@@ -82,8 +97,13 @@ class ShortsRepository {
     try {
       final res = await _shortsService.incrementView(id);
       if (res.isSuccessful) return const Right(null);
-      return Left(AppError.fromResponse(res.body, 'shorts.view_error',
-          statusCode: res.statusCode));
+      return Left(
+        AppError.fromResponse(
+          res.body,
+          'shorts.view_error',
+          statusCode: res.statusCode,
+        ),
+      );
     } catch (e, s) {
       debugPrint('[shorts_repository.dart] incrementView error: $e\n$s');
       return Left(AppError.network());

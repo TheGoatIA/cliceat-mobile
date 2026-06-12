@@ -189,7 +189,8 @@ class AiRepository {
       });
       if (res.isSuccessful && res.body != null) {
         final data = res.body!['data'];
-        final reply = (data is Map ? data['reply'] : res.body!['reply']) as String?;
+        final reply =
+            (data is Map ? data['reply'] : res.body!['reply']) as String?;
         return Right(reply ?? '');
       }
       return Left(AppError.fromResponse(res.body, 'ai.error_gastro'));

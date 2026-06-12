@@ -24,12 +24,8 @@ abstract class ShortsService extends ChopperService {
   );
 
   @POST(path: '/{id}/like')
-  Future<Response<Map<String, dynamic>>> likeShort(
-    @Path('id') String id,
-  );
+  Future<Response<Map<String, dynamic>>> likeShort(@Path('id') String id);
 
   @POST(path: '/{id}/view')
-  Future<Response<Map<String, dynamic>>> incrementView(
-    @Path('id') String id,
-  );
+  Future<Response<Map<String, dynamic>>> incrementView(@Path('id') String id);
 }

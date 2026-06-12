@@ -119,7 +119,9 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
     final cart = context.read<CartCubit>();
     final restaurantId = widget.restaurantId ?? '';
     for (final item in items) {
-      final qty = _quantities[item['id'] as String? ?? item['name'] as String? ?? ''] ?? 1;
+      final qty =
+          _quantities[item['id'] as String? ?? item['name'] as String? ?? ''] ??
+          1;
       if (qty > 0) {
         for (var i = 0; i < qty; i++) {
           await cart.addItem(
@@ -196,9 +198,7 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
                   loading: () => const Center(
                     child: Column(
                       children: [
-                        CircularProgressIndicator(
-                          color: AppTheme.primaryRed,
-                        ),
+                        CircularProgressIndicator(color: AppTheme.primaryRed),
                         SizedBox(height: 12),
                         Text('Gemini analyse votre photo...'),
                       ],
@@ -232,8 +232,7 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
 
                 // Results
                 state.maybeWhen(
-                  photoOrderResult: (items, message) =>
-                      _buildResults(items),
+                  photoOrderResult: (items, message) => _buildResults(items),
                   orElse: () => const SizedBox.shrink(),
                 ),
               ],
@@ -396,10 +395,7 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
             children: [
               Text(
                 'Confiance',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: AppTheme.muted,
-                ),
+                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -411,8 +407,8 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
                     color: confidence >= 0.8
                         ? AppTheme.green
                         : confidence >= 0.6
-                            ? AppTheme.orange
-                            : AppTheme.errorColor,
+                        ? AppTheme.orange
+                        : AppTheme.errorColor,
                     minHeight: 6,
                   ),
                 ),
@@ -435,20 +431,14 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
             children: [
               Text(
                 'Qté :',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppTheme.inkSoft,
-                ),
+                style: GoogleFonts.inter(fontSize: 13, color: AppTheme.inkSoft),
               ),
               const SizedBox(width: 12),
-              _buildQtyButton(
-                Icons.remove,
-                () {
-                  setState(() {
-                    _quantities[id] = (qty - 1).clamp(0, 99);
-                  });
-                },
-              ),
+              _buildQtyButton(Icons.remove, () {
+                setState(() {
+                  _quantities[id] = (qty - 1).clamp(0, 99);
+                });
+              }),
               const SizedBox(width: 12),
               Text(
                 '$qty',
@@ -459,14 +449,11 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              _buildQtyButton(
-                Icons.add,
-                () {
-                  setState(() {
-                    _quantities[id] = (qty + 1).clamp(0, 99);
-                  });
-                },
-              ),
+              _buildQtyButton(Icons.add, () {
+                setState(() {
+                  _quantities[id] = (qty + 1).clamp(0, 99);
+                });
+              }),
             ],
           ),
         ],

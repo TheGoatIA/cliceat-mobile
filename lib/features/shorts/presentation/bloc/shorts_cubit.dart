@@ -23,29 +23,26 @@ class ShortsCubit extends Cubit<ShortsState> {
     _videos = [];
     emit(const ShortsState.loading());
     final result = await _repository.getFeed(city: city, page: 1);
-    result.fold(
-      (err) => emit(ShortsState.error(err.message)),
-      (videos) {
-        _videos = videos;
-        emit(ShortsState.loaded(videos: videos, hasMore: videos.length >= 10));
-      },
-    );
+    result.fold((err) => emit(ShortsState.error(err.message)), (videos) {
+      _videos = videos;
+      emit(ShortsState.loaded(videos: videos, hasMore: videos.length >= 10));
+    });
   }
 
   Future<void> loadMore() async {
     final current = state;
     if (current is! _Loaded || !current.hasMore) return;
     _currentPage++;
-    final result =
-        await _repository.getFeed(city: _currentCity, page: _currentPage);
-    result.fold(
-      (err) => emit(ShortsState.error(err.message)),
-      (newVideos) {
-        _videos = [..._videos, ...newVideos];
-        emit(ShortsState.loaded(
-            videos: _videos, hasMore: newVideos.length >= 10));
-      },
+    final result = await _repository.getFeed(
+      city: _currentCity,
+      page: _currentPage,
     );
+    result.fold((err) => emit(ShortsState.error(err.message)), (newVideos) {
+      _videos = [..._videos, ...newVideos];
+      emit(
+        ShortsState.loaded(videos: _videos, hasMore: newVideos.length >= 10),
+      );
+    });
   }
 
   Future<void> toggleLike(String id) async {
