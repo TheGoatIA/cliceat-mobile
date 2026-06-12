@@ -291,7 +291,15 @@
     "explain_anomaly": "An operational incident occurred. Our support team is intervening immediately!",
     "history_title": "Order History",
     "view": "View",
-    "share": "Share"
+    "share": "Share",
+    "schedule_title": "Schedule order",
+    "schedule_now": "Now",
+    "schedule_later": "For later",
+    "schedule_pick_time": "Choose time",
+    "schedule_min_time": "Minimum 30 minutes in advance",
+    "schedule_label": "Scheduled for",
+    "schedule_info": "The restaurant will receive your order at the right time",
+    "scheduled_badge": "Scheduled"
   },
   "payment": {
     "title": "Secure payment",
@@ -507,7 +515,18 @@
     "wallet_min_amount": "Minimum 500 XAF",
     "wallet_insufficient": "Insufficient balance",
     "wallet_transactions": "History",
-    "wallet_no_transactions": "No transactions"
+    "wallet_no_transactions": "No transactions",
+    "ranking_title": "Your ranking",
+    "ranking_top": "Top {percent}% in {city}",
+    "ranking_drivers": "{rank}th out of {total} drivers",
+    "goal_title": "Monthly goal",
+    "goal_progress": "{current} XAF of {goal} XAF",
+    "goal_set": "Set goal",
+    "goal_modify": "Modify",
+    "goal_achieved": "🎉 Goal achieved!",
+    "goal_dialog_title": "Monthly goal (XAF)",
+    "goal_placeholder": "Ex: 50000",
+    "goal_save": "Save"
   },
   "address": {
     "select_title": "Choose an address",

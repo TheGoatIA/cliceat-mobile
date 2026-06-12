@@ -291,7 +291,15 @@
     "explain_anomaly": "Un incident opérationnel est survenu. Notre service support intervient immédiatement !",
     "history_title": "Historique des commandes",
     "view": "Visualiser",
-    "share": "Partager"
+    "share": "Partager",
+    "schedule_title": "Programmer la commande",
+    "schedule_now": "Maintenant",
+    "schedule_later": "Pour plus tard",
+    "schedule_pick_time": "Choisir l'heure",
+    "schedule_min_time": "Minimum 30 minutes à l'avance",
+    "schedule_label": "Programmée pour",
+    "schedule_info": "Le restaurant recevra votre commande au bon moment",
+    "scheduled_badge": "Programmée"
   },
   "payment": {
     "title": "Paiement sécurisé",
@@ -507,7 +515,18 @@
     "wallet_min_amount": "Minimum 500 XAF",
     "wallet_insufficient": "Solde insuffisant",
     "wallet_transactions": "Historique",
-    "wallet_no_transactions": "Aucune transaction"
+    "wallet_no_transactions": "Aucune transaction",
+    "ranking_title": "Ton rang",
+    "ranking_top": "Top {percent}% à {city}",
+    "ranking_drivers": "{rank}e sur {total} livreurs",
+    "goal_title": "Objectif mensuel",
+    "goal_progress": "{current} XAF sur {goal} XAF",
+    "goal_set": "Définir objectif",
+    "goal_modify": "Modifier",
+    "goal_achieved": "🎉 Objectif atteint !",
+    "goal_dialog_title": "Objectif mensuel (XAF)",
+    "goal_placeholder": "Ex: 50000",
+    "goal_save": "Enregistrer"
   },
   "address": {
     "select_title": "Choisir une adresse",
