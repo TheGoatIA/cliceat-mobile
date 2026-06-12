@@ -93,9 +93,9 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
       settings = geo.AndroidSettings(
         accuracy: geo.LocationAccuracy.bestForNavigation,
         distanceFilter: 10,
-        foregroundNotificationConfig: const geo.ForegroundNotificationConfig(
-          notificationText: "ClicEat suit votre position pour la livraison",
-          notificationTitle: "Service de livraison actif",
+        foregroundNotificationConfig: geo.ForegroundNotificationConfig(
+          notificationText: 'delivery.bg_location_text'.tr(),
+          notificationTitle: 'delivery.bg_location_title'.tr(),
           enableWakeLock: true,
         ),
       );
@@ -145,6 +145,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
       destLat: destLat,
       destLng: destLng,
       orderId: _mission.id,
+      languageCode: context.locale.languageCode,
     );
   }
 
@@ -234,7 +235,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
             _drawOsrmRoute(route);
             if (isRerouting) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Itinéraire recalculé'), duration: Duration(seconds: 2)),
+                SnackBar(content: Text('delivery.reroute_success'.tr()), duration: const Duration(seconds: 2)),
               );
             }
           },
@@ -337,7 +338,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
   }
 
   Widget _buildTopPanel(NavigationState navState) {
-    String instruction = 'Calcul de l\'itinéraire...';
+    String instruction = 'delivery.calculating_route'.tr();
     String distanceLabel = '';
     IconData maneuverIcon = Icons.straight;
 
@@ -350,10 +351,10 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
         maneuverIcon = _maneuverIcon(step.maneuver.type, step.maneuver.modifier);
       }
     } else if (navState is NavigationArrived) {
-      instruction = 'Vous êtes arrivé à destination !';
+      instruction = 'delivery.arrived_destination'.tr();
       maneuverIcon = Icons.flag;
     } else if (navState is NavigationError) {
-      instruction = 'Erreur de navigation — vérifiez la connexion';
+      instruction = 'delivery.navigation_error'.tr();
       maneuverIcon = Icons.warning_amber_rounded;
     }
 
@@ -413,7 +414,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
   }
 
   Widget _buildBottomPanel(bool isRestaurantPhase, NavigationState navState) {
-    String etaLabel = 'Calcul...';
+    String etaLabel = 'delivery.calculating'.tr();
     String distLabel = '--';
 
     if (navState is NavigationNavigating) {
@@ -452,9 +453,11 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                             ),
                           ),
                           Text(
-                            isRestaurantPhase
-                                ? 'Destination: ${_mission.restaurantName}'
-                                : 'Destination: ${_mission.clientName}',
+                            'delivery.destination_label'.tr(args: [
+                              isRestaurantPhase
+                                  ? (_mission.restaurantName ?? '')
+                                  : (_mission.clientName ?? '')
+                            ]),
                             style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
                           ),
                         ],
@@ -496,7 +499,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _mission.clientName ?? 'Client',
+                                  _mission.clientName ?? 'delivery.client'.tr(),
                                   style: GoogleFonts.inter(
                                     fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.ink,
                                   ),
@@ -592,7 +595,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                 child: Row(
                   children: [
                     Text(
-                      'Étapes de l\'itinéraire',
+                      'delivery.route_steps'.tr(),
                       style: GoogleFonts.bricolageGrotesque(
                         fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.ink,
                       ),
@@ -712,7 +715,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                 const Icon(Icons.check_circle_rounded, size: 80, color: AppTheme.green),
                 const SizedBox(height: 16),
                 Text(
-                  'Vous êtes arrivé ! 🎉',
+                  'delivery.arrived_success_title'.tr(),
                   style: GoogleFonts.bricolageGrotesque(
                     fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.ink,
                   ),

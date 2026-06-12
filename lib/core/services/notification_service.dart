@@ -355,10 +355,10 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       'cliceat_navigation_channel',
-      'Navigation Active',
-      channelDescription: 'Mises à jour des étapes de navigation',
+      'delivery.nav_channel_name'.tr(),
+      channelDescription: 'delivery.nav_channel_desc'.tr(),
       importance: Importance.low,
       priority: Priority.low,
       playSound: false,
@@ -368,7 +368,7 @@ class NotificationService {
       showWhen: false,
     );
 
-    const platformDetails = NotificationDetails(android: androidDetails);
+    final platformDetails = NotificationDetails(android: androidDetails);
     await _localNotifications.show(
       id: 9999, // ID statique unique pour la notification persistante de navigation
       title: title,

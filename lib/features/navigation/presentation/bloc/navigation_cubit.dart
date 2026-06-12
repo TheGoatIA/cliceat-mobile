@@ -10,6 +10,7 @@ import '../../../../core/services/notification_service.dart';
 import '../../data/datasources/navigation_cache.dart';
 import '../../data/models/osrm_route_model.dart';
 import '../../data/repositories/navigation_repository.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 part 'navigation_state.dart';
 part 'navigation_cubit.freezed.dart';
@@ -46,6 +47,7 @@ class NavigationCubit extends Cubit<NavigationState> {
     required double destLat,
     required double destLng,
     String? orderId,
+    String? languageCode,
   }) async {
     // Cancel any existing tracking before restarting
     _locationSub?.cancel();
@@ -58,6 +60,14 @@ class NavigationCubit extends Cubit<NavigationState> {
     _distanceCovered = 0.0;
     _lastLat = null;
     _lastLng = null;
+
+    if (languageCode != null) {
+      if (languageCode.startsWith('en')) {
+        await _tts.setLanguage('en-US');
+      } else {
+        await _tts.setLanguage('fr-FR');
+      }
+    }
 
     // Try loading from cache first for offline/fast start
     final cached = await NavigationCache.loadRoute(orderId ?? '');
@@ -154,7 +164,7 @@ class NavigationCubit extends Cubit<NavigationState> {
     final distToDest = Geolocator.distanceBetween(lat, lng, _destLat!, _destLng!);
     if (distToDest <= _arrivalThreshold) {
       _locationSub?.cancel();
-      _tts.speak('Vous êtes arrivé à destination');
+      _tts.speak('delivery.tts_arrived'.tr());
       getIt<NotificationService>().stopOngoingNavigation();
       emit(NavigationState.arrived(route: route));
       return;
@@ -222,7 +232,7 @@ class NavigationCubit extends Cubit<NavigationState> {
         currentLng: pos.longitude,
         isRerouting: true,
       ));
-      _tts.speak('Recalcul de l\'itinéraire');
+      _tts.speak('delivery.tts_reroute'.tr());
       _speakStep(0);
     } catch (e) {
       debugPrint('Reroute failed: $e');
