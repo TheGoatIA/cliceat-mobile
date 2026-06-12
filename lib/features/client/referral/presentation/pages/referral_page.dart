@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:cliceat_app/core/theme/app_theme.dart';
 import '../cubit/referral_cubit.dart';
 import '../cubit/referral_state.dart';
@@ -342,7 +343,7 @@ class _ReferralPageState extends State<ReferralPage> {
       child: Column(
         children: [
           Text(
-            'referral.share_title'.tr(),
+            'referral.your_code'.tr(),
             style: GoogleFonts.bricolageGrotesque(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -357,8 +358,9 @@ class _ReferralPageState extends State<ReferralPage> {
             style: GoogleFonts.inter(color: AppTheme.muted, fontSize: 13),
           ),
           const SizedBox(height: 20),
+          // Code display — large, prominent
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
               color: AppTheme.bg,
               borderRadius: BorderRadius.circular(14),
@@ -367,13 +369,15 @@ class _ReferralPageState extends State<ReferralPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  code,
-                  style: GoogleFonts.inter(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.ink,
-                    letterSpacing: 3,
+                Expanded(
+                  child: Text(
+                    code,
+                    style: GoogleFonts.inter(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.ink,
+                      letterSpacing: 4,
+                    ),
                   ),
                 ),
                 GestureDetector(
@@ -407,6 +411,37 @@ class _ReferralPageState extends State<ReferralPage> {
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Share button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                Share.share(
+                  'Rejoins ClicEat avec mon code : $code\nhttps://cliceat.cm/refer/$code',
+                  subject: 'referral.share_subject'.tr(),
+                );
+              },
+              icon: const Icon(Icons.share_rounded, size: 20),
+              label: Text(
+                'referral.share'.tr(),
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.honey,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
             ),
           ),
         ],
