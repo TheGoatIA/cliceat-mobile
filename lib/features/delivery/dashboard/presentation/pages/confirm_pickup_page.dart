@@ -42,7 +42,10 @@ class _ConfirmPickupPageState extends State<ConfirmPickupPage> {
               ...widget.mission.toJson(),
               'status': 'picked_up',
             });
-            context.pushReplacement('/delivery/active-navigation', extra: updatedMission);
+            context.pushReplacement(
+              '/delivery/active-navigation',
+              extra: updatedMission,
+            );
           },
           error: (msg) {
             setState(() => _isSubmitting = false);
