@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -965,40 +966,142 @@ class _ProfilePageState extends State<ProfilePage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                color: AppTheme.greenSoft,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.help_outline_rounded,
-                size: 32,
-                color: AppTheme.green,
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: AppTheme.lineSoft,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
             Text(
               'profile.help'.tr(),
               style: GoogleFonts.bricolageGrotesque(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppTheme.ink,
               ),
             ),
-            const SizedBox(height: 16),
-            const Text('support@cliceat.cm', style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 6),
-            Text(
-              'profile.whatsapp_contact'.tr(),
-              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.muted),
+            const SizedBox(height: 20),
+            // Phone tile
+            _buildSupportTile(
+              icon: Icons.phone_rounded,
+              iconColor: AppTheme.green,
+              iconBg: AppTheme.greenSoft,
+              title: 'support.call_support'.tr(),
+              subtitle: 'support.phone_number'.tr(),
+              onTap: () async {
+                final uri = Uri.parse('tel:+237658709986');
+                if (await canLaunchUrl(uri)) await launchUrl(uri);
+              },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
+            // WhatsApp tile
+            _buildSupportTile(
+              icon: Icons.chat_bubble_outline_rounded,
+              iconColor: const Color(0xFF25D366),
+              iconBg: const Color(0xFFE8F5E9),
+              title: 'support.whatsapp'.tr(),
+              subtitle: 'support.phone_number'.tr(),
+              onTap: () async {
+                final uri = Uri.parse('https://wa.me/237658709986');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            // Email tile
+            _buildSupportTile(
+              icon: Icons.email_outlined,
+              iconColor: AppTheme.primaryRed,
+              iconBg: AppTheme.redSoft,
+              title: 'support.email'.tr(),
+              subtitle: 'support.email'.tr(),
+              onTap: () async {
+                final uri = Uri.parse('mailto:support@cliceat.cm');
+                if (await canLaunchUrl(uri)) await launchUrl(uri);
+              },
+            ),
+            const SizedBox(height: 8),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSupportTile({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppTheme.lineSoft),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: AppTheme.ink,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppTheme.mutedLight,
+                size: 20,
+              ),
+            ],
+          ),
         ),
       ),
     );
