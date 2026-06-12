@@ -50,6 +50,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
 
   late MissionModel _mission;
   bool _navigationStarted = false;
+  String? _lastNavDestKey; // tracks which destination nav was last started for
   bool _showStepsList = false;
   double _currentSpeedKmh = 0.0;
 
@@ -127,17 +128,25 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
   }
 
   Future<void> _tryStartNavigation() async {
-    if (_navigationStarted) return;
-    final pos = await geo.Geolocator.getCurrentPosition(
-      locationSettings: const geo.LocationSettings(accuracy: geo.LocationAccuracy.high),
-    ).catchError((_) async => await geo.Geolocator.getLastKnownPosition() ?? _defaultPos());
-
     final isRestaurantPhase = _mission.status != 'picked_up' && _mission.status != 'en_route';
     final destLat = isRestaurantPhase ? _mission.restaurantLat : _mission.deliveryAddress?.lat;
     final destLng = isRestaurantPhase ? _mission.restaurantLng : _mission.deliveryAddress?.lng;
 
     if (destLat == null || destLng == null || !mounted) return;
+
+    // Build a key that uniquely identifies this leg of the journey.
+    // If the destination changes (restaurant → client) we restart navigation.
+    final destKey = '${destLat.toStringAsFixed(5)},${destLng.toStringAsFixed(5)}';
+    if (_navigationStarted && _lastNavDestKey == destKey) return;
+
     _navigationStarted = true;
+    _lastNavDestKey = destKey;
+
+    final pos = await geo.Geolocator.getCurrentPosition(
+      locationSettings: const geo.LocationSettings(accuracy: geo.LocationAccuracy.high),
+    ).catchError((_) async => await geo.Geolocator.getLastKnownPosition() ?? _defaultPos());
+
+    if (!mounted) return;
 
     context.read<NavigationCubit>().startNavigation(
       originLat: pos.latitude,

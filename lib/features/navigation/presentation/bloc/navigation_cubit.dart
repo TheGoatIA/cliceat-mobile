@@ -25,6 +25,7 @@ class NavigationCubit extends Cubit<NavigationState> {
   double? _destLat;
   double? _destLng;
   String? _orderId;
+  bool _isRerouting = false;
 
   // Deviation threshold in metres before triggering reroute
   static const double _deviationThreshold = 80.0;
@@ -194,8 +195,7 @@ class NavigationCubit extends Cubit<NavigationState> {
     // Auto-reroute if significantly off track (deviation from expected cumulative distance)
     final expectedDistCovered = stepCutoff;
     final deviation = (distToDest - (route.distance - expectedDistCovered)).abs();
-    if (deviation > _deviationThreshold && _currentStepIndex > 0) {
-      // Trigger background reroute — don't await, let it update state when done
+    if (!_isRerouting && deviation > _deviationThreshold && _currentStepIndex > 0) {
       requestReroute();
     }
 
@@ -208,9 +208,11 @@ class NavigationCubit extends Cubit<NavigationState> {
   }
 
   Future<void> requestReroute() async {
+    if (_isRerouting) return;
     final route = _currentRoute;
     if (route == null || _destLat == null || _destLng == null) return;
 
+    _isRerouting = true;
     try {
       final pos = await Geolocator.getCurrentPosition();
       final result = await _repository.reroute(
@@ -236,6 +238,8 @@ class NavigationCubit extends Cubit<NavigationState> {
       _speakStep(0);
     } catch (e) {
       debugPrint('Reroute failed: $e');
+    } finally {
+      _isRerouting = false;
     }
   }
 
