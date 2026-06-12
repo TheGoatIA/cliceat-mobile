@@ -18,10 +18,15 @@ class _EarningsPageState extends State<EarningsPage> {
   EarningsModel? _earnings;
   bool _loading = true;
 
+  Map<String, dynamic>? _ranking;
+  Map<String, dynamic>? _goal;
+  bool _businessLoading = true;
+
   @override
   void initState() {
     super.initState();
     _loadEarnings();
+    _loadBusiness();
   }
 
   Future<void> _loadEarnings() async {
@@ -35,6 +40,99 @@ class _EarningsPageState extends State<EarningsPage> {
         _loading = false;
       }),
     );
+  }
+
+  Future<void> _loadBusiness() async {
+    setState(() => _businessLoading = true);
+    final rankRes = await getIt<DriverRepository>().getRanking();
+    final goalRes = await getIt<DriverRepository>().getGoal();
+    if (!mounted) return;
+    setState(() {
+      rankRes.fold((_) {}, (r) => _ranking = r);
+      goalRes.fold((_) {}, (g) => _goal = g);
+      _businessLoading = false;
+    });
+  }
+
+  Future<void> _showGoalDialog() async {
+    final controller = TextEditingController(
+      text: (_goal?['amount'] as num?)?.toInt().toString() ?? '',
+    );
+    final result = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'delivery.goal_dialog_title'.tr(),
+          style: GoogleFonts.bricolageGrotesque(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppTheme.ink,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: 'delivery.goal_placeholder'.tr(),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: AppTheme.primaryRed,
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'common.cancel'.tr(),
+              style: GoogleFonts.inter(color: AppTheme.muted),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final val = int.tryParse(controller.text.trim());
+              if (val != null && val > 0) Navigator.pop(ctx, val);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryRed,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'delivery.goal_save'.tr(),
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && mounted) {
+      final saveRes = await getIt<DriverRepository>().setGoal(result);
+      if (!mounted) return;
+      saveRes.fold(
+        (err) => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(err.message),
+            backgroundColor: AppTheme.primaryRed,
+          ),
+        ),
+        (_) {
+          setState(() {
+            _goal = {...?_goal, 'amount': result};
+          });
+        },
+      );
+    }
   }
 
   @override
@@ -58,8 +156,8 @@ class _EarningsPageState extends State<EarningsPage> {
           IconButton(
             icon: const Icon(Icons.refresh, color: AppTheme.ink),
             onPressed: () {
-              setState(() => _loading = true);
               _loadEarnings();
+              _loadBusiness();
             },
           ),
         ],
@@ -83,6 +181,18 @@ class _EarningsPageState extends State<EarningsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (!_businessLoading) ...[
+                      if (_ranking != null) ...[
+                        _buildMotivationalBanner(),
+                        const SizedBox(height: 12),
+                        _buildRankingCard(),
+                        const SizedBox(height: 12),
+                      ],
+                      if (_goal != null) ...[
+                        _buildGoalCard(),
+                        const SizedBox(height: 24),
+                      ],
+                    ],
                     _buildSummaryCards(),
                     const SizedBox(height: 24),
                     _buildBarChart(),
@@ -92,6 +202,243 @@ class _EarningsPageState extends State<EarningsPage> {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildMotivationalBanner() {
+    final message = _ranking?['message'] as String?;
+    if (message == null || message.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6C63FF), Color(0xFF8B5CF6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Text('💬', style: TextStyle(fontSize: 20)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: Colors.white,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRankingCard() {
+    final rank = (_ranking?['rank'] as num?)?.toInt() ?? 0;
+    final total = (_ranking?['total'] as num?)?.toInt() ?? 1;
+    final city = _ranking?['city'] as String? ?? 'Douala';
+    final percent = total > 0 ? ((rank / total) * 100).round() : 0;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.honeySoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.emoji_events,
+                  color: AppTheme.honey,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'delivery.ranking_title'.tr(),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.muted,
+                      ),
+                    ),
+                    Text(
+                      'delivery.ranking_top'.tr(
+                        namedArgs: {'percent': '$percent', 'city': city},
+                      ),
+                      style: GoogleFonts.bricolageGrotesque(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: AppTheme.ink,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: total > 0 ? (total - rank + 1) / total : 0,
+              minHeight: 8,
+              backgroundColor: AppTheme.lineSoft,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.honey),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'delivery.ranking_drivers'.tr(
+              namedArgs: {'rank': '$rank', 'total': '$total'},
+            ),
+            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalCard() {
+    final goalAmount = (_goal?['amount'] as num?)?.toDouble() ?? 0;
+    final current = (_goal?['current'] as num?)?.toDouble() ?? 0;
+    final achieved = goalAmount > 0 && current >= goalAmount;
+    final progress = goalAmount > 0
+        ? (current / goalAmount).clamp(0.0, 1.0)
+        : 0.0;
+    final remaining = (goalAmount - current).clamp(0.0, double.infinity);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.lineSoft),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.greenSoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.track_changes,
+                  color: AppTheme.green,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'delivery.goal_title'.tr(),
+                  style: GoogleFonts.bricolageGrotesque(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: AppTheme.ink,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: _showGoalDialog,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.bg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.line),
+                  ),
+                  child: Text(
+                    goalAmount > 0
+                        ? 'delivery.goal_modify'.tr()
+                        : 'delivery.goal_set'.tr(),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.ink,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (achieved) ...[
+            Text(
+              'delivery.goal_achieved'.tr(),
+              style: GoogleFonts.bricolageGrotesque(
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                color: AppTheme.green,
+              ),
+            ),
+          ] else if (goalAmount > 0) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: AppTheme.lineSoft,
+                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.green),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'delivery.goal_progress'.tr(
+                namedArgs: {
+                  'current': current.toStringAsFixed(0),
+                  'goal': goalAmount.toStringAsFixed(0),
+                },
+              ),
+              style: GoogleFonts.inter(fontSize: 12, color: AppTheme.muted),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Il te reste ${remaining.toStringAsFixed(0)} XAF',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: AppTheme.inkSoft,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ] else ...[
+            Text(
+              'delivery.goal_set'.tr(),
+              style: GoogleFonts.inter(fontSize: 13, color: AppTheme.muted),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

@@ -63,6 +63,30 @@ final class _$DriverService extends DriverService {
   }
 
   @override
+  Future<Response<Map<String, dynamic>>> getRanking() {
+    final Uri $url = Uri.parse('/delivery/me/ranking');
+    final Request $request = Request('GET', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> getGoal() {
+    final Uri $url = Uri.parse('/delivery/me/goal');
+    final Request $request = Request('GET', $url, client.baseUrl);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> setGoal(
+    Map<String, dynamic> goalData,
+  ) {
+    final Uri $url = Uri.parse('/delivery/me/goal');
+    final $body = goalData;
+    final Request $request = Request('PUT', $url, client.baseUrl, body: $body);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
   Future<Response<Map<String, dynamic>>> registerDriver(
     String name,
     String email,

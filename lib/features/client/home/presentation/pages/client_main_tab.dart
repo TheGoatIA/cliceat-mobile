@@ -12,6 +12,7 @@ import '../../../profile/presentation/pages/profile_page.dart';
 import '../bloc/home_cubit.dart';
 import 'home_client_page.dart';
 import 'map_client_page.dart';
+import '../../../../shorts/presentation/pages/shorts_feed_page.dart';
 
 class ClientMainTab extends StatefulWidget {
   const ClientMainTab({super.key});
@@ -30,6 +31,7 @@ class ClientMainTabState extends State<ClientMainTab> {
   static const _pages = [
     HomeClientPage(),
     MapClientPage(),
+    ShortsFeedPage(),
     OrderHistoryPage(),
     CartPage(),
     ProfilePage(),
@@ -66,22 +68,29 @@ class ClientMainTabState extends State<ClientMainTab> {
                     onTap: () => setState(() => _currentIndex = 1),
                   ),
                   _NavItem(
-                    icon: Icons.receipt_long_outlined,
-                    activeIcon: Icons.receipt_long_rounded,
-                    label: 'client.nav_orders'.tr(),
+                    icon: Icons.play_circle_outline,
+                    activeIcon: Icons.play_circle_rounded,
+                    label: 'client.nav_shorts'.tr(),
                     isActive: _currentIndex == 2,
                     onTap: () => setState(() => _currentIndex = 2),
                   ),
-                  _CartNavItem(
+                  _NavItem(
+                    icon: Icons.receipt_long_outlined,
+                    activeIcon: Icons.receipt_long_rounded,
+                    label: 'client.nav_orders'.tr(),
                     isActive: _currentIndex == 3,
                     onTap: () => setState(() => _currentIndex = 3),
+                  ),
+                  _CartNavItem(
+                    isActive: _currentIndex == 4,
+                    onTap: () => setState(() => _currentIndex = 4),
                   ),
                   _NavItem(
                     icon: Icons.person_outline_rounded,
                     activeIcon: Icons.person_rounded,
                     label: 'client.nav_profile'.tr(),
-                    isActive: _currentIndex == 4,
-                    onTap: () => setState(() => _currentIndex = 4),
+                    isActive: _currentIndex == 5,
+                    onTap: () => setState(() => _currentIndex = 5),
                   ),
                 ],
               ),

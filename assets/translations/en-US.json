@@ -113,7 +113,8 @@
     "nav_cart": "Cart",
     "nav_profile": "Profile",
     "search_results": "Search results",
-    "restaurants": "restaurants"
+    "restaurants": "restaurants",
+    "nav_shorts": "Shorts"
   },
   "home": {
     "city_picker_title": "Choose your city",
@@ -291,7 +292,15 @@
     "explain_anomaly": "An operational incident occurred. Our support team is intervening immediately!",
     "history_title": "Order History",
     "view": "View",
-    "share": "Share"
+    "share": "Share",
+    "schedule_title": "Schedule order",
+    "schedule_now": "Now",
+    "schedule_later": "For later",
+    "schedule_pick_time": "Choose time",
+    "schedule_min_time": "Minimum 30 minutes in advance",
+    "schedule_label": "Scheduled for",
+    "schedule_info": "The restaurant will receive your order at the right time",
+    "scheduled_badge": "Scheduled"
   },
   "payment": {
     "title": "Secure payment",
@@ -497,7 +506,28 @@
     "tts_arrived": "You have arrived at your destination",
     "tts_reroute": "Recalculating route",
     "nav_channel_name": "Active Navigation",
-    "nav_channel_desc": "Updates on navigation steps"
+    "nav_channel_desc": "Updates on navigation steps",
+    "wallet_title": "My Wallet",
+    "wallet_balance": "Available balance",
+    "wallet_withdraw": "Withdraw to Mobile Money",
+    "wallet_withdraw_amount": "Amount to withdraw (XAF)",
+    "wallet_withdraw_phone": "Mobile Money number",
+    "wallet_withdraw_success": "Withdrawal being processed",
+    "wallet_min_amount": "Minimum 500 XAF",
+    "wallet_insufficient": "Insufficient balance",
+    "wallet_transactions": "History",
+    "wallet_no_transactions": "No transactions",
+    "ranking_title": "Your ranking",
+    "ranking_top": "Top {percent}% in {city}",
+    "ranking_drivers": "{rank}th out of {total} drivers",
+    "goal_title": "Monthly goal",
+    "goal_progress": "{current} XAF of {goal} XAF",
+    "goal_set": "Set goal",
+    "goal_modify": "Modify",
+    "goal_achieved": "🎉 Goal achieved!",
+    "goal_dialog_title": "Monthly goal (XAF)",
+    "goal_placeholder": "Ex: 50000",
+    "goal_save": "Save"
   },
   "address": {
     "select_title": "Choose an address",
@@ -590,7 +620,11 @@
     "privacy_s5_title": "5. Your Rights",
     "privacy_s5_body": "In accordance with Cameroonian personal data law, you have the right to access, rectify, erase, and object to your data. Contact us at: privacy@cliceat.cm",
     "privacy_s6_title": "6. Security",
-    "privacy_s6_body": "We implement technical and organizational security measures to protect your data against unauthorized access, including encryption of sensitive data and secure transmission (HTTPS/TLS)."
+    "privacy_s6_body": "We implement technical and organizational security measures to protect your data against unauthorized access, including encryption of sensitive data and secure transmission (HTTPS/TLS).",
+    "last_updated": "Last updated",
+    "loading": "Loading...",
+    "load_error": "Unable to load content",
+    "retry": "Retry"
   },
   "wallet": {
     "title": "My Wallet",
@@ -666,16 +700,37 @@
     "friends_invited": "Friends Invited",
     "share_title": "Share your code",
     "share_desc": "Invite friends and earn money when they order",
-    "copied": "Code copied to clipboard",
+    "copied": "Code copied!",
     "apply_code_btn": "I have a referral code",
     "apply_title": "Apply a code",
     "code_hint": "Referral code",
-    "apply_success": "Code successfully applied!"
+    "apply_success": "Code successfully applied!",
+    "share": "Share my code",
+    "your_code": "Your referral code",
+    "share_subject": "ClicEat referral code"
   },
   "ai": {
     "assistant_title": "AI Assistant",
     "ask": "Ask AI",
-    "ask_hint": "I'm looking for pizzas near me..."
+    "ask_hint": "I'm looking for pizzas near me...",
+    "photo_order_title": "Order by photo",
+    "photo_order_hint": "Take a photo of what you want to eat",
+    "analyze": "Analyze",
+    "analyzing": "Gemini is analyzing your photo...",
+    "add_to_cart": "Add to cart",
+    "quality_title": "Quality check",
+    "quality_hint": "Take a photo of your received dish",
+    "quality_ok": "Compliant",
+    "quality_warn": "To report",
+    "quality_refund": "Refund suggested",
+    "open_dispute": "Open a dispute",
+    "gastro_title": "Gastro Guide",
+    "gastro_subtitle": "Powered by Gemini",
+    "gastro_send": "Send",
+    "gastro_hint": "Ask your question...",
+    "error_photo_order": "Error analyzing the photo",
+    "error_quality": "Error during quality check",
+    "error_gastro": "Error connecting to the guide"
   },
   "review": {
     "my_reviews": "My Reviews",
@@ -721,5 +776,35 @@
   },
   "pending": "Pending",
   "processed": "Processed",
-  "rejected": "Rejected"
+  "rejected": "Rejected",
+  "support": {
+    "call_support": "Call support",
+    "whatsapp": "WhatsApp",
+    "phone_number": "658 709 986",
+    "email": "support@cliceat.cm"
+  },
+  "shorts": {
+    "title": "ClicEat Shorts",
+    "no_videos": "No videos yet",
+    "share_video": "Share my video review",
+    "uploading": "Uploading...",
+    "upload_success": "Video published, pending moderation",
+    "like": "Like",
+    "views": "views",
+    "empty": "No videos available yet.",
+    "share": "Share",
+    "upload_title": "Publish a Short",
+    "upload_pick": "Choose a video (max 60s)",
+    "upload_record": "Record a video",
+    "upload_change": "Change video",
+    "upload_no_video": "Please select a video.",
+    "rating": "Rating",
+    "caption": "Caption",
+    "caption_hint": "Describe your experience...",
+    "publish": "Publish",
+    "load_error": "Unable to load Shorts.",
+    "upload_error": "Error while publishing.",
+    "like_error": "Error while liking.",
+    "view_error": "Error counting view."
+  }
 }

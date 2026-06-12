@@ -369,6 +369,33 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage>
               ),
             ),
             actions: [
+              // ── Commander par photo ──────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 8),
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    context.push(
+                      '/ai/photo-order?restaurantId=${widget.restaurantId}',
+                    );
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.lineSoft),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_rounded,
+                      size: 20,
+                      color: AppTheme.primaryRed,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
               Padding(
                 padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
                 child: GestureDetector(

@@ -113,7 +113,8 @@
     "nav_cart": "Panier",
     "nav_profile": "Profil",
     "search_results": "Résultats de recherche",
-    "restaurants": "restaurants"
+    "restaurants": "restaurants",
+    "nav_shorts": "Shorts"
   },
   "home": {
     "city_picker_title": "Choisir votre ville",
@@ -291,7 +292,15 @@
     "explain_anomaly": "Un incident opérationnel est survenu. Notre service support intervient immédiatement !",
     "history_title": "Historique des commandes",
     "view": "Visualiser",
-    "share": "Partager"
+    "share": "Partager",
+    "schedule_title": "Programmer la commande",
+    "schedule_now": "Maintenant",
+    "schedule_later": "Pour plus tard",
+    "schedule_pick_time": "Choisir l'heure",
+    "schedule_min_time": "Minimum 30 minutes à l'avance",
+    "schedule_label": "Programmée pour",
+    "schedule_info": "Le restaurant recevra votre commande au bon moment",
+    "scheduled_badge": "Programmée"
   },
   "payment": {
     "title": "Paiement sécurisé",
@@ -497,7 +506,28 @@
     "tts_arrived": "Vous êtes arrivé à destination",
     "tts_reroute": "Recalcul de l'itinéraire",
     "nav_channel_name": "Navigation Active",
-    "nav_channel_desc": "Mises à jour des étapes de navigation"
+    "nav_channel_desc": "Mises à jour des étapes de navigation",
+    "wallet_title": "Mon Portefeuille",
+    "wallet_balance": "Solde disponible",
+    "wallet_withdraw": "Retirer vers Mobile Money",
+    "wallet_withdraw_amount": "Montant à retirer (XAF)",
+    "wallet_withdraw_phone": "Numéro Mobile Money",
+    "wallet_withdraw_success": "Retrait en cours de traitement",
+    "wallet_min_amount": "Minimum 500 XAF",
+    "wallet_insufficient": "Solde insuffisant",
+    "wallet_transactions": "Historique",
+    "wallet_no_transactions": "Aucune transaction",
+    "ranking_title": "Ton rang",
+    "ranking_top": "Top {percent}% à {city}",
+    "ranking_drivers": "{rank}e sur {total} livreurs",
+    "goal_title": "Objectif mensuel",
+    "goal_progress": "{current} XAF sur {goal} XAF",
+    "goal_set": "Définir objectif",
+    "goal_modify": "Modifier",
+    "goal_achieved": "🎉 Objectif atteint !",
+    "goal_dialog_title": "Objectif mensuel (XAF)",
+    "goal_placeholder": "Ex: 50000",
+    "goal_save": "Enregistrer"
   },
   "address": {
     "select_title": "Choisir une adresse",
@@ -590,7 +620,11 @@
     "privacy_s5_title": "5. Vos droits",
     "privacy_s5_body": "Conformément à la loi camerounaise sur les données personnelles, vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition. Contactez-nous à : privacy@cliceat.cm",
     "privacy_s6_title": "6. Sécurité",
-    "privacy_s6_body": "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, notamment le chiffrement des données sensibles et la transmission sécurisée (HTTPS/TLS)."
+    "privacy_s6_body": "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, notamment le chiffrement des données sensibles et la transmission sécurisée (HTTPS/TLS).",
+    "last_updated": "Mis à jour le",
+    "loading": "Chargement...",
+    "load_error": "Impossible de charger le contenu",
+    "retry": "Réessayer"
   },
   "wallet": {
     "title": "Mon Portefeuille",
@@ -666,16 +700,37 @@
     "friends_invited": "Amis invités",
     "share_title": "Partagez votre code",
     "share_desc": "Invitez vos amis et gagnez de l'argent lorsqu'ils commandent",
-    "copied": "Code copié dans le presse-papier",
+    "copied": "Code copié !",
     "apply_code_btn": "J'ai un code de parrainage",
     "apply_title": "Appliquer un code",
     "code_hint": "Code de parrainage",
-    "apply_success": "Code appliqué avec succès !"
+    "apply_success": "Code appliqué avec succès !",
+    "share": "Partager mon code",
+    "your_code": "Ton code de parrainage",
+    "share_subject": "Code de parrainage ClicEat"
   },
   "ai": {
     "assistant_title": "Assistant IA",
     "ask": "Demander à l'IA",
-    "ask_hint": "Je cherche des pizzas autour de moi..."
+    "ask_hint": "Je cherche des pizzas autour de moi...",
+    "photo_order_title": "Commander par photo",
+    "photo_order_hint": "Prends en photo ce que tu veux manger",
+    "analyze": "Analyser",
+    "analyzing": "Gemini analyse votre photo...",
+    "add_to_cart": "Ajouter au panier",
+    "quality_title": "Contrôle qualité",
+    "quality_hint": "Prends en photo ton plat reçu",
+    "quality_ok": "Conforme",
+    "quality_warn": "À signaler",
+    "quality_refund": "Remboursement suggéré",
+    "open_dispute": "Ouvrir un litige",
+    "gastro_title": "Guide Gastronomique",
+    "gastro_subtitle": "Powered by Gemini",
+    "gastro_send": "Envoyer",
+    "gastro_hint": "Posez votre question...",
+    "error_photo_order": "Erreur lors de l'analyse de la photo",
+    "error_quality": "Erreur lors du contrôle qualité",
+    "error_gastro": "Erreur lors de la connexion au guide"
   },
   "review": {
     "my_reviews": "Mes Avis",
@@ -721,5 +776,35 @@
   },
   "pending": "En attente",
   "processed": "Traité",
-  "rejected": "Rejeté"
+  "rejected": "Rejeté",
+  "support": {
+    "call_support": "Appeler le support",
+    "whatsapp": "WhatsApp",
+    "phone_number": "658 709 986",
+    "email": "support@cliceat.cm"
+  },
+  "shorts": {
+    "title": "ClicEat Shorts",
+    "no_videos": "Aucune vidéo pour le moment",
+    "share_video": "Partager mon avis vidéo",
+    "uploading": "Envoi en cours...",
+    "upload_success": "Vidéo publiée, en attente de modération",
+    "like": "J'aime",
+    "views": "vues",
+    "empty": "Aucune vidéo disponible pour le moment.",
+    "share": "Partager",
+    "upload_title": "Publier un Short",
+    "upload_pick": "Choisir une vidéo (max 60s)",
+    "upload_record": "Filmer une vidéo",
+    "upload_change": "Changer la vidéo",
+    "upload_no_video": "Veuillez sélectionner une vidéo.",
+    "rating": "Note",
+    "caption": "Légende",
+    "caption_hint": "Décris ton expérience...",
+    "publish": "Publier",
+    "load_error": "Impossible de charger les Shorts.",
+    "upload_error": "Erreur lors de la publication.",
+    "like_error": "Erreur lors du like.",
+    "view_error": "Erreur lors du comptage de vue."
+  }
 }

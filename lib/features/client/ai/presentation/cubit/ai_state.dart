@@ -13,4 +13,24 @@ class AiState with _$AiState {
   }) = _Chat;
 
   const factory AiState.error(String message) = _Error;
+
+  // ── Photo Order ──────────────────────────────────────────────────────────
+  const factory AiState.photoOrderResult({
+    required List<Map<String, dynamic>> items,
+    required String message,
+  }) = _PhotoOrderResult;
+
+  // ── Quality Check ────────────────────────────────────────────────────────
+  const factory AiState.qualityResult({
+    required Map<String, dynamic> scores,
+    required int overall,
+    required String feedback,
+    required String recommendation,
+  }) = _QualityResult;
+
+  // ── Gastro Guide chat ─────────────────────────────────────────────────────
+  const factory AiState.gastroChat({
+    required List<Map<String, dynamic>> history,
+    required bool isTyping,
+  }) = _GastroChat;
 }
