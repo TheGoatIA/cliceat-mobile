@@ -40,6 +40,7 @@ import '../../features/client/review/presentation/pages/my_reviews_page.dart';
 import '../../features/client/wallet/presentation/pages/wallet_page.dart';
 import '../../features/client/dispute/presentation/pages/create_dispute_page.dart';
 import '../../features/client/dispute/presentation/pages/dispute_history_page.dart';
+import '../../features/delivery/wallet/presentation/pages/delivery_wallet_page.dart';
 import '../../features/client/ai/presentation/cubit/ai_cubit.dart';
 import '../../features/chat/presentation/cubit/chat_cubit.dart';
 import '../../features/client/referral/presentation/cubit/referral_cubit.dart';
@@ -529,6 +530,10 @@ final GoRouter appRouter = GoRouter(
             create: (context) => getIt<NotificationCubit>(),
             child: const NotificationsPage(),
           ),
+        ),
+        GoRoute(
+          path: 'wallet',
+          builder: (context, state) => const DeliveryWalletPage(),
         ),
       ],
     ),

@@ -342,6 +342,8 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                       _buildStatusCard(theme),
                       const SizedBox(height: 24),
                       _buildTodayStats(theme),
+                      const SizedBox(height: 16),
+                      _buildWalletTile(),
                       const SizedBox(height: 24),
                       _buildMissionsSection(theme),
                     ],
@@ -589,6 +591,56 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 fontWeight: FontWeight.w600,
                 color: _isOnline ? Colors.white : AppTheme.muted,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWalletTile() {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        context.push('/delivery/wallet');
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.colors.lineSoft),
+          boxShadow: AppTheme.shadowSm,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppTheme.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.account_balance_wallet_outlined,
+                color: AppTheme.green,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'delivery.wallet_title'.tr(),
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: context.colors.ink,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppTheme.mutedLight,
             ),
           ],
         ),
