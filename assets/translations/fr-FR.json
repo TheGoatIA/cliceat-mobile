@@ -712,7 +712,25 @@
   "ai": {
     "assistant_title": "Assistant IA",
     "ask": "Demander à l'IA",
-    "ask_hint": "Je cherche des pizzas autour de moi..."
+    "ask_hint": "Je cherche des pizzas autour de moi...",
+    "photo_order_title": "Commander par photo",
+    "photo_order_hint": "Prends en photo ce que tu veux manger",
+    "analyze": "Analyser",
+    "analyzing": "Gemini analyse votre photo...",
+    "add_to_cart": "Ajouter au panier",
+    "quality_title": "Contrôle qualité",
+    "quality_hint": "Prends en photo ton plat reçu",
+    "quality_ok": "Conforme",
+    "quality_warn": "À signaler",
+    "quality_refund": "Remboursement suggéré",
+    "open_dispute": "Ouvrir un litige",
+    "gastro_title": "Guide Gastronomique",
+    "gastro_subtitle": "Powered by Gemini",
+    "gastro_send": "Envoyer",
+    "gastro_hint": "Posez votre question...",
+    "error_photo_order": "Erreur lors de l'analyse de la photo",
+    "error_quality": "Erreur lors du contrôle qualité",
+    "error_gastro": "Erreur lors de la connexion au guide"
   },
   "review": {
     "my_reviews": "Mes Avis",

@@ -709,6 +709,20 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                           ),
                         if (isDelivered)
+                          IconButton(
+                            icon: const Icon(
+                              Icons.search_rounded,
+                              size: 20,
+                            ),
+                            onPressed: () => context.push(
+                              '/ai/quality-check?orderId=$orderId',
+                            ),
+                            tooltip: 'Vérifier la qualité 🔍',
+                            color: AppTheme.blue,
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
+                        if (isDelivered)
                           TextButton.icon(
                             onPressed: () {
                               showModalBottomSheet(

@@ -131,4 +131,71 @@ class AiRepository {
       return Left(AppError.network());
     }
   }
+
+  // ── Photo Order ────────────────────────────────────────────────────────────
+
+  Future<Either<AppError, Map<String, dynamic>>> analyzePhotoOrder({
+    required List<int> imageBytes,
+    required String filename,
+    required String restaurantId,
+  }) async {
+    try {
+      final res = await _service.analyzePhotoOrder(
+        imageBytes,
+        filename,
+        restaurantId,
+      );
+      if (res.isSuccessful && res.body != null) {
+        final data = res.body!['data'] as Map<String, dynamic>?;
+        return Right(data ?? res.body!);
+      }
+      return Left(AppError.fromResponse(res.body, 'ai.error_photo_order'));
+    } catch (e, s) {
+      debugPrint('[ai_repository.dart] analyzePhotoOrder error: $e\n$s');
+      return Left(AppError.network());
+    }
+  }
+
+  // ── Quality Check ──────────────────────────────────────────────────────────
+
+  Future<Either<AppError, Map<String, dynamic>>> checkQuality({
+    required List<int> imageBytes,
+    required String filename,
+    String? orderId,
+  }) async {
+    try {
+      final res = await _service.checkQuality(imageBytes, filename, orderId);
+      if (res.isSuccessful && res.body != null) {
+        final data = res.body!['data'] as Map<String, dynamic>?;
+        return Right(data ?? res.body!);
+      }
+      return Left(AppError.fromResponse(res.body, 'ai.error_quality'));
+    } catch (e, s) {
+      debugPrint('[ai_repository.dart] checkQuality error: $e\n$s');
+      return Left(AppError.network());
+    }
+  }
+
+  // ── Gastro Guide ───────────────────────────────────────────────────────────
+
+  Future<Either<AppError, String>> askGastroGuide({
+    required String question,
+    required List<Map<String, dynamic>> history,
+  }) async {
+    try {
+      final res = await _service.askGastroGuide({
+        'question': question,
+        'history': history,
+      });
+      if (res.isSuccessful && res.body != null) {
+        final data = res.body!['data'];
+        final reply = (data is Map ? data['reply'] : res.body!['reply']) as String?;
+        return Right(reply ?? '');
+      }
+      return Left(AppError.fromResponse(res.body, 'ai.error_gastro'));
+    } catch (e, s) {
+      debugPrint('[ai_repository.dart] askGastroGuide error: $e\n$s');
+      return Left(AppError.network());
+    }
+  }
 }

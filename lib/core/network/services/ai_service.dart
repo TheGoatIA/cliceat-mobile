@@ -25,4 +25,25 @@ abstract class AiService extends ChopperService {
   Future<Response<Map<String, dynamic>>> getConversationMessages(
     @Path('id') String id,
   );
+
+  @POST(path: '/photo-order')
+  @Multipart()
+  Future<Response<Map<String, dynamic>>> analyzePhotoOrder(
+    @PartFile('image') List<int> imageBytes,
+    @Part('filename') String filename,
+    @Part('restaurantId') String restaurantId,
+  );
+
+  @POST(path: '/quality-check')
+  @Multipart()
+  Future<Response<Map<String, dynamic>>> checkQuality(
+    @PartFile('image') List<int> imageBytes,
+    @Part('filename') String filename,
+    @Part('orderId') String? orderId,
+  );
+
+  @POST(path: '/gastro-guide')
+  Future<Response<Map<String, dynamic>>> askGastroGuide(
+    @Body() Map<String, dynamic> body,
+  );
 }

@@ -712,7 +712,25 @@
   "ai": {
     "assistant_title": "AI Assistant",
     "ask": "Ask AI",
-    "ask_hint": "I'm looking for pizzas near me..."
+    "ask_hint": "I'm looking for pizzas near me...",
+    "photo_order_title": "Order by photo",
+    "photo_order_hint": "Take a photo of what you want to eat",
+    "analyze": "Analyze",
+    "analyzing": "Gemini is analyzing your photo...",
+    "add_to_cart": "Add to cart",
+    "quality_title": "Quality check",
+    "quality_hint": "Take a photo of your received dish",
+    "quality_ok": "Compliant",
+    "quality_warn": "To report",
+    "quality_refund": "Refund suggested",
+    "open_dispute": "Open a dispute",
+    "gastro_title": "Gastro Guide",
+    "gastro_subtitle": "Powered by Gemini",
+    "gastro_send": "Send",
+    "gastro_hint": "Ask your question...",
+    "error_photo_order": "Error analyzing the photo",
+    "error_quality": "Error during quality check",
+    "error_gastro": "Error connecting to the guide"
   },
   "review": {
     "my_reviews": "My Reviews",

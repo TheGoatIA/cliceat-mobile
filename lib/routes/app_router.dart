@@ -36,6 +36,9 @@ import '../../features/chat/presentation/pages/chat_detail_page.dart';
 import '../../features/chat/data/models/chat_model.dart';
 import '../../features/client/referral/presentation/pages/referral_page.dart';
 import '../../features/client/ai/presentation/pages/ai_assistant_page.dart';
+import '../../features/client/ai/presentation/pages/photo_order_page.dart';
+import '../../features/client/ai/presentation/pages/quality_check_page.dart';
+import '../../features/client/ai/presentation/pages/gastro_guide_page.dart';
 import '../../features/client/review/presentation/pages/my_reviews_page.dart';
 import '../../features/client/wallet/presentation/pages/wallet_page.dart';
 import '../../features/client/dispute/presentation/pages/create_dispute_page.dart';
@@ -114,6 +117,9 @@ abstract class AppRoutes {
   static const update = '/update';
   static const mapPicker = '/map-picker';
   static const shorts = '/shorts';
+  static const photoOrder = '/ai/photo-order';
+  static const qualityCheck = '/ai/quality-check';
+  static const gastroGuide = '/ai/gastro-guide';
 }
 
 // ─── Public routes (accessible without authentication) ────────────────────────
@@ -583,6 +589,37 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.shorts,
       builder: (context, state) => const ShortsFeedPage(),
+    ),
+
+    // ── AI feature routes ─────────────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.photoOrder,
+      builder: (context, state) {
+        final restaurantId = state.uri.queryParameters['restaurantId'];
+        return BlocProvider(
+          create: (_) => getIt<AiCubit>(),
+          child: PhotoOrderPage(restaurantId: restaurantId),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: AppRoutes.qualityCheck,
+      builder: (context, state) {
+        final orderId = state.uri.queryParameters['orderId'];
+        return BlocProvider(
+          create: (_) => getIt<AiCubit>(),
+          child: QualityCheckPage(orderId: orderId),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: AppRoutes.gastroGuide,
+      builder: (context, state) => BlocProvider(
+        create: (_) => getIt<AiCubit>(),
+        child: const GastroGuidePage(),
+      ),
     ),
 
     GoRoute(

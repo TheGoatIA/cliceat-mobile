@@ -60,4 +60,58 @@ final class _$AiService extends AiService {
     final Request $request = Request('GET', $url, client.baseUrl);
     return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
   }
+
+  @override
+  Future<Response<Map<String, dynamic>>> analyzePhotoOrder(
+    List<int> imageBytes,
+    String filename,
+    String restaurantId,
+  ) {
+    final Uri $url = Uri.parse('/ai/photo-order');
+    final List<PartValue> $parts = <PartValue>[
+      PartValueFile<List<int>>('image', imageBytes),
+      PartValue<String>('filename', filename),
+      PartValue<String>('restaurantId', restaurantId),
+    ];
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      parts: $parts,
+      multipart: true,
+    );
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> checkQuality(
+    List<int> imageBytes,
+    String filename,
+    String? orderId,
+  ) {
+    final Uri $url = Uri.parse('/ai/quality-check');
+    final List<PartValue> $parts = <PartValue>[
+      PartValueFile<List<int>>('image', imageBytes),
+      PartValue<String>('filename', filename),
+      if (orderId != null) PartValue<String>('orderId', orderId),
+    ];
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      parts: $parts,
+      multipart: true,
+    );
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
+
+  @override
+  Future<Response<Map<String, dynamic>>> askGastroGuide(
+    Map<String, dynamic> body,
+  ) {
+    final Uri $url = Uri.parse('/ai/gastro-guide');
+    final $body = body;
+    final Request $request = Request('POST', $url, client.baseUrl, body: $body);
+    return client.send<Map<String, dynamic>, Map<String, dynamic>>($request);
+  }
 }
