@@ -57,6 +57,10 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
   void initState() {
     super.initState();
     _mission = widget.mission;
+    // Start navigation immediately with the status already in widget.mission,
+    // then _loadFreshMission will confirm/update the status and _tryStartNavigation
+    // will be a no-op if the destination hasn't changed (same destKey).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _tryStartNavigation());
     _loadFreshMission();
     _startLocationEmitting();
   }
