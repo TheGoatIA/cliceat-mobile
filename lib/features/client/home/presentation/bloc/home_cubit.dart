@@ -33,7 +33,7 @@ class HomeCubit extends Cubit<HomeState> {
 
       if (restaurants.isEmpty) {
         final featuredResult =
-            await getIt<RestaurantRepository>().getFeaturedRestaurants();
+            await getIt<RestaurantRepository>().getFeaturedRestaurants(city);
         featuredResult.fold((_) {}, (list) => restaurants = list);
       }
 

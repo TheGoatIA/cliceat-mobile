@@ -1,18 +1,18 @@
 part of 'navigation_cubit.dart';
 
 @freezed
-class NavigationState with _$NavigationState {
-  const factory NavigationState.idle() = _Idle;
-  const factory NavigationState.loading() = _Loading;
+abstract class NavigationState with _$NavigationState {
+  const factory NavigationState.idle() = NavigationIdle;
+  const factory NavigationState.loading() = NavigationLoading;
   const factory NavigationState.navigating({
     required OsrmRoute route,
     required int currentStepIndex,
     required double currentLat,
     required double currentLng,
     @Default(false) bool isRerouting,
-  }) = _Navigating;
+  }) = NavigationNavigating;
   const factory NavigationState.arrived({
     required OsrmRoute route,
-  }) = _Arrived;
-  const factory NavigationState.error(String message) = _Error;
+  }) = NavigationArrived;
+  const factory NavigationState.error(String message) = NavigationError;
 }

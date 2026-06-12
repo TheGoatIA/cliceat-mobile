@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class OsrmManeuver {
   final String type;
   final String? modifier;
@@ -132,7 +130,7 @@ class OsrmRoute {
 
   String get durationLabel {
     final minutes = (duration / 60).round();
-    if (minutes < 60) return '${minutes} min';
+    if (minutes < 60) return '$minutes min';
     final h = minutes ~/ 60;
     final m = minutes % 60;
     return '${h}h ${m}min';

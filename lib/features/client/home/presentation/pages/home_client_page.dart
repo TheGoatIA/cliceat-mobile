@@ -145,6 +145,11 @@ class _HomeClientPageState extends State<HomeClientPage> {
   void initState() {
     super.initState();
     _initializeCity();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<HomeCubit>().loadData(_selectedCity);
+      }
+    });
   }
 
   @override
@@ -416,18 +421,25 @@ class _HomeClientPageState extends State<HomeClientPage> {
     final isSelected = _selectedCity == city;
     return ListTile(
       onTap: () async {
-        final previousCity = _selectedCity;
         setState(() {
           _selectedCity = city;
         });
         context.pop();
         _loadData();
         final lowerCity = city == 'Yaound\u00e9' ? 'yaounde' : 'douala';
-        final result = await context.read<ProfileCubit>().updateProfile({'city': lowerCity});
+        
+        final profileCubit = context.read<ProfileCubit>();
+        profileCubit.state.maybeWhen(
+          loaded: (user) {
+            profileCubit.emitLoaded(user.copyWith(city: lowerCity));
+          },
+          orElse: () {},
+        );
+
+        final result = await profileCubit.updateProfile({'city': lowerCity});
         result.fold(
           (err) {
             if (mounted) {
-              setState(() { _selectedCity = previousCity; });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('common.error'.tr())),
               );

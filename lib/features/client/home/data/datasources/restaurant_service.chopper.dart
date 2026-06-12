@@ -46,9 +46,15 @@ final class _$RestaurantService extends RestaurantService {
   }
 
   @override
-  Future<Response<dynamic>> getFeaturedRestaurants() {
+  Future<Response<dynamic>> getFeaturedRestaurants(String? city) {
     final Uri $url = Uri.parse('/restaurants/featured');
-    final Request $request = Request('GET', $url, client.baseUrl);
+    final Map<String, dynamic> $params = <String, dynamic>{'city': city};
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+    );
     return client.send<dynamic, dynamic>($request);
   }
 

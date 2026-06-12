@@ -21,8 +21,8 @@ import '../../features/auth/presentation/bloc/auth_bloc.dart' as _i797;
 import '../../features/chat/data/datasources/chat_service.dart' as _i321;
 import '../../features/chat/data/repositories/chat_repository.dart' as _i796;
 import '../../features/chat/presentation/cubit/chat_cubit.dart' as _i305;
+import '../../features/client/ai/data/local/ai_dao.dart' as _i487;
 import '../../features/client/ai/data/repositories/ai_repository.dart' as _i48;
-import '../../features/client/ai/data/local/ai_dao.dart' as _i91;
 import '../../features/client/ai/presentation/cubit/ai_cubit.dart' as _i585;
 import '../../features/client/banner/data/repositories/banner_repository.dart'
     as _i359;
@@ -52,8 +52,7 @@ import '../../features/client/home/data/repositories/promotion_repository.dart'
     as _i241;
 import '../../features/client/home/data/repositories/restaurant_repository.dart'
     as _i1001;
-import '../../features/client/home/presentation/bloc/home_cubit.dart'
-    as _i999;
+import '../../features/client/home/presentation/bloc/home_cubit.dart' as _i283;
 import '../../features/client/home/presentation/bloc/promotion_cubit.dart'
     as _i340;
 import '../../features/client/notification/data/repositories/notification_repository.dart'
@@ -97,8 +96,8 @@ import '../data/local/daos/cart_dao.dart' as _i322;
 import '../data/local/daos/chat_dao.dart' as _i468;
 import '../data/local/daos/favorites_dao.dart' as _i968;
 import '../data/local/daos/menu_dao.dart' as _i594;
+import '../data/local/daos/offline_queue_dao.dart' as _i914;
 import '../data/local/daos/order_dao.dart' as _i427;
-import '../data/local/daos/offline_queue_dao.dart' as _i633;
 import '../data/local/daos/pending_actions_dao.dart' as _i902;
 import '../data/local/daos/restaurant_dao.dart' as _i471;
 import '../data/local/daos/user_prefs_dao.dart' as _i658;
@@ -106,6 +105,7 @@ import '../data/local/database.dart' as _i475;
 import '../network/repositories/platform_repository.dart' as _i173;
 import '../network/services/ai_service.dart' as _i176;
 import '../network/services/coupon_service.dart' as _i851;
+import '../network/services/navigation_service.dart' as _i308;
 import '../network/services/platform_service.dart' as _i525;
 import '../network/services/referral_service.dart' as _i596;
 import '../network/services/review_service.dart' as _i289;
@@ -119,7 +119,6 @@ import '../services/notification_service.dart' as _i941;
 import '../services/precache_service.dart' as _i1048;
 import '../services/sync_manager_service.dart' as _i114;
 import '../services/token_service.dart' as _i227;
-import '../network/services/navigation_service.dart' as _i392;
 import '../services/websocket_service.dart' as _i555;
 import '../theme/presentation/bloc/theme_cubit.dart' as _i787;
 import 'core_module.dart' as _i154;
@@ -134,6 +133,7 @@ extension GetItInjectableX on _i174.GetIt {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final coreModule = _$CoreModule();
     final networkModule = _$NetworkModule();
+    gh.factory<_i283.HomeCubit>(() => _i283.HomeCubit());
     gh.lazySingleton<_i974.Logger>(() => coreModule.logger);
     gh.lazySingleton<_i475.AppDatabase>(() => coreModule.database);
     gh.lazySingleton<_i558.FlutterSecureStorage>(
@@ -152,6 +152,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i658.UserPrefsDao>(
       () => _i658.UserPrefsDao(gh<_i475.AppDatabase>()),
+    );
+    gh.lazySingleton<_i487.AiLocalDao>(
+      () => _i487.AiLocalDao(gh<_i475.AppDatabase>()),
     );
     gh.lazySingleton<_i222.AnalyticsService>(
       () => _i222.AnalyticsService(gh<_i974.Logger>()),
@@ -180,11 +183,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i594.MenuDao>(
       () => _i594.MenuDao(gh<_i475.AppDatabase>()),
     );
+    gh.lazySingleton<_i914.OfflineQueueDao>(
+      () => _i914.OfflineQueueDao(gh<_i475.AppDatabase>()),
+    );
     gh.lazySingleton<_i902.PendingActionsDao>(
       () => _i902.PendingActionsDao(gh<_i475.AppDatabase>()),
-    );
-    gh.lazySingleton<_i633.OfflineQueueDao>(
-      () => _i633.OfflineQueueDao(gh<_i475.AppDatabase>()),
     );
     await gh.lazySingletonAsync<_i31.ChopperClient>(
       () => networkModule.chopperClient(
@@ -193,13 +196,20 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       preResolve: true,
     );
-    gh.lazySingleton<_i787.ThemeCubit>(
-      () =>
-          _i787.ThemeCubit(gh<_i658.UserPrefsDao>(), gh<_i227.TokenService>()),
+    gh.lazySingleton<_i114.SyncManagerService>(
+      () => _i114.SyncManagerService(
+        gh<_i902.PendingActionsDao>(),
+        gh<_i914.OfflineQueueDao>(),
+        gh<_i974.Logger>(),
+      ),
     );
     gh.lazySingleton<_i555.WebSocketService>(
       () =>
           _i555.WebSocketService(gh<_i227.TokenService>(), gh<_i974.Logger>()),
+    );
+    gh.lazySingleton<_i787.ThemeCubit>(
+      () =>
+          _i787.ThemeCubit(gh<_i658.UserPrefsDao>(), gh<_i227.TokenService>()),
     );
     gh.lazySingleton<_i308.CartCubit>(
       () => _i308.CartCubit(
@@ -258,27 +268,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i996.PromotionService>(
       () => networkModule.getPromotionService(gh<_i31.ChopperClient>()),
     );
-    gh.lazySingleton<_i392.NavigationService>(
-      () => networkModule.getNavigationService(gh<_i31.ChopperClient>()),
-    );
     gh.lazySingleton<_i580.PayoutService>(
       () => networkModule.getPayoutService(gh<_i31.ChopperClient>()),
     );
-    gh.lazySingleton<_i91.AiLocalDao>(
-      () => _i91.AiLocalDao(gh<_i475.AppDatabase>()),
-    );
-    gh.factory<_i48.AiRepository>(
-      () => _i48.AiRepository(gh<_i176.AiService>(), gh<_i91.AiLocalDao>()),
+    gh.lazySingleton<_i308.NavigationService>(
+      () => networkModule.getNavigationService(gh<_i31.ChopperClient>()),
     );
     gh.lazySingleton<_i863.CouponRepository>(
       () => _i863.CouponRepository(gh<_i851.CouponService>()),
-    );
-    gh.lazySingleton<_i114.SyncManagerService>(
-      () => _i114.SyncManagerService(
-        gh<_i902.PendingActionsDao>(),
-        gh<_i633.OfflineQueueDao>(),
-        gh<_i974.Logger>(),
-      ),
     );
     gh.lazySingleton<_i1060.OrderRepository>(
       () => _i1060.OrderRepository(
@@ -348,7 +345,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i28.BannerCubit>(
       () => _i28.BannerCubit(gh<_i359.BannerRepository>()),
     );
-    gh.factory<_i585.AiCubit>(() => _i585.AiCubit(gh<_i48.AiRepository>()));
     gh.lazySingleton<_i953.NotificationRepository>(
       () => _i953.NotificationRepository(gh<_i895.UserService>()),
     );
@@ -370,10 +366,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i816.PaymentService>(),
       ),
     );
+    gh.factory<_i48.AiRepository>(
+      () => _i48.AiRepository(gh<_i176.AiService>(), gh<_i487.AiLocalDao>()),
+    );
     gh.factory<_i340.PromotionCubit>(
       () => _i340.PromotionCubit(gh<_i241.PromotionRepository>()),
     );
-    gh.factory<_i999.HomeCubit>(() => _i999.HomeCubit());
     gh.lazySingleton<_i1001.RestaurantRepository>(
       () => _i1001.RestaurantRepository(
         gh<_i813.RestaurantService>(),
@@ -408,6 +406,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i117.NotificationCubit>(
       () => _i117.NotificationCubit(gh<_i953.NotificationRepository>()),
     );
+    gh.factory<_i585.AiCubit>(() => _i585.AiCubit(gh<_i48.AiRepository>()));
     gh.factory<_i341.WalletCubit>(
       () => _i341.WalletCubit(gh<_i691.WalletRepository>()),
     );

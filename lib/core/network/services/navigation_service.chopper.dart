@@ -29,9 +29,7 @@ final class _$NavigationService extends NavigationService {
   }
 
   @override
-  Future<Response<Map<String, dynamic>>> reroute(
-    Map<String, dynamic> body,
-  ) {
+  Future<Response<Map<String, dynamic>>> reroute(Map<String, dynamic> body) {
     final Uri $url = Uri.parse('/navigation/reroute');
     final $body = body;
     final Request $request = Request('POST', $url, client.baseUrl, body: $body);

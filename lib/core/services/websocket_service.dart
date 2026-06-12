@@ -113,7 +113,7 @@ class WebSocketService {
       _socket?.emit('driver:location', {
         'lat': lat,
         'lng': lng,
-        if (heading != null) 'heading': heading,
+        'heading': ?heading,
       });
     }
   }
@@ -223,6 +223,11 @@ class WebSocketService {
 
     _socket!.on('driver:location', (data) {
       _logger.d('[WS] Position livreur reçue (room): $data');
+      _driverLocationController.add(_toMap(data));
+    });
+
+    _socket!.on('driver_location', (data) {
+      _logger.d('[WS] Position livreur reçue (driver_location): $data');
       _driverLocationController.add(_toMap(data));
     });
 

@@ -88,5 +88,9 @@
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>En mode Livreur, ClicEat a besoin de votre position en arrière-plan pour le suivi temps réel.</string>
 
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+	</array>
 </dict>
 </plist>

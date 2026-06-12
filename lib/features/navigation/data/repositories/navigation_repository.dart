@@ -18,7 +18,7 @@ class NavigationRepository {
       'originLng': originLng,
       'destLat': destLat,
       'destLng': destLng,
-      if (orderId != null) 'orderId': orderId,
+      'orderId': orderId,
     });
     if (!response.isSuccessful) {
       throw Exception('Failed to compute route: ${response.statusCode}');

@@ -20,7 +20,13 @@ class OrderItemModel {
     // item may be nested or flat
     final item = json['item'] as Map<String, dynamic>? ?? json;
     return OrderItemModel(
-      itemId: item['_id']?.toString() ?? item['id']?.toString() ?? '',
+      itemId: item['menuItemId']?.toString() ??
+          item['itemId']?.toString() ??
+          json['menuItemId']?.toString() ??
+          json['itemId']?.toString() ??
+          item['_id']?.toString() ??
+          item['id']?.toString() ??
+          '',
       name: item['name']?.toString() ?? json['name']?.toString() ?? '',
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       price:
@@ -60,6 +66,8 @@ class OrderModel {
   final double? rating;
   final String? invoiceUrl;
   final String? confirmationCode;
+  final double? restaurantLat;
+  final double? restaurantLng;
 
   const OrderModel({
     required this.id,
@@ -78,6 +86,8 @@ class OrderModel {
     this.rating,
     this.invoiceUrl,
     this.confirmationCode,
+    this.restaurantLat,
+    this.restaurantLng,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -125,6 +135,8 @@ class OrderModel {
       rating: (json['rating'] as num?)?.toDouble(),
       invoiceUrl: json['invoiceUrl']?.toString(),
       confirmationCode: json['confirmationCode']?.toString(),
+      restaurantLat: (json['restaurantLat'] as num?)?.toDouble(),
+      restaurantLng: (json['restaurantLng'] as num?)?.toDouble(),
     );
   }
 
@@ -146,5 +158,7 @@ class OrderModel {
     if (rating != null) 'rating': rating,
     if (invoiceUrl != null) 'invoiceUrl': invoiceUrl,
     if (confirmationCode != null) 'confirmationCode': confirmationCode,
+    if (restaurantLat != null) 'restaurantLat': restaurantLat,
+    if (restaurantLng != null) 'restaurantLng': restaurantLng,
   };
 }

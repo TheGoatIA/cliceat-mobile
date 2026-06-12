@@ -38,7 +38,7 @@ class ClientMainTabState extends State<ClientMainTab> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => getIt<HomeCubit>()..loadData('Yaoundé'),
+      create: (_) => getIt<HomeCubit>(),
       child: Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: Container(

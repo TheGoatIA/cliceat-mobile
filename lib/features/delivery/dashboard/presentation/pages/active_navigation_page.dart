@@ -47,7 +47,6 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
 
   PolylineAnnotationManager? _polylineAnnotationManager;
   PolylineAnnotation? _routeAnnotation;
-  PolylineAnnotation? _remainingAnnotation;
 
   late MissionModel _mission;
   bool _navigationStarted = false;
@@ -131,6 +130,13 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
 
   void _onMapCreated(MapboxMap map) {
     mapboxMap = map;
+    map.location.updateSettings(
+      LocationComponentSettings(
+        enabled: true,
+        pulsingEnabled: true,
+        pulsingMaxRadius: 50.0,
+      ),
+    );
     map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
     map.compass.updateSettings(CompassSettings(enabled: false));
     map.attribution.updateSettings(AttributionSettings(enabled: false));
@@ -256,7 +262,7 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
               ),
               // Arrival overlay
               if (navState is NavigationArrived)
-                _buildArrivalOverlay(navState as NavigationArrived),
+                _buildArrivalOverlay(navState),
               // Steps list overlay
               if (_showStepsList)
                 _buildStepsListOverlay(navState),
@@ -484,7 +490,12 @@ class _ActiveNavigationViewState extends State<_ActiveNavigationView> {
                               HapticFeedback.mediumImpact();
                               final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
                               final uri = Uri.parse('tel:$cleaned');
-                              if (await canLaunchUrl(uri)) await launchUrl(uri);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(
+                                  uri,
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              }
                             },
                           ),
                         ],

@@ -26,7 +26,7 @@ class OrderState with _$OrderState {
       _LoadingMore;
   const factory OrderState.cancelled() = _Cancelled;
   const factory OrderState.rated() = _Rated;
-  const factory OrderState.reorderSuccess(String newOrderId) = _ReorderSuccess;
+  const factory OrderState.reorderSuccess(String newOrderId, {String? paymentUrl}) = _ReorderSuccess;
   const factory OrderState.invoiceDownloaded(String filePath) =
       _InvoiceDownloaded;
   const factory OrderState.error(String message) = _Error;
@@ -190,7 +190,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     result.fold((err) {
       _logger.e('Error reordering: ${err.message}');
       emit(OrderState.error(err.message));
-    }, (order) => emit(OrderState.reorderSuccess(order.id)));
+    }, (order) => emit(OrderState.reorderSuccess(order.id, paymentUrl: order.paymentUrl)));
   }
 
   Future<void> _onRateOrder(RateOrder event, Emitter<OrderState> emit) async {

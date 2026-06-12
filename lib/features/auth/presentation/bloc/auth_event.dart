@@ -1,7 +1,7 @@
 part of 'auth_bloc.dart';
 
 @freezed
-class AuthEvent with _$AuthEvent {
+abstract class AuthEvent with _$AuthEvent {
   const factory AuthEvent.appStarted() = _AppStarted;
   const factory AuthEvent.sendOtp({required String phone}) = _SendOtp;
   const factory AuthEvent.verifyOtp({

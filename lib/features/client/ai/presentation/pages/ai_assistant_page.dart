@@ -85,7 +85,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
       body: BlocConsumer<AiCubit, AiState>(
         listener: (context, state) {
           state.maybeWhen(
-            chat: (_, messages, isTyping, __, ___) {
+            chat: (_, messages, isTyping, _, _) {
               if (isTyping || messages.isNotEmpty) _scrollToBottom();
             },
             orElse: () {},
@@ -220,7 +220,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: suggestions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final s = suggestions[index];
           return GestureDetector(

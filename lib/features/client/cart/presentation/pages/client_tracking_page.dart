@@ -36,6 +36,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   PolylineAnnotation? _breadcrumbPolyline;
   Uint8List? _driverIcon;
   Uint8List? _destinationIcon;
+  Uint8List? _restaurantIcon;
   OrderModel? _order;
 
   TrackingModel? _trackingData;
@@ -346,10 +347,57 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
     return data!.buffer.asUint8List();
   }
 
+  Future<Uint8List> _buildRestaurantIcon() async {
+    const size = 64.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
+
+    // Outer shadow
+    final paintShadow = Paint()
+      ..color = AppTheme.ink.withValues(alpha: 0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(const Offset(32, 32), 26, paintShadow);
+
+    // Outer dark circle
+    final paintOuter = Paint()..color = AppTheme.ink;
+    canvas.drawCircle(const Offset(32, 32), 24, paintOuter);
+
+    // White border ring
+    final paintRing = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    canvas.drawCircle(const Offset(32, 32), 24, paintRing);
+
+    // Draw Material Restaurant Icon
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
+    textPainter.text = TextSpan(
+      text: String.fromCharCode(Icons.restaurant_rounded.codePoint),
+      style: TextStyle(
+        fontSize: 32.0,
+        fontFamily: Icons.restaurant_rounded.fontFamily,
+        package: Icons.restaurant_rounded.fontPackage,
+        color: Colors.white,
+      ),
+    );
+    textPainter.layout();
+
+    textPainter.paint(
+      canvas,
+      Offset(32 - textPainter.width / 2, 32 - textPainter.height / 2),
+    );
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size.toInt(), size.toInt());
+    final data = await img.toByteData(format: ui.ImageByteFormat.png);
+    return data!.buffer.asUint8List();
+  }
+
   Future<void> _onMapCreated(MapboxMap map) async {
     mapboxMap = map;
     _driverIcon = await _buildDriverIcon();
     _destinationIcon = await _buildDestinationIcon();
+    _restaurantIcon = await _buildRestaurantIcon();
     // Create polyline manager first (rendered below point annotations)
     _polylineManager = await map.annotations.createPolylineAnnotationManager();
     _annotationManager = await map.annotations.createPointAnnotationManager();
@@ -401,14 +449,20 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   }
 
   Future<void> _fetchOsrmRoute(double driverLat, double driverLng) async {
-    final dest = _order?.deliveryAddress;
-    if (dest?.lat == null || dest?.lng == null) return;
+    if (_order == null) return;
+    final status = _trackingData?.status ?? _order!.status;
+    final isRestaurantPhase = status != 'picked_up' && status != 'en_route' && status != 'in_transit' && status != 'delivered';
+
+    final double? destLat = isRestaurantPhase ? _order!.restaurantLat : _order!.deliveryAddress?.lat;
+    final double? destLng = isRestaurantPhase ? _order!.restaurantLng : _order!.deliveryAddress?.lng;
+
+    if (destLat == null || destLng == null) return;
     try {
       final result = await _navRepository.computeRoute(
         originLat: driverLat,
         originLng: driverLng,
-        destLat: dest!.lat!,
-        destLng: dest.lng!,
+        destLat: destLat,
+        destLng: destLng,
         orderId: widget.orderId,
       );
       final route = result.route;
@@ -461,6 +515,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
           geometry: point,
           image: _driverIcon,
           iconSize: 0.9,
+          iconRotate: _driverHeading,
           textField: 'tracking.driver'.tr(),
           textSize: 10.0,
           textOffset: [0.0, 2.5],
@@ -471,6 +526,7 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
       );
     } else {
       _driverAnnotation!.geometry = point;
+      _driverAnnotation!.iconRotate = _driverHeading;
       await _annotationManager!.update(_driverAnnotation!);
     }
 
@@ -482,35 +538,37 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
   }
 
   Future<void> _updateDeliveryMarker() async {
-    if (_annotationManager == null || _destinationIcon == null) return;
+    if (_annotationManager == null || _destinationIcon == null || _restaurantIcon == null) return;
     if (_order == null) return;
 
-    final dest = _order!.deliveryAddress;
-    if (dest == null) return;
-    final lat = dest.lat;
-    final lng = dest.lng;
+    final status = _trackingData?.status ?? _order!.status;
+    final isRestaurantPhase = status != 'picked_up' && status != 'en_route' && status != 'in_transit' && status != 'delivered';
+
+    final double? lat = isRestaurantPhase ? _order!.restaurantLat : _order!.deliveryAddress?.lat;
+    final double? lng = isRestaurantPhase ? _order!.restaurantLng : _order!.deliveryAddress?.lng;
     if (lat == null || lng == null) return;
 
     final point = Point(coordinates: Position(lng, lat));
+    final image = isRestaurantPhase ? _restaurantIcon! : _destinationIcon!;
+    final textField = isRestaurantPhase ? (_order!.restaurantName ?? 'Restaurant') : 'tracking.destination'.tr();
 
-    if (_destinationAnnotation == null) {
-      _destinationAnnotation = await _annotationManager!.create(
-        PointAnnotationOptions(
-          geometry: point,
-          image: _destinationIcon,
-          iconSize: 0.9,
-          textField: 'tracking.destination'.tr(),
-          textSize: 10.0,
-          textOffset: [0.0, 2.5],
-          textColor: 0xFF1E1E1E,
-          textHaloColor: 0xFFFFFFFF,
-          textHaloWidth: 1.5,
-        ),
-      );
-    } else {
-      _destinationAnnotation!.geometry = point;
-      await _annotationManager!.update(_destinationAnnotation!);
+    if (_destinationAnnotation != null) {
+      await _annotationManager!.delete(_destinationAnnotation!);
     }
+
+    _destinationAnnotation = await _annotationManager!.create(
+      PointAnnotationOptions(
+        geometry: point,
+        image: image,
+        iconSize: 0.9,
+        textField: textField,
+        textSize: 10.0,
+        textOffset: [0.0, 2.5],
+        textColor: 0xFF1E1E1E,
+        textHaloColor: 0xFFFFFFFF,
+        textHaloWidth: 1.5,
+      ),
+    );
   }
 
   Future<void> _refreshEta() async {
@@ -1031,14 +1089,19 @@ class _ClientTrackingPageState extends State<ClientTrackingPage> {
                         final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
                         final uri = Uri.parse('tel:$cleaned');
 
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri);
-                        } else if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('tracking.call_unavailable'.tr()),
-                            ),
+                        try {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
                           );
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('tracking.call_unavailable'.tr()),
+                              ),
+                            );
+                          }
                         }
                       },
                       child: Semantics(
