@@ -126,6 +126,20 @@ class DeliveryProfilePage extends StatelessWidget {
                 onTap: () {},
               ),
               const SizedBox(height: 24),
+              _buildSectionTitle('Légal'),
+              _buildListTile(
+                context,
+                icon: Icons.privacy_tip_outlined,
+                title: 'profile.privacy_policy'.tr(),
+                onTap: () => context.push('/delivery/legal/privacy'),
+              ),
+              _buildListTile(
+                context,
+                icon: Icons.description_outlined,
+                title: 'profile.terms'.tr(),
+                onTap: () => context.push('/delivery/legal/terms'),
+              ),
+              const SizedBox(height: 24),
               _buildSectionTitle('Configuration App'),
               _buildSwitchTile(
                 context,

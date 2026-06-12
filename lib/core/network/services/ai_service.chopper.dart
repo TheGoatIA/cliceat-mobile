@@ -69,9 +69,9 @@ final class _$AiService extends AiService {
   ) {
     final Uri $url = Uri.parse('/ai/photo-order');
     final List<PartValue> $parts = <PartValue>[
-      PartValueFile<List<int>>('image', imageBytes),
       PartValue<String>('filename', filename),
       PartValue<String>('restaurantId', restaurantId),
+      PartValueFile<List<int>>('image', imageBytes),
     ];
     final Request $request = Request(
       'POST',
@@ -91,9 +91,9 @@ final class _$AiService extends AiService {
   ) {
     final Uri $url = Uri.parse('/ai/quality-check');
     final List<PartValue> $parts = <PartValue>[
-      PartValueFile<List<int>>('image', imageBytes),
       PartValue<String>('filename', filename),
-      if (orderId != null) PartValue<String>('orderId', orderId),
+      PartValue<String?>('orderId', orderId),
+      PartValueFile<List<int>>('image', imageBytes),
     ];
     final Request $request = Request(
       'POST',
