@@ -230,7 +230,7 @@ class DriverRepository {
 
   Future<Either<AppError, void>> setGoal(int amount) async {
     try {
-      final res = await _driverService.setGoal({'amount': amount});
+      final res = await _driverService.setGoal({'targetAmount': amount});
       if (res.isSuccessful) return const Right(null);
       return Left(AppError.fromResponse(res.body, 'common.error'));
     } catch (e, s) {

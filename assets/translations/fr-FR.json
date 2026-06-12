@@ -352,6 +352,8 @@
     "notifications": "Notifications",
     "language": "Langue",
     "help": "Aide & Support",
+    "privacy_policy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
     "logout": "Déconnexion",
     "logout_confirm_title": "Se déconnecter ?",
     "logout_confirm_message": "Êtes-vous sûr de vouloir vous déconnecter de ClicEat ?",

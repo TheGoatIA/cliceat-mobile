@@ -375,14 +375,14 @@ class _ProfilePageState extends State<ProfilePage> {
             icon: Icons.privacy_tip_outlined,
             title: 'profile.privacy_policy'.tr(),
             color: AppTheme.muted,
-            onTap: () => context.push('/client/legal/privacy'),
+            onTap: () => context.push('/legal/privacy'),
           ),
           _buildDivider(theme),
           _buildMenuItem(
             icon: Icons.description_outlined,
             title: 'profile.terms'.tr(),
             color: AppTheme.muted,
-            onTap: () => context.push('/client/legal/terms'),
+            onTap: () => context.push('/legal/terms'),
           ),
         ], theme),
 

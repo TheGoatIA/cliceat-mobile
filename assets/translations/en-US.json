@@ -352,6 +352,8 @@
     "notifications": "Notifications",
     "language": "Language",
     "help": "Help & Support",
+    "privacy_policy": "Privacy Policy",
+    "terms": "Terms of Use",
     "logout": "Sign out",
     "logout_confirm_title": "Sign out?",
     "logout_confirm_message": "Are you sure you want to sign out of ClicEat?",
