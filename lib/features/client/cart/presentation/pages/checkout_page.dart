@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,6 +32,10 @@ class _CheckoutPageState extends State<CheckoutPage> with SecureScreenMixin {
   String _selectedPaymentMethod = 'orange_money';
   final _couponController = TextEditingController();
   final _notesController = TextEditingController();
+
+  bool _isScheduled = false;
+  DateTime? _scheduledAt;
+  String? _scheduleError;
 
   CouponModel? _appliedCoupon;
   double _couponDiscount = 0.0;
@@ -231,6 +236,8 @@ class _CheckoutPageState extends State<CheckoutPage> with SecureScreenMixin {
                               ],
                             ),
                           ),
+                          _buildScheduleSection(context),
+                          const SizedBox(height: 16),
                           _buildPaymentMethods(context),
                           const SizedBox(height: 16),
                           _buildNotesSection(context),
@@ -368,6 +375,10 @@ class _CheckoutPageState extends State<CheckoutPage> with SecureScreenMixin {
       'items': items,
       if (_appliedCoupon != null) 'couponCode': _appliedCoupon!.code,
       if (notes.isNotEmpty) 'deliveryNotes': notes,
+      if (_isScheduled && _scheduledAt != null) ...{
+        'scheduledAt': _scheduledAt!.toUtc().toIso8601String(),
+        'isScheduled': true,
+      },
     };
 
     context.read<OrderBloc>().add(OrderEvent.createOrder(payload));
@@ -745,6 +756,210 @@ class _CheckoutPageState extends State<CheckoutPage> with SecureScreenMixin {
     );
   }
 
+  Future<void> _pickScheduledTime(BuildContext context) async {
+    final now = DateTime.now();
+    final minDate = now.add(const Duration(minutes: 30));
+
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: minDate,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 7)),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppTheme.primaryRed),
+        ),
+        child: child!,
+      ),
+    );
+    if (pickedDate == null || !mounted) return;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(minDate),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppTheme.primaryRed),
+        ),
+        child: child!,
+      ),
+    );
+    if (pickedTime == null || !mounted) return;
+
+    final scheduled = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    if (scheduled.isBefore(now.add(const Duration(minutes: 30)))) {
+      setState(() {
+        _scheduleError = 'order.schedule_min_time'.tr();
+        _scheduledAt = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _scheduledAt = scheduled;
+      _scheduleError = null;
+    });
+  }
+
+  Widget _buildScheduleSection(BuildContext context) {
+    return _buildSection(
+      title: 'order.schedule_title'.tr(),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.lineSoft),
+          boxShadow: AppTheme.shadowSm,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppTheme.redSoft,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.schedule_rounded,
+                    color: AppTheme.primaryRed,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Row(
+                    children: [
+                      _ScheduleOption(
+                        label: 'order.schedule_now'.tr(),
+                        selected: !_isScheduled,
+                        onTap: () => setState(() {
+                          _isScheduled = false;
+                          _scheduledAt = null;
+                          _scheduleError = null;
+                        }),
+                      ),
+                      const SizedBox(width: 8),
+                      _ScheduleOption(
+                        label: 'order.schedule_later'.tr(),
+                        selected: _isScheduled,
+                        onTap: () => setState(() => _isScheduled = true),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (_isScheduled) ...[
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _pickScheduledTime(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.bg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _scheduleError != null
+                          ? AppTheme.primaryRed
+                          : AppTheme.line,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 18,
+                        color: AppTheme.muted,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _scheduledAt != null
+                              ? '${'order.schedule_label'.tr()} ${DateFormat('EEEE HH:mm', 'fr_FR').format(_scheduledAt!)}'
+                              : 'order.schedule_pick_time'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: _scheduledAt != null
+                                ? AppTheme.ink
+                                : AppTheme.muted,
+                            fontWeight: _scheduledAt != null
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppTheme.mutedLight,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (_scheduleError != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  _scheduleError!,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.primaryRed,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+              if (_scheduledAt != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.redSoft,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        size: 16,
+                        color: AppTheme.primaryRed,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'order.schedule_info'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.primaryRed,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPaymentMethods(BuildContext context) {
     final configState = context.read<ConfigBloc>().state;
     final paymentConfig = configState.maybeWhen(
@@ -868,6 +1083,44 @@ class _CheckoutPageState extends State<CheckoutPage> with SecureScreenMixin {
             ),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.all(14),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScheduleOption extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ScheduleOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.primaryRed : AppTheme.bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppTheme.primaryRed : AppTheme.line,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: selected ? Colors.white : AppTheme.muted,
           ),
         ),
       ),

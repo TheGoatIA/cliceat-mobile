@@ -69,6 +69,8 @@ class OrderModel {
   final String? confirmationCode;
   final double? restaurantLat;
   final double? restaurantLng;
+  final bool isScheduled;
+  final DateTime? scheduledAt;
 
   const OrderModel({
     required this.id,
@@ -89,6 +91,8 @@ class OrderModel {
     this.confirmationCode,
     this.restaurantLat,
     this.restaurantLng,
+    this.isScheduled = false,
+    this.scheduledAt,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -138,6 +142,10 @@ class OrderModel {
       confirmationCode: json['confirmationCode']?.toString(),
       restaurantLat: (json['restaurantLat'] as num?)?.toDouble(),
       restaurantLng: (json['restaurantLng'] as num?)?.toDouble(),
+      isScheduled: json['isScheduled'] as bool? ?? false,
+      scheduledAt: json['scheduledAt'] != null
+          ? DateTime.tryParse(json['scheduledAt'].toString())
+          : null,
     );
   }
 
@@ -161,5 +169,7 @@ class OrderModel {
     if (confirmationCode != null) 'confirmationCode': confirmationCode,
     if (restaurantLat != null) 'restaurantLat': restaurantLat,
     if (restaurantLng != null) 'restaurantLng': restaurantLng,
+    'isScheduled': isScheduled,
+    if (scheduledAt != null) 'scheduledAt': scheduledAt!.toIso8601String(),
   };
 }

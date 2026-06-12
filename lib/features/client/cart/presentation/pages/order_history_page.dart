@@ -444,6 +444,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     final invoiceUrl = order['invoiceUrl']?.toString();
     final isDelivered = status == 'delivered';
     final isCancelled = status == 'cancelled';
+    final isScheduled = order['isScheduled'] as bool? ?? false;
     final locale = context.locale.languageCode;
     final createdAt = formatDate(order['createdAt'], locale: locale);
 
@@ -553,6 +554,39 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       ],
                     ),
                   ),
+                  if (isScheduled && status == 'pending')
+                    Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEDE9FE),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.schedule_rounded,
+                              size: 11,
+                              color: Color(0xFF7C3AED),
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              'order.scheduled_badge'.tr(),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF7C3AED),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   _buildStatusChip(status, theme),
                 ],
               ),
